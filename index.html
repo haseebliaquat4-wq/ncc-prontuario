@@ -310,7 +310,6 @@
             }
 
             if (needsUpdate && currentRoute) {
-                // Aggiorna il marker se le coordinate attuali sono cambiate
                 const key = `${currentRoute.title}_${currentStep}`;
                 if (coords[key] && marker) {
                     const { lat, lon } = coords[key];
@@ -318,9 +317,7 @@
                         marker.setLatLng([lat, lon]);
                     }
                 }
-                // Ridisegna le linee con le frecce
                 updateLines();
-                // Se il percorso corrente è stato modificato (es. passi cambiati), aggiorna la lista passi
                 const updated = routes.find(r => r.title === currentRoute.title);
                 if (updated && JSON.stringify(updated.steps) !== JSON.stringify(currentRoute.steps)) {
                     currentRoute = updated;
@@ -398,20 +395,38 @@
             if (coords[key]) {
                 placeMarker(coords[key].lat, coords[key].lon, step, key);
             } else {
+                // Se non ci sono coordinate, cerca l'ultima posizione nota del percorso
+                let fallbackLat, fallbackLng;
+                for (let i = currentStep - 1; i >= 0; i--) {
+                    const prevKey = `${currentRoute.title}_${i}`;
+                    if (coords[prevKey]) {
+                        fallbackLat = coords[prevKey].lat;
+                        fallbackLng = coords[prevKey].lon;
+                        break;
+                    }
+                }
+                if (fallbackLat === undefined) {
+                    const center = map.getCenter();
+                    fallbackLat = center.lat;
+                    fallbackLng = center.lng;
+                }
+
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(step+', Milano')}`)
                     .then(r => r.json())
                     .then(d => {
-                        const center = map.getCenter();
                         if (d.length) {
-                            const dist = getDistance(center.lat, center.lng, parseFloat(d[0].lat), parseFloat(d[0].lon));
-                            placeMarker(dist <= 1 ? parseFloat(d[0].lat) : center.lat, dist <= 1 ? parseFloat(d[0].lon) : center.lng, step, key);
+                            const dist = getDistance(fallbackLat, fallbackLng, parseFloat(d[0].lat), parseFloat(d[0].lon));
+                            if (dist <= 1) {
+                                placeMarker(parseFloat(d[0].lat), parseFloat(d[0].lon), step, key);
+                            } else {
+                                placeMarker(fallbackLat, fallbackLng, step, key);
+                            }
                         } else {
-                            placeMarker(center.lat, center.lng, step, key);
+                            placeMarker(fallbackLat, fallbackLng, step, key);
                         }
                     })
                     .catch(() => {
-                        const center = map.getCenter();
-                        placeMarker(center.lat, center.lng, step, key);
+                        placeMarker(fallbackLat, fallbackLng, step, key);
                     });
             }
         }
@@ -554,20 +569,37 @@
             if (coords[key]) {
                 createModalMarker(coords[key].lat, coords[key].lon, step, idx);
             } else {
+                // Fallback: ultima coordinata del percorso (se editing) o centro mappa modale
+                let fallbackLat, fallbackLng;
+                if (editingTitle) {
+                    // Cerca l'ultima coordinata nel percorso in modifica
+                    for (let i = idx - 1; i >= 0; i--) {
+                        const prevKey = `${editingTitle}_${i}`;
+                        if (coords[prevKey]) {
+                            fallbackLat = coords[prevKey].lat;
+                            fallbackLng = coords[prevKey].lon;
+                            break;
+                        }
+                    }
+                }
+                if (fallbackLat === undefined) {
+                    const center = modalMap.getCenter();
+                    fallbackLat = center.lat;
+                    fallbackLng = center.lng;
+                }
+
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(step+', Milano')}`)
                     .then(r => r.json())
                     .then(d => {
-                        const center = modalMap.getCenter();
                         if (d.length) {
-                            const dist = getDistance(center.lat, center.lng, parseFloat(d[0].lat), parseFloat(d[0].lon));
-                            createModalMarker(dist <= 1 ? parseFloat(d[0].lat) : center.lat, dist <= 1 ? parseFloat(d[0].lon) : center.lng, step, idx);
+                            const dist = getDistance(fallbackLat, fallbackLng, parseFloat(d[0].lat), parseFloat(d[0].lon));
+                            createModalMarker(dist <= 1 ? parseFloat(d[0].lat) : fallbackLat, dist <= 1 ? parseFloat(d[0].lon) : fallbackLng, step, idx);
                         } else {
-                            createModalMarker(center.lat, center.lng, step, idx);
+                            createModalMarker(fallbackLat, fallbackLng, step, idx);
                         }
                     })
                     .catch(() => {
-                        const center = modalMap.getCenter();
-                        createModalMarker(center.lat, center.lng, step, idx);
+                        createModalMarker(fallbackLat, fallbackLng, step, idx);
                     });
             }
         }
@@ -613,6 +645,15 @@
                     }
                 }
             } else {
+                // Nuovo percorso: trasferisci le coordinate temporanee
+                for (let i = 0; i < modalSteps.length; i++) {
+                    const oldKey = `TEMP_${i}`;
+                    const newKey = `${title}_${i}`;
+                    if (coords[oldKey] && !coords[newKey]) {
+                        coords[newKey] = coords[oldKey];
+                        delete coords[oldKey];
+                    }
+                }
                 routes.push({ title, steps: modalSteps });
             }
             localStorage.setItem('routes', JSON.stringify(routes));
