@@ -637,6 +637,42 @@ textarea.modal-input { resize: vertical; min-height: 100px; }
 </head>
 <body>
 
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+</style>
+
+<!-- LOADING SPLASH -->
+<div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.4s,visibility 0.4s;">
+  <div style="font-size:38px;color:white;font-weight:800;letter-spacing:-1px;">🚗 NCC Milano</div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0s infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.2s infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.4s infinite;"></div>
+  </div>
+  <div id="loadingMsg" style="color:rgba(255,255,255,0.55);font-size:14px;font-weight:600;">Connessione al cloud…</div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+</style>
+
+<!-- LOADING SPLASH -->
+<div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.4s,visibility 0.4s;">
+  <div style="font-size:38px;color:white;font-weight:800;letter-spacing:-1px;">&#x1F697; NCC Milano</div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0s infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.2s infinite;"></div>
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.4s infinite;"></div>
+  </div>
+  <div id="loadingMsg" style="color:rgba(255,255,255,0.55);font-size:14px;font-weight:600;">Connessione al cloud&#8230;</div>
+</div>
+
 <header>
   <div class="header-top">
     <div class="search-wrap">
@@ -797,16 +833,53 @@ function saveLocal() {
 }
 
 // Carica da Firebase all'avvio (solo lettura)
+function hideSplash() {
+  const splash = document.getElementById('loadingSplash');
+  if (splash) {
+    splash.style.opacity = '0';
+    splash.style.visibility = 'hidden';
+    setTimeout(() => splash.remove(), 450);
+  }
+}
+
+function setLoadingMsg(msg) {
+  const el = document.getElementById('loadingMsg');
+  if (el) el.textContent = msg;
+}
+
+// Timeout di sicurezza: se Firebase non risponde entro 5s, mostra i dati locali
+const cloudTimeout = setTimeout(() => {
+  setLoadingMsg('Offline — dati locali');
+  setTimeout(() => {
+    hideSplash();
+    if (routes.length) selectRoute(routes[0]);
+  }, 800);
+}, 5000);
+
 cloudRef.once('value', snap => {
+  clearTimeout(cloudTimeout);
   const data = snap.val();
   if (data) {
+    setLoadingMsg('Sincronizzazione completata');
     if (data.routes)    { routes    = data.routes;    }
     if (data.coords)    { coords    = data.coords;    }
     if (data.errors)    { errors    = data.errors;    }
     if (data.quizStats) { quizStats = data.quizStats; }
     saveLocal();
-    if (routes.length) selectRoute(routes[0]);
+  } else {
+    setLoadingMsg('Nessun dato cloud — uso locale');
   }
+  setTimeout(() => {
+    hideSplash();
+    if (routes.length) selectRoute(routes[0]);
+  }, 400);
+}, err => {
+  clearTimeout(cloudTimeout);
+  setLoadingMsg('Errore cloud — dati locali');
+  setTimeout(() => {
+    hideSplash();
+    if (routes.length) selectRoute(routes[0]);
+  }, 800);
 });
 
 // ==================== MAPPA PRINCIPALE ====================
@@ -1419,7 +1492,8 @@ function showToast(msg) {
 // ==================== AVVIO ====================
 window.onload = function() {
   initMap();
-  if (routes.length) selectRoute(routes[0]);
+  // Il primo selectRoute viene chiamato da Firebase dopo il caricamento cloud.
+  // Se Firebase non risponde, lo chiama il timeout di sicurezza.
 };
 </script>
 </body>
