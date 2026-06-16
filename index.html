@@ -395,7 +395,7 @@
             if (coords[key]) {
                 placeMarker(coords[key].lat, coords[key].lon, step, key);
             } else {
-                // Se non ci sono coordinate, cerca l'ultima posizione nota del percorso
+                // Coordinate non salvate: cerca l'ultima posizione nota
                 let fallbackLat, fallbackLng;
                 for (let i = currentStep - 1; i >= 0; i--) {
                     const prevKey = `${currentRoute.title}_${i}`;
@@ -569,10 +569,8 @@
             if (coords[key]) {
                 createModalMarker(coords[key].lat, coords[key].lon, step, idx);
             } else {
-                // Fallback: ultima coordinata del percorso (se editing) o centro mappa modale
                 let fallbackLat, fallbackLng;
                 if (editingTitle) {
-                    // Cerca l'ultima coordinata nel percorso in modifica
                     for (let i = idx - 1; i >= 0; i--) {
                         const prevKey = `${editingTitle}_${i}`;
                         if (coords[prevKey]) {
@@ -645,7 +643,7 @@
                     }
                 }
             } else {
-                // Nuovo percorso: trasferisci le coordinate temporanee
+                // Trasferisci le coordinate temporanee (TEMP_*) al nuovo titolo
                 for (let i = 0; i < modalSteps.length; i++) {
                     const oldKey = `TEMP_${i}`;
                     const newKey = `${title}_${i}`;
