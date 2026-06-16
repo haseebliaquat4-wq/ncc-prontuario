@@ -1,0 +1,627 @@
+
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Prontuario NCC Milano</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        /* stili identici alla versione precedente, non li ripeto per brevità ma sono inclusi nel file completo */
+        :root {
+            --primary: #0b1e33; --accent: #3b82f6; --success: #10b981;
+            --danger: #ef4444; --bg: #f4f6fb; --card: #ffffff;
+            --text: #1e293b; --border: #e2e8f0; --touch: 44px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden; touch-action: manipulation;
+        }
+        header {
+            background: var(--primary); color: white;
+            padding: 10px 12px; z-index: 1000;
+        }
+        .header-row {
+            display: flex; align-items: center; gap: 8px;
+            overflow-x: auto; white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 6px;
+        }
+        .header-row::-webkit-scrollbar { display: none; }
+        #searchBar {
+            flex: 1; min-width: 0; padding: 12px 16px;
+            border-radius: 24px; border: none;
+            background: rgba(255,255,255,0.15); color: white;
+            font-size: 16px; outline: none;
+        }
+        #searchBar::placeholder { color: rgba(255,255,255,0.6); }
+        .suggestions {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border-radius: 12px; margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 200px;
+            overflow-y: auto; display: none; z-index: 2000; list-style: none;
+        }
+        .suggestions li {
+            padding: 12px 16px; cursor: pointer; font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .chip {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white; padding: 10px 16px; border-radius: 24px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            white-space: nowrap; min-height: var(--touch);
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .chip:active { background: rgba(255,255,255,0.3); }
+        .chip.active { background: var(--accent); border-color: var(--accent); }
+        .chip.danger { background: rgba(239,68,68,0.3); border-color: var(--danger); }
+
+        .main-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #map { flex: 1; }
+
+        .control-panel {
+            background: var(--card); border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column;
+            max-height: 42vh;
+        }
+        .panel-header {
+            padding: 14px 16px 8px; border-bottom: 1px solid var(--border);
+        }
+        .panel-header h2 { font-size: 18px; font-weight: 700; }
+        .panel-header p { font-size: 14px; color: var(--accent); font-weight: 600; }
+        .steps-container { flex: 1; overflow-y: auto; padding: 8px 12px; }
+        .step-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 12px; margin-bottom: 4px;
+            opacity: 0.45; font-size: 15px;
+        }
+        .step-row.active { opacity: 1; background: #eef4ff; border-left: 4px solid var(--accent); font-weight: 700; }
+        .step-row.completed { opacity: 0.7; }
+        .step-number {
+            width: 26px; height: 26px; background: #cbd5e1; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+        }
+        .step-row.active .step-number { background: var(--accent); }
+        .hidden-mode .step-name { background: #e2e8f0; color: transparent; border-radius: 6px; }
+        .panel-footer {
+            padding: 8px 12px; border-top: 1px solid var(--border);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .btn {
+            flex: 1; padding: 12px; border-radius: 14px; border: none;
+            font-weight: 700; font-size: 16px; cursor: pointer;
+            min-height: 48px; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-secondary { background: #eef2f6; color: var(--text); }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-street { background: #f59e0b; color: #1e293b; }
+        .btn:disabled { opacity: 0.35; }
+
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 3000; visibility: hidden; opacity: 0; transition: 0.2s;
+        }
+        .modal.open { visibility: visible; opacity: 1; }
+        .modal-box {
+            background: white; padding: 20px; border-radius: 24px;
+            width: 92%; height: auto; max-height: 85vh; display: flex; flex-direction: column; gap: 12px;
+        }
+        .modal-box h3 { font-size: 18px; }
+        .modal-box input, .modal-box textarea {
+            width: 100%; padding: 12px; font-size: 16px;
+            border: 1px solid var(--border); border-radius: 12px; background: #f9fafb;
+        }
+        .modal-buttons { display: flex; gap: 8px; margin-top: 8px; }
+        .btn-save { background: var(--success); color: white; padding: 12px; border-radius: 14px; font-weight: bold; flex: 1; }
+        .btn-close { background: #e2e8f0; color: var(--text); padding: 12px; border-radius: 14px; font-weight: bold; flex: 1; }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--success); color: white; padding: 12px 20px;
+            border-radius: 24px; font-size: 16px; font-weight: bold;
+            z-index: 4000; display: none;
+        }
+
+        /* posizionamento manuale */
+        .placing-active {
+            cursor: crosshair !important;
+        }
+        .placing-active #map {
+            border: 3px solid var(--accent);
+        }
+        .step-row .place-btn {
+            margin-left: auto;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .main-container { flex-direction: row; }
+            .control-panel {
+                width: 380px; max-height: none;
+                border-radius: 20px 0 0 20px;
+                border-left: 1px solid var(--border);
+            }
+            .modal-box { width: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-row" style="position:relative;">
+            <input type="text" id="searchBar" placeholder="🔍 Cerca percorso..." autocomplete="off" oninput="showSuggestions()">
+            <ul class="suggestions" id="suggestionsList"></ul>
+            <span class="chip active" id="modeStudio" onclick="setMode('studio')">Studio</span>
+            <span class="chip" id="modeEsame" onclick="setMode('esame')">Cieco</span>
+            <span class="chip" id="modeQuiz" onclick="setMode('quiz')">Quiz</span>
+            <span class="chip" onclick="openAddModal()">➕</span>
+            <span class="chip" onclick="selectRandomRoute()">🔀</span>
+            <span class="chip" onclick="openRoutesManager()">📋</span>
+            <span class="chip danger" onclick="resetData()">🔄</span>
+            <span class="chip" onclick="exportData()">📤</span>
+            <span class="chip" onclick="importData()">📥</span>
+            <span class="chip" onclick="manualSaveToCloud()" title="Salva su cloud">💾</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div id="map"></div>
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2 id="currentRouteTitle">Prontuario NCC</h2>
+                <p id="routeProgress">Seleziona un percorso</p>
+            </div>
+            <div class="steps-container" id="stepsList"></div>
+            <div class="panel-footer">
+                <div id="normalFooter">
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" id="btnPrev" onclick="prevStep()" disabled>◀</button>
+                        <button class="btn btn-street" id="btnStreet" onclick="openStreetView()" disabled>👁️</button>
+                        <button class="btn btn-primary" id="btnNext" onclick="nextStep()" disabled>▶</button>
+                    </div>
+                    <button class="btn btn-secondary" id="btnReveal" onclick="revealStep()" style="display:none;">👁️ Scopri via</button>
+                </div>
+                <div id="quizFooter" style="display:none;">
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <input id="quizAnswer" placeholder="Scrivi la via..." style="flex:1; padding:12px; border-radius:12px; border:1px solid var(--border);">
+                        <button class="btn btn-primary" onclick="checkQuiz()" style="flex:0;">➡️</button>
+                    </div>
+                    <div id="quizFeedback" style="font-weight:bold; margin-bottom:8px;"></div>
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" onclick="skipQuiz()">⏭️ Salta</button>
+                        <button class="btn btn-secondary" onclick="revealStep()">👁️ Mostra</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale solo per inserire i nomi delle vie -->
+    <div class="modal" id="routeModal">
+        <div class="modal-box">
+            <h3 id="modalTitle">➕ Nuovo Percorso</h3>
+            <input type="text" id="newRouteTitle" placeholder="TITOLO (es. LINATE - OSPEDALE)">
+            <textarea id="newRouteSteps" placeholder="Incolla l'elenco delle vie (una per riga)"></textarea>
+            <div class="modal-buttons">
+                <button class="btn-close" onclick="closeAddModal()">Annulla</button>
+                <button class="btn-save" onclick="saveRouteText()">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Gestione Percorsi -->
+    <div class="modal" id="routesManagerModal">
+        <div class="modal-box" style="height:auto; max-height:80vh;">
+            <h3>📋 Percorsi salvati</h3>
+            <div id="routesManagerList" style="overflow-y:auto;"></div>
+            <button class="btn-close" onclick="closeRoutesManager()">Chiudi</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
+    <script>
+        // ==================== FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtVu_bZruWdB3nQz0MhrNmCE7lMonoGd4",
+            authDomain: "ncc-milano-2dbd0.firebaseapp.com",
+            databaseURL: "https://ncc-milano-2dbd0-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ncc-milano-2dbd0",
+            storageBucket: "ncc-milano-2dbd0.firebasestorage.app",
+            messagingSenderId: "511775426532",
+            appId: "1:511775426532:web:785259ec4e187e42aba9f1"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const cloudRef = db.ref('prontuario');
+
+        // ==================== DATI LOCALI ====================
+        const DEFAULT = [{
+            id: "default_0",
+            title: "CERCHIA DEI BASTIONI",
+            steps: ["P.ZA 24 MAGGIO","V.LE GIAN GALEAZZO","P.LE DI PORTA LODOVICA","V.LE BEATRICE D'ESTE","L.GO ISABELLA D'ARAGONA","V.LE BEATRICE D'ESTE","V.LE FILIPPETTI","P.LE MEDAGLIE D'ORO","P.ZA 25 APRILE","VIALE CRISPI","BASTIONI DI PORTA VOLTA","P.LE BIANCAMANO","P.LE LEGA LOMBARDA","V.LE ELVEZIA","VIA MELZI D'ERIL","VIA CANOVA","VIALE CALDARA","VIALE REGINA MARGHERITA","V.LE MILTON","V.LE MOLIERE","P.ZA 5 GIORNATE","V.LE BIANCA MARIA","P.ZA DEL TRICOLORE","V.LE MAJNO","VIA CURIE","VIA 20 SETTEMBRE","P.ZA CONCILIAZIONE","VIA ENRICO TOTI","P.ZA OBERDAN","P.LE BARACCA","BASTIONI DI PORTA VENEZIA","VIALE CITTA' DI FIUME","P.ZA DELLA REPUBBLICA","VIALE MONTESANTO","P.LE PRINCIPESSA CLOTILDE","V.LE DI PORTA VERCELLINA","P.LE AQUILEIA","V.LE PAPINIANO","P.ZA SANT'AGOSTINO","V.LE PAPINIANO","BASTIONI DI PORTA NUOVA","P.LE GENERAL CANTORE","V.LE GABRIELE D'ANNUNZIO","P.ZA 24 MAGGIO"]
+        }];
+
+        let routes = JSON.parse(localStorage.getItem('routes')) || DEFAULT;
+        let coords = JSON.parse(localStorage.getItem('coords')) || {};
+        let errors = JSON.parse(localStorage.getItem('errors')) || {};
+        let quizStats = JSON.parse(localStorage.getItem('quizStats')) || {};
+
+        // ==================== SINCRONIZZAZIONE CLOUD (SOLO MANUALE) ====================
+        function manualSaveToCloud() {
+            cloudRef.set({ routes, coords, errors, quizStats, ts: Date.now() })
+                .then(() => showToast('💾 Salvato su cloud'))
+                .catch(() => showToast('⚠️ Errore cloud'));
+        }
+
+        // All'avvio carica i dati da Firebase (ma non salva automaticamente)
+        cloudRef.once('value', snap => {
+            const data = snap.val();
+            if (data) {
+                if (data.routes) { routes = data.routes; localStorage.setItem('routes', JSON.stringify(routes)); }
+                if (data.coords) { coords = data.coords; localStorage.setItem('coords', JSON.stringify(coords)); }
+                if (data.errors) { errors = data.errors; localStorage.setItem('errors', JSON.stringify(errors)); }
+                if (data.quizStats) { quizStats = data.quizStats; localStorage.setItem('quizStats', JSON.stringify(quizStats)); }
+                if (routes.length) selectRoute(routes[0]);
+            }
+        });
+
+        // ==================== MAPPA ====================
+        let map, currentRoute = null, currentStep = 0, marker = null;
+        let doneLine = null, doneDecorator = null, nextLine = null;
+        let mode = 'studio';
+        let placingStepIndex = null;   // se attivo, l'utente sta posizionando un passo
+
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([45.4642, 9.1900], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+            L.control.zoom({ position: 'topright' }).addTo(map);
+
+            // click sulla mappa per posizionare manualmente
+            map.on('click', function(e) {
+                if (placingStepIndex !== null && currentRoute) {
+                    const key = `${currentRoute.id}_${placingStepIndex}`;
+                    const name = currentRoute.steps[placingStepIndex];
+                    coords[key] = { lat: e.latlng.lat, lon: e.latlng.lng };
+                    localStorage.setItem('coords', JSON.stringify(coords));
+                    placeMarker(e.latlng.lat, e.latlng.lng, name, key);
+                    updateLines();
+                    placingStepIndex = null;
+                    document.body.classList.remove('placing-active');
+                    showToast('📍 Posizionato!');
+                }
+            });
+        }
+
+        // ==================== PERCORSO ====================
+        function selectRoute(route) {
+            currentRoute = route;
+            currentStep = 0;
+            if (marker) { map.removeLayer(marker); marker = null; }
+            clearLines();
+            placingStepIndex = null;
+            document.body.classList.remove('placing-active');
+            document.getElementById('currentRouteTitle').textContent = route.title;
+            document.getElementById('searchBar').value = route.title;
+            renderSteps();
+            updateUI();
+            goToStep();
+        }
+
+        function renderSteps() {
+            const c = document.getElementById('stepsList'); c.innerHTML = '';
+            currentRoute.steps.forEach((s, i) => {
+                const key = `${currentRoute.id}_${i}`;
+                const hasCoord = !!coords[key];
+                const d = document.createElement('div');
+                d.className = `step-row ${i===currentStep?'active':(i<currentStep?'completed':'')} ${mode!=='studio'?'hidden-mode':''}`;
+                d.innerHTML = `
+                    <div class="step-number">${i+1}</div>
+                    <div class="step-name">${s}</div>
+                    ${!hasCoord ? `<button class="place-btn" onclick="startPlacing(${i})">📍</button>` : ''}
+                `;
+                c.appendChild(d);
+            });
+        }
+
+        window.startPlacing = function(index) {
+            placingStepIndex = index;
+            document.body.classList.add('placing-active');
+            showToast('Clicca sulla mappa per posizionare il marker');
+        };
+
+        function nextStep() {
+            if (currentStep < currentRoute.steps.length-1) {
+                currentStep++;
+                renderSteps(); updateUI(); goToStep();
+                if (currentStep === currentRoute.steps.length-1 && mode !== 'quiz') {
+                    errors[currentRoute.id] = errors[currentRoute.id] || {};
+                    errors[currentRoute.id].completed = true;
+                    localStorage.setItem('errors', JSON.stringify(errors));
+                    setTimeout(() => { alert('Percorso completato!'); selectRandomRoute(); }, 500);
+                }
+            }
+        }
+        function prevStep() {
+            if (currentStep > 0) { currentStep--; renderSteps(); updateUI(); goToStep(); }
+        }
+        function revealStep() {
+            const rows = document.querySelectorAll('.step-row');
+            if (rows[currentStep]) rows[currentStep].classList.add('revealed');
+            document.getElementById('quizFeedback').textContent = currentRoute.steps[currentStep];
+        }
+        function updateUI() {
+            document.getElementById('routeProgress').textContent = `Via ${currentStep+1} di ${currentRoute.steps.length}`;
+            document.getElementById('btnPrev').disabled = currentStep === 0;
+            document.getElementById('btnNext').disabled = currentStep === currentRoute.steps.length-1;
+            document.getElementById('btnStreet').disabled = !marker;
+            document.getElementById('btnReveal').style.display = mode === 'esame' ? 'block' : 'none';
+            document.getElementById('normalFooter').style.display = mode === 'quiz' ? 'none' : 'block';
+            document.getElementById('quizFooter').style.display = mode === 'quiz' ? 'block' : 'none';
+        }
+
+        function goToStep() {
+            const step = currentRoute.steps[currentStep];
+            const key = `${currentRoute.id}_${currentStep}`;
+            if (coords[key]) {
+                placeMarker(coords[key].lat, coords[key].lon, step, key);
+            } else {
+                // Nessuna coordinata, non fare nulla (l'utente dovrà posizionare manualmente)
+                // Se c'era un marker precedente, lo lasciamo dov'è
+                if (!marker) {
+                    // Al primo passo senza coordinate, non mostriamo niente
+                }
+            }
+        }
+
+        function placeMarker(lat, lon, name, key) {
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+                marker.getPopup().setContent(`<b>${name}</b>`);
+            } else {
+                marker = L.marker([lat, lon], { draggable: true }).addTo(map).bindPopup(`<b>${name}</b>`);
+            }
+            marker.off('dragend');
+            marker.on('dragend', () => {
+                const p = marker.getLatLng();
+                coords[key] = { lat: p.lat, lon: p.lng };
+                localStorage.setItem('coords', JSON.stringify(coords));
+                updateLines();
+            });
+            marker.openPopup();
+            updateLines();
+        }
+
+        function updateLines() {
+            if (doneDecorator) { map.removeLayer(doneDecorator); doneDecorator = null; }
+            if (doneLine) { map.removeLayer(doneLine); doneLine = null; }
+            if (nextLine) { map.removeLayer(nextLine); nextLine = null; }
+
+            const done = [], rem = [];
+            for (let i = 0; i <= currentStep; i++) {
+                const k = `${currentRoute.id}_${i}`;
+                if (coords[k]) done.push([coords[k].lat, coords[k].lon]);
+            }
+            for (let i = currentStep; i < currentRoute.steps.length; i++) {
+                const k = `${currentRoute.id}_${i}`;
+                if (coords[k]) rem.push([coords[k].lat, coords[k].lon]);
+            }
+
+            if (done.length > 1) {
+                doneLine = L.polyline(done, { color: '#3b82f6', weight: 5, opacity: 0.9 }).addTo(map);
+                doneDecorator = L.polylineDecorator(doneLine, {
+                    patterns: [{ offset: '5%', repeat: '100px', symbol: L.Symbol.arrowHead({ pixelSize: 16, pathOptions: { color: '#1e40af', weight: 3 } }) }]
+                }).addTo(map);
+            }
+            if (rem.length > 1) {
+                nextLine = L.polyline(rem, { color: '#94a3b8', weight: 3, opacity: 0.5, dashArray: '8 8' }).addTo(map);
+            }
+        }
+
+        function clearLines() {
+            if (doneDecorator) { map.removeLayer(doneDecorator); doneDecorator = null; }
+            if (doneLine) { map.removeLayer(doneLine); doneLine = null; }
+            if (nextLine) { map.removeLayer(nextLine); nextLine = null; }
+        }
+
+        function openStreetView() {
+            if (marker) {
+                const p = marker.getLatLng();
+                window.open(`https://www.google.com/maps?layer=c&cbll=${p.lat},${p.lng}`, '_blank');
+            }
+        }
+
+        // ==================== MODALITÀ ====================
+        function setMode(m) {
+            mode = m;
+            ['modeStudio','modeEsame','modeQuiz'].forEach(id => document.getElementById(id).className = 'chip');
+            document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.add('active');
+            if (currentRoute) renderSteps();
+            updateUI();
+            if (m === 'quiz') document.getElementById('quizAnswer').focus();
+        }
+
+        // ==================== QUIZ ====================
+        function checkQuiz() {
+            const ans = document.getElementById('quizAnswer').value.trim().toUpperCase();
+            const correct = currentRoute.steps[currentStep].toUpperCase();
+            const fb = document.getElementById('quizFeedback');
+            if (!quizStats[currentRoute.id]) quizStats[currentRoute.id] = { correct: 0, total: 0 };
+            quizStats[currentRoute.id].total++;
+            if (ans === correct) {
+                fb.textContent = '✅ Corretto!'; fb.style.color = 'green';
+                quizStats[currentRoute.id].correct++;
+                localStorage.setItem('quizStats', JSON.stringify(quizStats));
+                setTimeout(() => { if (currentStep < currentRoute.steps.length-1) nextStep(); else alert('Completato!'); }, 600);
+            } else {
+                fb.textContent = `❌ La via è: ${correct}`; fb.style.color = 'red';
+                localStorage.setItem('quizStats', JSON.stringify(quizStats));
+            }
+        }
+        function skipQuiz() {
+            const fb = document.getElementById('quizFeedback');
+            fb.textContent = `Risposta: ${currentRoute.steps[currentStep]}`; fb.style.color = 'orange';
+            if (!quizStats[currentRoute.id]) quizStats[currentRoute.id] = { correct: 0, total: 0 };
+            quizStats[currentRoute.id].total++;
+            localStorage.setItem('quizStats', JSON.stringify(quizStats));
+            setTimeout(() => { if (currentStep < currentRoute.steps.length-1) nextStep(); else alert('Completato!'); }, 600);
+        }
+
+        // ==================== MODALE AGGIUNTA SOLO TESTO ====================
+        function openAddModal(editId = null) {
+            document.getElementById('routeModal').classList.add('open');
+            if (editId) {
+                const route = routes.find(r => r.id === editId);
+                if (route) {
+                    document.getElementById('newRouteTitle').value = route.title;
+                    document.getElementById('newRouteSteps').value = route.steps.join('\n');
+                    document.getElementById('modalTitle').textContent = '✏️ Modifica';
+                    document.getElementById('routeModal').dataset.editId = editId;
+                }
+            } else {
+                document.getElementById('newRouteTitle').value = '';
+                document.getElementById('newRouteSteps').value = '';
+                document.getElementById('modalTitle').textContent = '➕ Nuovo';
+                document.getElementById('routeModal').dataset.editId = '';
+            }
+        }
+        function closeAddModal() { document.getElementById('routeModal').classList.remove('open'); }
+
+        function saveRouteText() {
+            const title = document.getElementById('newRouteTitle').value.trim().toUpperCase();
+            const stepsText = document.getElementById('newRouteSteps').value;
+            const steps = stepsText.split('\n').map(l => l.trim().toUpperCase()).filter(l => l);
+            if (!title || !steps.length) return alert("Titolo e vie obbligatori");
+            const editId = document.getElementById('routeModal').dataset.editId;
+            if (editId) {
+                const idx = routes.findIndex(r => r.id === editId);
+                if (idx !== -1) {
+                    routes[idx].title = title;
+                    routes[idx].steps = steps;
+                }
+            } else {
+                const id = 'r_' + Date.now().toString(36);
+                routes.push({ id, title, steps });
+            }
+            localStorage.setItem('routes', JSON.stringify(routes));
+            closeAddModal();
+            // Se il percorso corrente era quello modificato, ricaricalo
+            if (currentRoute && editId === currentRoute.id) selectRoute(routes.find(r => r.id === editId));
+        }
+
+        // ==================== GESTIONE PERCORSI ====================
+        function openRoutesManager() {
+            document.getElementById('routesManagerModal').classList.add('open');
+            const list = document.getElementById('routesManagerList'); list.innerHTML = '';
+            routes.forEach(r => {
+                const d = document.createElement('div');
+                d.style.cssText = 'display:flex; justify-content:space-between; padding:8px; background:#f8fafc; border-radius:8px; margin-bottom:4px;';
+                d.innerHTML = `<span>${r.title} (${r.steps.length})</span>
+                    <span>
+                        <button onclick="openAddModal('${r.id}')">✏️</button>
+                        <button onclick="deleteRoute('${r.id}')">🗑️</button>
+                    </span>`;
+                list.appendChild(d);
+            });
+        }
+        function closeRoutesManager() { document.getElementById('routesManagerModal').classList.remove('open'); }
+        window.deleteRoute = function(id) {
+            if (!confirm('Eliminare?')) return;
+            routes = routes.filter(r => r.id !== id);
+            // rimuovi coordinate associate
+            Object.keys(coords).forEach(k => { if (k.startsWith(id + '_')) delete coords[k]; });
+            localStorage.setItem('routes', JSON.stringify(routes));
+            localStorage.setItem('coords', JSON.stringify(coords));
+            if (currentRoute && currentRoute.id === id) {
+                currentRoute = null;
+                document.getElementById('currentRouteTitle').textContent = 'Prontuario NCC';
+                document.getElementById('stepsList').innerHTML = '';
+            }
+            closeRoutesManager();
+        };
+
+        // ==================== RICERCA E RANDOM ====================
+        function showSuggestions() {
+            const q = document.getElementById('searchBar').value.toUpperCase();
+            const ul = document.getElementById('suggestionsList'); ul.innerHTML = '';
+            if (!q) { ul.style.display = 'none'; return; }
+            const filtered = routes.filter(r => r.title.includes(q));
+            if (filtered.length) {
+                filtered.forEach(r => {
+                    const li = document.createElement('li'); li.textContent = r.title;
+                    li.onclick = () => { selectRoute(r); ul.style.display = 'none'; };
+                    ul.appendChild(li);
+                });
+                ul.style.display = 'block';
+            } else ul.style.display = 'none';
+        }
+
+        function selectRandomRoute() {
+            if (routes.length) selectRoute(routes[Math.floor(Math.random() * routes.length)]);
+        }
+
+        // ==================== UTILITY ====================
+        function resetData() { if (confirm('Cancellare tutti i dati?')) { localStorage.clear(); location.reload(); } }
+        function exportData() {
+            const blob = new Blob([JSON.stringify({routes,coords,errors,quizStats})], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'prontuario_backup.json'; a.click();
+        }
+        function importData() {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const data = JSON.parse(reader.result);
+                    if (data.routes) { routes = data.routes; localStorage.setItem('routes', JSON.stringify(routes)); }
+                    if (data.coords) { coords = data.coords; localStorage.setItem('coords', JSON.stringify(coords)); }
+                    if (data.errors) { errors = data.errors; localStorage.setItem('errors', JSON.stringify(errors)); }
+                    if (data.quizStats) { quizStats = data.quizStats; localStorage.setItem('quizStats', JSON.stringify(quizStats)); }
+                    location.reload();
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        // ==================== AVVIO ====================
+        window.onload = function() {
+            initMap();
+            if (routes.length) selectRoute(routes[0]);
+        };
+    </script>
+</body>
