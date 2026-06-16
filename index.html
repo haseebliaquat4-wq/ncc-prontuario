@@ -1,63 +1,511 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>NCC Pilot — Mappa Percorsi</title>
-<meta name="theme-color" content="#0b1020">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>NCC Pilot — Mappa Percorsi</title>
+  <meta name="theme-color" content="#0b1020">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='16' fill='%23f0b90b'/%3E%3Cpath d='M18 6 L24 24 L18 20 L12 24 Z' fill='%230b1020'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      --bg-deep: #0b1020;
+      --bg-card: #141c2e;
+      --bg-input: #1e2a3f;
+      --text-primary: #f0f3fa;
+      --text-secondary: #a0b0d0;
+      --accent: #f0b90b;
+      --accent-glow: #f7d44a;
+      --danger: #ff5e5e;
+      --success: #2ecc71;
+      --border: rgba(255,255,255,0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 20px 35px rgba(0,0,0,0.5);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      letter-spacing: -0.3px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .brand-icon {
+      font-size: 1.6rem;
+      filter: drop-shadow(0 0 6px var(--accent-glow));
+    }
+    .search-wrap {
+      flex: 1;
+      min-width: 160px;
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    #searchBar {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      border-radius: 30px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      transition: var(--transition);
+      outline: none;
+    }
+    #searchBar:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(240,185,11,0.15);
+    }
+    .suggestions {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 2000;
+      border: 1px solid var(--border);
+    }
+    .suggestions li {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .suggestions li:hover {
+      background: rgba(240,185,11,0.1);
+    }
+    .mode-switch {
+      display: flex;
+      background: var(--bg-input);
+      border-radius: 30px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .mode-btn {
+      padding: 6px 14px;
+      border-radius: 30px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .mode-btn.active {
+      background: var(--accent);
+      color: #0b1020;
+      box-shadow: 0 4px 10px rgba(240,185,11,0.3);
+    }
+    .actions {
+      position: relative;
+    }
+    .icon-btn {
+      background: var(--bg-input);
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.4rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .icon-btn:hover {
+      background: #2a3755;
+    }
+    .menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: 110%;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      min-width: 200px;
+      padding: 8px 0;
+      display: none;
+      z-index: 1500;
+      border: 1px solid var(--border);
+    }
+    .menu-dropdown button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-align: left;
+    }
+    .menu-dropdown button:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .menu-dropdown .danger {
+      color: var(--danger);
+    }
+    .menu-sep {
+      height: 1px;
+      background: var(--border);
+      margin: 6px 0;
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    #map {
+      flex: 1;
+      width: 100%;
+      z-index: 1;
+    }
+    .panel {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      transition: max-height var(--transition), padding var(--transition);
+      max-height: 45vh;
+      overflow-y: auto;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 25px rgba(0,0,0,0.4);
+      border-radius: 20px 20px 0 0;
+    }
+    .panel-grip {
+      padding: 12px 16px 4px;
+      cursor: row-resize;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 5;
+      border-radius: 20px 20px 0 0;
+      text-align: center;
+    }
+    .grip-bar {
+      display: inline-block;
+      width: 40px;
+      height: 5px;
+      background: #4a5568;
+      border-radius: 10px;
+      margin-bottom: 6px;
+    }
+    .panel-header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .progress-track {
+      height: 6px;
+      background: #2d3748;
+      border-radius: 10px;
+      margin: 6px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+    .steps-container {
+      padding: 8px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-input);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .step-item.active {
+      border-color: var(--accent);
+      background: #1e2f4a;
+      box-shadow: 0 0 15px rgba(240,185,11,0.15);
+    }
+    .step-num {
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 28px;
+      text-align: center;
+      background: rgba(240,185,11,0.15);
+      border-radius: 20px;
+      padding: 4px 0;
+      font-size: 0.85rem;
+    }
+    .step-name {
+      font-weight: 500;
+      flex: 1;
+    }
+    .step-name.blurred {
+      filter: blur(4px);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .panel-footer {
+      padding: 10px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      position: sticky;
+      bottom: 0;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn {
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      padding: 10px 18px;
+      font-size: 0.9rem;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      padding: 0;
+    }
+    .btn-pill {
+      border-radius: 30px;
+      background: var(--bg-input);
+    }
+    .btn-amber {
+      background: var(--accent);
+      color: #0b1020;
+      font-weight: 700;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px dashed var(--accent);
+      color: var(--accent);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0b1020;
+    }
+    .btn-secondary {
+      background: #2d3748;
+      color: #cbd5e0;
+    }
+    .quiz-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    #quizAnswer {
+      flex: 1;
+      padding: 12px;
+      border-radius: 30px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: white;
+      font-size: 1rem;
+    }
+    .quiz-feedback {
+      font-weight: 600;
+      text-align: center;
+      min-height: 24px;
+    }
+    /* modali */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      padding: 24px;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--shadow);
+    }
+    .modal-box-sm { max-width: 320px; }
+    .modal-box h3 { margin-bottom: 16px; }
+    .modal-box input, .modal-box textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: white;
+      font-family: inherit;
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-close, .btn-save {
+      padding: 10px 20px;
+      border-radius: 30px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-close { background: #4a5568; color: white; }
+    .btn-save { background: var(--accent); color: #0b1020; }
+    .btn-danger { background: var(--danger); }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      z-index: 4000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    @media (min-width: 768px) {
+      .main {
+        flex-direction: row;
+      }
+      .panel {
+        width: 380px;
+        max-height: 100%;
+        border-radius: 20px 0 0 20px;
+        border-top: none;
+        border-left: 1px solid var(--border);
+      }
+    }
+  </style>
 </head>
 <body>
-
 <div class="app">
-
   <header class="topbar">
-    <div class="brand">
-      <span class="brand-icon">🧭</span>
-      <span class="brand-name">NCC Pilot</span>
-    </div>
-
+    <div class="brand"><span class="brand-icon">🧭</span><span class="brand-name">NCC Pilot</span></div>
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchBar" placeholder="Cerca un percorso…" autocomplete="off">
       <ul class="suggestions" id="suggestionsList"></ul>
     </div>
-
     <div class="mode-switch" id="modeSwitch">
-      <span class="mode-indicator" id="modeIndicator"></span>
       <button class="mode-btn active" data-mode="studio">Studio</button>
       <button class="mode-btn" data-mode="esame">Esame</button>
       <button class="mode-btn" data-mode="quiz">Quiz</button>
     </div>
-
     <div class="actions">
       <button class="icon-btn" id="menuToggle" aria-label="Menu">⋮</button>
       <div class="menu-dropdown" id="menuDropdown">
-        <button data-action="add">➕ <span>Nuovo percorso</span></button>
-        <button data-action="random">🔀 <span>Percorso casuale</span></button>
-        <button data-action="manage">📋 <span>Gestisci percorsi</span></button>
-        <button data-action="cloud">☁️ <span>Salva su cloud</span></button>
-        <button data-action="export">📤 <span>Esporta dati</span></button>
-        <button data-action="import">📥 <span>Importa dati</span></button>
+        <button data-action="add">➕ Nuovo percorso</button>
+        <button data-action="random">🔀 Percorso casuale</button>
+        <button data-action="manage">📋 Gestisci percorsi</button>
+        <button data-action="export">📤 Esporta dati</button>
+        <button data-action="import">📥 Importa dati</button>
         <div class="menu-sep"></div>
-        <button data-action="reset" class="danger">🗑️ <span>Reset dati</span></button>
+        <button data-action="reset" class="danger">🗑️ Reset dati</button>
       </div>
     </div>
   </header>
 
   <main class="main">
     <div id="map"></div>
-
     <section class="panel" id="panel">
       <div class="panel-grip" id="panelGrip">
         <span class="grip-bar"></span>
@@ -67,42 +515,37 @@
           <p id="routeProgress">Nessun percorso attivo</p>
         </div>
       </div>
-
       <div class="steps-container" id="stepsList"></div>
-
       <div class="panel-footer">
         <div id="normalFooter">
           <button class="btn btn-ghost reveal-btn" id="btnReveal" style="display:none;">👁️ Scopri via</button>
           <div class="btn-row">
-            <button class="btn btn-circle" id="btnPrev" disabled aria-label="Via precedente">‹</button>
+            <button class="btn btn-circle" id="btnPrev" disabled>‹</button>
             <button class="btn btn-pill btn-amber" id="btnStreet" disabled>👁️ Street View</button>
-            <button class="btn btn-circle btn-primary" id="btnNext" disabled aria-label="Via successiva">›</button>
+            <button class="btn btn-circle btn-primary" id="btnNext" disabled>›</button>
           </div>
         </div>
-
         <div id="quizFooter" style="display:none;">
           <div class="quiz-input-row">
             <input id="quizAnswer" placeholder="Scrivi il nome della via…" autocomplete="off">
-            <button class="btn btn-circle btn-primary" id="btnQuizCheck" aria-label="Verifica">➜</button>
+            <button class="btn btn-circle btn-primary" id="btnQuizCheck">➜</button>
           </div>
           <div class="quiz-feedback" id="quizFeedback"></div>
           <div class="btn-row">
             <button class="btn btn-secondary" id="btnQuizSkip">⏭️ Salta</button>
             <button class="btn btn-secondary" id="btnQuizReveal">👁️ Mostra</button>
           </div>
- NCC, [Jun 16, 2026 at 16:59]
-</div>
+        </div>
       </div>
     </section>
   </main>
 </div>
 
-<!-- Modale: nuovo / modifica percorso -->
 <div class="modal" id="routeModal">
   <div class="modal-box">
     <h3 id="modalTitle">➕ Nuovo percorso</h3>
     <input type="text" id="newRouteTitle" placeholder="TITOLO (es. LINATE - OSPEDALE)">
-    <textarea id="newRouteSteps" placeholder="Incolla l'elenco delle vie (una per riga)"></textarea>
+    <textarea id="newRouteSteps" rows="5" placeholder="Incolla l'elenco delle vie (una per riga)"></textarea>
     <div class="modal-buttons">
       <button class="btn-close" id="btnCancelRoute">Annulla</button>
       <button class="btn-save" id="btnSaveRoute">Salva</button>
@@ -110,18 +553,16 @@
   </div>
 </div>
 
-<!-- Modale: gestione percorsi -->
 <div class="modal" id="routesManagerModal">
   <div class="modal-box">
     <h3>📋 Percorsi salvati</h3>
-    <div class="routes-manager-list" id="routesManagerList"></div>
-    <div class="modal-buttons">
+    <div class="routes-manager-list" id="routesManagerList" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-buttons" style="margin-top:16px;">
       <button class="btn-close" id="btnCloseManager">Chiudi</button>
     </div>
   </div>
 </div>
 
-<!-- Modale: conferma generica -->
 <div class="modal" id="confirmModal">
   <div class="modal-box modal-box-sm">
     <h3>⚠️ Conferma</h3>
@@ -132,13 +573,455 @@
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="js/app.js"></script>
+<script>
+  (function() {
+    // ---- STATE ----
+    const STORAGE_KEY = 'ncc_pilot_routes';
+    let routes = [];
+    let currentRouteIndex = -1;
+    let currentStepIndex = 0;
+    let mode = 'studio'; // studio | esame | quiz
+    let map, routeLine, markersLayer;
+    let currentMarker = null;
+
+    // ---- DOM ELEMENTS ----
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const searchBar = $('#searchBar');
+    const suggestionsList = $('#suggestionsList');
+    const modeBtns = $$('.mode-btn');
+    const menuToggle = $('#menuToggle');
+    const menuDropdown = $('#menuDropdown');
+    const panel = $('#panel');
+    const currentRouteTitle = $('#currentRouteTitle');
+    const progressFill = $('#progressFill');
+    const routeProgress = $('#routeProgress');
+    const stepsList = $('#stepsList');
+    const btnPrev = $('#btnPrev');
+    const btnNext = $('#btnNext');
+    const btnStreet = $('#btnStreet');
+    const btnReveal = $('#btnReveal');
+    const normalFooter = $('#normalFooter');
+    const quizFooter = $('#quizFooter');
+    const quizAnswer = $('#quizAnswer');
+    const quizFeedback = $('#quizFeedback');
+    const routeModal = $('#routeModal');
+    const newRouteTitle = $('#newRouteTitle');
+    const newRouteSteps = $('#newRouteSteps');
+    const modalTitle = $('#modalTitle');
+    const routesManagerModal = $('#routesManagerModal');
+    const routesManagerList = $('#routesManagerList');
+    const confirmModal = $('#confirmModal');
+    const confirmMessage = $('#confirmMessage');
+    const toast = $('#toast');
+
+    let confirmCallback = null;
+
+    // ---- INIT MAP ----
+    function initMap() {
+      map = L.map('map', {
+        center: [45.4642, 9.1900],
+        zoom: 13,
+        zoomControl: false,
+        attributionControl: false
+      });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(map);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    // ---- DATA ----
+    function loadRoutes() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try { routes = JSON.parse(stored); } catch(e){ routes = []; }
+      }
+      if (!routes.length) {
+        routes.push({
+          title: 'MILANO CENTRALE - DUOMO',
+          steps: ['Piazza Duca d\'Aosta', 'Via Vitruvio', 'Via Settembrini', 'Via Pergolesi', 'Corso Buenos Aires', 'Corso Venezia', 'Via San Damiano', 'Corso Vittorio Emanuele II', 'Piazza del Duomo']
+        });
+        routes.push({
+          title: 'LINATE - STAZIONE CENTRALE',
+          steps: ['Aeroporto di Linate', 'Viale Enrico Forlanini', 'Corso XXII Marzo', 'Corso Indipendenza', 'Via Castel Morrone', 'Via Plinio', 'Via Vitruvio', 'Piazza Duca d\'Aosta']
+        });
+        saveRoutes();
+      }
+    }
+    function saveRoutes() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+    }
+
+    // ---- UI UPDATE ----
+    function updateModeButtons() {
+      modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    }
+    function updateFooterMode() {
+      if (mode === 'quiz') {
+        normalFooter.style.display = 'none';
+        quizFooter.style.display = 'block';
+      } else {
+        normalFooter.style.display = 'block';
+        quizFooter.style.display = 'none';
+        btnReveal.style.display = (mode === 'esame') ? 'inline-flex' : 'none';
+      }
+    }
+    function renderSteps() {
+      if (currentRouteIndex < 0 || !routes[currentRouteIndex]) {
+        stepsList.innerHTML = '<p style="opacity:0.6; text-align:center;">Nessun percorso selezionato</p>';
+        return;
+      }
+      const route = routes[currentRouteIndex];
+      currentRouteTitle.textContent = route.title;
+      const steps = route.steps;
+      stepsList.innerHTML = steps.map((step, idx) => {
+        let nameDisplay = step;
+        if (mode === 'esame' && idx !== currentStepIndex) nameDisplay = '???';
+        if (mode === 'quiz') nameDisplay = '???';
+        const activeClass = idx === currentStepIndex ? 'active' : '';
+        const blurredClass = (mode === 'esame' || mode === 'quiz') && idx !== currentStepIndex ? 'blurred' : '';
+        return `<div class="step-item ${activeClass}" data-index="${idx}">
+                  <span class="step-num">${idx+1}</span>
+                  <span class="step-name ${blurredClass}">${nameDisplay}</span>
+                </div>`;
+      }).join('');
+      // progress
+      const total = steps.length;
+      const done = currentStepIndex + 1;
+      progressFill.style.width = total ? `${(done/total)*100}%` : '0%';
+      routeProgress.textContent = `Via ${done} di ${total}`;
+      // buttons
+      btnPrev.disabled = currentStepIndex <= 0;
+      btnNext.disabled = currentStepIndex >= total-1;
+      btnStreet.disabled = false;
+      if (mode === 'esame') btnReveal.style.display = 'inline-flex';
+    }
+    function updateMap() {
+      if (!map || currentRouteIndex < 0) return;
+      markersLayer.clearLayers();
+      if (routeLine) map.removeLayer(routeLine);
+      const route = routes[currentRouteIndex];
+      const coords = [];
+      // We'll geocode each step using nominatim (basic)
+      Promise.all(route.steps.map(step => geocodeStep(step))).then(results => {
+        results.forEach((latlng, idx) => {
+          if (latlng) {
+            coords.push(latlng);
+            const marker = L.circleMarker(latlng, {
+              radius: idx === currentStepIndex ? 10 : 7,
+              color: idx === currentStepIndex ? '#f0b90b' : '#ffffff',
+              fillColor: idx === currentStepIndex ? '#f0b90b' : '#4a5568',
+              fillOpacity: 0.9,
+              weight: 2
+            }).bindPopup(`<b>${idx+1}.</b> ${route.steps[idx]}`);
+            markersLayer.addLayer(marker);
+            if (idx === currentStepIndex) currentMarker = marker;
+          }
+        });
+        if (coords.length > 1) {
+          routeLine = L.polyline(coords, { color: '#f0b90b', weight: 4, opacity: 0.7, dashArray: '10 6' }).addTo(map);
+          map.fitBounds(routeLine.getBounds().pad(0.2));
+        } else if (coords.length === 1) {
+          map.setView(coords[0], 15);
+        }
+      }).catch(() => {});
+    }
+    async function geocodeStep(address) {
+      const full = address + ', Milano, Italia';
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(full)}&limit=1`;
+      try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data && data[0]) {
+          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        }
+      } catch(e) {}
+      return null;
+    }
+    function goToStep(index) {
+      if (!routes[currentRouteIndex]) return;
+      const max = routes[currentRouteIndex].steps.length - 1;
+      if (index < 0) index = 0;
+      if (index > max) index = max;
+      currentStepIndex = index;
+      renderSteps();
+      updateMap();
+      if (mode === 'quiz') {
+        quizAnswer.value = '';
+        quizFeedback.textContent = '';
+      }
+    }
+    function selectRoute(index) {
+      currentRouteIndex = index;
+      currentStepIndex = 0;
+      renderSteps();
+      updateMap();
+    }
+
+    // ---- MODE ----
+    function setMode(newMode) {
+      mode = newMode;
+      updateModeButtons();
+      updateFooterMode();
+      renderSteps();
+      if (mode === 'quiz') {
+        quizAnswer.value = '';
+        quizFeedback.textContent = '';
+      }
+    }
+
+    // ---- QUIZ LOGIC ----
+    function checkQuizAnswer() {
+      const route = routes[currentRouteIndex];
+      if (!route) return;
+      const correct = route.steps[currentStepIndex];
+      const userAnswer = quizAnswer.value.trim();
+      if (userAnswer.toLowerCase() === correct.toLowerCase()) {
+        quizFeedback.innerHTML = '✅ Corretto!';
+        quizFeedback.style.color = 'var(--success)';
+        setTimeout(() => {
+          if (currentStepIndex < route.steps.length-1) {
+            goToStep(currentStepIndex+1);
+          } else {
+            quizFeedback.textContent = '🎉 Percorso completato!';
+          }
+        }, 600);
+      } else {
+        quizFeedback.innerHTML = '❌ Riprova';
+        quizFeedback.style.color = 'var(--danger)';
+      }
+    }
+
+    // ---- EVENT LISTENERS ----
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { menuDropdown.style.display = 'none'; });
+
+    menuDropdown.addEventListener('click', (e) => {
+      const action = e.target.closest('button')?.dataset.action;
+      if (!action) return;
+      menuDropdown.style.display = 'none';
+      if (action === 'add') openAddRouteModal();
+      else if (action === 'random') selectRandomRoute();
+      else if (action === 'manage') openManageModal();
+      else if (action === 'export') exportData();
+      else if (action === 'import') importData();
+      else if (action === 'reset') confirmReset();
+    });
+
+    modeBtns.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+
+    btnPrev.addEventListener('click', () => goToStep(currentStepIndex-1));
+    btnNext.addEventListener('click', () => goToStep(currentStepIndex+1));
+    btnReveal.addEventListener('click', () => {
+      if (mode === 'esame') {
+        const stepItems = $$('.step-item');
+        if (stepItems[currentStepIndex]) {
+          const nameSpan = stepItems[currentStepIndex].querySelector('.step-name');
+          if (nameSpan) nameSpan.classList.remove('blurred');
+        }
+      }
+    });
+    btnStreet.addEventListener('click', () => {
+      const route = routes[currentRouteIndex];
+      if (!route) return;
+      const address = route.steps[currentStepIndex] + ', Milano';
+      window.open(`https://www.google.com/maps?q=${encodeURIComponent(address)}&layer=c&cbll=`, '_blank');
+    });
+
+    document.getElementById('btnQuizCheck').addEventListener('click', checkQuizAnswer);
+    document.getElementById('btnQuizSkip').addEventListener('click', () => {
+      if (currentStepIndex < routes[currentRouteIndex].steps.length-1) goToStep(currentStepIndex+1);
+      else quizFeedback.textContent = 'Fine percorso';
+    });
+    document.getElementById('btnQuizReveal').addEventListener('click', () => {
+      const stepItems = $$('.step-item');
+      if (stepItems[currentStepIndex]) {
+        const nameSpan = stepItems[currentStepIndex].querySelector('.step-name');
+        if (nameSpan) {
+          nameSpan.classList.remove('blurred');
+          nameSpan.textContent = routes[currentRouteIndex].steps[currentStepIndex];
+        }
+      }
+    });
+
+    // modali
+    document.getElementById('btnCancelRoute').addEventListener('click', () => routeModal.style.display='none');
+    document.getElementById('btnSaveRoute').addEventListener('click', saveNewRoute);
+    document.getElementById('btnCloseManager').addEventListener('click', () => routesManagerModal.style.display='none');
+    document.getElementById('confirmNo').addEventListener('click', () => { confirmModal.style.display='none'; confirmCallback=null; });
+    document.getElementById('confirmYes').addEventListener('click', () => {
+      if (confirmCallback) confirmCallback();
+      confirmModal.style.display='none';
+      confirmCallback=null;
+    });
+
+    function openAddRouteModal(editIndex = -1) {
+      if (editIndex >= 0) {
+        modalTitle.textContent = '✏️ Modifica percorso';
+        newRouteTitle.value = routes[editIndex].title;
+        newRouteSteps.value = routes[editIndex].steps.join('\n');
+        routeModal._editIndex = editIndex;
+      } else {
+        modalTitle.textContent = '➕ Nuovo percorso';
+        newRouteTitle.value = '';
+        newRouteSteps.value = '';
+        routeModal._editIndex = -1;
+      }
+      routeModal.style.display = 'flex';
+    }
+    function saveNewRoute() {
+      const title = newRouteTitle.value.trim();
+      const stepsRaw = newRouteSteps.value.trim();
+      if (!title || !stepsRaw) {
+        showToast('Inserisci titolo e vie');
+        return;
+      }
+      const steps = stepsRaw.split('\n').map(s => s.trim()).filter(s => s);
+      if (steps.length === 0) return;
+      const editIndex = routeModal._editIndex;
+      if (editIndex >= 0) {
+        routes[editIndex] = { title, steps };
+      } else {
+        routes.push({ title, steps });
+      }
+      saveRoutes();
+      routeModal.style.display = 'none';
+      if (editIndex >= 0 && currentRouteIndex === editIndex) {
+        selectRoute(editIndex);
+      }
+      showToast('Percorso salvato!');
+    }
+    function openManageModal() {
+      routesManagerList.innerHTML = routes.map((r, i) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+          <span style="cursor:pointer; flex:1;" data-idx="${i}">${r.title} (${r.steps.length} vie)</span>
+          <button class="btn-close" style="padding:4px 10px; margin-left:8px;" data-edit="${i}">✏️</button>
+          <button class="btn-close" style="padding:4px 10px; color:var(--danger);" data-delete="${i}">🗑️</button>
+        </div>
+      `).join('');
+      routesManagerList.querySelectorAll('span[data-idx]').forEach(span => {
+        span.addEventListener('click', () => {
+          selectRoute(parseInt(span.dataset.idx));
+          routesManagerModal.style.display = 'none';
+        });
+      });
+      routesManagerList.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => openAddRouteModal(parseInt(btn.dataset.edit)));
+      });
+      routesManagerList.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.delete);
+          confirmMessage.textContent = `Eliminare "${routes[idx].title}"?`;
+          confirmCallback = () => {
+            routes.splice(idx, 1);
+            saveRoutes();
+            if (currentRouteIndex === idx) { currentRouteIndex = -1; renderSteps(); updateMap(); }
+            else if (currentRouteIndex > idx) currentRouteIndex--;
+            openManageModal();
+          };
+          confirmModal.style.display = 'flex';
+        });
+      });
+      routesManagerModal.style.display = 'flex';
+    }
+    function selectRandomRoute() {
+      if (routes.length === 0) return;
+      const idx = Math.floor(Math.random() * routes.length);
+      selectRoute(idx);
+    }
+    function exportData() {
+      const dataStr = JSON.stringify(routes, null, 2);
+      const blob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ncc_pilot_backup.json';
+      a.click();
+      showToast('Dati esportati');
+    }
+    function importData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (Array.isArray(data)) {
+              routes = data;
+              saveRoutes();
+              currentRouteIndex = -1;
+              renderSteps();
+              updateMap();
+              showToast('Dati importati con successo');
+            }
+          } catch(ex) { showToast('File non valido'); }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+    function confirmReset() {
+      confirmMessage.textContent = 'Cancellare tutti i percorsi?';
+      confirmCallback = () => {
+        routes = [];
+        saveRoutes();
+        currentRouteIndex = -1;
+        renderSteps();
+        updateMap();
+        showToast('Dati resettati');
+      };
+      confirmModal.style.display = 'flex';
+    }
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    }
+
+    // panel resize (mobile grip)
+    let startY, startHeight;
+    panel.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.panel-grip')) {
+        startY = e.touches[0].clientY;
+        startHeight = panel.offsetHeight;
+        e.preventDefault();
+      }
+    });
+    panel.addEventListener('touchmove', (e) => {
+      if (startY !== undefined) {
+        const dy = startY - e.touches[0].clientY;
+        panel.style.maxHeight = Math.max(120, Math.min(window.innerHeight*0.8, startHeight + dy)) + 'px';
+      }
+    });
+    panel.addEventListener('touchend', () => { startY = undefined; });
+
+    // init
+    loadRoutes();
+    initMap();
+    if (routes.length > 0) selectRoute(0);
+    updateFooterMode();
+    updateModeButtons();
+
+    // close modals on overlay click
+    window.addEventListener('click', (e) => {
+      if (e.target === routeModal) routeModal.style.display = 'none';
+      if (e.target === routesManagerModal) routesManagerModal.style.display = 'none';
+      if (e.target === confirmModal) confirmModal.style.display = 'none';
+    });
+  })();
+</script>
 </body>
 </html>
