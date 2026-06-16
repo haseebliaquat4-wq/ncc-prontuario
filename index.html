@@ -687,72 +687,85 @@ function haptic(type='light') {
    SPLASH & BOOT — sequenza corretta
 ═══════════════════════════════════════════════ */
 let mapReady = false, cloudDone = false;
-let pendingRouteId = null;
-let pendingStep = 0;
 let bootDone = false; // evita double start
 
 function splashMsg(m) { const e = document.getElementById('splashMsg'); if(e) e.textContent = m; }
 function hideSplash() {
   const e = document.getElementById('splash'); if(!e) return;
-  e.classList.add('hide'); setTimeout(() => e.remove(), 550);
+  e.classList.add('hide'); setTimeout(() => { if(e.parentNode) e.parentNode.removeChild(e); }, 550);
 }
 
 function tryStart() {
   if (!mapReady || !cloudDone || bootDone) return;
   bootDone = true;
   hideSplash(); checkPwa();
-  // Trova percorso da caricare
-  const lastId = lsGet('lastRouteId', null);
-  const lastStep = parseInt(lsGet('lastStep', 0), 10) || 0;
-  let route = lastId ? routes.find(r => r.id === lastId) : null;
-  if (!route && routes.length) route = routes[0];
-  if (route) {
-    selectRoute(route);
-    if (lastStep > 0 && lastStep < route.steps.length) {
-      currentStep = lastStep;
-      renderSteps(); updateUI(); goToStep();
+  try {
+    const lastId = lsGet('lastRouteId', null);
+    const lastStep = parseInt(lsGet('lastStep', 0), 10) || 0;
+    let route = lastId ? routes.find(r => r.id === lastId) : null;
+    if (!route && routes.length) route = routes[0];
+    if (route) {
+      selectRoute(route);
+      if (lastStep > 0 && lastStep < route.steps.length) {
+        currentStep = lastStep;
+        renderSteps(); updateUI(); goToStep();
+      }
     }
+  } catch(e) {
+    console.error('tryStart error:', e);
   }
 }
 
 // Carica da Firebase — NON sovrascrive se import recente
 const IMPORT_FLAG_KEY = 'importedAt';
+// Timeout breve: 3s poi usa dati locali
 const cloudTimer = setTimeout(() => {
-  cloudDone = true;
-  splashMsg('Offline — uso dati locali');
-  tryStart();
-}, 5000);
+  if (!cloudDone) {
+    cloudDone = true;
+    splashMsg('Uso dati locali');
+    tryStart();
+  }
+}, 3000);
 
+// Avvia sempre cloudDone dopo timeout, indipendentemente da Firebase
 if (firebaseOk && cloudRef) {
   cloudRef.once('value', snap => {
     clearTimeout(cloudTimer);
-    const data = snap.val();
-    if (data && data.ts) {
-      const importedAt = lsGet(IMPORT_FLAG_KEY, 0);
-      // Se c'è stato un import più recente del cloud, ignora il cloud
-      if (importedAt && importedAt > data.ts) {
-        splashMsg('Dati locali più recenti — import mantenuto');
+    try {
+      const data = snap.val();
+      if (data && data.ts) {
+        const importedAt = lsGet(IMPORT_FLAG_KEY, 0);
+        if (importedAt && importedAt > data.ts) {
+          splashMsg('Dati locali più recenti ✓');
+        } else {
+          splashMsg('Dati sincronizzati ✓');
+          if (data.routes)    routes    = validateRoutes(data.routes);
+          if (data.coords)    coords    = validateCoords(data.coords);
+          if (data.quizStats && typeof data.quizStats === 'object') quizStats = data.quizStats;
+          if (data.completed && typeof data.completed === 'object') completed = data.completed;
+          saveLocal();
+        }
       } else {
-        splashMsg('Dati sincronizzati ✓');
-        if (data.routes)    routes    = validateRoutes(data.routes);
-        if (data.coords)    coords    = validateCoords(data.coords);
-        if (data.quizStats) quizStats = data.quizStats;
-        if (data.completed) completed = data.completed;
-        saveLocal();
+        splashMsg('Uso dati locali');
       }
-    } else {
-      splashMsg('Nessun dato cloud — uso locale');
+    } catch(e) {
+      splashMsg('Errore lettura dati');
     }
-    cloudDone = true; tryStart();
-  }, () => {
+    cloudDone = true;
+    tryStart();
+  }, err => {
     clearTimeout(cloudTimer);
     splashMsg('Errore cloud — uso dati locali');
-    cloudDone = true; tryStart();
+    cloudDone = true;
+    tryStart();
   });
 } else {
   clearTimeout(cloudTimer);
-  splashMsg('Firebase non disponibile — uso locale');
+  splashMsg('Avvio…');
   cloudDone = true;
+  // Non chiamare tryStart() qui — aspetta window.onload → initMap() → tryStart()
+  // Ma se la mappa è già pronta (race condition), chiamiamolo
+  if (mapReady) tryStart();
 }
 
 /* ═══════════════════════════════════════════════
@@ -1723,10 +1736,28 @@ function showToast(msg){
 /* ═══════════════════════════════════════════════
    AVVIO
 ═══════════════════════════════════════════════ */
-window.onload=function(){
-  window.addEventListener('online', ()=>showToast('🌐 Connessione ripristinata'));
-  window.addEventListener('offline',()=>showToast('📵 Offline — dati salvati localmente'));
-  initMap();
+window.onload = function() {
+  window.addEventListener('online',  () => showToast('🌐 Connessione ripristinata'));
+  window.addEventListener('offline', () => showToast('📵 Offline — dati salvati localmente'));
+  try {
+    initMap();
+  } catch(e) {
+    console.error('initMap error:', e);
+    // Forza boot anche se mappa fallisce
+    mapReady = true;
+    cloudDone = true;
+    tryStart();
+  }
+  // Boot di emergenza dopo 8s se ancora bloccato
+  setTimeout(() => {
+    if (!bootDone) {
+      console.warn('Emergency boot triggered');
+      mapReady = true;
+      cloudDone = true;
+      bootDone = false; // reset per permettere il boot
+      tryStart();
+    }
+  }, 8000);
 };
 </script>
 </body>
