@@ -7,385 +7,402 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1e33">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 <style>
-/* ============================================================
-   VARIABILI & RESET
-   ============================================================ */
+/* ============================================================ VARS */
 :root {
-  --primary:      #0b1e33;
-  --accent:       #3b82f6;
-  --accent-dark:  #1d4ed8;
-  --success:      #10b981;
-  --danger:       #ef4444;
-  --warning:      #f59e0b;
-  --bg:           #f0f4fa;
-  --card:         #ffffff;
-  --text:         #1e293b;
-  --muted:        #64748b;
-  --border:       #e2e8f0;
-  --radius:       16px;
-  --touch:        48px;
+  --primary:#0b1e33; --primary2:#162d4a;
+  --accent:#3b82f6; --accent2:#1d4ed8;
+  --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+  --purple:#8b5cf6; --pink:#ec4899; --teal:#14b8a6;
+  --bg:#f0f4fa; --card:#fff; --text:#1e293b; --muted:#64748b; --border:#e2e8f0;
+  --radius:16px; --touch:48px;
+  --panel-bg:#fff; --panel-text:#1e293b; --panel-border:#e2e8f0;
+  --step-active-bg:#eef4ff; --step-active-border:#3b82f6;
+  --header-bg:linear-gradient(135deg,#0b1e33 0%,#1a3a5c 100%);
 }
-@keyframes pulse {
-  0%,100% { opacity:.3; transform:scale(.8); }
-  50%      { opacity:1;  transform:scale(1.2); }
+.dark {
+  --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8; --border:#334155;
+  --panel-bg:#1e293b; --panel-text:#f1f5f9; --panel-border:#334155;
+  --step-active-bg:#1e3a5f; --step-active-border:#60a5fa;
 }
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(6px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-body {
+/* ============================================================ ANIMATIONS */
+@keyframes pulse    { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+@keyframes fadeUp   { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes slideIn  { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+@keyframes bounce   { 0%{transform:translateY(-18px);opacity:0} 60%{transform:translateY(4px)} 80%{transform:translateY(-3px)} 100%{transform:translateY(0);opacity:1} }
+@keyframes typeReveal { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes lineGrow { from{stroke-dashoffset:1000} to{stroke-dashoffset:0} }
+@keyframes stepFlash{ 0%{background:rgba(59,130,246,.25)} 100%{background:var(--step-active-bg)} }
+@keyframes confetti { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(80px) rotate(720deg);opacity:0} }
+@keyframes shimmer  { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
+@keyframes gradMove { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes popIn    { 0%{transform:scale(.85);opacity:0} 70%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
+/* ============================================================ RESET */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;
-  background:var(--bg); color:var(--text);
-  height:100dvh; display:flex; flex-direction:column;
-  overflow:hidden; touch-action:manipulation;
+  background:var(--bg);color:var(--text);
+  height:100dvh;display:flex;flex-direction:column;
+  overflow:hidden;touch-action:manipulation;
+  transition:background .3s,color .3s;
 }
-
-/* ============================================================
-   SPLASH
-   ============================================================ */
-#splash {
-  position:fixed; inset:0; z-index:9999;
-  background:var(--primary);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center; gap:22px;
-  transition:opacity .4s ease, visibility .4s ease;
+/* ============================================================ SPLASH */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0b1e33 0%,#1a3a5c 50%,#0f3460 100%);
+  background-size:200% 200%;animation:gradMove 4s ease infinite;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity .5s ease,visibility .5s ease;
 }
-#splash.hide { opacity:0; visibility:hidden; pointer-events:none; }
-#splashTitle { font-size:36px; font-weight:800; color:#fff; letter-spacing:-1px; }
-#splashDots  { display:flex; gap:10px; }
-#splashDots span {
-  width:10px; height:10px; border-radius:50%;
-  background:var(--accent); display:block;
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+#splashLogo{font-size:52px;animation:bounce .8s ease forwards}
+#splashTitle{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;animation:fadeUp .5s .3s ease both}
+#splashDots{display:flex;gap:10px;animation:fadeUp .5s .5s ease both}
+#splashDots span{width:10px;height:10px;border-radius:50%;background:var(--accent);display:block}
+#splashDots span:nth-child(1){animation:pulse 1.2s ease 0s infinite}
+#splashDots span:nth-child(2){animation:pulse 1.2s ease .2s infinite}
+#splashDots span:nth-child(3){animation:pulse 1.2s ease .4s infinite}
+#splashMsg{color:rgba(255,255,255,.55);font-size:14px;font-weight:600;animation:fadeUp .5s .7s ease both}
+/* ============================================================ PWA BANNER */
+#pwaBanner{
+  display:none;position:fixed;bottom:max(80px,calc(60px + env(safe-area-inset-bottom)));
+  left:12px;right:12px;z-index:800;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  color:#fff;border-radius:16px;padding:12px 16px;
+  box-shadow:0 8px 24px rgba(59,130,246,.4);
+  animation:fadeUp .3s ease;
 }
-#splashDots span:nth-child(1) { animation:pulse 1.2s ease-in-out 0s   infinite; }
-#splashDots span:nth-child(2) { animation:pulse 1.2s ease-in-out .2s  infinite; }
-#splashDots span:nth-child(3) { animation:pulse 1.2s ease-in-out .4s  infinite; }
-#splashMsg { color:rgba(255,255,255,.5); font-size:14px; font-weight:600; }
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-header {
-  background:var(--primary); color:#fff;
-  padding:8px 12px;
-  padding-top:max(8px,env(safe-area-inset-top));
-  z-index:900; flex-shrink:0;
+#pwaBanner p{font-size:13px;font-weight:600;margin-bottom:6px}
+#pwaBanner small{opacity:.8;font-size:12px}
+#pwaBannerClose{position:absolute;top:10px;right:12px;background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+/* ============================================================ HEADER */
+header{
+  background:var(--header-bg);color:#fff;
+  padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));
+  z-index:900;flex-shrink:0;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);
 }
-.header-top { display:flex; align-items:center; gap:8px; }
-.search-wrap { position:relative; flex:1; min-width:0; }
-#searchBar {
-  width:100%; padding:10px 16px; border-radius:24px; border:none;
-  background:rgba(255,255,255,.13); color:#fff; font-size:15px; outline:none;
-  transition:background .2s;
+.header-top{display:flex;align-items:center;gap:8px}
+.search-wrap{position:relative;flex:1;min-width:0}
+#searchBar{
+  width:100%;padding:10px 16px;border-radius:24px;border:none;
+  background:rgba(255,255,255,.13);color:#fff;font-size:15px;outline:none;
+  transition:background .2s,box-shadow .2s;
 }
-#searchBar:focus { background:rgba(255,255,255,.22); }
-#searchBar::placeholder { color:rgba(255,255,255,.45); }
-
-.suggestions {
-  position:absolute; top:calc(100% + 6px); left:0; right:0;
-  background:#fff; border-radius:var(--radius);
-  box-shadow:0 8px 24px rgba(0,0,0,.15);
-  max-height:220px; overflow-y:auto;
-  display:none; z-index:2000; list-style:none;
-}
-.suggestions li {
-  padding:12px 16px; cursor:pointer; font-weight:600; color:var(--text);
-  border-bottom:1px solid var(--border); transition:background .15s;
-}
-.suggestions li:last-child { border-bottom:none; }
-.suggestions li:hover { background:#f0f4fa; }
-
-.chips { display:flex; align-items:center; gap:6px; }
-.chip {
-  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
-  color:#fff; padding:8px 14px; border-radius:24px;
-  font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap;
-  min-height:var(--touch); display:inline-flex; align-items:center; gap:5px;
-  transition:background .15s, transform .1s; flex-shrink:0; user-select:none;
-}
-.chip:active { background:rgba(255,255,255,.28); transform:scale(.96); }
-.chip.active { background:var(--accent); border-color:var(--accent); }
-.chip.sm { padding:8px 12px; }
-
-/* overflow menu */
-.menu-wrap { position:relative; }
-.overflow-menu {
-  position:absolute; top:calc(100% + 8px); right:0;
-  background:#fff; border-radius:var(--radius);
+#searchBar:focus{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(59,130,246,.5)}
+#searchBar::placeholder{color:rgba(255,255,255,.45)}
+.suggestions{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--card);border-radius:var(--radius);
   box-shadow:0 8px 32px rgba(0,0,0,.18);
-  min-width:210px; z-index:2000;
-  display:none; flex-direction:column; overflow:hidden;
+  max-height:220px;overflow-y:auto;display:none;z-index:2000;list-style:none;
 }
-.overflow-menu.open { display:flex; }
-.overflow-menu button {
-  display:flex; align-items:center; gap:10px;
-  padding:13px 18px; background:none; border:none;
-  border-bottom:1px solid var(--border); cursor:pointer;
-  font-size:15px; font-weight:600; color:var(--text); text-align:left;
-  transition:background .15s;
+.suggestions li{
+  padding:12px 16px;cursor:pointer;font-weight:600;color:var(--text);
+  border-bottom:1px solid var(--border);transition:background .15s;
 }
-.overflow-menu button:last-child { border-bottom:none; }
-.overflow-menu button:hover { background:#f8fafc; }
-.overflow-menu button.danger { color:var(--danger); }
-.menu-icon { font-size:17px; width:24px; text-align:center; }
-
-/* ============================================================
-   MAIN LAYOUT
-   ============================================================ */
-.main-container { flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
-#map { flex:1; min-height:0; z-index:1; }
-#map.placing { cursor:crosshair!important; outline:3px solid var(--accent); outline-offset:-3px; }
-
-/* placing banner */
-#placingBanner {
-  display:none; position:fixed;
-  top:max(70px, calc(60px + env(safe-area-inset-top)));
-  left:50%; transform:translateX(-50%);
-  background:var(--accent); color:#fff;
-  padding:10px 20px; border-radius:24px;
-  font-weight:700; font-size:14px; z-index:1500;
-  box-shadow:0 4px 16px rgba(59,130,246,.4);
-  white-space:nowrap; pointer-events:none;
-  animation:fadeUp .2s ease;
+.suggestions li:last-child{border-bottom:none}
+.suggestions li:hover{background:var(--step-active-bg)}
+.chips{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.chip{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  color:#fff;padding:8px 14px;border-radius:24px;
+  font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;
+  min-height:var(--touch);display:inline-flex;align-items:center;gap:5px;
+  transition:background .15s,transform .1s,box-shadow .15s;flex-shrink:0;user-select:none;
 }
-
-/* ============================================================
-   CONTROL PANEL
-   ============================================================ */
-.control-panel {
-  background:var(--card); display:flex; flex-direction:column;
-  overflow:hidden; border-radius:20px 20px 0 0;
-  box-shadow:0 -4px 24px rgba(0,0,0,.1);
-  max-height:46vh; flex-shrink:0;
+.chip:active{transform:scale(.94)}
+.chip:hover{background:rgba(255,255,255,.2)}
+.chip.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color:transparent;
+  box-shadow:0 2px 12px rgba(59,130,246,.5);
 }
-.panel-header { padding:12px 16px 8px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.panel-header h2 { font-size:16px; font-weight:700; letter-spacing:-.3px; }
-.panel-header-sub {
-  display:flex; align-items:center; justify-content:space-between; margin-top:4px;
+.chip.sm{padding:8px 12px}
+.chip.green.active{background:linear-gradient(135deg,var(--success),#059669)}
+.chip.purple.active{background:linear-gradient(135deg,var(--purple),#7c3aed)}
+/* overflow menu */
+.menu-wrap{position:relative}
+.overflow-menu{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+  min-width:220px;z-index:2000;display:none;flex-direction:column;overflow:hidden;
+  animation:popIn .18s ease;
 }
-.panel-progress-text { font-size:12px; color:var(--accent); font-weight:700; }
-.panel-stats { font-size:11px; color:var(--muted); font-weight:600; }
-
-/* progress bar */
-.progress-bar-wrap {
-  height:3px; background:var(--border); border-radius:2px;
-  margin-top:6px; overflow:hidden;
+.overflow-menu.open{display:flex}
+.overflow-menu button{
+  display:flex;align-items:center;gap:10px;
+  padding:13px 18px;background:none;border:none;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  font-size:15px;font-weight:600;color:var(--text);text-align:left;transition:background .15s;
 }
-.progress-bar-fill {
-  height:100%; background:var(--accent); border-radius:2px;
-  transition:width .3s ease;
+.overflow-menu button:last-child{border-bottom:none}
+.overflow-menu button:hover{background:var(--step-active-bg)}
+.overflow-menu button.danger{color:var(--danger)}
+.menu-icon{font-size:17px;width:24px;text-align:center}
+/* ============================================================ LAYOUT */
+.main-container{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#map{flex:1;min-height:0;z-index:1}
+#map.placing{cursor:crosshair!important;outline:3px solid var(--accent);outline-offset:-3px}
+#placingBanner{
+  display:none;position:fixed;
+  top:max(70px,calc(60px + env(safe-area-inset-top)));
+  left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;
+  padding:10px 22px;border-radius:24px;font-weight:700;font-size:14px;
+  z-index:1500;box-shadow:0 4px 20px rgba(59,130,246,.45);
+  white-space:nowrap;pointer-events:none;animation:fadeUp .2s ease;
 }
-
-.steps-container { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:6px 10px; }
-.step-row {
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:12px; margin-bottom:3px;
-  opacity:.4; font-size:14px; transition:opacity .2s, background .2s; cursor:pointer;
+/* ============================================================ CONTROL PANEL */
+.control-panel{
+  background:var(--panel-bg);display:flex;flex-direction:column;overflow:hidden;
+  border-radius:22px 22px 0 0;
+  box-shadow:0 -6px 28px rgba(0,0,0,.12);
+  max-height:46vh;flex-shrink:0;
+  transition:background .3s;
 }
-.step-row:hover { opacity:.7; }
-.step-row.active {
-  opacity:1; background:#eef4ff;
-  border-left:3px solid var(--accent); font-weight:700;
-  animation:fadeUp .18s ease;
+.panel-header{
+  padding:12px 16px 8px;border-bottom:1px solid var(--panel-border);flex-shrink:0;
 }
-.step-row.completed { opacity:.55; }
-.step-number {
-  width:24px; height:24px; background:#cbd5e1; color:#fff;
-  border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; flex-shrink:0; transition:background .2s;
+.panel-title-row{display:flex;align-items:center;gap:8px}
+.panel-title-row h2{font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--panel-text);flex:1}
+.restart-btn{
+  background:none;border:none;cursor:pointer;font-size:18px;padding:4px;
+  opacity:.6;transition:opacity .15s,transform .2s;
 }
-.step-row.active    .step-number { background:var(--accent); }
-.step-row.completed .step-number { background:var(--success); }
-.step-name { flex:1; min-width:0; }
-.step-name.hidden-text { background:#dde3ed; color:transparent; border-radius:6px; user-select:none; }
-.coord-badge {
-  font-size:11px; padding:2px 7px; border-radius:8px; font-weight:600; flex-shrink:0; cursor:pointer;
+.restart-btn:hover{opacity:1;transform:rotate(-20deg)}
+.panel-sub{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
+.panel-progress-text{font-size:12px;color:var(--accent);font-weight:700}
+.panel-stats{font-size:11px;color:var(--muted);font-weight:600}
+.progress-bar-wrap{height:4px;background:var(--panel-border);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-bar-fill{
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--accent),var(--purple));
+  transition:width .4s cubic-bezier(.4,0,.2,1);
 }
-.coord-badge.set   { background:#dcfce7; color:#15803d; }
-.coord-badge.unset { background:#fee2e2; color:#b91c1c; }
-
-/* panel footer */
-.panel-footer {
-  padding:10px 12px; padding-bottom:max(10px,env(safe-area-inset-bottom));
-  border-top:1px solid var(--border); flex-shrink:0;
+/* steps list */
+.steps-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 10px}
+.step-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;margin-bottom:3px;
+  opacity:.38;font-size:14px;
+  transition:opacity .2s,background .2s,border-left .2s;cursor:pointer;
+  color:var(--panel-text);
 }
-.btn-row { display:flex; gap:8px; margin-bottom:8px; }
-.btn-row:last-child { margin-bottom:0; }
-.btn {
-  flex:1; padding:12px; border-radius:14px; border:none;
-  font-weight:700; font-size:15px; cursor:pointer;
-  min-height:var(--touch); display:flex; align-items:center; justify-content:center; gap:5px;
-  transition:transform .1s, opacity .15s;
+.step-row:hover{opacity:.65}
+.step-row.active{
+  opacity:1;background:var(--step-active-bg);
+  border-left:3px solid var(--step-active-border);font-weight:700;
+  animation:stepFlash .4s ease forwards;
 }
-.btn:active  { transform:scale(.97); }
-.btn:disabled { opacity:.28; pointer-events:none; }
-.btn-secondary { background:#eef2f6; color:var(--text); }
-.btn-primary   { background:var(--accent); color:#fff; }
-.btn-street    { background:var(--warning); color:#1e293b; }
-.btn-reveal    { background:#f1f5f9; color:var(--text); }
-.btn-success   { background:var(--success); color:#fff; }
-
-#quizFooter { display:none; }
-.quiz-input-row { display:flex; gap:8px; margin-bottom:8px; }
-.quiz-input-row input {
-  flex:1; padding:12px 14px; border-radius:12px;
-  border:1.5px solid var(--border); font-size:15px; outline:none;
-  transition:border-color .15s;
+.step-row.completed{opacity:.55}
+.step-number{
+  width:24px;height:24px;background:#cbd5e1;color:#fff;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;transition:background .25s,transform .2s;
 }
-.quiz-input-row input:focus { border-color:var(--accent); }
-#quizFeedback { font-weight:700; font-size:14px; min-height:20px; margin-bottom:6px; padding:0 2px; }
-
-/* ============================================================
-   MODALS
-   ============================================================ */
-.modal {
-  position:fixed; inset:0; background:rgba(0,0,0,.6);
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  display:flex; align-items:center; justify-content:center;
-  z-index:3000; visibility:hidden; opacity:0;
-  transition:opacity .2s, visibility .2s; padding:12px;
+.step-row.active    .step-number{background:linear-gradient(135deg,var(--accent),var(--purple));transform:scale(1.1)}
+.step-row.completed .step-number{background:var(--success)}
+.step-name{flex:1;min-width:0;color:var(--panel-text)}
+.step-name.hidden-text{background:var(--panel-border);color:transparent;border-radius:6px;user-select:none}
+.step-name.reveal-anim{animation:typeReveal .25s ease forwards}
+.coord-badge{font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.coord-badge:active{transform:scale(.9)}
+.coord-badge.set  {background:#dcfce7;color:#15803d}
+.coord-badge.unset{background:#fee2e2;color:#b91c1c}
+/* footer */
+.panel-footer{
+  padding:10px 12px;
+  padding-bottom:max(10px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--panel-border);flex-shrink:0;
 }
-.modal.open { visibility:visible; opacity:1; }
-.modal-box {
-  background:#fff; border-radius:24px; width:100%; max-width:900px;
-  max-height:90dvh; display:flex; flex-direction:column;
-  overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,.25);
+.btn-row{display:flex;gap:8px;margin-bottom:8px}
+.btn-row:last-child{margin-bottom:0}
+.btn{
+  flex:1;padding:13px;border-radius:14px;border:none;
+  font-weight:700;font-size:15px;cursor:pointer;
+  min-height:var(--touch);display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform .1s,opacity .15s,box-shadow .15s;
 }
-.modal-header { padding:18px 20px 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.modal-header h3 { font-size:18px; font-weight:700; }
-.modal-header p  { font-size:13px; color:var(--muted); margin-top:2px; }
-
-/* add modal two-col */
-.modal-body-add { display:flex; flex:1; min-height:0; overflow:hidden; }
-.modal-left {
-  display:flex; flex-direction:column; padding:14px; gap:10px;
-  overflow-y:auto; -webkit-overflow-scrolling:touch; width:100%; min-height:0;
+.btn:active{transform:scale(.95)}
+.btn:disabled{opacity:.25;pointer-events:none}
+.btn-secondary{background:var(--panel-border);color:var(--panel-text)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 3px 12px rgba(59,130,246,.35)}
+.btn-street{background:linear-gradient(135deg,var(--warning),#d97706);color:#fff;box-shadow:0 3px 12px rgba(245,158,11,.3)}
+.btn-reveal{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;box-shadow:0 3px 12px rgba(139,92,246,.3)}
+.btn-success{background:linear-gradient(135deg,var(--success),#059669);color:#fff}
+#quizFooter{display:none}
+.quiz-input-row{display:flex;gap:8px;margin-bottom:8px}
+.quiz-input-row input{
+  flex:1;padding:12px 14px;border-radius:12px;
+  border:1.5px solid var(--panel-border);font-size:15px;outline:none;
+  background:var(--panel-bg);color:var(--panel-text);
+  transition:border-color .15s,box-shadow .15s;
 }
-.modal-right { display:none; flex-direction:column; border-left:1px solid var(--border); flex:1; min-width:0; }
-.modal-input {
-  width:100%; padding:12px 14px; font-size:15px;
-  border:1.5px solid var(--border); border-radius:12px;
-  background:#f9fafb; outline:none; transition:border-color .15s; font-family:inherit;
+.quiz-input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+#quizFeedback{font-weight:700;font-size:14px;min-height:20px;margin-bottom:6px;padding:0 2px}
+/* ============================================================ CONFETTI */
+.confetti-piece{
+  position:fixed;width:8px;height:8px;border-radius:2px;
+  pointer-events:none;z-index:5000;animation:confetti .8s ease forwards;
 }
-.modal-input:focus { border-color:var(--accent); background:#fff; }
-textarea.modal-input { resize:vertical; min-height:90px; }
-.modal-steps-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
-.modal-steps-list { display:flex; flex-direction:column; gap:3px; max-height:200px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.modal-step-item {
-  display:flex; align-items:center; gap:8px; padding:8px 10px;
-  border-radius:10px; border:1.5px solid var(--border); cursor:pointer;
-  transition:border-color .15s, background .15s; font-size:13px; font-weight:600;
+/* ============================================================ MODALS */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:3000;visibility:hidden;opacity:0;
+  transition:opacity .2s,visibility .2s;padding:12px;
 }
-.modal-step-item:hover  { border-color:var(--accent); background:#f0f6ff; }
-.modal-step-item.selected { border-color:var(--accent); background:#eff6ff; }
-.modal-step-item.placed   { border-color:var(--success); background:#f0fdf4; }
-.modal-step-num {
-  width:22px; height:22px; background:#e2e8f0; color:var(--muted);
-  border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; flex-shrink:0;
+.modal.open{visibility:visible;opacity:1}
+.modal-box{
+  background:var(--card);border-radius:24px;width:100%;max-width:900px;
+  max-height:90dvh;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3);
+  animation:popIn .2s ease;transition:background .3s;
 }
-.modal-step-item.selected .modal-step-num { background:var(--accent); color:#fff; }
-.modal-step-item.placed   .modal-step-num { background:var(--success); color:#fff; }
-.modal-step-name  { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.modal-step-badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:6px; flex-shrink:0; }
-.modal-step-badge.ok  { background:#dcfce7; color:#15803d; }
-.modal-step-badge.pin { background:#dbeafe; color:#1d4ed8; }
-
-#modalMapContainer { position:relative; flex:1; min-height:200px; }
-#modalMap { width:100%; height:100%; }
-.modal-map-hint {
-  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,.65); color:#fff; padding:8px 16px;
-  border-radius:20px; font-size:13px; font-weight:600;
-  pointer-events:none; white-space:nowrap; display:none; z-index:10;
+.modal-header{
+  padding:18px 20px 12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--purple) 100%);
+  color:#fff;
 }
-.modal-map-hint.show { display:block; }
-
-.map-toggle-btn {
-  width:100%; padding:10px; border:1.5px dashed var(--border);
-  border-radius:12px; background:#f8fafc; color:var(--muted);
-  font-weight:600; font-size:14px; cursor:pointer; text-align:center;
-  transition:border-color .15s, color .15s; flex-shrink:0;
+.modal-header h3{font-size:18px;font-weight:800}
+.modal-header p{font-size:13px;opacity:.8;margin-top:2px}
+/* add modal */
+.modal-body-add{display:flex;flex:1;min-height:0;overflow:hidden}
+.modal-left{
+  display:flex;flex-direction:column;padding:14px;gap:10px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;min-height:0;
+  background:var(--card);
 }
-.map-toggle-btn:hover { border-color:var(--accent); color:var(--accent); }
-#mobileMapArea {
-  display:none; height:240px; border-radius:12px; overflow:hidden;
-  position:relative; flex-shrink:0; border:1.5px solid var(--border);
+.modal-right{display:none;flex-direction:column;border-left:1px solid var(--border);flex:1;min-width:0}
+.modal-input{
+  width:100%;padding:12px 14px;font-size:15px;
+  border:1.5px solid var(--border);border-radius:12px;
+  background:var(--bg);color:var(--text);outline:none;
+  transition:border-color .15s,box-shadow .15s;font-family:inherit;
 }
-#mobileMapArea.open { display:block; }
-#mobileMap { width:100%; height:100%; }
-.mobile-map-hint {
-  position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-  background:rgba(0,0,0,.65); color:#fff; padding:7px 14px;
-  border-radius:18px; font-size:12px; font-weight:600;
-  pointer-events:none; white-space:nowrap; z-index:10; display:none;
+.modal-input:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea.modal-input{resize:vertical;min-height:90px}
+.modal-steps-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.modal-steps-list{display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto}
+.modal-step-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:10px;border:1.5px solid var(--border);cursor:pointer;
+  transition:border-color .15s,background .15s;font-size:13px;font-weight:600;color:var(--text);
 }
-.mobile-map-hint.show { display:block; }
-
-.modal-footer {
-  padding:12px 16px; padding-bottom:max(12px,env(safe-area-inset-bottom));
-  border-top:1px solid var(--border); display:flex; gap:8px; flex-shrink:0;
+.modal-step-item:hover   {border-color:var(--accent);background:var(--step-active-bg)}
+.modal-step-item.selected{border-color:var(--accent);background:var(--step-active-bg)}
+.modal-step-item.placed  {border-color:var(--success);background:#f0fdf4}
+.dark .modal-step-item.placed{background:#052e16}
+.modal-step-num{
+  width:22px;height:22px;background:var(--border);color:var(--muted);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
 }
-.btn-modal-cancel { background:#eef2f6; color:var(--text); padding:12px 20px; border-radius:14px; font-weight:700; font-size:15px; border:none; cursor:pointer; flex:1; min-height:var(--touch); transition:transform .1s; }
-.btn-modal-save   { background:var(--success); color:#fff; padding:12px 20px; border-radius:14px; font-weight:700; font-size:15px; border:none; cursor:pointer; flex:2; min-height:var(--touch); transition:transform .1s; }
-.btn-modal-cancel:active, .btn-modal-save:active { transform:scale(.97); }
-
+.modal-step-item.selected .modal-step-num{background:var(--accent);color:#fff}
+.modal-step-item.placed   .modal-step-num{background:var(--success);color:#fff}
+.modal-step-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-step-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;flex-shrink:0}
+.modal-step-badge.ok {background:#dcfce7;color:#15803d}
+.modal-step-badge.pin{background:#dbeafe;color:#1d4ed8}
+#modalMapContainer{position:relative;flex:1;min-height:200px}
+#modalMap{width:100%;height:100%}
+.modal-map-hint{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.7);color:#fff;padding:8px 16px;
+  border-radius:20px;font-size:13px;font-weight:600;
+  pointer-events:none;white-space:nowrap;display:none;z-index:10;
+}
+.modal-map-hint.show{display:block}
+.map-toggle-btn{
+  width:100%;padding:10px;border:1.5px dashed var(--border);
+  border-radius:12px;background:var(--bg);color:var(--muted);
+  font-weight:600;font-size:14px;cursor:pointer;text-align:center;
+  transition:border-color .15s,color .15s;flex-shrink:0;
+}
+.map-toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
+#mobileMapArea{
+  display:none;height:240px;border-radius:12px;overflow:hidden;
+  position:relative;flex-shrink:0;border:1.5px solid var(--border);
+}
+#mobileMapArea.open{display:block}
+#mobileMap{width:100%;height:100%}
+.mobile-map-hint{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.7);color:#fff;padding:7px 14px;
+  border-radius:18px;font-size:12px;font-weight:600;
+  pointer-events:none;white-space:nowrap;z-index:10;display:none;
+}
+.mobile-map-hint.show{display:block}
+.modal-footer{
+  padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;
+  background:var(--card);
+}
+.btn-modal-cancel{
+  background:var(--border);color:var(--text);padding:12px 20px;border-radius:14px;
+  font-weight:700;font-size:15px;border:none;cursor:pointer;flex:1;min-height:var(--touch);
+  transition:transform .1s;
+}
+.btn-modal-save{
+  background:linear-gradient(135deg,var(--success),#059669);color:#fff;
+  padding:12px 20px;border-radius:14px;font-weight:700;font-size:15px;
+  border:none;cursor:pointer;flex:2;min-height:var(--touch);
+  box-shadow:0 3px 12px rgba(16,185,129,.35);transition:transform .1s;
+}
+.btn-modal-cancel:active,.btn-modal-save:active{transform:scale(.97)}
 /* routes manager */
-.routes-list { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:5px; }
-.route-item {
-  display:flex; align-items:center; gap:10px; padding:12px 14px;
-  background:#f8fafc; border-radius:12px; border:1.5px solid var(--border);
-  cursor:pointer; transition:border-color .15s, background .15s;
+.routes-list{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.route-item{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:var(--bg);border-radius:12px;border:1.5px solid var(--border);
+  cursor:pointer;transition:border-color .15s,background .15s,transform .1s;
 }
-.route-item:hover { border-color:var(--accent); background:#f0f6ff; }
-.route-item-info { flex:1; min-width:0; }
-.route-item-title { font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.route-item-meta  { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
-.route-item-actions { display:flex; gap:6px; flex-shrink:0; }
-.route-action-btn { padding:6px 12px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; transition:opacity .15s; }
-.route-action-btn:active { opacity:.7; }
-.route-edit-btn   { background:#e0e7ff; color:#3730a3; }
-.route-delete-btn { background:#fee2e2; color:#b91c1c; }
-
-/* stats modal */
-#statsModal .modal-box { max-width:480px; }
-.stat-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
-.stat-row:last-child { border-bottom:none; }
-.stat-label { color:var(--muted); font-weight:600; }
-.stat-val   { font-weight:700; font-size:16px; }
-
-/* ============================================================
-   TOAST
-   ============================================================ */
-.toast {
+.route-item:hover{border-color:var(--accent);background:var(--step-active-bg);transform:translateX(2px)}
+.route-item.done .route-item-title::after{content:' ✓';color:var(--success)}
+.route-item-info{flex:1;min-width:0}
+.route-item-title{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.route-item-meta{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.route-item-actions{display:flex;gap:6px;flex-shrink:0}
+.route-action-btn{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.route-action-btn:active{opacity:.7}
+.route-edit-btn  {background:#e0e7ff;color:#3730a3}
+.route-delete-btn{background:#fee2e2;color:#b91c1c}
+/* stats */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--muted);font-weight:600}
+.stat-val  {font-weight:700;font-size:16px}
+/* toast */
+.toast{
   position:fixed;
-  top:max(80px, calc(60px + 20px + env(safe-area-inset-top)));
-  left:50%; transform:translateX(-50%) translateY(-8px);
-  background:#1e293b; color:#fff; padding:11px 22px;
-  border-radius:24px; font-size:14px; font-weight:700;
-  z-index:4000; opacity:0; pointer-events:none;
-  transition:opacity .2s, transform .2s; white-space:nowrap;
+  top:max(80px,calc(60px + 20px + env(safe-area-inset-top)));
+  left:50%;transform:translateX(-50%) translateY(-8px);
+  background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;
+  padding:11px 22px;border-radius:24px;font-size:14px;font-weight:700;
+  z-index:4000;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
 }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-/* ============================================================
-   DESKTOP
-   ============================================================ */
-@media (min-width:768px) {
-  .main-container { flex-direction:row; }
-  #map { flex:1; }
-  .control-panel { width:360px; max-height:none; border-radius:0; box-shadow:-4px 0 20px rgba(0,0,0,.06); border-left:1px solid var(--border); flex-shrink:0; }
-  .modal-left { width:340px; flex-shrink:0; }
-  .modal-right { display:flex; }
-  .map-toggle-btn { display:none; }
-  #mobileMapArea { display:none!important; }
-  .modal-steps-list { max-height:none; flex:1; }
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ============================================================ DESKTOP */
+@media(min-width:768px){
+  .main-container{flex-direction:row}
+  #map{flex:1}
+  .control-panel{width:380px;max-height:none;border-radius:0;box-shadow:-4px 0 24px rgba(0,0,0,.08);border-left:1px solid var(--panel-border);flex-shrink:0}
+  .modal-left{width:340px;flex-shrink:0}
+  .modal-right{display:flex}
+  .map-toggle-btn{display:none}
+  #mobileMapArea{display:none!important}
+  .modal-steps-list{max-height:none;flex:1}
 }
 </style>
 </head>
@@ -393,9 +410,17 @@ textarea.modal-input { resize:vertical; min-height:90px; }
 
 <!-- SPLASH -->
 <div id="splash">
-  <div id="splashTitle">🚗 NCC Milano</div>
+  <div id="splashLogo">🚗</div>
+  <div id="splashTitle">NCC Milano</div>
   <div id="splashDots"><span></span><span></span><span></span></div>
   <div id="splashMsg">Connessione al cloud…</div>
+</div>
+
+<!-- PWA BANNER -->
+<div id="pwaBanner">
+  <button id="pwaBannerClose" onclick="closePwaBanner()">✕</button>
+  <p>📱 Installa come app per usarla senza barra Safari</p>
+  <small>Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong></small>
 </div>
 
 <header>
@@ -405,9 +430,9 @@ textarea.modal-input { resize:vertical; min-height:90px; }
       <ul class="suggestions" id="suggestionsList"></ul>
     </div>
     <div class="chips">
-      <span class="chip active" id="modeStudio" onclick="setMode('studio')">Studio</span>
-      <span class="chip"        id="modeCieco"  onclick="setMode('cieco')">Cieco</span>
-      <span class="chip"        id="modeQuiz"   onclick="setMode('quiz')">Quiz</span>
+      <span class="chip active"  id="modeStudio" onclick="setMode('studio')">Studio</span>
+      <span class="chip green"   id="modeCieco"  onclick="setMode('cieco')">Cieco</span>
+      <span class="chip purple"  id="modeQuiz"   onclick="setMode('quiz')">Quiz</span>
       <span class="chip sm" onclick="openAddModal()"      title="Nuovo percorso">➕</span>
       <span class="chip sm" onclick="selectRandomRoute()" title="Percorso casuale">🔀</span>
       <div class="menu-wrap">
@@ -415,6 +440,7 @@ textarea.modal-input { resize:vertical; min-height:90px; }
         <div class="overflow-menu" id="overflowMenu">
           <button onclick="openRoutesManager();closeMenu()"><span class="menu-icon">📋</span>Percorsi salvati</button>
           <button onclick="openStats();closeMenu()">        <span class="menu-icon">📊</span>Statistiche quiz</button>
+          <button onclick="toggleDark();closeMenu()">       <span class="menu-icon" id="darkIcon">🌙</span>Modalità notte</button>
           <button onclick="exportData();closeMenu()">       <span class="menu-icon">📤</span>Esporta backup</button>
           <button onclick="importData();closeMenu()">       <span class="menu-icon">📥</span>Importa backup</button>
           <button onclick="manualSaveToCloud();closeMenu()"><span class="menu-icon">💾</span>Salva su cloud</button>
@@ -429,11 +455,13 @@ textarea.modal-input { resize:vertical; min-height:90px; }
 
 <div class="main-container">
   <div id="map"></div>
-
   <div class="control-panel">
     <div class="panel-header">
-      <h2 id="panelTitle">Prontuario NCC</h2>
-      <div class="panel-header-sub">
+      <div class="panel-title-row">
+        <h2 id="panelTitle">Prontuario NCC</h2>
+        <button class="restart-btn" id="restartBtn" onclick="restartRoute()" title="Ricomincia" style="display:none">↺</button>
+      </div>
+      <div class="panel-sub">
         <span class="panel-progress-text" id="panelProgress">Seleziona un percorso</span>
         <span class="panel-stats" id="panelStats"></span>
       </div>
@@ -443,16 +471,16 @@ textarea.modal-input { resize:vertical; min-height:90px; }
     <div class="panel-footer">
       <div id="normalFooter">
         <div class="btn-row">
-          <button class="btn btn-secondary" id="btnPrev"   onclick="prevStep()"      disabled>◀</button>
-          <button class="btn btn-street"    id="btnStreet" onclick="openStreetView()" disabled>👁️</button>
-          <button class="btn btn-primary"   id="btnNext"   onclick="nextStep()"      disabled>▶</button>
+          <button class="btn btn-secondary" id="btnPrev"   onclick="prevStep()"       disabled>◀</button>
+          <button class="btn btn-street"    id="btnStreet" onclick="openStreetView()"  disabled>👁️</button>
+          <button class="btn btn-primary"   id="btnNext"   onclick="nextStep()"        disabled>▶</button>
         </div>
-        <button class="btn btn-reveal" id="btnReveal" onclick="revealCurrentStep()" style="display:none;">👁️ Scopri via</button>
+        <button class="btn btn-reveal" id="btnReveal" onclick="revealCurrentStep()" style="display:none">👁️ Scopri via</button>
       </div>
       <div id="quizFooter">
         <div class="quiz-input-row">
           <input id="quizAnswer" placeholder="Scrivi la via…">
-          <button class="btn btn-primary" onclick="checkQuiz()" style="flex:0;padding:12px 16px;">➡️</button>
+          <button class="btn btn-primary" onclick="checkQuiz()" style="flex:0;padding:12px 16px">➡️</button>
         </div>
         <div id="quizFeedback"></div>
         <div class="btn-row">
@@ -464,7 +492,7 @@ textarea.modal-input { resize:vertical; min-height:90px; }
   </div>
 </div>
 
-<!-- MODAL: ADD/EDIT ROUTE -->
+<!-- MODAL ADD/EDIT -->
 <div class="modal" id="routeModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -478,16 +506,10 @@ textarea.modal-input { resize:vertical; min-height:90px; }
         <div class="modal-steps-label">Passi — clicca per posizionare</div>
         <div class="modal-steps-list" id="modalStepsList"></div>
         <button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleMobileMap()">🗺️ Mostra mappa per posizionare</button>
-        <div id="mobileMapArea">
-          <div id="mobileMap"></div>
-          <div class="mobile-map-hint" id="mobileMapHint"></div>
-        </div>
+        <div id="mobileMapArea"><div id="mobileMap"></div><div class="mobile-map-hint" id="mobileMapHint"></div></div>
       </div>
       <div class="modal-right">
-        <div id="modalMapContainer">
-          <div id="modalMap"></div>
-          <div class="modal-map-hint" id="modalMapHint"></div>
-        </div>
+        <div id="modalMapContainer"><div id="modalMap"></div><div class="modal-map-hint" id="modalMapHint"></div></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -497,25 +519,20 @@ textarea.modal-input { resize:vertical; min-height:90px; }
   </div>
 </div>
 
-<!-- MODAL: ROUTES MANAGER -->
+<!-- MODAL ROUTES MANAGER -->
 <div class="modal" id="routesManagerModal">
-  <div class="modal-box" style="max-width:560px;">
-    <div class="modal-header">
-      <h3>📋 Percorsi salvati</h3>
-      <p id="routesCount"></p>
-    </div>
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header"><h3>📋 Percorsi salvati</h3><p id="routesCount"></p></div>
     <div class="routes-list" id="routesManagerList"></div>
-    <div class="modal-footer">
-      <button class="btn-modal-cancel" onclick="closeRoutesManager()">Chiudi</button>
-    </div>
+    <div class="modal-footer"><button class="btn-modal-cancel" onclick="closeRoutesManager()">Chiudi</button></div>
   </div>
 </div>
 
-<!-- MODAL: STATS -->
+<!-- MODAL STATS -->
 <div class="modal" id="statsModal">
-  <div class="modal-box" style="max-width:480px;">
-    <div class="modal-header"><h3>📊 Statistiche Quiz</h3><p>Riepilogo delle tue sessioni</p></div>
-    <div style="flex:1;overflow-y:auto;padding:14px 20px;" id="statsBody"></div>
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header"><h3>📊 Statistiche Quiz</h3><p>Riepilogo sessioni</p></div>
+    <div style="flex:1;overflow-y:auto;padding:14px 20px" id="statsBody"></div>
     <div class="modal-footer"><button class="btn-modal-cancel" onclick="closeStats()">Chiudi</button></div>
   </div>
 </div>
@@ -525,371 +542,402 @@ textarea.modal-input { resize:vertical; min-height:90px; }
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
 <script>
-/* ============================================================
-   FIREBASE
-   ============================================================ */
-const firebaseConfig = {
+/* ── FIREBASE ── */
+const firebaseConfig={
   apiKey:"AIzaSyBtVu_bZruWdB3nQz0MhrNmCE7lMonoGd4",
   authDomain:"ncc-milano-2dbd0.firebaseapp.com",
   databaseURL:"https://ncc-milano-2dbd0-default-rtdb.europe-west1.firebasedatabase.app",
   projectId:"ncc-milano-2dbd0",
   storageBucket:"ncc-milano-2dbd0.firebasestorage.app",
-  messagingSenderId:"511775426532",
+  messagingSenderId:"511775426572",
   appId:"1:511775426532:web:785259ec4e187e42aba9f1"
 };
 firebase.initializeApp(firebaseConfig);
-const cloudRef = firebase.database().ref('prontuario');
+const cloudRef=firebase.database().ref('prontuario');
 
-function manualSaveToCloud() {
-  cloudRef.set({ routes, coords, errors, quizStats, ts:Date.now() })
-    .then(()  => showToast('💾 Salvato su cloud'))
-    .catch(()  => showToast('⚠️ Errore cloud'));
+let autoSaveTimer=null;
+function autoSaveCloud(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{
+    cloudRef.set({routes,coords,errors,quizStats,ts:Date.now()}).catch(()=>{});
+  },1500);
+}
+function manualSaveToCloud(){
+  cloudRef.set({routes,coords,errors,quizStats,ts:Date.now()})
+    .then(()=>showToast('💾 Salvato su cloud'))
+    .catch(()=>showToast('⚠️ Errore cloud'));
 }
 
-/* ============================================================
-   DATI
-   ============================================================ */
-const DEFAULT = [{
-  id:"default_0", title:"CERCHIA DEI BASTIONI",
+/* ── DATI ── */
+const DEFAULT=[{
+  id:"default_0",title:"CERCHIA DEI BASTIONI",
   steps:["P.ZA 24 MAGGIO","V.LE GIAN GALEAZZO","P.LE DI PORTA LODOVICA","V.LE BEATRICE D'ESTE","L.GO ISABELLA D'ARAGONA","V.LE BEATRICE D'ESTE","V.LE FILIPPETTI","P.LE MEDAGLIE D'ORO","P.ZA 25 APRILE","VIALE CRISPI","BASTIONI DI PORTA VOLTA","P.LE BIANCAMANO","P.LE LEGA LOMBARDA","V.LE ELVEZIA","VIA MELZI D'ERIL","VIA CANOVA","VIALE CALDARA","VIALE REGINA MARGHERITA","V.LE MILTON","V.LE MOLIERE","P.ZA 5 GIORNATE","V.LE BIANCA MARIA","P.ZA DEL TRICOLORE","V.LE MAJNO","VIA CURIE","VIA 20 SETTEMBRE","P.ZA CONCILIAZIONE","VIA ENRICO TOTI","P.ZA OBERDAN","P.LE BARACCA","BASTIONI DI PORTA VENEZIA","VIALE CITTA' DI FIUME","P.ZA DELLA REPUBBLICA","VIALE MONTESANTO","P.LE PRINCIPESSA CLOTILDE","V.LE DI PORTA VERCELLINA","P.LE AQUILEIA","V.LE PAPINIANO","P.ZA SANT'AGOSTINO","V.LE PAPINIANO","BASTIONI DI PORTA NUOVA","P.LE GENERAL CANTORE","V.LE GABRIELE D'ANNUNZIO","P.ZA 24 MAGGIO"]
 }];
+let routes    =JSON.parse(localStorage.getItem('routes'))    ||DEFAULT;
+let coords    =JSON.parse(localStorage.getItem('coords'))    ||{};
+let errors    =JSON.parse(localStorage.getItem('errors'))    ||{};
+let quizStats =JSON.parse(localStorage.getItem('quizStats')) ||{};
+let completed =JSON.parse(localStorage.getItem('completed')) ||{};
+let darkMode  =localStorage.getItem('darkMode')==='1';
 
-let routes    = JSON.parse(localStorage.getItem('routes'))    || DEFAULT;
-let coords    = JSON.parse(localStorage.getItem('coords'))    || {};
-let errors    = JSON.parse(localStorage.getItem('errors'))    || {};
-let quizStats = JSON.parse(localStorage.getItem('quizStats')) || {};
-
-function saveLocal() {
+function saveLocal(){
   localStorage.setItem('routes',    JSON.stringify(routes));
   localStorage.setItem('coords',    JSON.stringify(coords));
   localStorage.setItem('errors',    JSON.stringify(errors));
   localStorage.setItem('quizStats', JSON.stringify(quizStats));
+  localStorage.setItem('completed', JSON.stringify(completed));
 }
 
-/* ============================================================
-   SPLASH & BOOT — Firebase carica, poi avvia la mappa
-   ============================================================ */
-let mapReady    = false;
-let cloudLoaded = false;
-let pendingRoute = null;   // route da selezionare appena la mappa è pronta
-
-function splashMsg(msg) {
-  const el = document.getElementById('splashMsg');
-  if (el) el.textContent = msg;
+/* ── DARK MODE ── */
+function applyDark(){
+  document.body.classList.toggle('dark',darkMode);
+  document.getElementById('darkIcon').textContent=darkMode?'☀️':'🌙';
 }
-function hideSplash() {
-  const el = document.getElementById('splash');
-  if (!el) return;
-  el.classList.add('hide');
-  setTimeout(() => el.remove(), 500);
+function toggleDark(){
+  darkMode=!darkMode;
+  localStorage.setItem('darkMode',darkMode?'1':'0');
+  applyDark();
 }
-function tryStart() {
-  // Parte solo quando ENTRAMBI mappa e cloud sono pronti
-  if (!mapReady || !cloudLoaded) return;
-  hideSplash();
-  if (pendingRoute) selectRoute(pendingRoute);
+applyDark();
+
+/* ── PWA BANNER ── */
+function closePwaBanner(){
+  document.getElementById('pwaBanner').style.display='none';
+  localStorage.setItem('pwaDismissed','1');
 }
-
-// Firebase: timeout 6s poi usa dati locali
-const cloudTimer = setTimeout(() => {
-  cloudLoaded = true;
-  splashMsg('Offline — uso dati locali');
-  pendingRoute = routes[0] || null;
-  tryStart();
-}, 6000);
-
-cloudRef.once('value', snap => {
-  clearTimeout(cloudTimer);
-  const data = snap.val();
-  if (data) {
-    splashMsg('Dati sincronizzati ✓');
-    if (data.routes)    routes    = data.routes;
-    if (data.coords)    coords    = data.coords;
-    if (data.errors)    errors    = data.errors;
-    if (data.quizStats) quizStats = data.quizStats;
-    saveLocal();
-  } else {
-    splashMsg('Nessun dato cloud — uso locale');
+function checkPwa(){
+  const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone===true;
+  const dismissed=localStorage.getItem('pwaDismissed');
+  if (isIos&&!isStandalone&&!dismissed){
+    setTimeout(()=>{ document.getElementById('pwaBanner').style.display='block'; },3000);
   }
-  cloudLoaded = true;
-  pendingRoute = routes[0] || null;
-  tryStart();
-}, () => {
+}
+
+/* ── SPLASH & BOOT ── */
+let mapReady=false, cloudLoaded=false, pendingRoute=null;
+function splashMsg(m){ const e=document.getElementById('splashMsg'); if(e) e.textContent=m; }
+function hideSplash(){
+  const e=document.getElementById('splash'); if(!e) return;
+  e.classList.add('hide'); setTimeout(()=>e.remove(),550);
+}
+function tryStart(){
+  if (!mapReady||!cloudLoaded) return;
+  hideSplash(); checkPwa();
+  // ripristina ultimo percorso
+  const lastId=localStorage.getItem('lastRouteId');
+  const lastStep=parseInt(localStorage.getItem('lastStep')||'0',10);
+  const route=lastId?routes.find(r=>r.id===lastId):null;
+  if (pendingRoute||route){
+    const r=route||pendingRoute;
+    selectRoute(r);
+    if (route&&lastStep>0){ currentStep=Math.min(lastStep,r.steps.length-1); renderSteps(); updateUI(); goToStep(); }
+  }
+}
+const cloudTimer=setTimeout(()=>{
+  cloudLoaded=true; splashMsg('Offline — uso dati locali'); pendingRoute=routes[0]||null; tryStart();
+},6000);
+cloudRef.once('value',snap=>{
+  clearTimeout(cloudTimer);
+  const data=snap.val();
+  if(data){
+    splashMsg('Dati sincronizzati ✓');
+    if(data.routes)    routes    =data.routes;
+    if(data.coords)    coords    =data.coords;
+    if(data.errors)    errors    =data.errors;
+    if(data.quizStats) quizStats =data.quizStats;
+    if(data.completed) completed =data.completed;
+    saveLocal();
+  } else { splashMsg('Nessun dato cloud — uso locale'); }
+  cloudLoaded=true; pendingRoute=routes[0]||null; tryStart();
+},()=>{
   clearTimeout(cloudTimer);
   splashMsg('Errore cloud — uso dati locali');
-  cloudLoaded = true;
-  pendingRoute = routes[0] || null;
-  tryStart();
+  cloudLoaded=true; pendingRoute=routes[0]||null; tryStart();
 });
 
-/* ============================================================
-   MAPPA PRINCIPALE
-   ============================================================ */
-let map, mainMarker = null;
-let doneLine = null, doneDecorator = null, nextLine = null;
-let placingStepIndex = null;
-let currentRoute = null, currentStep = 0;
-let mode = 'studio';
+/* ── MAPPA PRINCIPALE ── */
+let map,mainMarker=null;
+let doneLine=null,doneDecorator=null,nextLine=null;
+let placingStepIndex=null;
+let currentRoute=null,currentStep=0;
+let mode='studio';
+let touchStartX=0;
 
-// Swipe su mappa
-let touchStartX = 0;
-function initMap() {
-  map = L.map('map', { zoomControl:false }).setView([45.4642,9.1900], 13);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+function initMap(){
+  map=L.map('map',{zoomControl:false}).setView([45.4642,9.1900],13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
     attribution:'© OpenStreetMap © CARTO'
   }).addTo(map);
-  L.control.zoom({ position:'topright' }).addTo(map);
-
-  map.on('click', e => {
-    if (placingStepIndex === null || !currentRoute) return;
-    const key = `${currentRoute.id}_${placingStepIndex}`;
-    coords[key] = { lat:e.latlng.lat, lon:e.latlng.lng };
-    saveLocal();
-    placeMainMarker(e.latlng.lat, e.latlng.lng, currentRoute.steps[placingStepIndex], key);
-    updateLines();
-    stopPlacing();
-    renderSteps();
+  L.control.zoom({position:'topright'}).addTo(map);
+  map.on('click',e=>{
+    if(placingStepIndex===null||!currentRoute) return;
+    const key=`${currentRoute.id}_${placingStepIndex}`;
+    coords[key]={lat:e.latlng.lat,lon:e.latlng.lng};
+    saveLocal(); autoSaveCloud();
+    animateMarkerBounce(e.latlng.lat,e.latlng.lng,currentRoute.steps[placingStepIndex],key);
+    updateLines(); stopPlacing(); renderSteps();
     showToast('📍 Posizione salvata');
   });
-
-  // swipe sinistra/destra per step
-  const mapEl = document.getElementById('map');
-  mapEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive:true });
-  mapEl.addEventListener('touchend',   e => {
-    if (placingStepIndex !== null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 60) { if (dx < 0) nextStep(); else prevStep(); }
-  }, { passive:true });
-
-  mapReady = true;
-  tryStart();
+  // swipe
+  const mapEl=document.getElementById('map');
+  mapEl.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});
+  mapEl.addEventListener('touchend',e=>{
+    if(placingStepIndex!==null) return;
+    const dx=e.changedTouches[0].clientX-touchStartX;
+    if(Math.abs(dx)>55){if(dx<0)nextStep();else prevStep();}
+  },{passive:true});
+  mapReady=true; tryStart();
 }
 
-function startPlacing(idx) {
-  placingStepIndex = idx;
+function startPlacing(idx){
+  placingStepIndex=idx;
   document.getElementById('map').classList.add('placing');
-  document.getElementById('placingBanner').style.display = 'block';
+  document.getElementById('placingBanner').style.display='block';
 }
-function stopPlacing() {
-  placingStepIndex = null;
+function stopPlacing(){
+  placingStepIndex=null;
   document.getElementById('map').classList.remove('placing');
-  document.getElementById('placingBanner').style.display = 'none';
+  document.getElementById('placingBanner').style.display='none';
 }
 
-/* ============================================================
-   PERCORSO
-   ============================================================ */
-function selectRoute(route) {
-  currentRoute = route;
-  currentStep  = 0;
-  if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
-  clearLines(); stopPlacing();
-  document.getElementById('panelTitle').textContent    = route.title;
-  document.getElementById('searchBar').value           = route.title;
-  document.getElementById('quizFeedback').textContent  = '';
-  renderSteps(); updateUI(); goToStep();
-  closeSuggestions();
-}
-
-function renderSteps() {
-  const c = document.getElementById('stepsList');
-  c.innerHTML = '';
-  currentRoute.steps.forEach((s, i) => {
-    const key      = `${currentRoute.id}_${i}`;
-    const hasCoord = !!coords[key];
-    const isHidden = mode !== 'studio' && i !== currentStep;
-    const isActive = i === currentStep;
-    const isDone   = i < currentStep;
-
-    const d = document.createElement('div');
-    d.className = `step-row${isActive?' active':''}${isDone?' completed':''}`;
-    d.onclick = () => { currentStep = i; renderSteps(); updateUI(); goToStep(); };
-
-    d.innerHTML = `
-      <div class="step-number">${i+1}</div>
-      <div class="step-name${isHidden?' hidden-text':''}">${s}</div>
-      <span class="coord-badge ${hasCoord?'set':'unset'}" title="${hasCoord?'Clicca per riposizionare':'Clicca per posizionare'}">${hasCoord?'📍':'+'}</span>
-    `;
-
-    const badge = d.querySelector('.coord-badge');
-    badge.onclick = ev => {
-      ev.stopPropagation();
-      currentStep = i; renderSteps(); updateUI(); goToStep();
-      if (hasCoord) {
-        // rimuovi e riposiziona
-        delete coords[key]; saveLocal(); renderSteps();
-        if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
-        updateLines();
-      }
-      startPlacing(i);
-    };
-
-    c.appendChild(d);
-  });
-  const activeEl = c.querySelector('.step-row.active');
-  if (activeEl) activeEl.scrollIntoView({ block:'nearest', behavior:'smooth' });
-}
-
-function nextStep() {
-  if (!currentRoute || currentStep >= currentRoute.steps.length-1) return;
-  currentStep++; renderSteps(); updateUI(); goToStep();
-}
-function prevStep() {
-  if (!currentRoute || currentStep <= 0) return;
-  currentStep--; renderSteps(); updateUI(); goToStep();
-}
-
-function revealCurrentStep() {
-  const rows = document.querySelectorAll('#stepsList .step-row');
-  const nameEl = rows[currentStep]?.querySelector('.step-name');
-  if (nameEl) nameEl.classList.remove('hidden-text');
-  if (mode === 'quiz') {
-    document.getElementById('quizFeedback').textContent = currentRoute?.steps[currentStep] || '';
-    document.getElementById('quizFeedback').style.color = 'var(--muted)';
-  }
-}
-
-function updateUI() {
-  if (!currentRoute) return;
-  const total = currentRoute.steps.length;
-  const pct   = total > 1 ? (currentStep / (total-1)) * 100 : 0;
-  document.getElementById('panelProgress').textContent = `Via ${currentStep+1} di ${total}`;
-  document.getElementById('progressBar').style.width   = pct + '%';
-
-  // stats label
-  const placed = currentRoute.steps.filter((_,i) => !!coords[`${currentRoute.id}_${i}`]).length;
-  document.getElementById('panelStats').textContent = `${placed}/${total} 📍`;
-
-  document.getElementById('btnPrev').disabled   = currentStep === 0;
-  document.getElementById('btnNext').disabled   = currentStep === total-1;
-  document.getElementById('btnStreet').disabled = !mainMarker;
-  document.getElementById('btnReveal').style.display   = mode==='cieco' ? 'block' : 'none';
-  document.getElementById('normalFooter').style.display = mode==='quiz'  ? 'none'  : 'block';
-  document.getElementById('quizFooter').style.display   = mode==='quiz'  ? 'block' : 'none';
-  if (mode==='quiz') { document.getElementById('quizAnswer').value=''; document.getElementById('quizFeedback').textContent=''; }
-}
-
-function goToStep() {
-  if (!currentRoute) return;
-  const key = `${currentRoute.id}_${currentStep}`;
-  if (coords[key]) {
-    placeMainMarker(coords[key].lat, coords[key].lon, currentRoute.steps[currentStep], key);
-    map.setView([coords[key].lat, coords[key].lon], Math.max(map.getZoom(),15), { animate:true });
-  }
-  updateLines();
-}
-
-function placeMainMarker(lat, lon, name, key) {
-  if (mainMarker) {
+/* ── ANIMAZIONE MARKER RIMBALZO ── */
+function animateMarkerBounce(lat,lon,name,key){
+  if(mainMarker){
     mainMarker.setLatLng([lat,lon]);
     mainMarker.getPopup().setContent(`<b>${name}</b>`);
+    const el=mainMarker.getElement();
+    if(el){el.style.animation='none';requestAnimationFrame(()=>{el.style.animation='bounce .5s ease forwards';});}
   } else {
-    mainMarker = L.marker([lat,lon],{draggable:true}).addTo(map).bindPopup(`<b>${name}</b>`);
+    mainMarker=L.marker([lat,lon],{draggable:true}).addTo(map).bindPopup(`<b>${name}</b>`);
+    const el=mainMarker.getElement();
+    if(el) el.style.animation='bounce .5s ease forwards';
   }
   mainMarker.off('dragend');
-  mainMarker.on('dragend', () => {
-    const p = mainMarker.getLatLng();
-    coords[key] = { lat:p.lat, lon:p.lng };
-    saveLocal(); updateLines(); renderSteps();
+  mainMarker.on('dragend',()=>{
+    const p=mainMarker.getLatLng();
+    coords[key]={lat:p.lat,lon:p.lng};
+    saveLocal(); autoSaveCloud(); updateLines(); renderSteps();
   });
   mainMarker.openPopup();
 }
 
-function updateLines() {
-  if (doneDecorator) { map.removeLayer(doneDecorator); doneDecorator=null; }
-  if (doneLine)      { map.removeLayer(doneLine);      doneLine=null; }
-  if (nextLine)      { map.removeLayer(nextLine);      nextLine=null; }
-  if (!currentRoute) return;
-  const done=[], rem=[];
-  for (let i=0; i<=currentStep; i++) { const k=`${currentRoute.id}_${i}`; if (coords[k]) done.push([coords[k].lat,coords[k].lon]); }
-  for (let i=currentStep; i<currentRoute.steps.length; i++) { const k=`${currentRoute.id}_${i}`; if (coords[k]) rem.push([coords[k].lat,coords[k].lon]); }
-  if (done.length>1) {
-    doneLine = L.polyline(done,{color:'#3b82f6',weight:5,opacity:.9}).addTo(map);
-    try { doneDecorator = L.polylineDecorator(doneLine,{patterns:[{offset:'5%',repeat:'100px',symbol:L.Symbol.arrowHead({pixelSize:14,pathOptions:{color:'#1d4ed8',weight:2}})}]}).addTo(map); } catch(e){}
-  }
-  if (rem.length>1) nextLine = L.polyline(rem,{color:'#94a3b8',weight:3,opacity:.45,dashArray:'8 8'}).addTo(map);
-}
-function clearLines() {
-  if (doneDecorator) { map.removeLayer(doneDecorator); doneDecorator=null; }
-  if (doneLine)      { map.removeLayer(doneLine);      doneLine=null; }
-  if (nextLine)      { map.removeLayer(nextLine);      nextLine=null; }
+/* ── PERCORSO ── */
+function selectRoute(route){
+  currentRoute=route; currentStep=0;
+  if(mainMarker){map.removeLayer(mainMarker);mainMarker=null;}
+  clearLines(); stopPlacing();
+  document.getElementById('panelTitle').textContent=route.title;
+  document.getElementById('searchBar').value=route.title;
+  document.getElementById('quizFeedback').textContent='';
+  document.getElementById('restartBtn').style.display='block';
+  renderSteps(); updateUI(); goToStep(); closeSuggestions();
+  localStorage.setItem('lastRouteId',route.id);
+  localStorage.setItem('lastStep','0');
+  // zoom su tutti i marker del percorso
+  const pts=route.steps.map((_,i)=>coords[`${route.id}_${i}`]).filter(Boolean);
+  if(pts.length>1){ map.fitBounds(pts.map(p=>[p.lat,p.lon]),{padding:[40,40],maxZoom:15,animate:true}); }
+  else if(pts.length===1){ map.setView([pts[0].lat,pts[0].lon],15,{animate:true}); }
 }
 
-function openStreetView() {
-  if (mainMarker) { const p=mainMarker.getLatLng(); window.open(`https://www.google.com/maps?layer=c&cbll=${p.lat},${p.lng}`,'_blank'); }
+function restartRoute(){ if(!currentRoute) return; currentStep=0; renderSteps(); updateUI(); goToStep(); }
+
+/* ── ANIMAZIONE TYPEWRITER ── */
+function typewriterReveal(el,text){
+  el.textContent='';
+  el.classList.remove('hidden-text');
+  let i=0;
+  const speed=Math.max(20,180/text.length);
+  const t=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i>=text.length) clearInterval(t);
+  },speed);
 }
 
-/* ============================================================
-   MODALITÀ
-   ============================================================ */
-function setMode(m) {
-  mode = m;
-  ['Studio','Cieco','Quiz'].forEach(n => {
-    document.getElementById('mode'+n).classList.toggle('active', m===n.toLowerCase());
+function renderSteps(){
+  const c=document.getElementById('stepsList'); c.innerHTML='';
+  currentRoute.steps.forEach((s,i)=>{
+    const key=`${currentRoute.id}_${i}`;
+    const hasCoord=!!coords[key];
+    const isHidden=mode!=='studio'&&i!==currentStep;
+    const isActive=i===currentStep, isDone=i<currentStep;
+    const d=document.createElement('div');
+    d.className=`step-row${isActive?' active':''}${isDone?' completed':''}`;
+    d.onclick=()=>{currentStep=i;renderSteps();updateUI();goToStep();};
+    d.innerHTML=`
+      <div class="step-number">${i+1}</div>
+      <div class="step-name${isHidden?' hidden-text':''}">${s}</div>
+      <span class="coord-badge ${hasCoord?'set':'unset'}" title="${hasCoord?'Rimuovi e riposiziona':'Posiziona'}">${hasCoord?'📍':'+'}</span>
+    `;
+    const badge=d.querySelector('.coord-badge');
+    badge.onclick=ev=>{
+      ev.stopPropagation();
+      currentStep=i; renderSteps(); updateUI(); goToStep();
+      if(hasCoord){ delete coords[key]; saveLocal(); autoSaveCloud(); renderSteps(); if(mainMarker){map.removeLayer(mainMarker);mainMarker=null;} updateLines(); }
+      startPlacing(i);
+    };
+    c.appendChild(d);
   });
-  if (currentRoute) renderSteps();
-  updateUI();
-  if (m==='quiz') setTimeout(()=>document.getElementById('quizAnswer').focus(),100);
+  const ae=c.querySelector('.step-row.active');
+  if(ae) ae.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-/* ============================================================
-   QUIZ
-   ============================================================ */
-function checkQuiz() {
-  if (!currentRoute) return;
-  const ans     = document.getElementById('quizAnswer').value.trim().toUpperCase();
-  const correct = currentRoute.steps[currentStep].toUpperCase();
-  const fb      = document.getElementById('quizFeedback');
-  if (!quizStats[currentRoute.id]) quizStats[currentRoute.id]={correct:0,total:0,wrong:{}};
-  quizStats[currentRoute.id].total++;
-  if (ans===correct) {
-    fb.textContent='✅ Corretto!'; fb.style.color='var(--success)';
-    quizStats[currentRoute.id].correct++;
-    saveLocal();
-    setTimeout(()=>{ if(currentStep<currentRoute.steps.length-1) nextStep(); else showToast('🎉 Percorso completato!'); },600);
-  } else {
-    fb.textContent=`❌ ${correct}`; fb.style.color='var(--danger)';
-    // traccia errori per step
-    if (!quizStats[currentRoute.id].wrong) quizStats[currentRoute.id].wrong={};
-    quizStats[currentRoute.id].wrong[currentStep]=(quizStats[currentRoute.id].wrong[currentStep]||0)+1;
-    saveLocal();
+function nextStep(){
+  if(!currentRoute||currentStep>=currentRoute.steps.length-1) return;
+  currentStep++; renderSteps(); updateUI(); goToStep();
+  localStorage.setItem('lastStep',String(currentStep));
+}
+function prevStep(){
+  if(!currentRoute||currentStep<=0) return;
+  currentStep--; renderSteps(); updateUI(); goToStep();
+  localStorage.setItem('lastStep',String(currentStep));
+}
+
+function revealCurrentStep(){
+  const rows=document.querySelectorAll('#stepsList .step-row');
+  const nameEl=rows[currentStep]?.querySelector('.step-name');
+  if(nameEl&&currentRoute){
+    typewriterReveal(nameEl,currentRoute.steps[currentStep]);
+  }
+  if(mode==='quiz'){
+    document.getElementById('quizFeedback').textContent=currentRoute?.steps[currentStep]||'';
+    document.getElementById('quizFeedback').style.color='var(--muted)';
   }
 }
-function skipQuiz() {
-  if (!currentRoute) return;
-  const fb=document.getElementById('quizFeedback');
-  fb.textContent=`→ ${currentRoute.steps[currentStep]}`; fb.style.color='var(--warning)';
-  if (!quizStats[currentRoute.id]) quizStats[currentRoute.id]={correct:0,total:0,wrong:{}};
-  quizStats[currentRoute.id].total++;
-  saveLocal();
-  setTimeout(()=>{ if(currentStep<currentRoute.steps.length-1) nextStep(); else showToast('🎉 Percorso completato!'); },600);
+
+function updateUI(){
+  if(!currentRoute) return;
+  const total=currentRoute.steps.length;
+  const pct=total>1?(currentStep/(total-1))*100:0;
+  document.getElementById('panelProgress').textContent=`Via ${currentStep+1} di ${total}`;
+  document.getElementById('progressBar').style.width=pct+'%';
+  const placed=currentRoute.steps.filter((_,i)=>!!coords[`${currentRoute.id}_${i}`]).length;
+  const isDone=completed[currentRoute.id];
+  document.getElementById('panelStats').textContent=`${placed}/${total} 📍${isDone?' ✓':''}`;
+  document.getElementById('btnPrev').disabled=currentStep===0;
+  document.getElementById('btnNext').disabled=currentStep===total-1;
+  document.getElementById('btnStreet').disabled=!mainMarker;
+  document.getElementById('btnReveal').style.display=mode==='cieco'?'block':'none';
+  document.getElementById('normalFooter').style.display=mode==='quiz'?'none':'block';
+  document.getElementById('quizFooter').style.display=mode==='quiz'?'block':'none';
+  if(mode==='quiz'){document.getElementById('quizAnswer').value='';document.getElementById('quizFeedback').textContent='';}
 }
-document.addEventListener('keydown', e=>{
-  if (e.key==='Enter' && mode==='quiz' && document.activeElement===document.getElementById('quizAnswer')) checkQuiz();
+
+function goToStep(){
+  if(!currentRoute) return;
+  const key=`${currentRoute.id}_${currentStep}`;
+  if(coords[key]){
+    animateMarkerBounce(coords[key].lat,coords[key].lon,currentRoute.steps[currentStep],key);
+    map.setView([coords[key].lat,coords[key].lon],Math.max(map.getZoom(),15),{animate:true});
+  }
+  updateLines();
+}
+
+/* ── LINEE ANIMATE ── */
+function updateLines(){
+  if(doneDecorator){map.removeLayer(doneDecorator);doneDecorator=null;}
+  if(doneLine)     {map.removeLayer(doneLine);doneLine=null;}
+  if(nextLine)     {map.removeLayer(nextLine);nextLine=null;}
+  if(!currentRoute) return;
+  const done=[],rem=[];
+  for(let i=0;i<=currentStep;i++){const k=`${currentRoute.id}_${i}`;if(coords[k])done.push([coords[k].lat,coords[k].lon]);}
+  for(let i=currentStep;i<currentRoute.steps.length;i++){const k=`${currentRoute.id}_${i}`;if(coords[k])rem.push([coords[k].lat,coords[k].lon]);}
+  if(done.length>1){
+    // disegna la linea punto per punto con animazione
+    doneLine=L.polyline([],{color:'#3b82f6',weight:5,opacity:.9}).addTo(map);
+    let idx=0;
+    const drawNext=()=>{ if(idx<done.length){doneLine.addLatLng(done[idx++]);setTimeout(drawNext,60);} else { try{doneDecorator=L.polylineDecorator(doneLine,{patterns:[{offset:'5%',repeat:'100px',symbol:L.Symbol.arrowHead({pixelSize:14,pathOptions:{color:'#1d4ed8',weight:2}})}]}).addTo(map);}catch(e){} } };
+    drawNext();
+  }
+  if(rem.length>1) nextLine=L.polyline(rem,{color:'#94a3b8',weight:3,opacity:.4,dashArray:'8 8'}).addTo(map);
+}
+function clearLines(){
+  if(doneDecorator){map.removeLayer(doneDecorator);doneDecorator=null;}
+  if(doneLine)     {map.removeLayer(doneLine);doneLine=null;}
+  if(nextLine)     {map.removeLayer(nextLine);nextLine=null;}
+}
+
+function openStreetView(){
+  if(mainMarker){const p=mainMarker.getLatLng();window.open(`https://www.google.com/maps?layer=c&cbll=${p.lat},${p.lng}`,'_blank');}
+}
+
+/* ── CONFETTI ── */
+function spawnConfetti(){
+  const colors=['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ec4899','#14b8a6'];
+  for(let i=0;i<18;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}%;top:30%;background:${colors[i%colors.length]};animation-delay:${Math.random()*.4}s;animation-duration:${.6+Math.random()*.5}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1200);
+  }
+}
+
+/* ── MODALITÀ ── */
+function setMode(m){
+  mode=m;
+  document.getElementById('modeStudio').classList.toggle('active',m==='studio');
+  document.getElementById('modeCieco').classList.toggle('active',m==='cieco');
+  document.getElementById('modeQuiz').classList.toggle('active',m==='quiz');
+  if(currentRoute) renderSteps();
+  updateUI();
+  if(m==='quiz') setTimeout(()=>document.getElementById('quizAnswer').focus(),100);
+}
+
+/* ── QUIZ ── */
+function checkQuiz(){
+  if(!currentRoute) return;
+  const ans=document.getElementById('quizAnswer').value.trim().toUpperCase();
+  const correct=currentRoute.steps[currentStep].toUpperCase();
+  const fb=document.getElementById('quizFeedback');
+  if(!quizStats[currentRoute.id]) quizStats[currentRoute.id]={correct:0,total:0,wrong:{}};
+  quizStats[currentRoute.id].total++;
+  if(ans===correct){
+    fb.textContent='✅ Corretto!';fb.style.color='var(--success)';
+    quizStats[currentRoute.id].correct++;
+    saveLocal(); autoSaveCloud();
+    if(currentStep===currentRoute.steps.length-1){
+      completed[currentRoute.id]=true;saveLocal();autoSaveCloud();
+      spawnConfetti();showToast('🎉 Percorso completato!');
+    } else { setTimeout(()=>{if(currentStep<currentRoute.steps.length-1)nextStep();},600); }
+  } else {
+    fb.textContent=`❌ ${correct}`;fb.style.color='var(--danger)';
+    if(!quizStats[currentRoute.id].wrong) quizStats[currentRoute.id].wrong={};
+    quizStats[currentRoute.id].wrong[currentStep]=(quizStats[currentRoute.id].wrong[currentStep]||0)+1;
+    saveLocal(); autoSaveCloud();
+  }
+}
+function skipQuiz(){
+  if(!currentRoute) return;
+  const fb=document.getElementById('quizFeedback');
+  fb.textContent=`→ ${currentRoute.steps[currentStep]}`;fb.style.color='var(--warning)';
+  if(!quizStats[currentRoute.id]) quizStats[currentRoute.id]={correct:0,total:0,wrong:{}};
+  quizStats[currentRoute.id].total++;
+  saveLocal(); autoSaveCloud();
+  setTimeout(()=>{if(currentStep<currentRoute.steps.length-1)nextStep();else{spawnConfetti();showToast('🎉 Completato!');}},600);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&mode==='quiz'&&document.activeElement===document.getElementById('quizAnswer')) checkQuiz();
 });
 
-/* ============================================================
-   MODAL ADD/EDIT
-   ============================================================ */
-let modalMap=null, mobileMap=null;
-let modalTempCoords={}, modalSelectedStep=null, modalEditId=null;
-let modalMarkers=[];
+/* ── MODAL ADD/EDIT ── */
+let modalMap=null,mobileMap=null;
+let modalTempCoords={},modalSelectedStep=null,modalEditId=null,modalMarkers=[];
+function isDesktop(){return window.innerWidth>=768;}
 
-function isDesktop() { return window.innerWidth>=768; }
-
-function openAddModal(editId=null) {
-  modalEditId=editId; modalTempCoords={}; modalSelectedStep=null;
+function openAddModal(editId=null){
+  modalEditId=editId;modalTempCoords={};modalSelectedStep=null;
   document.getElementById('routeModal').classList.add('open');
   document.getElementById('modalStepsList').innerHTML='';
   document.getElementById('mobileMapArea').classList.remove('open');
   document.getElementById('mapToggleBtn').textContent='🗺️ Mostra mappa per posizionare';
-  if (editId) {
+  if(editId){
     const r=routes.find(r=>r.id===editId);
-    if (r) {
+    if(r){
       document.getElementById('newRouteTitle').value=r.title;
       document.getElementById('newRouteSteps').value=r.steps.join('\n');
       document.getElementById('modalTitle').textContent='✏️ Modifica Percorso';
-      r.steps.forEach((_,i)=>{ const k=`${editId}_${i}`; if(coords[k]) modalTempCoords[i]={...coords[k]}; });
+      r.steps.forEach((_,i)=>{const k=`${editId}_${i}`;if(coords[k])modalTempCoords[i]={...coords[k]};});
     }
   } else {
     document.getElementById('newRouteTitle').value='';
@@ -897,133 +945,122 @@ function openAddModal(editId=null) {
     document.getElementById('modalTitle').textContent='➕ Nuovo Percorso';
   }
   parseModalSteps();
-  setTimeout(()=>{ if(isDesktop()) initModalMap(); },150);
+  setTimeout(()=>{if(isDesktop())initModalMap();},150);
 }
-
-function initModalMap() {
-  if (!modalMap) {
+function initModalMap(){
+  if(!modalMap){
     modalMap=L.map('modalMap',{zoomControl:true}).setView([45.4642,9.1900],13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(modalMap);
     modalMap.on('click',onModalMapClick);
-  } else { modalMap.invalidateSize(); }
+  } else {modalMap.invalidateSize();}
   refreshModalMarkers(modalMap);
 }
-function initMobileMap() {
-  if (!mobileMap) {
+function initMobileMap(){
+  if(!mobileMap){
     mobileMap=L.map('mobileMap',{zoomControl:true}).setView([45.4642,9.1900],13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mobileMap);
     mobileMap.on('click',onModalMapClick);
-  } else { mobileMap.invalidateSize(); }
+  } else {mobileMap.invalidateSize();}
   refreshModalMarkers(mobileMap);
 }
-
-function refreshModalMarkers(tm) {
-  modalMarkers.forEach(m=>tm.removeLayer(m)); modalMarkers=[];
+function refreshModalMarkers(tm){
+  modalMarkers.forEach(m=>tm.removeLayer(m));modalMarkers=[];
   getModalSteps().forEach((s,i)=>{
-    if (!modalTempCoords[i]) return;
+    if(!modalTempCoords[i]) return;
     const m=L.marker([modalTempCoords[i].lat,modalTempCoords[i].lon],{draggable:true}).bindPopup(`<b>${s}</b>`).addTo(tm);
-    m.on('dragend',()=>{ const p=m.getLatLng(); modalTempCoords[i]={lat:p.lat,lon:p.lng}; updateModalStepsList(); });
+    m.on('dragend',()=>{const p=m.getLatLng();modalTempCoords[i]={lat:p.lat,lon:p.lng};updateModalStepsList();});
     modalMarkers.push(m);
   });
 }
-
-function onModalMapClick(e) {
-  if (modalSelectedStep===null) return;
+function onModalMapClick(e){
+  if(modalSelectedStep===null) return;
   const steps=getModalSteps();
-  if (modalSelectedStep>=steps.length) return;
+  if(modalSelectedStep>=steps.length) return;
   modalTempCoords[modalSelectedStep]={lat:e.latlng.lat,lon:e.latlng.lng};
   const am=isDesktop()?modalMap:mobileMap;
-  if (am) refreshModalMarkers(am);
+  if(am) refreshModalMarkers(am);
   updateModalStepsList();
   document.getElementById('modalMapHint').classList.remove('show');
   document.getElementById('mobileMapHint').classList.remove('show');
   const next=steps.findIndex((_,i)=>i>modalSelectedStep&&!modalTempCoords[i]);
-  if (next!==-1) selectModalStep(next); else modalSelectedStep=null;
+  if(next!==-1) selectModalStep(next); else modalSelectedStep=null;
 }
-
-function getModalSteps() {
+function getModalSteps(){
   return document.getElementById('newRouteSteps').value.split('\n').map(l=>l.trim().toUpperCase()).filter(l=>l);
 }
-function parseModalSteps() { updateModalStepsList(); }
-
-function updateModalStepsList() {
-  const steps=getModalSteps();
-  const c=document.getElementById('modalStepsList');
+function parseModalSteps(){updateModalStepsList();}
+function updateModalStepsList(){
+  const steps=getModalSteps(),c=document.getElementById('modalStepsList');
   c.innerHTML='';
-  if (!steps.length) { c.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0;">Inserisci le vie sopra…</div>'; return; }
+  if(!steps.length){c.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0;">Inserisci le vie sopra…</div>';return;}
   steps.forEach((s,i)=>{
-    const placed=!!modalTempCoords[i], isSel=modalSelectedStep===i;
+    const placed=!!modalTempCoords[i],isSel=modalSelectedStep===i;
     const d=document.createElement('div');
     d.className=`modal-step-item${isSel?' selected':''}${placed?' placed':''}`;
-    d.onclick=()=>{ placed?removeModalStepCoord(i):selectModalStep(i); };
+    d.onclick=()=>{placed?removeModalStepCoord(i):selectModalStep(i);};
     d.innerHTML=`
       <div class="modal-step-num">${i+1}</div>
       <div class="modal-step-name">${s}</div>
-      ${placed
-        ?`<span class="modal-step-badge ok" title="Clicca per rimuovere">📍 ✕</span>`
-        :`<span class="modal-step-badge pin">${isSel?'⬅️ clicca mappa':'Non posizionato'}</span>`}
+      ${placed?`<span class="modal-step-badge ok" title="Clicca per rimuovere">📍 ✕</span>`:`<span class="modal-step-badge pin">${isSel?'⬅️ clicca mappa':'Non posizionato'}</span>`}
     `;
     c.appendChild(d);
   });
 }
-
-function removeModalStepCoord(i) {
+function removeModalStepCoord(i){
   delete modalTempCoords[i];
   const am=isDesktop()?modalMap:mobileMap;
-  if (am) refreshModalMarkers(am);
+  if(am) refreshModalMarkers(am);
   selectModalStep(i);
 }
-function selectModalStep(i) {
-  modalSelectedStep=i; updateModalStepsList();
+function selectModalStep(i){
+  modalSelectedStep=i;updateModalStepsList();
   const hint=`Clicca sulla mappa: ${getModalSteps()[i]||''}`;
   document.getElementById('modalMapHint').textContent=hint;
   document.getElementById('modalMapHint').classList.add('show');
   document.getElementById('mobileMapHint').textContent=hint;
   document.getElementById('mobileMapHint').classList.add('show');
 }
-function toggleMobileMap() {
-  const area=document.getElementById('mobileMapArea'), btn=document.getElementById('mapToggleBtn');
+function toggleMobileMap(){
+  const area=document.getElementById('mobileMapArea'),btn=document.getElementById('mapToggleBtn');
   const open=area.classList.toggle('open');
   btn.textContent=open?'🗺️ Nascondi mappa':'🗺️ Mostra mappa per posizionare';
-  if (open) setTimeout(()=>initMobileMap(),100);
+  if(open) setTimeout(()=>initMobileMap(),100);
 }
-function closeAddModal() { document.getElementById('routeModal').classList.remove('open'); modalSelectedStep=null; }
-
-function saveRouteText() {
+function closeAddModal(){document.getElementById('routeModal').classList.remove('open');modalSelectedStep=null;}
+function saveRouteText(){
   const title=document.getElementById('newRouteTitle').value.trim().toUpperCase();
   const steps=getModalSteps();
-  if (!title) { showToast('⚠️ Inserisci un titolo'); return; }
-  if (!steps.length) { showToast('⚠️ Inserisci almeno una via'); return; }
+  if(!title){showToast('⚠️ Inserisci un titolo');return;}
+  if(!steps.length){showToast('⚠️ Inserisci almeno una via');return;}
   let routeId;
-  if (modalEditId) {
+  if(modalEditId){
     routeId=modalEditId;
     const idx=routes.findIndex(r=>r.id===modalEditId);
-    if (idx!==-1) { routes[idx].title=title; routes[idx].steps=steps; }
+    if(idx!==-1){routes[idx].title=title;routes[idx].steps=steps;}
   } else {
     routeId='r_'+Date.now().toString(36);
     routes.push({id:routeId,title,steps});
   }
-  steps.forEach((_,i)=>{ if(modalTempCoords[i]) coords[`${routeId}_${i}`]=modalTempCoords[i]; });
-  saveLocal(); closeAddModal();
+  steps.forEach((_,i)=>{if(modalTempCoords[i])coords[`${routeId}_${i}`]=modalTempCoords[i];});
+  saveLocal();autoSaveCloud();closeAddModal();
   const saved=routes.find(r=>r.id===routeId);
-  if (saved) selectRoute(saved);
+  if(saved) selectRoute(saved);
   showToast('✅ Percorso salvato');
 }
 
-/* ============================================================
-   ROUTES MANAGER
-   ============================================================ */
-function openRoutesManager() {
+/* ── ROUTES MANAGER ── */
+function openRoutesManager(){
   document.getElementById('routesManagerModal').classList.add('open');
   document.getElementById('routesCount').textContent=`${routes.length} percors${routes.length===1?'o':'i'}`;
-  const list=document.getElementById('routesManagerList'); list.innerHTML='';
+  const list=document.getElementById('routesManagerList');list.innerHTML='';
   routes.forEach(r=>{
     const placed=r.steps.filter((_,i)=>!!coords[`${r.id}_${i}`]).length;
     const qs=quizStats[r.id];
     const pct=qs&&qs.total?Math.round(qs.correct/qs.total*100):null;
+    const isDone=completed[r.id];
     const d=document.createElement('div');
-    d.className='route-item';
-    d.onclick=()=>{ selectRoute(r); closeRoutesManager(); };
+    d.className=`route-item${isDone?' done':''}`;
+    d.onclick=()=>{selectRoute(r);closeRoutesManager();};
     d.innerHTML=`
       <div class="route-item-info">
         <div class="route-item-title">${r.title}</div>
@@ -1037,112 +1074,101 @@ function openRoutesManager() {
     list.appendChild(d);
   });
 }
-function closeRoutesManager() { document.getElementById('routesManagerModal').classList.remove('open'); }
-function deleteRoute(id) {
-  if (!confirm('Eliminare questo percorso?')) return;
+function closeRoutesManager(){document.getElementById('routesManagerModal').classList.remove('open');}
+function deleteRoute(id){
+  if(!confirm('Eliminare questo percorso?')) return;
   routes=routes.filter(r=>r.id!==id);
-  Object.keys(coords).forEach(k=>{ if(k.startsWith(id+'_')) delete coords[k]; });
-  saveLocal();
-  if (currentRoute&&currentRoute.id===id) {
+  Object.keys(coords).forEach(k=>{if(k.startsWith(id+'_'))delete coords[k];});
+  saveLocal();autoSaveCloud();
+  if(currentRoute&&currentRoute.id===id){
     currentRoute=null;
     document.getElementById('panelTitle').textContent='Prontuario NCC';
     document.getElementById('stepsList').innerHTML='';
     document.getElementById('panelProgress').textContent='Seleziona un percorso';
     document.getElementById('progressBar').style.width='0%';
-    if (mainMarker){map.removeLayer(mainMarker);mainMarker=null;}
+    document.getElementById('restartBtn').style.display='none';
+    if(mainMarker){map.removeLayer(mainMarker);mainMarker=null;}
     clearLines();
   }
   openRoutesManager();
 }
 
-/* ============================================================
-   STATISTICHE
-   ============================================================ */
-function openStats() {
+/* ── STATS ── */
+function openStats(){
   document.getElementById('statsModal').classList.add('open');
-  const body=document.getElementById('statsBody'); body.innerHTML='';
-  if (!Object.keys(quizStats).length) { body.innerHTML='<p style="color:var(--muted);padding:12px 0;">Nessuna sessione quiz ancora.</p>'; return; }
+  const body=document.getElementById('statsBody');body.innerHTML='';
+  const hasData=routes.some(r=>quizStats[r.id]&&quizStats[r.id].total);
+  if(!hasData){body.innerHTML='<p style="color:var(--muted);padding:12px 0">Nessuna sessione quiz ancora.</p>';return;}
   routes.forEach(r=>{
-    const qs=quizStats[r.id]; if(!qs||!qs.total) return;
+    const qs=quizStats[r.id];if(!qs||!qs.total) return;
     const pct=Math.round(qs.correct/qs.total*100);
     const color=pct>=80?'var(--success)':pct>=50?'var(--warning)':'var(--danger)';
-    const row=document.createElement('div'); row.className='stat-row';
+    const row=document.createElement('div');row.className='stat-row';
     row.innerHTML=`<span class="stat-label">${r.title}</span><span class="stat-val" style="color:${color}">${pct}% <small style="font-size:12px;color:var(--muted)">(${qs.correct}/${qs.total})</small></span>`;
     body.appendChild(row);
   });
 }
-function closeStats() { document.getElementById('statsModal').classList.remove('open'); }
+function closeStats(){document.getElementById('statsModal').classList.remove('open');}
 
-/* ============================================================
-   RICERCA
-   ============================================================ */
-function showSuggestions() {
+/* ── RICERCA ── */
+function showSuggestions(){
   const q=document.getElementById('searchBar').value.toUpperCase();
-  const ul=document.getElementById('suggestionsList'); ul.innerHTML='';
-  if (!q) { ul.style.display='none'; return; }
-  const filtered=routes.filter(r=>r.title.includes(q));
-  if (filtered.length) {
-    filtered.forEach(r=>{ const li=document.createElement('li'); li.textContent=r.title; li.onclick=()=>selectRoute(r); ul.appendChild(li); });
+  const ul=document.getElementById('suggestionsList');ul.innerHTML='';
+  if(!q){ul.style.display='none';return;}
+  const filtered=routes.filter(r=>r.title.includes(q)||r.steps.some(s=>s.includes(q)));
+  if(filtered.length){
+    filtered.forEach(r=>{const li=document.createElement('li');li.textContent=r.title;li.onclick=()=>selectRoute(r);ul.appendChild(li);});
     ul.style.display='block';
   } else ul.style.display='none';
 }
-function closeSuggestions() { document.getElementById('suggestionsList').style.display='none'; }
-function selectRandomRoute() { if(routes.length) selectRoute(routes[Math.floor(Math.random()*routes.length)]); }
+function closeSuggestions(){document.getElementById('suggestionsList').style.display='none';}
+function selectRandomRoute(){if(routes.length)selectRoute(routes[Math.floor(Math.random()*routes.length)]);}
 
-/* ============================================================
-   OVERFLOW MENU
-   ============================================================ */
-function toggleMenu() { document.getElementById('overflowMenu').classList.toggle('open'); }
-function closeMenu()  { document.getElementById('overflowMenu').classList.remove('open'); }
-document.addEventListener('click', e=>{
+/* ── OVERFLOW MENU ── */
+function toggleMenu(){document.getElementById('overflowMenu').classList.toggle('open');}
+function closeMenu() {document.getElementById('overflowMenu').classList.remove('open');}
+document.addEventListener('click',e=>{
   const w=document.querySelector('.menu-wrap');
-  if (w&&!w.contains(e.target)) closeMenu();
-  const sb=document.querySelector('.search-wrap');
-  if (sb&&!sb.contains(e.target)) closeSuggestions();
+  if(w&&!w.contains(e.target)) closeMenu();
+  const s=document.querySelector('.search-wrap');
+  if(s&&!s.contains(e.target)) closeSuggestions();
 });
 
-/* ============================================================
-   UTILITY
-   ============================================================ */
-function resetData() {
-  if (!confirm('Cancellare tutti i dati locali?')) return;
-  localStorage.clear(); location.reload();
+/* ── UTILITY ── */
+function resetData(){if(!confirm('Cancellare tutti i dati locali?'))return;localStorage.clear();location.reload();}
+function exportData(){
+  const blob=new Blob([JSON.stringify({routes,coords,errors,quizStats,completed})],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prontuario_backup.json';a.click();
 }
-function exportData() {
-  const blob=new Blob([JSON.stringify({routes,coords,errors,quizStats})],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='prontuario_backup.json'; a.click();
-}
-function importData() {
-  const input=document.createElement('input'); input.type='file'; input.accept='.json';
+function importData(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
   input.onchange=e=>{
     const r=new FileReader();
     r.onload=()=>{
-      try {
+      try{
         const d=JSON.parse(r.result);
-        if(d.routes) routes=d.routes; if(d.coords) coords=d.coords;
-        if(d.errors) errors=d.errors; if(d.quizStats) quizStats=d.quizStats;
-        saveLocal(); location.reload();
-      } catch { showToast('⚠️ File non valido'); }
+        if(d.routes)    routes    =d.routes;
+        if(d.coords)    coords    =d.coords;
+        if(d.errors)    errors    =d.errors;
+        if(d.quizStats) quizStats =d.quizStats;
+        if(d.completed) completed =d.completed;
+        saveLocal();location.reload();
+      } catch{showToast('⚠️ File non valido');}
     };
     r.readAsText(e.target.files[0]);
   };
   input.click();
 }
-
 let toastTimer=null;
-function showToast(msg) {
+function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+  t.textContent=msg;t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-/* ============================================================
-   AVVIO
-   ============================================================ */
-window.onload = function() {
-  initMap(); // setta mapReady=true e chiama tryStart()
-};
+/* ── AVVIO ── */
+window.onload=function(){initMap();};
 </script>
 </body>
 </html>
