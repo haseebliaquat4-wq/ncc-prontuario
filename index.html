@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Prontuario NCC Milano</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b1e33">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<style>
+:root{
+  --primary:#0b1e33;--accent:#3b82f6;--accent2:#1d4ed8;
+  --success:#10b981;--danger:#ef4444;--warning:#f59e0b;
+  --purple:#8b5cf6;--pink:#ec4899;
+  --bg:#f0f4fa;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
+  --radius:16px;--touch:48px;
+  --panel-bg:#fff;--panel-text:#1e293b;--panel-border:#e2e8f0;
+  --step-active-bg:#eef4ff;--step-active-border:#3b82f6;
+  --header-bg:linear-gradient(135deg,#0b1e33 0%,#1a3a5c 100%);
+}
+.dark{
+  --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--border:#334155;
+  --panel-bg:#1e293b;--panel-text:#f1f5f9;--panel-border:#334155;
+  --step-active-bg:#1e3a5f;--step-active-border:#60a5fa;
+}
+@keyframes pulse   {0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce  {0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}80%{transform:translateY(-3px)}100%{transform:translateY(0);opacity:1}}
+@keyframes stepFlash{0%{background:rgba(59,130,246,.3)}100%{background:var(--step-active-bg)}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(90px) rotate(720deg);opacity:0}}
+@keyframes gradMove{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes popIn   {0%{transform:scale(.88);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  height:100dvh;display:flex;flex-direction:column;
+  overflow:hidden;touch-action:manipulation;transition:background .3s,color .3s;
+}
+/* SPLASH */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0b1e33 0%,#1a3a5c 50%,#0f3460 100%);
+  background-size:200% 200%;animation:gradMove 4s ease infinite;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  transition:opacity .5s,visibility .5s;
+}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+#splashLogo{font-size:54px;animation:bounce .8s ease forwards}
+#splashTitle{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;animation:fadeUp .5s .3s both}
+#splashDots{display:flex;gap:10px;animation:fadeUp .5s .5s both}
+#splashDots span{width:10px;height:10px;border-radius:50%;background:var(--accent);display:block}
+#splashDots span:nth-child(1){animation:pulse 1.2s ease 0s infinite}
+#splashDots span:nth-child(2){animation:pulse 1.2s ease .2s infinite}
+#splashDots span:nth-child(3){animation:pulse 1.2s ease .4s infinite}
+#splashMsg{color:rgba(255,255,255,.55);font-size:14px;font-weight:600;animation:fadeUp .5s .7s both;text-align:center;padding:0 20px}
+/* PWA */
+#pwaBanner{
+  display:none;position:fixed;
+  bottom:max(80px,calc(60px + env(safe-area-inset-bottom)));
+  left:12px;right:12px;z-index:800;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  color:#fff;border-radius:16px;padding:12px 16px;
+  box-shadow:0 8px 24px rgba(59,130,246,.4);animation:fadeUp .3s ease;
+}
+#pwaBanner p{font-size:13px;font-weight:600;margin-bottom:4px}
+#pwaBanner small{opacity:.8;font-size:12px}
+#pwaBannerClose{position:absolute;top:10px;right:12px;background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+/* HEADER */
+header{
+  background:var(--header-bg);color:#fff;
+  padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));
+  z-index:900;flex-shrink:0;box-shadow:0 2px 16px rgba(0,0,0,.3);
+}
+.header-top{display:flex;align-items:center;gap:8px}
+.search-wrap{position:relative;flex:1;min-width:0}
+#searchBar{
+  width:100%;padding:10px 16px;border-radius:24px;border:none;
+  background:rgba(255,255,255,.13);color:#fff;font-size:15px;outline:none;
+  transition:background .2s,box-shadow .2s;
+}
+#searchBar:focus{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px rgba(59,130,246,.5)}
+#searchBar::placeholder{color:rgba(255,255,255,.45)}
+.suggestions{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  max-height:240px;overflow-y:auto;display:none;z-index:2000;list-style:none;
+}
+.suggestions li{
+  padding:12px 16px;cursor:pointer;font-weight:600;color:var(--text);
+  border-bottom:1px solid var(--border);transition:background .15s;
+}
+.suggestions li:last-child{border-bottom:none}
+.suggestions li:hover{background:var(--step-active-bg)}
+.chips{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.chip{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  color:#fff;padding:8px 14px;border-radius:24px;font-size:14px;font-weight:600;
+  cursor:pointer;white-space:nowrap;min-height:var(--touch);
+  display:inline-flex;align-items:center;gap:5px;
+  transition:background .15s,transform .1s,box-shadow .15s;flex-shrink:0;user-select:none;
+}
+.chip:active{transform:scale(.93)}
+.chip:hover{background:rgba(255,255,255,.2)}
+.chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;box-shadow:0 2px 12px rgba(59,130,246,.5)}
+.chip.sm{padding:8px 12px}
+.chip.green.active{background:linear-gradient(135deg,var(--success),#059669)}
+.chip.purple.active{background:linear-gradient(135deg,var(--purple),#7c3aed)}
+.menu-wrap{position:relative}
+.overflow-menu{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.2);min-width:230px;z-index:2000;
+  display:none;flex-direction:column;overflow:hidden;animation:popIn .18s ease;
+}
+.overflow-menu.open{display:flex}
+.overflow-menu button{
+  display:flex;align-items:center;gap:10px;padding:13px 18px;
+  background:none;border:none;border-bottom:1px solid var(--border);
+  cursor:pointer;font-size:15px;font-weight:600;color:var(--text);
+  text-align:left;transition:background .15s;
+}
+.overflow-menu button:last-child{border-bottom:none}
+.overflow-menu button:hover{background:var(--step-active-bg)}
+.overflow-menu button.danger{color:var(--danger)}
+.menu-icon{font-size:17px;width:24px;text-align:center}
+/* LAYOUT */
+.main-container{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#map{flex:1;min-height:0;z-index:1}
+#map.placing{cursor:crosshair!important;outline:3px solid var(--accent);outline-offset:-3px}
+#placingBanner{
+  display:none;position:fixed;
+  top:max(70px,calc(60px + env(safe-area-inset-top)));
+  left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;
+  padding:10px 22px;border-radius:24px;font-weight:700;font-size:14px;
+  z-index:1500;box-shadow:0 4px 20px rgba(59,130,246,.45);
+  white-space:nowrap;pointer-events:none;animation:fadeUp .2s ease;
+}
+/* PANEL */
+.control-panel{
+  background:var(--panel-bg);display:flex;flex-direction:column;
+  overflow:hidden;border-radius:22px 22px 0 0;
+  box-shadow:0 -6px 28px rgba(0,0,0,.12);
+  flex-shrink:0;transition:background .3s;
+  max-height:46vh;
+}
+.panel-drag-handle{
+  width:40px;height:5px;background:var(--border);border-radius:3px;
+  margin:8px auto 4px;flex-shrink:0;cursor:grab;
+}
+.panel-header{padding:4px 16px 8px;border-bottom:1px solid var(--panel-border);flex-shrink:0}
+.panel-title-row{display:flex;align-items:center;gap:8px}
+.panel-title-row h2{font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--panel-text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel-icon-btn{
+  background:none;border:none;cursor:pointer;font-size:17px;padding:4px 6px;
+  opacity:.55;transition:opacity .15s,transform .2s;border-radius:8px;flex-shrink:0;
+}
+.panel-icon-btn:hover{opacity:1;background:var(--step-active-bg)}
+.panel-icon-btn.spin:hover{transform:rotate(-30deg)}
+.panel-sub{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
+.panel-progress-text{font-size:12px;color:var(--accent);font-weight:700}
+.panel-stats{font-size:11px;color:var(--muted);font-weight:600}
+.progress-bar-wrap{height:4px;background:var(--panel-border);border-radius:2px;margin-top:6px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--purple));transition:width .4s cubic-bezier(.4,0,.2,1)}
+/* STEPS */
+.steps-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 10px}
+.step-row{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:12px;margin-bottom:3px;opacity:.38;font-size:14px;
+  transition:opacity .2s,background .2s;cursor:pointer;color:var(--panel-text);
+}
+.step-row:hover{opacity:.7}
+.step-row.active{
+  opacity:1;background:var(--step-active-bg);border-left:3px solid var(--step-active-border);
+  font-weight:700;animation:stepFlash .4s ease forwards;
+}
+.step-row.completed{opacity:.55}
+.step-row.wrong-step{border-left:3px solid var(--danger)!important;background:#fff1f1!important;opacity:.9!important}
+.dark .step-row.wrong-step{background:#2d1515!important}
+.step-number{
+  width:24px;height:24px;background:#cbd5e1;color:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;transition:background .25s,transform .2s;
+}
+.step-row.active    .step-number{background:linear-gradient(135deg,var(--accent),var(--purple));transform:scale(1.1)}
+.step-row.completed .step-number{background:var(--success)}
+.step-row.wrong-step .step-number{background:var(--danger)}
+.step-name{flex:1;min-width:0;color:var(--panel-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step-name.hidden-text{background:var(--panel-border);color:transparent;border-radius:6px;user-select:none;min-width:80px}
+.coord-badge{font-size:11px;padding:2px 7px;border-radius:8px;font-weight:600;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.coord-badge:active{transform:scale(.88)}
+.coord-badge.set  {background:#dcfce7;color:#15803d}
+.coord-badge.unset{background:#fee2e2;color:#b91c1c}
+.wrong-badge{background:#fee2e2;color:var(--danger);font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;flex-shrink:0}
+/* FOOTER */
+.panel-footer{
+  padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--panel-border);flex-shrink:0;
+}
+.btn-row{display:flex;gap:8px;margin-bottom:8px}
+.btn-row:last-child{margin-bottom:0}
+.btn{
+  flex:1;padding:13px;border-radius:14px;border:none;font-weight:700;font-size:15px;
+  cursor:pointer;min-height:var(--touch);display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform .1s,opacity .15s,box-shadow .15s;
+}
+.btn:active{transform:scale(.95)}
+.btn:disabled{opacity:.25;pointer-events:none}
+.btn-secondary{background:var(--panel-border);color:var(--panel-text)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 3px 12px rgba(59,130,246,.35)}
+.btn-street{background:linear-gradient(135deg,var(--warning),#d97706);color:#fff;box-shadow:0 3px 12px rgba(245,158,11,.3)}
+.btn-reveal{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;box-shadow:0 3px 12px rgba(139,92,246,.3)}
+#quizFooter{display:none}
+.quiz-input-row{display:flex;gap:8px;margin-bottom:8px}
+.quiz-input-row input{
+  flex:1;padding:12px 14px;border-radius:12px;
+  border:1.5px solid var(--panel-border);font-size:15px;outline:none;
+  background:var(--panel-bg);color:var(--panel-text);
+  transition:border-color .15s,box-shadow .15s;
+}
+.quiz-input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+#quizFeedback{font-weight:700;font-size:14px;min-height:20px;margin-bottom:6px;padding:0 2px}
+/* CONFETTI */
+.confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:5000;animation:confetti .8s ease forwards}
+/* NO-MARKER HINT */
+#noMarkerHint{
+  display:none;position:fixed;
+  top:max(70px,calc(60px + env(safe-area-inset-top)));
+  left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.9);color:#fff;
+  padding:9px 18px;border-radius:20px;font-weight:700;font-size:13px;
+  z-index:1400;white-space:nowrap;pointer-events:none;
+  animation:fadeUp .2s ease;
+}
+/* SAVE INDICATOR */
+#saveIndicator{
+  position:fixed;bottom:max(80px,calc(60px + env(safe-area-inset-bottom)));
+  right:12px;z-index:700;
+  background:rgba(16,185,129,.9);color:#fff;
+  padding:6px 12px;border-radius:12px;font-size:12px;font-weight:700;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#saveIndicator.show{opacity:1}
+/* MODALS */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:3000;visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s;padding:12px;
+}
+.modal.open{visibility:visible;opacity:1}
+.modal-box{
+  background:var(--card);border-radius:24px;width:100%;max-width:900px;
+  max-height:90dvh;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3);
+  animation:popIn .2s ease;transition:background .3s;
+}
+.modal-header{
+  padding:18px 20px 12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;
+}
+.modal-header h3{font-size:18px;font-weight:800}
+.modal-header p{font-size:13px;opacity:.8;margin-top:2px}
+/* ADD MODAL */
+.modal-body-add{display:flex;flex:1;min-height:0;overflow:hidden}
+.modal-left{
+  display:flex;flex-direction:column;padding:14px;gap:10px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;min-height:0;background:var(--card);
+}
+.modal-right{display:none;flex-direction:column;border-left:1px solid var(--border);flex:1;min-width:0}
+.modal-input{
+  width:100%;padding:12px 14px;font-size:15px;border:1.5px solid var(--border);
+  border-radius:12px;background:var(--bg);color:var(--text);outline:none;
+  transition:border-color .15s,box-shadow .15s;font-family:inherit;
+}
+.modal-input:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea.modal-input{resize:vertical;min-height:90px}
+.modal-steps-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.modal-steps-list{display:flex;flex-direction:column;gap:3px;max-height:200px;overflow-y:auto}
+.modal-step-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;
+  border:1.5px solid var(--border);cursor:pointer;
+  transition:border-color .15s,background .15s;font-size:13px;font-weight:600;color:var(--text);
+}
+.modal-step-item:hover   {border-color:var(--accent);background:var(--step-active-bg)}
+.modal-step-item.selected{border-color:var(--accent);background:var(--step-active-bg)}
+.modal-step-item.placed  {border-color:var(--success);background:#f0fdf4}
+.dark .modal-step-item.placed{background:#052e16}
+.modal-step-num{
+  width:22px;height:22px;background:var(--border);color:var(--muted);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;
+}
+.modal-step-item.selected .modal-step-num{background:var(--accent);color:#fff}
+.modal-step-item.placed   .modal-step-num{background:var(--success);color:#fff}
+.modal-step-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-step-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;flex-shrink:0}
+.modal-step-badge.ok {background:#dcfce7;color:#15803d}
+.modal-step-badge.pin{background:#dbeafe;color:#1d4ed8}
+#modalMapContainer{position:relative;flex:1;min-height:200px}
+#modalMap{width:100%;height:100%}
+.modal-map-hint{
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.7);color:#fff;padding:8px 16px;border-radius:20px;
+  font-size:13px;font-weight:600;pointer-events:none;white-space:nowrap;display:none;z-index:10;
+}
+.modal-map-hint.show{display:block}
+.map-toggle-btn{
+  width:100%;padding:10px;border:1.5px dashed var(--border);border-radius:12px;
+  background:var(--bg);color:var(--muted);font-weight:600;font-size:14px;
+  cursor:pointer;text-align:center;transition:border-color .15s,color .15s;flex-shrink:0;
+}
+.map-toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
+#mobileMapArea{display:none;height:240px;border-radius:12px;overflow:hidden;position:relative;flex-shrink:0;border:1.5px solid var(--border)}
+#mobileMapArea.open{display:block}
+#mobileMap{width:100%;height:100%}
+.mobile-map-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:7px 14px;border-radius:18px;font-size:12px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:10;display:none}
+.mobile-map-hint.show{display:block}
+.modal-footer{
+  padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));
+  border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:var(--card);
+}
+.btn-modal-cancel{background:var(--border);color:var(--text);padding:12px 20px;border-radius:14px;font-weight:700;font-size:15px;border:none;cursor:pointer;flex:1;min-height:var(--touch);transition:transform .1s}
+.btn-modal-save{background:linear-gradient(135deg,var(--success),#059669);color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;font-size:15px;border:none;cursor:pointer;flex:2;min-height:var(--touch);box-shadow:0 3px 12px rgba(16,185,129,.35);transition:transform .1s}
+.btn-modal-cancel:active,.btn-modal-save:active{transform:scale(.97)}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:6px;align-items:center;padding:10px 14px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--card)}
+.filter-input{flex:1;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;outline:none;background:var(--bg);color:var(--text);transition:border-color .15s}
+.filter-input:focus{border-color:var(--accent)}
+.sort-btn{padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s}
+.sort-btn.active{border-color:var(--accent);color:var(--accent)}
+/* ROUTES LIST */
+.routes-list{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.route-item{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:var(--bg);border-radius:12px;border:1.5px solid var(--border);
+  cursor:pointer;transition:border-color .15s,background .15s,transform .1s;
+}
+.route-item:hover{border-color:var(--accent);background:var(--step-active-bg);transform:translateX(2px)}
+.route-item.done .route-item-title::after{content:' ✓';color:var(--success)}
+.route-item-info{flex:1;min-width:0}
+.route-item-title{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.route-item-meta{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.route-item-actions{display:flex;gap:6px;flex-shrink:0}
+.route-action-btn{padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.route-action-btn:active{opacity:.7}
+.route-edit-btn  {background:#e0e7ff;color:#3730a3}
+.route-delete-btn{background:#fee2e2;color:#b91c1c}
+/* STATS */
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--muted);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.stat-val{font-weight:700;font-size:15px;flex-shrink:0}
+/* TOAST */
+.toast{
+  position:fixed;top:max(80px,calc(60px + 20px + env(safe-area-inset-top)));
+  left:50%;transform:translateX(-50%) translateY(-8px);
+  background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;
+  padding:11px 22px;border-radius:24px;font-size:14px;font-weight:700;
+  z-index:4000;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* EMPTY STATE */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 20px;gap:12px;color:var(--muted);text-align:center;
+}
+.empty-state .emoji{font-size:36px}
+.empty-state p{font-size:14px;font-weight:600}
+/* DESKTOP */
+@media(min-width:768px){
+  .main-container{flex-direction:row}
+  #map{flex:1}
+  .control-panel{width:380px;max-height:none;border-radius:0;box-shadow:-4px 0 24px rgba(0,0,0,.08);border-left:1px solid var(--panel-border);flex-shrink:0}
+  .panel-drag-handle{display:none}
+  .modal-left{width:340px;flex-shrink:0}
+  .modal-right{display:flex}
+  .map-toggle-btn{display:none}
+  #mobileMapArea{display:none!important}
+  .modal-steps-list{max-height:none;flex:1}
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div id="splashLogo">🚗</div>
+  <div id="splashTitle">NCC Milano</div>
+  <div id="splashDots"><span></span><span></span><span></span></div>
+  <div id="splashMsg">Connessione al cloud…</div>
+</div>
+
+<div id="pwaBanner">
+  <button id="pwaBannerClose" onclick="closePwaBanner()">✕</button>
+  <p>📱 Installa come app per usarla senza barra Safari</p>
+  <small>Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong></small>
+</div>
+
+<div id="noMarkerHint">📍 Nessun marker per questa via — premi + per posizionarlo</div>
+<div id="saveIndicator">☁️ Salvato</div>
+
+<header>
+  <div class="header-top">
+    <div class="search-wrap">
+      <input type="text" id="searchBar" placeholder="🔍 Cerca percorso o via…" autocomplete="off" oninput="onSearch()">
+      <ul class="suggestions" id="suggestionsList"></ul>
+    </div>
+    <div class="chips">
+      <span class="chip active" id="modeStudio" onclick="setMode('studio')">Studio</span>
+      <span class="chip green"  id="modeCieco"  onclick="setMode('cieco')">Cieco</span>
+      <span class="chip purple" id="modeQuiz"   onclick="setMode('quiz')">Quiz</span>
+      <span class="chip sm" onclick="openAddModal()"      title="Nuovo percorso">➕</span>
+      <span class="chip sm" onclick="selectRandomRoute()" title="Percorso casuale">🔀</span>
+      <div class="menu-wrap">
+        <span class="chip sm" onclick="toggleMenu()" title="Altro">⋯</span>
+        <div class="overflow-menu" id="overflowMenu">
+          <button onclick="openRoutesManager();closeMenu()"><span class="menu-icon">📋</span>Percorsi salvati</button>
+          <button onclick="openStats();closeMenu()">        <span class="menu-icon">📊</span>Statistiche quiz</button>
+          <button onclick="openWrongReview();closeMenu()">  <span class="menu-icon">🔁</span>Ripasso errori</button>
+          <button onclick="toggleDark();closeMenu()">       <span class="menu-icon" id="darkIcon">🌙</span>Modalità notte</button>
+          <button onclick="exportData();closeMenu()">       <span class="menu-icon">📤</span>Esporta backup</button>
+          <button onclick="importData();closeMenu()">       <span class="menu-icon">📥</span>Importa backup</button>
+          <button onclick="manualSaveToCloud();closeMenu()"><span class="menu-icon">💾</span>Salva su cloud</button>
+          <button onclick="resetData();closeMenu()" class="danger"><span class="menu-icon">🔄</span>Reimposta tutto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="placingBanner">📍 Clicca sulla mappa per posizionare il marker</div>
+
+<div class="main-container">
+  <div id="map"></div>
+  <div class="control-panel" id="controlPanel">
+    <div class="panel-drag-handle" id="dragHandle"></div>
+    <div class="panel-header">
+      <div class="panel-title-row">
+        <h2 id="panelTitle">Prontuario NCC</h2>
+        <button class="panel-icon-btn spin" id="restartBtn" onclick="restartRoute()" title="Ricomincia" style="display:none">↺</button>
+      </div>
+      <div class="panel-sub">
+        <span class="panel-progress-text" id="panelProgress">Seleziona un percorso</span>
+        <span class="panel-stats" id="panelStats"></span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div class="steps-container" id="stepsList"></div>
+    <div class="panel-footer">
+      <div id="normalFooter">
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="btnPrev"   onclick="prevStep()"       disabled>◀</button>
+          <button class="btn btn-street"    id="btnStreet" onclick="openStreetView()"  disabled>👁️</button>
+          <button class="btn btn-primary"   id="btnNext"   onclick="nextStep()"        disabled>▶</button>
+        </div>
+        <button class="btn btn-reveal" id="btnReveal" onclick="revealCurrentStep()" style="display:none">👁️ Scopri via</button>
+      </div>
+      <div id="quizFooter">
+        <div class="quiz-input-row">
+          <input id="quizAnswer" placeholder="Scrivi la via…" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+          <button class="btn btn-primary" id="quizSubmit" onclick="checkQuiz()" style="flex:0;padding:12px 16px">➡️</button>
+        </div>
+        <div id="quizFeedback"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="skipQuiz()">⏭️ Salta</button>
+          <button class="btn btn-reveal"    onclick="revealCurrentStep()">👁️ Mostra</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD/EDIT -->
+<div class="modal" id="routeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">➕ Nuovo Percorso</h3>
+      <p>Inserisci le vie · clicca una riga · clicca la mappa per posizionarla</p>
+    </div>
+    <div class="modal-body-add">
+      <div class="modal-left">
+        <input type="text" class="modal-input" id="newRouteTitle" placeholder="Titolo (es. LINATE – DUOMO)">
+        <textarea class="modal-input" id="newRouteSteps" rows="5" placeholder="Incolla le vie, una per riga…" oninput="onModalStepsChange()"></textarea>
+        <div class="modal-steps-label" id="modalStepsLabel">Passi — clicca per posizionare</div>
+        <div class="modal-steps-list" id="modalStepsList"></div>
+        <button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleMobileMap()">🗺️ Mostra mappa per posizionare</button>
+        <div id="mobileMapArea"><div id="mobileMap"></div><div class="mobile-map-hint" id="mobileMapHint"></div></div>
+      </div>
+      <div class="modal-right">
+        <div id="modalMapContainer"><div id="modalMap"></div><div class="modal-map-hint" id="modalMapHint"></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeAddModal()">Annulla</button>
+      <button class="btn-modal-save"   onclick="saveRouteText()">💾 Salva percorso</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ROUTES MANAGER -->
+<div class="modal" id="routesManagerModal">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-header"><h3>📋 Percorsi salvati</h3><p id="routesCount"></p></div>
+    <div class="filter-bar">
+      <input class="filter-input" id="routeFilter" placeholder="🔍 Filtra…" oninput="renderRoutesManager()">
+      <button class="sort-btn" id="sortBtn" onclick="cycleSortMode()">↕ Nome</button>
+    </div>
+    <div class="routes-list" id="routesManagerList"></div>
+    <div class="modal-footer"><button class="btn-modal-cancel" onclick="closeRoutesManager()">Chiudi</button></div>
+  </div>
+</div>
+
+<!-- MODAL STATS -->
+<div class="modal" id="statsModal">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header"><h3>📊 Statistiche Quiz</h3><p>Riepilogo sessioni</p></div>
+    <div style="flex:1;overflow-y:auto;padding:14px 20px" id="statsBody"></div>
+    <div class="modal-footer"><button class="btn-modal-cancel" onclick="closeStats()">Chiudi</button></div>
+  </div>
+</div>
+
+<!-- MODAL RIPASSO ERRORI -->
+<div class="modal" id="wrongModal">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header"><h3>🔁 Ripasso Errori</h3><p>Le vie dove hai sbagliato di più</p></div>
+    <div style="flex:1;overflow-y:auto;padding:14px 20px" id="wrongBody"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-cancel" onclick="closeWrongReview()">Chiudi</button>
+      <button class="btn-modal-save" onclick="startWrongQuiz()" id="startWrongBtn" style="display:none">▶ Inizia ripasso</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
+<script>
+/* ═══════════════════════════════════════════════
+   FIREBASE
+═══════════════════════════════════════════════ */
+const firebaseConfig={
+  apiKey:"AIzaSyBtVu_bZruWdB3nQz0MhrNmCE7lMonoGd4",
+  authDomain:"ncc-milano-2dbd0.firebaseapp.com",
+  databaseURL:"https://ncc-milano-2dbd0-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"ncc-milano-2dbd0",
+  storageBucket:"ncc-milano-2dbd0.firebasestorage.app",
+  messagingSenderId:"511775426532",
+  appId:"1:511775426532:web:785259ec4e187e42aba9f1"
+};
+
+// Firebase potrebbe non essere disponibile (CDN down / offline)
+let firebaseOk = false;
+let cloudRef = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  cloudRef = firebase.database().ref('prontuario');
+  firebaseOk = true;
+} catch(e) {
+  console.warn('Firebase non disponibile:', e);
+}
+
+let autoSaveTimer = null;
+let isSaving = false;
+
+function autoSaveCloud() {
+  if (!firebaseOk || !cloudRef) return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    isSaving = true;
+    const payload = buildPayload();
+    cloudRef.set(payload)
+      .then(() => { showSaveIndicator(); })
+      .catch(() => {}) // silenzioso in auto
+      .finally(() => { isSaving = false; });
+  }, 2000); // 2s per dare tempo all'utente di chiudere
+}
+
+function manualSaveToCloud() {
+  if (!firebaseOk || !cloudRef) { showToast('⚠️ Firebase non disponibile'); return; }
+  showToast('💾 Salvataggio…');
+  cloudRef.set(buildPayload())
+    .then(() => showToast('✅ Salvato su cloud'))
+    .catch(() => showToast('⚠️ Errore cloud'));
+}
+
+function buildPayload() {
+  return { routes, coords, quizStats, completed, ts: Date.now() };
+}
+
+function showSaveIndicator() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+/* ═══════════════════════════════════════════════
+   DATI — con try/catch su localStorage
+═══════════════════════════════════════════════ */
+const DEFAULT = [{
+  id:"default_0", title:"CERCHIA DEI BASTIONI",
+  steps:["P.ZA 24 MAGGIO","V.LE GIAN GALEAZZO","P.LE DI PORTA LODOVICA","V.LE BEATRICE D'ESTE","L.GO ISABELLA D'ARAGONA","V.LE BEATRICE D'ESTE","V.LE FILIPPETTI","P.LE MEDAGLIE D'ORO","P.ZA 25 APRILE","VIALE CRISPI","BASTIONI DI PORTA VOLTA","P.LE BIANCAMANO","P.LE LEGA LOMBARDA","V.LE ELVEZIA","VIA MELZI D'ERIL","VIA CANOVA","VIALE CALDARA","VIALE REGINA MARGHERITA","V.LE MILTON","V.LE MOLIERE","P.ZA 5 GIORNATE","V.LE BIANCA MARIA","P.ZA DEL TRICOLORE","V.LE MAJNO","VIA CURIE","VIA 20 SETTEMBRE","P.ZA CONCILIAZIONE","VIA ENRICO TOTI","P.ZA OBERDAN","P.LE BARACCA","BASTIONI DI PORTA VENEZIA","VIALE CITTA' DI FIUME","P.ZA DELLA REPUBBLICA","VIALE MONTESANTO","P.LE PRINCIPESSA CLOTILDE","V.LE DI PORTA VERCELLINA","P.LE AQUILEIA","V.LE PAPINIANO","P.ZA SANT'AGOSTINO","V.LE PAPINIANO","BASTIONI DI PORTA NUOVA","P.LE GENERAL CANTORE","V.LE GABRIELE D'ANNUNZIO","P.ZA 24 MAGGIO"]
+}];
+
+function lsGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch(e) {
+    if (e.name === 'QuotaExceededError') showToast('⚠️ Memoria locale piena — salva su cloud');
+    return false;
+  }
+}
+
+let routes    = lsGet('routes', DEFAULT);
+let coords    = lsGet('coords', {});
+let quizStats = lsGet('quizStats', {});
+let completed = lsGet('completed', {});
+let darkMode  = lsGet('darkMode', false);
+
+// Valida struttura routes
+function validateRoutes(r) {
+  if (!Array.isArray(r)) return DEFAULT;
+  return r.filter(x => x && typeof x === 'object' && x.id && Array.isArray(x.steps));
+}
+function validateCoords(c) {
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return {};
+  return c;
+}
+routes = validateRoutes(routes);
+coords = validateCoords(coords);
+
+function saveLocal() {
+  lsSet('routes', routes);
+  lsSet('coords', coords);
+  lsSet('quizStats', quizStats);
+  lsSet('completed', completed);
+}
+
+/* ═══════════════════════════════════════════════
+   DARK MODE
+═══════════════════════════════════════════════ */
+function applyDark() {
+  document.body.classList.toggle('dark', darkMode);
+  document.getElementById('darkIcon').textContent = darkMode ? '☀️' : '🌙';
+}
+function toggleDark() {
+  darkMode = !darkMode;
+  lsSet('darkMode', darkMode);
+  applyDark();
+}
+applyDark();
+
+/* ═══════════════════════════════════════════════
+   PWA
+═══════════════════════════════════════════════ */
+function closePwaBanner() {
+  document.getElementById('pwaBanner').style.display = 'none';
+  lsSet('pwaDismissed', true);
+}
+function checkPwa() {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIos && !window.navigator.standalone && !lsGet('pwaDismissed', false))
+    setTimeout(() => { document.getElementById('pwaBanner').style.display = 'block'; }, 3000);
+}
+
+/* ═══════════════════════════════════════════════
+   HAPTIC
+═══════════════════════════════════════════════ */
+function haptic(type='light') {
+  try {
+    if (!navigator.vibrate) return;
+    navigator.vibrate(type === 'medium' ? 20 : type === 'error' ? [10,10,10] : 10);
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════
+   SPLASH & BOOT — sequenza corretta
+═══════════════════════════════════════════════ */
+let mapReady = false, cloudDone = false;
+let pendingRouteId = null;
+let pendingStep = 0;
+let bootDone = false; // evita double start
+
+function splashMsg(m) { const e = document.getElementById('splashMsg'); if(e) e.textContent = m; }
+function hideSplash() {
+  const e = document.getElementById('splash'); if(!e) return;
+  e.classList.add('hide'); setTimeout(() => e.remove(), 550);
+}
+
+function tryStart() {
+  if (!mapReady || !cloudDone || bootDone) return;
+  bootDone = true;
+  hideSplash(); checkPwa();
+  // Trova percorso da caricare
+  const lastId = lsGet('lastRouteId', null);
+  const lastStep = parseInt(lsGet('lastStep', 0), 10) || 0;
+  let route = lastId ? routes.find(r => r.id === lastId) : null;
+  if (!route && routes.length) route = routes[0];
+  if (route) {
+    selectRoute(route);
+    if (lastStep > 0 && lastStep < route.steps.length) {
+      currentStep = lastStep;
+      renderSteps(); updateUI(); goToStep();
+    }
+  }
+}
+
+// Carica da Firebase — NON sovrascrive se import recente
+const IMPORT_FLAG_KEY = 'importedAt';
+const cloudTimer = setTimeout(() => {
+  cloudDone = true;
+  splashMsg('Offline — uso dati locali');
+  tryStart();
+}, 5000);
+
+if (firebaseOk && cloudRef) {
+  cloudRef.once('value', snap => {
+    clearTimeout(cloudTimer);
+    const data = snap.val();
+    if (data && data.ts) {
+      const importedAt = lsGet(IMPORT_FLAG_KEY, 0);
+      // Se c'è stato un import più recente del cloud, ignora il cloud
+      if (importedAt && importedAt > data.ts) {
+        splashMsg('Dati locali più recenti — import mantenuto');
+      } else {
+        splashMsg('Dati sincronizzati ✓');
+        if (data.routes)    routes    = validateRoutes(data.routes);
+        if (data.coords)    coords    = validateCoords(data.coords);
+        if (data.quizStats) quizStats = data.quizStats;
+        if (data.completed) completed = data.completed;
+        saveLocal();
+      }
+    } else {
+      splashMsg('Nessun dato cloud — uso locale');
+    }
+    cloudDone = true; tryStart();
+  }, () => {
+    clearTimeout(cloudTimer);
+    splashMsg('Errore cloud — uso dati locali');
+    cloudDone = true; tryStart();
+  });
+} else {
+  clearTimeout(cloudTimer);
+  splashMsg('Firebase non disponibile — uso locale');
+  cloudDone = true;
+}
+
+/* ═══════════════════════════════════════════════
+   MAPPA PRINCIPALE
+═══════════════════════════════════════════════ */
+let map, mainMarker = null;
+let doneLine = null, doneDecorator = null, nextLine = null;
+let drawAbortController = 0; // incrementato per cancellare draw() precedenti
+let placingStepIndex = null;
+let currentRoute = null, currentStep = 0, mode = 'studio';
+let touchStartX = 0, touchStartY = 0;
+let lastRandomIdx = -1;
+let noMarkerTimer = null;
+
+function initMap() {
+  map = L.map('map', { zoomControl:false }).setView([45.4642, 9.1900], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution:'© OpenStreetMap © CARTO'
+  }).addTo(map);
+  L.control.zoom({ position:'topright' }).addTo(map);
+
+  map.on('click', e => {
+    if (placingStepIndex === null || !currentRoute) return;
+    const key = `${currentRoute.id}_${placingStepIndex}`;
+    coords[key] = { lat: e.latlng.lat, lon: e.latlng.lng };
+    saveLocal(); autoSaveCloud();
+    placeMarkerAnimated(e.latlng.lat, e.latlng.lng, currentRoute.steps[placingStepIndex], key);
+    rebuildLines();
+    stopPlacing(); renderSteps();
+    showToast('📍 Posizione salvata'); haptic('medium');
+  });
+
+  // Swipe mappa
+  const mapEl = document.getElementById('map');
+  mapEl.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive:true });
+  mapEl.addEventListener('touchend', e => {
+    if (placingStepIndex !== null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (Math.abs(dx) > 55 && dy < 40) { if(dx < 0) nextStep(); else prevStep(); }
+  }, { passive:true });
+
+  // Drag pannello
+  initPanelDrag();
+  // Escape chiude modali
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeAllModals(); });
+  // Keyboard quiz
+  document.getElementById('quizAnswer').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkQuiz();
+  });
+
+  mapReady = true; tryStart();
+}
+
+/* ── DRAG PANNELLO ── */
+function initPanelDrag() {
+  const panel = document.getElementById('controlPanel');
+  const handle = document.getElementById('dragHandle');
+  if (!handle || window.innerWidth >= 768) return;
+  let startY = 0, startH = 0, dragging = false;
+  const getMaxH = () => window.innerHeight * 0.78;
+  const minH = 130;
+
+  handle.addEventListener('touchstart', e => {
+    dragging = true;
+    startY = e.touches[0].clientY;
+    startH = panel.getBoundingClientRect().height;
+    panel.style.transition = 'none';
+  }, { passive:true });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const dy = startY - e.touches[0].clientY;
+    const newH = Math.min(getMaxH(), Math.max(minH, startH + dy));
+    panel.style.maxHeight = newH + 'px';
+  }, { passive:true });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false; panel.style.transition = '';
+  }, { passive:true });
+
+  // Ricalcola su resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) panel.style.maxHeight = '';
+  });
+}
+
+function startPlacing(idx) {
+  placingStepIndex = idx;
+  document.getElementById('map').classList.add('placing');
+  document.getElementById('placingBanner').style.display = 'block';
+}
+function stopPlacing() {
+  placingStepIndex = null;
+  document.getElementById('map').classList.remove('placing');
+  document.getElementById('placingBanner').style.display = 'none';
+}
+
+/* ── MARKER ANIMATO ── */
+function placeMarkerAnimated(lat, lon, name, key) {
+  if (mainMarker) {
+    mainMarker.setLatLng([lat, lon]);
+    mainMarker.getPopup().setContent(`<b>${escHtml(name)}</b>`);
+    const el = mainMarker.getElement();
+    if (el) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = 'bounce .45s ease forwards'; }
+  } else {
+    mainMarker = L.marker([lat, lon], { draggable:true }).addTo(map).bindPopup(`<b>${escHtml(name)}</b>`);
+    setTimeout(() => { const el = mainMarker.getElement(); if(el) el.style.animation = 'bounce .45s ease forwards'; }, 10);
+  }
+  mainMarker.off('dragend');
+  mainMarker.on('dragend', () => {
+    const p = mainMarker.getLatLng();
+    coords[key] = { lat: p.lat, lon: p.lng };
+    saveLocal(); autoSaveCloud(); rebuildLines(); renderSteps(); haptic();
+  });
+  mainMarker.openPopup();
+}
+
+/* ── PERCORSO ── */
+function selectRoute(route) {
+  if (!route || !Array.isArray(route.steps)) return;
+  currentRoute = route; currentStep = 0;
+  // Rimuovi marker precedente — fix marker fantasma
+  if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
+  cancelDraw(); clearLines(); stopPlacing(); hideNoMarkerHint();
+  document.getElementById('panelTitle').textContent = route.title;
+  document.getElementById('searchBar').value = route.title;
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('restartBtn').style.display = 'block';
+  renderSteps(); updateUI(); goToStep(); closeSuggestions();
+  lsSet('lastRouteId', route.id);
+  lsSet('lastStep', 0);
+  // Zoom sui marker esistenti
+  const pts = route.steps.map((_,i) => coords[`${route.id}_${i}`]).filter(Boolean);
+  if (pts.length > 1) map.flyToBounds(pts.map(p=>[p.lat,p.lon]), { padding:[40,40], maxZoom:15, duration:.8 });
+  else if (pts.length === 1) map.flyTo([pts[0].lat,pts[0].lon], 15, { duration:.8 });
+}
+
+function restartRoute() {
+  if (!currentRoute) return;
+  currentStep = 0;
+  document.getElementById('quizFeedback').textContent = '';
+  renderSteps(); updateUI(); goToStep(); haptic();
+  lsSet('lastStep', 0);
+}
+
+/* ── TYPEWRITER ── */
+let typewriterInterval = null;
+function typewriterReveal(el, text) {
+  if (typewriterInterval) clearInterval(typewriterInterval);
+  el.textContent = ''; el.classList.remove('hidden-text');
+  let i = 0;
+  const speed = Math.max(18, 160 / text.length);
+  typewriterInterval = setInterval(() => {
+    el.textContent += text[i++];
+    if (i >= text.length) { clearInterval(typewriterInterval); typewriterInterval = null; }
+  }, speed);
+}
+
+/* ── RENDER STEPS (virtualizzato per liste grandi) ── */
+function renderSteps() {
+  if (!currentRoute) return;
+  const wrongMap = (quizStats[currentRoute.id] || {}).wrong || {};
+  const c = document.getElementById('stepsList');
+
+  // Per percorsi > 100 vie usa DocumentFragment per performance
+  const frag = document.createDocumentFragment();
+
+  currentRoute.steps.forEach((s, i) => {
+    const key = `${currentRoute.id}_${i}`;
+    const hasCoord = !!coords[key];
+    const isHidden = mode !== 'studio' && i !== currentStep;
+    const isActive = i === currentStep;
+    const isDone   = i < currentStep;
+    const isWrong  = wrongMap[i] > 0;
+
+    const d = document.createElement('div');
+    d.className = `step-row${isActive?' active':''}${isDone?' completed':''}${isWrong&&!isActive?' wrong-step':''}`;
+    d.onclick = () => { currentStep = i; renderSteps(); updateUI(); goToStep(); haptic(); };
+
+    const numEl = document.createElement('div');
+    numEl.className = 'step-number'; numEl.textContent = i + 1;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'step-name' + (isHidden ? ' hidden-text' : '');
+    nameEl.textContent = s;
+
+    const badge = document.createElement('span');
+    badge.className = 'coord-badge ' + (hasCoord ? 'set' : 'unset');
+    badge.textContent = hasCoord ? '📍' : '+';
+    badge.title = hasCoord ? 'Clicca per riposizionare' : 'Clicca per posizionare';
+    badge.onclick = ev => {
+      ev.stopPropagation();
+      // Annulla placing attivo
+      stopPlacing();
+      currentStep = i; renderSteps(); updateUI(); goToStep();
+      if (hasCoord) {
+        delete coords[key]; saveLocal(); autoSaveCloud();
+        if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
+        cancelDraw(); rebuildLines(); renderSteps();
+      }
+      startPlacing(i); haptic();
+    };
+
+    d.appendChild(numEl); d.appendChild(nameEl);
+    if (isWrong && !isActive) {
+      const wb = document.createElement('span');
+      wb.className = 'wrong-badge'; wb.textContent = wrongMap[i] + '✗';
+      d.appendChild(wb);
+    }
+    d.appendChild(badge);
+    frag.appendChild(d);
+  });
+
+  c.innerHTML = '';
+  c.appendChild(frag);
+
+  const ae = c.querySelector('.step-row.active');
+  if (ae) ae.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+
+function nextStep() {
+  if (!currentRoute || currentStep >= currentRoute.steps.length - 1) return;
+  currentStep++; renderSteps(); updateUI(); goToStep(); haptic();
+  lsSet('lastStep', currentStep);
+}
+function prevStep() {
+  if (!currentRoute || currentStep <= 0) return;
+  currentStep--; renderSteps(); updateUI(); goToStep(); haptic();
+  lsSet('lastStep', currentStep);
+}
+
+function revealCurrentStep() {
+  if (!currentRoute) return;
+  const rows = document.querySelectorAll('#stepsList .step-row');
+  const nameEl = rows[currentStep]?.querySelector('.step-name');
+  if (nameEl) typewriterReveal(nameEl, currentRoute.steps[currentStep]);
+  if (mode === 'quiz') {
+    document.getElementById('quizFeedback').textContent = currentRoute.steps[currentStep] || '';
+    document.getElementById('quizFeedback').style.color = 'var(--muted)';
+  }
+  haptic();
+}
+
+/* ── NO MARKER HINT ── */
+function showNoMarkerHint() {
+  const el = document.getElementById('noMarkerHint');
+  el.style.display = 'block';
+  clearTimeout(noMarkerTimer);
+  noMarkerTimer = setTimeout(() => hideNoMarkerHint(), 2500);
+}
+function hideNoMarkerHint() {
+  document.getElementById('noMarkerHint').style.display = 'none';
+  clearTimeout(noMarkerTimer);
+}
+
+function updateUI() {
+  if (!currentRoute) return;
+  const total = currentRoute.steps.length;
+  const pct = total > 1 ? (currentStep / (total - 1)) * 100 : (total === 1 ? 100 : 0);
+  document.getElementById('panelProgress').textContent = `Via ${currentStep + 1} di ${total}`;
+  document.getElementById('progressBar').style.width = pct + '%';
+  const placed = currentRoute.steps.filter((_,i) => !!coords[`${currentRoute.id}_${i}`]).length;
+  const isDone = completed[currentRoute.id];
+  document.getElementById('panelStats').textContent = `${placed}/${total} 📍${isDone ? ' ✓' : ''}`;
+  document.getElementById('btnPrev').disabled   = currentStep === 0;
+  document.getElementById('btnNext').disabled   = currentStep === total - 1;
+  document.getElementById('btnStreet').disabled = !mainMarker;
+  document.getElementById('btnReveal').style.display   = mode === 'cieco' ? 'block' : 'none';
+  document.getElementById('normalFooter').style.display = mode === 'quiz' ? 'none' : 'block';
+  document.getElementById('quizFooter').style.display   = mode === 'quiz' ? 'block' : 'none';
+  if (mode === 'quiz') {
+    document.getElementById('quizAnswer').value = '';
+    document.getElementById('quizFeedback').textContent = '';
+  }
+}
+
+function goToStep() {
+  if (!currentRoute) return;
+  const key = `${currentRoute.id}_${currentStep}`;
+  if (coords[key]) {
+    placeMarkerAnimated(coords[key].lat, coords[key].lon, currentRoute.steps[currentStep], key);
+    map.setView([coords[key].lat, coords[key].lon], Math.max(map.getZoom(), 15), { animate:true });
+    hideNoMarkerHint();
+  } else {
+    // Nessun marker: rimuovi marker precedente per evitare marker fantasma
+    if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
+    updateUI(); // aggiorna btnStreet
+    showNoMarkerHint();
+  }
+  rebuildLines();
+}
+
+/* ═══════════════════════════════════════════════
+   LINEE — FIX CRITICO: cancellazione draw() sicura
+═══════════════════════════════════════════════ */
+function cancelDraw() {
+  drawAbortController++; // ogni draw() controlla questo valore
+}
+
+function clearLines() {
+  if (doneDecorator) { try { map.removeLayer(doneDecorator); } catch(e){} doneDecorator = null; }
+  if (doneLine)      { try { map.removeLayer(doneLine);      } catch(e){} doneLine = null; }
+  if (nextLine)      { try { map.removeLayer(nextLine);      } catch(e){} nextLine = null; }
+}
+
+function rebuildLines() {
+  cancelDraw();
+  clearLines();
+  if (!currentRoute) return;
+
+  const done = [], rem = [];
+  for (let i = 0; i <= currentStep; i++) {
+    const k = `${currentRoute.id}_${i}`;
+    if (coords[k]) done.push([coords[k].lat, coords[k].lon]);
+  }
+  for (let i = currentStep; i < currentRoute.steps.length; i++) {
+    const k = `${currentRoute.id}_${i}`;
+    if (coords[k]) rem.push([coords[k].lat, coords[k].lon]);
+  }
+
+  // Linea tratteggiata futura
+  if (rem.length > 1) {
+    nextLine = L.polyline(rem, { color:'#94a3b8', weight:3, opacity:.4, dashArray:'8 8' }).addTo(map);
+  }
+
+  // Linea blu percorsa — animazione sicura con abort token
+  if (done.length > 1) {
+    doneLine = L.polyline([], { color:'#3b82f6', weight:5, opacity:.9 }).addTo(map);
+    const myToken = drawAbortController;
+    const lineRef = doneLine;
+    let idx = 0;
+    const draw = () => {
+      // Se il token è cambiato, questo draw è stato cancellato
+      if (drawAbortController !== myToken) return;
+      if (idx < done.length) {
+        try { lineRef.addLatLng(done[idx++]); } catch(e) { return; }
+        setTimeout(draw, 40);
+      } else {
+        // Aggiungi frecce solo se la linea è ancora valida
+        if (drawAbortController !== myToken) return;
+        try {
+          doneDecorator = L.polylineDecorator(lineRef, {
+            patterns: [{ offset:'5%', repeat:'100px', symbol: L.Symbol.arrowHead({
+              pixelSize:14, pathOptions:{ color:'#1d4ed8', weight:2 }
+            })}]
+          }).addTo(map);
+        } catch(e) {}
+      }
+    };
+    draw();
+  }
+}
+
+function openStreetView() {
+  if (mainMarker) {
+    const p = mainMarker.getLatLng();
+    window.open(`https://www.google.com/maps?layer=c&cbll=${p.lat},${p.lng}`, '_blank');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════════ */
+function spawnConfetti() {
+  const colors = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ec4899','#14b8a6'];
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div'); el.className = 'confetti-piece';
+    el.style.cssText = `left:${Math.random()*100}%;top:25%;background:${colors[i%colors.length]};animation-delay:${Math.random()*.4}s;animation-duration:${.6+Math.random()*.5}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+  }
+  haptic('medium');
+}
+
+/* ═══════════════════════════════════════════════
+   MODALITÀ
+═══════════════════════════════════════════════ */
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeStudio').classList.toggle('active', m==='studio');
+  document.getElementById('modeCieco').classList.toggle('active',  m==='cieco');
+  document.getElementById('modeQuiz').classList.toggle('active',   m==='quiz');
+  if (currentRoute) renderSteps();
+  updateUI();
+  if (m === 'quiz') setTimeout(() => document.getElementById('quizAnswer').focus(), 100);
+  haptic();
+}
+
+/* ═══════════════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════════════ */
+function normalizeAnswer(s) {
+  return s.trim().toUpperCase()
+    .replace(/\s+/g, ' ')           // spazi multipli → uno
+    .replace(/['''`]/g, "'")        // apostrofi vari → standard
+    .replace(/[–—]/g, '-');         // trattini vari → standard
+}
+
+function checkQuiz() {
+  if (!currentRoute) return;
+  const rawAns = document.getElementById('quizAnswer').value;
+  // FIX: ignora invio vuoto
+  if (!rawAns.trim()) return;
+
+  const ans     = normalizeAnswer(rawAns);
+  const correct = normalizeAnswer(currentRoute.steps[currentStep]);
+  const fb      = document.getElementById('quizFeedback');
+
+  if (!quizStats[currentRoute.id]) quizStats[currentRoute.id] = { correct:0, total:0, wrong:{} };
+  if (!quizStats[currentRoute.id].wrong) quizStats[currentRoute.id].wrong = {};
+  quizStats[currentRoute.id].total++;
+
+  if (ans === correct) {
+    fb.textContent = '✅ Corretto!'; fb.style.color = 'var(--success)';
+    quizStats[currentRoute.id].correct++;
+    saveLocal(); autoSaveCloud(); haptic('medium');
+    const isLast = currentStep === currentRoute.steps.length - 1;
+    if (isLast) {
+      // FIX: completa anche in quiz
+      markCompleted();
+      spawnConfetti(); showToast('🎉 Percorso completato!');
+    } else {
+      setTimeout(() => nextStep(), 600);
+    }
+  } else {
+    fb.textContent = `❌ ${currentRoute.steps[currentStep]}`; fb.style.color = 'var(--danger)';
+    quizStats[currentRoute.id].wrong[currentStep] = (quizStats[currentRoute.id].wrong[currentStep] || 0) + 1;
+    saveLocal(); autoSaveCloud(); haptic('error');
+  }
+}
+
+function skipQuiz() {
+  if (!currentRoute) return;
+  const fb = document.getElementById('quizFeedback');
+  fb.textContent = `→ ${currentRoute.steps[currentStep]}`; fb.style.color = 'var(--warning)';
+  if (!quizStats[currentRoute.id]) quizStats[currentRoute.id] = { correct:0, total:0, wrong:{} };
+  quizStats[currentRoute.id].total++;
+  saveLocal(); autoSaveCloud();
+  const isLast = currentStep === currentRoute.steps.length - 1;
+  if (isLast) {
+    // FIX: completa anche con skip finale
+    markCompleted();
+    spawnConfetti(); showToast('🎉 Percorso completato!');
+  } else {
+    setTimeout(() => nextStep(), 600);
+  }
+}
+
+function markCompleted() {
+  if (!currentRoute) return;
+  completed[currentRoute.id] = true;
+  saveLocal(); autoSaveCloud();
+  updateUI();
+}
+
+/* ═══════════════════════════════════════════════
+   RIPASSO ERRORI
+═══════════════════════════════════════════════ */
+let wrongReviewList = [];
+function openWrongReview() {
+  document.getElementById('wrongModal').classList.add('open');
+  const body = document.getElementById('wrongBody'); body.innerHTML = '';
+  wrongReviewList = [];
+  routes.forEach(r => {
+    const qs = quizStats[r.id]; if (!qs || !qs.wrong) return;
+    Object.entries(qs.wrong).forEach(([stepIdx, count]) => {
+      const idx = parseInt(stepIdx, 10);
+      // FIX: verifica che lo step esista ancora
+      if (count > 0 && idx < r.steps.length) {
+        wrongReviewList.push({ route:r, stepIdx:idx, count });
+      }
+    });
+  });
+  wrongReviewList.sort((a, b) => b.count - a.count);
+  if (!wrongReviewList.length) {
+    body.innerHTML = '<div class="empty-state"><div class="emoji">🎉</div><p>Nessun errore registrato!</p></div>';
+    document.getElementById('startWrongBtn').style.display = 'none';
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  wrongReviewList.forEach(({ route, stepIdx, count }) => {
+    const row = document.createElement('div'); row.className = 'stat-row';
+    row.innerHTML = `<span class="stat-label">${escHtml(route.title)} → ${escHtml(route.steps[stepIdx])}</span><span class="wrong-badge">${count}✗</span>`;
+    frag.appendChild(row);
+  });
+  body.appendChild(frag);
+  document.getElementById('startWrongBtn').style.display = 'block';
+}
+function closeWrongReview() { document.getElementById('wrongModal').classList.remove('open'); }
+function startWrongQuiz() {
+  if (!wrongReviewList.length) return;
+  closeWrongReview();
+  const first = wrongReviewList[0];
+  selectRoute(first.route);
+  currentStep = first.stepIdx;
+  setMode('quiz');
+  renderSteps(); updateUI(); goToStep();
+  showToast('🔁 Ripasso errori avviato');
+}
+
+/* ═══════════════════════════════════════════════
+   ROUTES MANAGER
+═══════════════════════════════════════════════ */
+let sortMode = 'name';
+const sortModes  = ['name', 'completion', 'studied'];
+const sortLabels = ['↕ Nome', '↕ Completamento', '↕ Studiati'];
+
+function cycleSortMode() {
+  sortMode = sortModes[(sortModes.indexOf(sortMode) + 1) % sortModes.length];
+  document.getElementById('sortBtn').textContent = sortLabels[sortModes.indexOf(sortMode)];
+  renderRoutesManager();
+}
+
+function openRoutesManager() {
+  document.getElementById('routesManagerModal').classList.add('open');
+  document.getElementById('routeFilter').value = '';
+  renderRoutesManager();
+}
+
+function renderRoutesManager() {
+  const filter = (document.getElementById('routeFilter').value || '').toUpperCase();
+  let list = filter
+    ? routes.filter(r => r.title.includes(filter) || r.steps.some(s => s.includes(filter)))
+    : [...routes];
+
+  if (sortMode === 'name') list.sort((a,b) => a.title.localeCompare(b.title));
+  else if (sortMode === 'completion') list.sort((a,b) => {
+    const pa = a.steps.length ? a.steps.filter((_,i)=>!!coords[`${a.id}_${i}`]).length/a.steps.length : 0;
+    const pb = b.steps.length ? b.steps.filter((_,i)=>!!coords[`${b.id}_${i}`]).length/b.steps.length : 0;
+    return pb - pa;
+  });
+  else if (sortMode === 'studied') list.sort((a,b) => {
+    return ((quizStats[b.id]||{}).total||0) - ((quizStats[a.id]||{}).total||0);
+  });
+
+  document.getElementById('routesCount').textContent = `${list.length} di ${routes.length} percors${routes.length===1?'o':'i'}`;
+  const container = document.getElementById('routesManagerList');
+
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><p>Nessun percorso trovato</p></div>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  list.forEach(r => {
+    const placed = r.steps.filter((_,i) => !!coords[`${r.id}_${i}`]).length;
+    const qs = quizStats[r.id];
+    const pct = qs && qs.total ? Math.round(qs.correct / qs.total * 100) : null;
+    const isDone = completed[r.id];
+    const d = document.createElement('div');
+    d.className = `route-item${isDone?' done':''}`;
+    d.onclick = () => { selectRoute(r); closeRoutesManager(); haptic(); };
+    d.innerHTML = `
+      <div class="route-item-info">
+        <div class="route-item-title">${escHtml(r.title)}</div>
+        <div class="route-item-meta">${placed}/${r.steps.length} 📍${pct!==null?' · Quiz '+pct+'%':''}</div>
+      </div>
+      <div class="route-item-actions" onclick="event.stopPropagation()">
+        <button class="route-action-btn route-edit-btn"   onclick="openAddModal('${r.id}');closeRoutesManager()">✏️</button>
+        <button class="route-action-btn route-delete-btn" onclick="deleteRoute('${r.id}')">🗑️</button>
+      </div>
+    `;
+    frag.appendChild(d);
+  });
+  container.innerHTML = '';
+  container.appendChild(frag);
+}
+
+function closeRoutesManager() { document.getElementById('routesManagerModal').classList.remove('open'); }
+
+function deleteRoute(id) {
+  if (!confirm('Eliminare questo percorso?')) return;
+  routes = routes.filter(r => r.id !== id);
+  // FIX: pulisci coords E quizStats orfani
+  Object.keys(coords).forEach(k => { if(k.startsWith(id+'_')) delete coords[k]; });
+  delete quizStats[id];
+  delete completed[id];
+  saveLocal(); autoSaveCloud();
+  if (currentRoute && currentRoute.id === id) {
+    currentRoute = null;
+    document.getElementById('panelTitle').textContent = 'Prontuario NCC';
+    document.getElementById('stepsList').innerHTML = '';
+    document.getElementById('panelProgress').textContent = 'Seleziona un percorso';
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('restartBtn').style.display = 'none';
+    document.getElementById('panelStats').textContent = '';
+    if (mainMarker) { map.removeLayer(mainMarker); mainMarker = null; }
+    cancelDraw(); clearLines();
+  }
+  renderRoutesManager();
+}
+
+/* ═══════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════ */
+function openStats() {
+  document.getElementById('statsModal').classList.add('open');
+  const body = document.getElementById('statsBody'); body.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  let totalC = 0, totalT = 0;
+  // Ordina per % decrescente
+  const items = routes
+    .map(r => ({ r, qs: quizStats[r.id] }))
+    .filter(x => x.qs && x.qs.total > 0)
+    .sort((a,b) => {
+      const pa = a.qs.correct/a.qs.total, pb = b.qs.correct/b.qs.total;
+      return pb - pa;
+    });
+  if (!items.length) {
+    body.innerHTML = '<div class="empty-state"><div class="emoji">📝</div><p>Nessuna sessione quiz ancora.</p></div>';
+    return;
+  }
+  items.forEach(({ r, qs }) => {
+    totalC += qs.correct; totalT += qs.total;
+    const pct = Math.round(qs.correct / qs.total * 100);
+    const color = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+    const row = document.createElement('div'); row.className = 'stat-row';
+    row.innerHTML = `<span class="stat-label">${escHtml(r.title)}</span><span class="stat-val" style="color:${color}">${pct}% <small style="font-size:12px;color:var(--muted)">(${qs.correct}/${qs.total})</small></span>`;
+    frag.appendChild(row);
+  });
+  // Totale in cima
+  if (totalT > 0) {
+    const pct = Math.round(totalC / totalT * 100);
+    const tot = document.createElement('div'); tot.className = 'stat-row';
+    tot.style.cssText = 'border-bottom:2px solid var(--border);margin-bottom:4px;padding-bottom:12px';
+    tot.innerHTML = `<span class="stat-label" style="font-weight:800;color:var(--text)">📊 Totale</span><span class="stat-val">${pct}% (${totalC}/${totalT})</span>`;
+    body.insertBefore(tot, body.firstChild);
+    body.insertBefore(tot, body.firstChild);
+    body.appendChild(frag);
+    body.insertBefore(tot, body.firstChild);
+    // Riordina: tot in cima poi frag
+    body.innerHTML = '';
+    body.appendChild(tot);
+    body.appendChild(frag);
+  } else {
+    body.appendChild(frag);
+  }
+}
+function closeStats() { document.getElementById('statsModal').classList.remove('open'); }
+
+
+/* ═══════════════════════════════════════════════
+   MODAL ADD/EDIT
+═══════════════════════════════════════════════ */
+let modalMap=null,mobileMap=null;
+let modalTempCoords={},modalPrevSteps=[],modalSelectedStep=null,modalEditId=null,modalMarkers=[];
+
+function isDesktop(){return window.innerWidth>=768;}
+
+function openAddModal(editId=null){
+  modalEditId=editId;modalTempCoords={};modalSelectedStep=null;modalPrevSteps=[];
+  document.getElementById('routeModal').classList.add('open');
+  document.getElementById('modalStepsList').innerHTML='';
+  document.getElementById('mobileMapArea').classList.remove('open');
+  document.getElementById('mapToggleBtn').textContent='🗺️ Mostra mappa per posizionare';
+  document.getElementById('modalMapHint').classList.remove('show');
+  document.getElementById('mobileMapHint').classList.remove('show');
+  if(editId){
+    const r=routes.find(r=>r.id===editId);
+    if(r){
+      document.getElementById('newRouteTitle').value=r.title;
+      document.getElementById('newRouteSteps').value=r.steps.join('\n');
+      document.getElementById('modalTitle').textContent='✏️ Modifica Percorso';
+      r.steps.forEach((_,i)=>{const k=`${editId}_${i}`;if(coords[k])modalTempCoords[i]={...coords[k]};});
+      modalPrevSteps=[...r.steps];
+    }
+  } else {
+    document.getElementById('newRouteTitle').value='';
+    document.getElementById('newRouteSteps').value='';
+    document.getElementById('modalTitle').textContent='➕ Nuovo Percorso';
+  }
+  parseModalSteps();
+  setTimeout(()=>{if(isDesktop())initModalMap();},150);
+}
+
+function initModalMap(){
+  if(!modalMap){
+    modalMap=L.map('modalMap',{zoomControl:true}).setView([45.4642,9.1900],13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(modalMap);
+    modalMap.on('click',onModalMapClick);
+  } else {modalMap.invalidateSize();}
+  refreshModalMarkers(modalMap);
+  zoomModalMapOnMarkers(modalMap);
+}
+
+function initMobileMap(){
+  if(!mobileMap){
+    mobileMap=L.map('mobileMap',{zoomControl:true}).setView([45.4642,9.1900],13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mobileMap);
+    mobileMap.on('click',onModalMapClick);
+  } else {mobileMap.invalidateSize();}
+  refreshModalMarkers(mobileMap);
+  zoomModalMapOnMarkers(mobileMap);
+}
+
+function zoomModalMapOnMarkers(tm){
+  const pts=Object.values(modalTempCoords).filter(Boolean);
+  if(pts.length>1)tm.fitBounds(pts.map(p=>[p.lat,p.lon]),{padding:[30,30],maxZoom:15});
+  else if(pts.length===1)tm.setView([pts[0].lat,pts[0].lon],15);
+}
+
+function refreshModalMarkers(tm){
+  modalMarkers.forEach(m=>{try{tm.removeLayer(m);}catch(e){}});
+  modalMarkers=[];
+  getModalSteps().forEach((s,i)=>{
+    if(!modalTempCoords[i])return;
+    const m=L.marker([modalTempCoords[i].lat,modalTempCoords[i].lon],{draggable:true})
+      .bindPopup(`<b>${escHtml(s)}</b>`).addTo(tm);
+    m.on('dragend',()=>{const p=m.getLatLng();modalTempCoords[i]={lat:p.lat,lon:p.lng};updateModalStepsList();});
+    modalMarkers.push(m);
+  });
+}
+
+function onModalMapClick(e){
+  if(modalSelectedStep===null)return;
+  const steps=getModalSteps();
+  if(modalSelectedStep>=steps.length)return;
+  modalTempCoords[modalSelectedStep]={lat:e.latlng.lat,lon:e.latlng.lng};
+  const am=isDesktop()?modalMap:mobileMap;
+  if(am)refreshModalMarkers(am);
+  updateModalStepsList();
+  document.getElementById('modalMapHint').classList.remove('show');
+  document.getElementById('mobileMapHint').classList.remove('show');
+  const next=steps.findIndex((_,i)=>i>modalSelectedStep&&!modalTempCoords[i]);
+  if(next!==-1)selectModalStep(next);else modalSelectedStep=null;
+  haptic();
+}
+
+function getModalSteps(){
+  return document.getElementById('newRouteSteps').value
+    .split('\n').map(l=>l.trim().toUpperCase()).filter(l=>l);
+}
+
+function onModalStepsChange(){
+  const newSteps=getModalSteps();
+  if(modalPrevSteps.length>0&&Object.keys(modalTempCoords).length>0){
+    const nameToCoord={};
+    modalPrevSteps.forEach((s,i)=>{if(modalTempCoords[i])nameToCoord[s]=modalTempCoords[i];});
+    const newCoords={};
+    newSteps.forEach((s,i)=>{if(nameToCoord[s])newCoords[i]=nameToCoord[s];});
+    modalTempCoords=newCoords;
+  }
+  modalPrevSteps=[...newSteps];
+  updateModalStepsList();
+  const am=isDesktop()?modalMap:mobileMap;
+  if(am)refreshModalMarkers(am);
+}
+
+function parseModalSteps(){
+  modalPrevSteps=getModalSteps();
+  updateModalStepsList();
+}
+
+function updateModalStepsList(){
+  const steps=getModalSteps();
+  const c=document.getElementById('modalStepsList');
+  const lbl=document.getElementById('modalStepsLabel');
+  if(lbl)lbl.textContent=`Passi (${steps.length}) — clicca per posizionare`;
+  if(!steps.length){c.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0;">Inserisci le vie sopra…</div>';return;}
+  const frag=document.createDocumentFragment();
+  steps.forEach((s,i)=>{
+    const placed=!!modalTempCoords[i],isSel=modalSelectedStep===i;
+    const d=document.createElement('div');
+    d.className=`modal-step-item${isSel?' selected':''}${placed?' placed':''}`;
+    d.onclick=()=>{placed?removeModalStepCoord(i):selectModalStep(i);};
+    const numEl=document.createElement('div');numEl.className='modal-step-num';numEl.textContent=i+1;
+    const nameEl=document.createElement('div');nameEl.className='modal-step-name';nameEl.textContent=s;
+    const badgeEl=document.createElement('span');
+    badgeEl.className='modal-step-badge '+(placed?'ok':'pin');
+    badgeEl.textContent=placed?'📍 ✕':(isSel?'⬅️ clicca mappa':'Non posizionato');
+    d.appendChild(numEl);d.appendChild(nameEl);d.appendChild(badgeEl);
+    frag.appendChild(d);
+  });
+  c.innerHTML='';c.appendChild(frag);
+}
+
+function removeModalStepCoord(i){
+  delete modalTempCoords[i];
+  const am=isDesktop()?modalMap:mobileMap;
+  if(am)refreshModalMarkers(am);
+  selectModalStep(i);
+}
+
+function selectModalStep(i){
+  modalSelectedStep=i;updateModalStepsList();
+  const steps=getModalSteps();
+  const hint=`Clicca sulla mappa: ${steps[i]||''}`;
+  document.getElementById('modalMapHint').textContent=hint;
+  document.getElementById('modalMapHint').classList.add('show');
+  document.getElementById('mobileMapHint').textContent=hint;
+  document.getElementById('mobileMapHint').classList.add('show');
+}
+
+function toggleMobileMap(){
+  const area=document.getElementById('mobileMapArea'),btn=document.getElementById('mapToggleBtn');
+  const open=area.classList.toggle('open');
+  btn.textContent=open?'🗺️ Nascondi mappa':'🗺️ Mostra mappa per posizionare';
+  if(open)setTimeout(()=>initMobileMap(),100);
+}
+
+function closeAddModal(){
+  document.getElementById('routeModal').classList.remove('open');
+  modalSelectedStep=null;
+  document.getElementById('modalMapHint').classList.remove('show');
+  document.getElementById('mobileMapHint').classList.remove('show');
+}
+
+function saveRouteText(){
+  const titleRaw=document.getElementById('newRouteTitle').value.trim().toUpperCase();
+  const steps=getModalSteps();
+  if(!titleRaw){showToast('⚠️ Inserisci un titolo');return;}
+  if(!steps.length){showToast('⚠️ Inserisci almeno una via');return;}
+  const saveBtn=document.querySelector('.btn-modal-save');
+  if(saveBtn){saveBtn.disabled=true;setTimeout(()=>{saveBtn.disabled=false;},1500);}
+  let routeId;
+  if(modalEditId){
+    routeId=modalEditId;
+    const idx=routes.findIndex(r=>r.id===modalEditId);
+    if(idx!==-1){
+      routes[idx].title=titleRaw;routes[idx].steps=steps;
+      Object.keys(coords).forEach(k=>{
+        if(k.startsWith(routeId+'_')){
+          const si=parseInt(k.split('_').pop(),10);
+          if(si>=steps.length)delete coords[k];
+        }
+      });
+    }
+  } else {
+    routeId='r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+    routes.push({id:routeId,title:titleRaw,steps});
+  }
+  steps.forEach((_,i)=>{if(modalTempCoords[i])coords[`${routeId}_${i}`]=modalTempCoords[i];});
+  saveLocal();autoSaveCloud();closeAddModal();
+  const saved=routes.find(r=>r.id===routeId);
+  if(saved)selectRoute(saved);
+  showToast('✅ Percorso salvato');haptic('medium');
+}
+
+/* ═══════════════════════════════════════════════
+   RICERCA
+═══════════════════════════════════════════════ */
+let searchTimer=null;
+let lastRandomIdx=-1;
+
+function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(showSuggestions,150);}
+
+function showSuggestions(){
+  const q=document.getElementById('searchBar').value.toUpperCase().trim();
+  const ul=document.getElementById('suggestionsList');ul.innerHTML='';
+  if(!q){ul.style.display='none';return;}
+  const seen=new Set();
+  const filtered=routes.filter(r=>{
+    if(seen.has(r.id))return false;
+    if(r.title.includes(q)||r.steps.some(s=>s.includes(q))){seen.add(r.id);return true;}
+    return false;
+  }).slice(0,10);
+  const frag=document.createDocumentFragment();
+  if(filtered.length){
+    filtered.forEach(r=>{
+      const li=document.createElement('li');li.textContent=r.title;
+      li.onclick=()=>{selectRoute(r);closeSuggestions();};frag.appendChild(li);
+    });
+  } else {
+    const li=document.createElement('li');li.textContent='Nessun risultato';
+    li.style.color='var(--muted)';li.style.cursor='default';frag.appendChild(li);
+  }
+  ul.appendChild(frag);ul.style.display='block';
+}
+
+function closeSuggestions(){
+  document.getElementById('searchBar').value=currentRoute?currentRoute.title:'';
+  document.getElementById('suggestionsList').style.display='none';
+}
+
+function selectRandomRoute(){
+  if(!routes.length)return;
+  let idx;
+  if(routes.length===1){idx=0;}
+  else{do{idx=Math.floor(Math.random()*routes.length);}while(idx===lastRandomIdx);}
+  lastRandomIdx=idx;selectRoute(routes[idx]);haptic();
+}
+
+/* ═══════════════════════════════════════════════
+   MENU & MODALI
+═══════════════════════════════════════════════ */
+function toggleMenu(){document.getElementById('overflowMenu').classList.toggle('open');}
+function closeMenu() {document.getElementById('overflowMenu').classList.remove('open');}
+document.addEventListener('click',e=>{
+  const w=document.querySelector('.menu-wrap');if(w&&!w.contains(e.target))closeMenu();
+  const s=document.querySelector('.search-wrap');
+  if(s&&!s.contains(e.target)){document.getElementById('suggestionsList').style.display='none';}
+});
+
+function closeAllModals(){
+  ['routeModal','routesManagerModal','statsModal','wrongModal'].forEach(id=>{
+    document.getElementById(id).classList.remove('open');
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════════ */
+function escHtml(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function resetData(){
+  if(!confirm('Cancellare tutti i dati locali E su cloud?'))return;
+  try{localStorage.clear();}catch(e){}
+  if(firebaseOk&&cloudRef){cloudRef.remove().finally(()=>location.reload());}
+  else{location.reload();}
+}
+
+function exportData(){
+  const json=JSON.stringify({routes,coords,quizStats,completed},null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  if(navigator.share&&navigator.canShare){
+    try{
+      const file=new File([blob],'prontuario_backup.json',{type:'application/json'});
+      if(navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Backup NCC Milano'}).catch(()=>{});return;}
+    }catch(e){}
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prontuario_backup.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function importData(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.style.cssText='position:fixed;top:-100px;left:-100px;opacity:0';
+  document.body.appendChild(input);
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file){document.body.removeChild(input);return;}
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const data=JSON.parse(reader.result);
+        if(data.routes)routes=validateRoutes(data.routes);
+        if(data.coords)coords=validateCoords(data.coords);
+        if(data.quizStats&&typeof data.quizStats==='object')quizStats=data.quizStats;
+        if(data.completed&&typeof data.completed==='object')completed=data.completed;
+        lsSet(IMPORT_FLAG_KEY,Date.now());
+        saveLocal();
+        if(firebaseOk&&cloudRef){
+          cloudRef.set(buildPayload())
+            .then(()=>{showToast('✅ Importato e salvato su cloud');setTimeout(()=>location.reload(),1000);})
+            .catch(()=>{showToast('✅ Importato (solo locale)');setTimeout(()=>location.reload(),1000);});
+        } else {showToast('✅ Importato');setTimeout(()=>location.reload(),1000);}
+      }catch{showToast('⚠️ File non valido');}
+      document.body.removeChild(input);
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ═══════════════════════════════════════════════
+   AVVIO
+═══════════════════════════════════════════════ */
+window.onload=function(){
+  window.addEventListener('online', ()=>showToast('🌐 Connessione ripristinata'));
+  window.addEventListener('offline',()=>showToast('📵 Offline — dati salvati localmente'));
+  initMap();
+};
+</script>
+</body>
+</html>
