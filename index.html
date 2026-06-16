@@ -223,7 +223,7 @@
             <div id="modalMap"></div>
             <div class="modal-buttons">
                 <button class="btn-close" onclick="closeAddModal()">Annulla</button>
-                <button class="btn-save" onclick="saveRoute()">Salva</button>
+                <button class="btn-save" id="saveRouteBtn" onclick="saveRoute()">Salva</button>
             </div>
         </div>
     </div>
@@ -392,34 +392,27 @@
         }
 
         // FIX 1: goToStep usa SOLO le coordinate salvate.
-        // Il marker è NON draggable: la posizione viene fissata al salvataggio.
         function goToStep() {
             if (!currentRoute) return;
             const step = currentRoute.steps[currentStep];
             const key = `${currentRoute.title}_${currentStep}`;
 
             if (coords[key]) {
-                // Coordinate salvate: posiziona il marker FISSO lì
                 placeMarker(coords[key].lat, coords[key].lon, step);
                 map.setView([coords[key].lat, coords[key].lon], map.getZoom());
             } else {
-                // Nessuna coordinata salvata per questo step: non spostare il marker
-                // (lascialo dov'è o rimuovilo se è il primo step senza coords)
                 if (marker) {
                     marker.getPopup().setContent(`<b>${step}</b> <br><small style="color:#ef4444">⚠️ Posizione non salvata</small>`);
                     marker.openPopup();
                 }
-                // Non creare un marker a caso al centro mappa
             }
         }
 
-        // FIX 2: placeMarker sulla mappa principale NON è draggable
         function placeMarker(lat, lon, name) {
             if (marker) {
                 marker.setLatLng([lat, lon]);
                 marker.getPopup().setContent(`<b>${name}</b>`);
             } else {
-                // Marker NON draggable nella vista principale
                 marker = L.marker([lat, lon], { draggable: false })
                     .addTo(map)
                     .bindPopup(`<b>${name}</b>`);
@@ -506,14 +499,9 @@
         }
 
         // ==================== MODALE AGGIUNTA ====================
-        // FIX 3: nella modal i marker SONO draggable e le coords vengono salvate
-        // con la chiave corretta (titolo reale, non TEMP).
-        // La chiave temporanea usa un prefisso univoco che viene rinominato al salvataggio.
-
         function openAddModal(editTitle = null) {
             document.getElementById('routeModal').classList.add('open');
             modalSteps = []; editingTitle = editTitle;
-            // Genera una chiave temporanea unica per questa sessione di creazione
             tempSessionKey = editTitle || ('__NEW__' + Date.now());
 
             if (editTitle) {
@@ -542,7 +530,6 @@
         }
 
         function closeAddModal() {
-            // Pulisci le coordinate temporanee non salvate
             if (!editingTitle) {
                 Object.keys(coords).forEach(k => {
                     if (k.startsWith(tempSessionKey + '_')) delete coords[k];
@@ -555,27 +542,22 @@
         function addStepFromInput() {
             const v = document.getElementById('stepInput').value.trim().toUpperCase();
             if (!v) return;
-            const idx = modalSteps.length;
             modalSteps.push(v);
             document.getElementById('stepInput').value = '';
             renderModalSteps();
-            fetchModalCoords(v, idx);
+            // Non eseguiamo più la geocodifica immediata
         }
 
         function addMultipleSteps() {
             const text = document.getElementById('multipleStepsInput').value;
             const lines = text.split('\n').map(l => l.trim().toUpperCase()).filter(l => l);
             if (!lines.length) return;
-            const startIdx = modalSteps.length;
-            lines.forEach((l, i) => {
-                modalSteps.push(l);
-                fetchModalCoords(l, startIdx + i);
-            });
+            lines.forEach(l => modalSteps.push(l));
             document.getElementById('multipleStepsInput').value = '';
             renderModalSteps();
+            // Non eseguiamo più la geocodifica immediata
         }
 
-        // Carica marker per step già esistenti (modifica percorso)
         function loadModalMarker(step, idx) {
             const key = `${editingTitle}_${idx}`;
             if (coords[key]) {
@@ -583,66 +565,8 @@
             }
         }
 
-        // FIX 4: fetchModalCoords usa Nominatim solo se non ci sono già coords salvate.
-        // Cerca prima con la chiave temporanea, poi con il titolo reale se modifica.
-        function fetchModalCoords(step, idx) {
-            // Per modifica: usa le coords esistenti con il titolo reale
-            if (editingTitle) {
-                const existingKey = `${editingTitle}_${idx}`;
-                if (coords[existingKey]) {
-                    createModalMarker(coords[existingKey].lat, coords[existingKey].lon, step, idx);
-                    return;
-                }
-            }
-
-            // Per nuovo percorso: usa la chiave temporanea
-            const tempKey = `${tempSessionKey}_${idx}`;
-            if (coords[tempKey]) {
-                createModalMarker(coords[tempKey].lat, coords[tempKey].lon, step, idx);
-                return;
-            }
-
-            // Nessuna coordinata salvata: cerca online tramite Nominatim
-            // Punto di partenza: ultimo marker posizionato o centro Milano
-            let fallbackLat = 45.4642, fallbackLng = 9.1900;
-            for (let i = idx - 1; i >= 0; i--) {
-                const prevKey = editingTitle ? `${editingTitle}_${i}` : `${tempSessionKey}_${i}`;
-                if (coords[prevKey]) {
-                    fallbackLat = coords[prevKey].lat;
-                    fallbackLng = coords[prevKey].lon;
-                    break;
-                }
-            }
-
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(step + ', Milano')}`)
-                .then(r => r.json())
-                .then(d => {
-                    if (d && d.length) {
-                        const lat = parseFloat(d[0].lat);
-                        const lon = parseFloat(d[0].lon);
-                        const dist = getDistance(fallbackLat, fallbackLng, lat, lon);
-                        // Accetta solo se entro 5km da Milano/punto precedente
-                        if (dist <= 5) {
-                            createModalMarker(lat, lon, step, idx);
-                        } else {
-                            createModalMarker(fallbackLat, fallbackLng, step, idx);
-                        }
-                    } else {
-                        createModalMarker(fallbackLat, fallbackLng, step, idx);
-                    }
-                })
-                .catch(() => {
-                    createModalMarker(fallbackLat, fallbackLng, step, idx);
-                });
-        }
-
-        // FIX 5: createModalMarker salva con la chiave corretta e il marker è DRAGGABLE
-        // (solo nella modal, per permettere aggiustamenti prima del salvataggio)
         function createModalMarker(lat, lon, step, idx) {
-            // Determina la chiave da usare
             const key = editingTitle ? `${editingTitle}_${idx}` : `${tempSessionKey}_${idx}`;
-
-            // Salva subito la posizione (temporanea o definitiva se modifica)
             coords[key] = { lat, lon };
             localStorage.setItem('coords', JSON.stringify(coords));
 
@@ -650,18 +574,14 @@
                 .addTo(modalMap)
                 .bindTooltip(`${idx+1}. ${step}`, { permanent: true, direction: 'top' });
 
-            // FIX: aggiorna le coords ogni volta che il marker viene spostato
             m.on('dragend', () => {
                 const p = m.getLatLng();
                 coords[key] = { lat: p.lat, lon: p.lng };
                 localStorage.setItem('coords', JSON.stringify(coords));
-                // Centra la mappa sul marker spostato
                 modalMap.panTo([p.lat, p.lng]);
             });
 
             modalMarkers.push(m);
-
-            // Centra la mappa sul nuovo marker
             modalMap.setView([lat, lon], 15);
         }
 
@@ -684,62 +604,129 @@
             modalSteps.splice(i, 1);
             renderModalSteps();
             clearModalMarkers();
-            // Riposiziona i marker rimanenti (potrebbero aver cambiato indice)
-            // Prima rimuovi le coord con indici sbagliati, poi riposiziona
             modalSteps.forEach((s, idx) => {
                 if (editingTitle) {
-                    // Per la modifica, le coords sono già salvate con gli indici originali
-                    // (non modifichiamo qui per non perdere dati — lo faremo al salvataggio)
                     loadModalMarker(s, idx);
                 } else {
                     const key = `${tempSessionKey}_${idx}`;
                     if (coords[key]) {
                         createModalMarker(coords[key].lat, coords[key].lon, s, idx);
-                    } else {
-                        fetchModalCoords(s, idx);
                     }
                 }
             });
         };
 
-        // FIX 6: saveRoute trasferisce correttamente le coordinate temporanee
-        function saveRoute() {
+        // ==================== SALVATAGGIO CON GESTIONE COMPLETA DELLE COORDINATE ====================
+        async function saveRoute() {
             const title = document.getElementById('newRouteTitle').value.trim().toUpperCase();
             if (!title || !modalSteps.length) return alert("Titolo e vie obbligatori");
 
-            if (editingTitle) {
-                const idx = routes.findIndex(r => r.title === editingTitle);
-                if (idx !== -1) {
-                    routes[idx] = { title, steps: modalSteps };
-                    // Se il titolo è cambiato, rinomina le chiavi coords
-                    if (editingTitle !== title) {
-                        Object.keys(coords).forEach(k => {
-                            if (k.startsWith(editingTitle + '_')) {
-                                const newKey = title + '_' + k.slice(editingTitle.length + 1);
-                                coords[newKey] = coords[k];
-                                delete coords[k];
-                            }
-                        });
+            const saveBtn = document.getElementById('saveRouteBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Salvataggio...';
+
+            try {
+                // 1. Recupera tutte le coordinate mancanti
+                await fetchMissingCoords();
+
+                // 2. Rinomina/copia le coordinate nel formato finale
+                if (editingTitle) {
+                    const idx = routes.findIndex(r => r.title === editingTitle);
+                    if (idx !== -1) {
+                        routes[idx] = { title, steps: modalSteps };
+                        if (editingTitle !== title) {
+                            Object.keys(coords).forEach(k => {
+                                if (k.startsWith(editingTitle + '_')) {
+                                    const newKey = title + '_' + k.slice(editingTitle.length + 1);
+                                    coords[newKey] = coords[k];
+                                    delete coords[k];
+                                }
+                            });
+                        }
                     }
-                }
-            } else {
-                // Nuovo percorso: trasferisci le coordinate dalla chiave temporanea al titolo definitivo
-                for (let i = 0; i < modalSteps.length; i++) {
-                    const tempKey = `${tempSessionKey}_${i}`;
-                    const finalKey = `${title}_${i}`;
-                    if (coords[tempKey]) {
-                        coords[finalKey] = coords[tempKey];
-                        delete coords[tempKey];
+                } else {
+                    for (let i = 0; i < modalSteps.length; i++) {
+                        const tempKey = `${tempSessionKey}_${i}`;
+                        const finalKey = `${title}_${i}`;
+                        if (coords[tempKey]) {
+                            coords[finalKey] = coords[tempKey];
+                            delete coords[tempKey];
+                        }
                     }
+                    routes.push({ title, steps: modalSteps });
                 }
-                routes.push({ title, steps: modalSteps });
+
+                localStorage.setItem('routes', JSON.stringify(routes));
+                localStorage.setItem('coords', JSON.stringify(coords));
+                saveToCloud();
+                document.getElementById('routeModal').classList.remove('open');
+                alert('Percorso salvato!');
+            } catch (error) {
+                console.error(error);
+                alert('Errore durante il salvataggio. Riprova.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Salva';
+            }
+        }
+
+        async function fetchMissingCoords() {
+            // Ottieni una posizione di partenza (ultimo marker o centro Milano)
+            let fallbackLat = 45.4642, fallbackLng = 9.1900;
+            const prefix = editingTitle || tempSessionKey;
+
+            for (let i = 0; i < modalSteps.length; i++) {
+                const key = `${prefix}_${i}`;
+                if (coords[key]) {
+                    fallbackLat = coords[key].lat;
+                    fallbackLng = coords[key].lon;
+                }
             }
 
-            localStorage.setItem('routes', JSON.stringify(routes));
-            localStorage.setItem('coords', JSON.stringify(coords));
-            saveToCloud();
-            document.getElementById('routeModal').classList.remove('open'); // chiudi senza cancellare coords
-            alert('Percorso salvato!');
+            // Per ogni step senza coordinate, interroga Nominatim in sequenza
+            for (let i = 0; i < modalSteps.length; i++) {
+                const key = `${prefix}_${i}`;
+                if (coords[key]) continue; // già presente
+
+                const step = modalSteps[i];
+                try {
+                    const pos = await geocodeStep(step, fallbackLat, fallbackLng);
+                    coords[key] = { lat: pos.lat, lon: pos.lon };
+                    localStorage.setItem('coords', JSON.stringify(coords));
+                    // Aggiorna il marker sulla mappa modale
+                    if (modalMap) {
+                        createModalMarker(pos.lat, pos.lon, step, i);
+                    }
+                    // Usa la nuova posizione come riferimento per le successive
+                    fallbackLat = pos.lat;
+                    fallbackLng = pos.lon;
+                    // Rispetta il limite di 1 richiesta al secondo
+                    await new Promise(resolve => setTimeout(resolve, 1200));
+                } catch (e) {
+                    // Se fallisce, usa la posizione di fallback attuale
+                    coords[key] = { lat: fallbackLat, lon: fallbackLng };
+                    localStorage.setItem('coords', JSON.stringify(coords));
+                    if (modalMap) {
+                        createModalMarker(fallbackLat, fallbackLng, step, i);
+                    }
+                }
+            }
+        }
+
+        async function geocodeStep(step, refLat, refLon) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(step + ', Milano')}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data && data.length) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                const dist = getDistance(refLat, refLon, lat, lon);
+                if (dist <= 5) {
+                    return { lat, lon };
+                }
+            }
+            // Se non trovato o troppo lontano, usa la posizione di riferimento
+            return { lat: refLat, lon: refLon };
         }
 
         // ==================== GESTIONE PERCORSI ====================
