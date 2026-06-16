@@ -1200,18 +1200,38 @@ function updateModalStepsList() {
 
     const d = document.createElement('div');
     d.className = `modal-step-item ${isSelected ? 'selected' : ''} ${placed ? 'placed' : ''}`;
-    d.onclick = () => selectModalStep(i);
+
+    if (placed) {
+      // Click su via già posizionata → rimuove il marker e resetta
+      d.onclick = () => removeModalStepCoord(i);
+      d.title = 'Clicca per rimuovere e riposizionare';
+    } else {
+      // Click su via non posizionata → seleziona per posizionare
+      d.onclick = () => selectModalStep(i);
+    }
 
     d.innerHTML = `
       <div class="modal-step-num">${i + 1}</div>
       <div class="modal-step-name">${s}</div>
       ${placed
-        ? `<span class="modal-step-badge ok">📍</span>`
+        ? `<span class="modal-step-badge ok" title="Clicca per rimuovere">📍 ✕</span>`
         : `<span class="modal-step-badge pin">${isSelected ? '⬅️ clicca mappa' : 'Non posizionato'}</span>`
       }
     `;
     c.appendChild(d);
   });
+}
+
+function removeModalStepCoord(i) {
+  // Elimina la coordinata temporanea
+  delete modalTempCoords[i];
+
+  // Rimuovi il marker corrispondente dalla mappa attiva
+  const activeMap = isDesktop() ? modalMap : mobileMap;
+  if (activeMap) refreshModalMarkers(activeMap);
+
+  // Seleziona subito la via per riposizionarla
+  selectModalStep(i);
 }
 
 function selectModalStep(i) {
