@@ -9,7 +9,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='16' fill='%23f0b90b'/%3E%3Cpath d='M18 6 L24 24 L18 20 L12 24 Z' fill='%230b1020'/%3E%3C/svg%3E">
-  <meta name="referrer" content="no-referrer-when-downgrade">
+  <meta name="referrer" content="unsafe-url">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="preconnect" href="https://a.basemaps.cartocdn.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
@@ -90,6 +92,24 @@
       transition:var(--transition); white-space:nowrap;
     }
     .mode-btn.active { background:var(--accent); color:#fff; box-shadow:0 4px 10px rgba(240,185,11,0.35); }
+    /* Pulsanti rapidi sempre visibili */
+    .quick-actions { display:flex; align-items:center; gap:6px; }
+    .quick-btn {
+      display:flex; align-items:center; gap:5px;
+      padding:8px 12px; border-radius:30px;
+      border:1px solid var(--border); background:var(--bg-input);
+      color:var(--text-primary); font-size:0.82rem; font-weight:600;
+      cursor:pointer; transition:var(--transition); white-space:nowrap;
+    }
+    .quick-btn:hover { background:#e8e4da; }
+    .quick-btn.amber { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .quick-btn.amber:hover { background:#d49700; }
+    .quick-btn-icon { font-size:1rem; }
+    /* Su schermi molto piccoli nascondi il testo, mostra solo icona */
+    @media (max-width: 480px) {
+      .quick-btn-label { display:none; }
+      .quick-btn { padding:8px 10px; }
+    }
     .actions { position:relative; }
     .icon-btn {
       background:var(--bg-input); border:1px solid var(--border); color:var(--text-primary); font-size:1.4rem;
@@ -246,13 +266,27 @@
       <button class="mode-btn" data-mode="esame">Esame</button>
       <button class="mode-btn" data-mode="quiz">Quiz</button>
     </div>
+
+    <!-- Pulsanti rapidi sempre visibili -->
+    <div class="quick-actions">
+      <button class="quick-btn" id="btnQuickAdd" title="Nuovo percorso">
+        <span class="quick-btn-icon">➕</span>
+        <span class="quick-btn-label">Nuovo</span>
+      </button>
+      <button class="quick-btn" id="btnQuickRandom" title="Percorso casuale">
+        <span class="quick-btn-icon">🔀</span>
+        <span class="quick-btn-label">Casuale</span>
+      </button>
+      <button class="quick-btn amber" id="btnQuickSave" title="Salva su cloud">
+        <span class="quick-btn-icon">☁️</span>
+        <span class="quick-btn-label">Salva</span>
+      </button>
+    </div>
+
     <div class="actions">
       <button class="icon-btn" id="menuToggle" aria-label="Menu">⋮</button>
       <div class="menu-dropdown" id="menuDropdown">
-        <button data-action="add">➕ Nuovo percorso</button>
-        <button data-action="random">🔀 Percorso casuale</button>
         <button data-action="manage">📋 Gestisci percorsi</button>
-        <button data-action="cloud-save">☁️ Salva su cloud</button>
         <button data-action="export">📤 Esporta dati</button>
         <button data-action="import">📥 Importa dati</button>
         <div class="menu-sep"></div>
@@ -419,31 +453,57 @@
         attributionControl: false
       });
 
-      // Tile layer chiaro: OpenStreetMap (massima compatibilità mobile)
-      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        subdomains: ['a','b','c'],
-        crossOrigin: true
-      });
-
-      // Fallback: CartoDB Positron se OSM non carica
-      const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        crossOrigin: true
-      });
-
-      osmLayer.addTo(map);
-      // Dopo 5 sec, se nessuna tile è arrivata, switcha su CartoDB
-      let tilesLoaded = false;
-      osmLayer.on('tileload', () => { tilesLoaded = true; });
-      setTimeout(() => {
-        if (!tilesLoaded) {
-          map.removeLayer(osmLayer);
-          cartoLayer.addTo(map);
+      // Providers in ordine di priorità — il primo che carica una tile vince
+      const tileProviders = [
+        {
+          url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          opts: { maxZoom: 19, attribution: '© OpenStreetMap' }
+        },
+        {
+          url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+          opts: { maxZoom: 19, attribution: '© OpenStreetMap © CARTO' }
+        },
+        {
+          url: 'https://tile.openstreetmap.bzh/br/{z}/{x}/{y}.png',
+          opts: { maxZoom: 19, attribution: '© OpenStreetMap' }
         }
-      }, 5000);
+      ];
+
+      let activeLayer = null;
+      let providerIndex = 0;
+
+      function tryNextProvider() {
+        if (providerIndex >= tileProviders.length) return;
+        const p = tileProviders[providerIndex];
+        providerIndex++;
+
+        if (activeLayer) { map.removeLayer(activeLayer); }
+
+        const layer = L.tileLayer(p.url, p.opts);
+        let loaded = false;
+
+        layer.on('tileload', () => {
+          if (!loaded) { loaded = true; } // tile arrivata, provider funziona
+        });
+
+        layer.on('tileerror', () => {
+          if (!loaded) {
+            // Nessuna tile arrivata, prova il prossimo
+            console.warn('Tile provider fallito, provo il prossimo...');
+            tryNextProvider();
+          }
+        });
+
+        layer.addTo(map);
+        activeLayer = layer;
+
+        // Se dopo 4 secondi ancora nessuna tile, passa al prossimo
+        setTimeout(() => {
+          if (!loaded) tryNextProvider();
+        }, 4000);
+      }
+
+      tryNextProvider();
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
       markersLayer = L.layerGroup().addTo(map);
@@ -821,7 +881,12 @@
       setMode('studio');
     }
 
-    // ---------- EVENT LISTENERS ----------
+    // Pulsanti rapidi topbar
+    $('#btnQuickAdd').addEventListener('click', () => openAddRouteModal());
+    $('#btnQuickRandom').addEventListener('click', () => selectRandomRoute());
+    $('#btnQuickSave').addEventListener('click', () => saveToFirebase());
+
+    // Event listeners
     menuToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
