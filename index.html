@@ -15,345 +15,152 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            background: #f1f5f9;
+            background: #ffffff;
             color: #1e293b;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            touch-action: manipulation;
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden; touch-action: manipulation;
         }
-
-        /* ========== HEADER ========== */
         header {
-            background: #0b1e33;
-            color: white;
-            padding: 10px 16px;
-            z-index: 1000;
-            flex-shrink: 0;
+            background: #0b1e33; color: white;
+            padding: 10px 12px; z-index: 1000;
         }
-
-        /* Mobile: tutto in una riga scrollabile */
         .header-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            overflow-x: auto;
-            white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
+            overflow-x: auto; white-space: nowrap;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 2px;
+            padding-bottom: 6px;
         }
         .header-row::-webkit-scrollbar { display: none; }
-
-        /* PC: due righe — search sopra, chips sotto */
-        .header-search { display: flex; align-items: center; gap: 8px; position: relative; }
-        .header-chips  { display: none; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-
         #searchBar {
-            flex: 1;
-            min-width: 0;
-            padding: 10px 16px;
-            border-radius: 24px;
-            border: none;
-            background: rgba(255,255,255,0.15);
-            color: white;
-            font-size: 15px;
-            outline: none;
+            flex: 1; min-width: 0; padding: 12px 16px;
+            border-radius: 24px; border: none;
+            background: rgba(255,255,255,0.15); color: white;
+            font-size: 16px; outline: none;
         }
-        #searchBar::placeholder { color: rgba(255,255,255,0.55); }
-
+        #searchBar::placeholder { color: rgba(255,255,255,0.6); }
         .suggestions {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            max-height: 260px;
-            overflow-y: auto;
-            display: none;
-            z-index: 2000;
-            list-style: none;
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border-radius: 12px; margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 200px;
+            overflow-y: auto; display: none; z-index: 2000; list-style: none;
         }
         .suggestions li {
-            padding: 11px 16px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #1e293b;
+            padding: 12px 16px; cursor: pointer; font-weight: 600;
             border-bottom: 1px solid #e2e8f0;
-            font-size: 14px;
         }
-        .suggestions li:last-child { border-bottom: none; }
-        .suggestions li:hover { background: #eef4ff; }
-
         .chip {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.22);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            min-height: 38px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: background 0.15s;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white; padding: 10px 16px; border-radius: 24px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            white-space: nowrap; min-height: 44px;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
             flex-shrink: 0;
-            user-select: none;
         }
-        .chip:hover  { background: rgba(255,255,255,0.22); }
-        .chip:active { background: rgba(255,255,255,0.32); }
+        .chip:active { background: rgba(255,255,255,0.3); }
         .chip.active { background: #3b82f6; border-color: #3b82f6; }
-        .chip.danger { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.6); }
-        .chip.danger:hover { background: rgba(239,68,68,0.4); }
+        .chip.danger { background: rgba(239,68,68,0.3); border-color: #ef4444; }
 
-        /* Indicatore sync cloud */
-        #syncStatus {
-            font-size: 12px;
-            color: rgba(255,255,255,0.6);
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        #syncStatus.ok   { color: #34d399; }
-        #syncStatus.err  { color: #f87171; }
-        #syncStatus.sync { color: #fbbf24; }
+        .main-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #map { flex: 1; }
 
-        /* ========== LAYOUT PRINCIPALE ========== */
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #map { flex: 1; min-height: 0; }
-
-        /* ========== PANNELLO LATERALE / INFERIORE ========== */
         .control-panel {
-            background: white;
-            border-radius: 20px 20px 0 0;
+            background: white; border-radius: 20px 20px 0 0;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             max-height: 42vh;
-            flex-shrink: 0;
         }
         .panel-header {
-            padding: 14px 16px 8px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 16px 8px; border-bottom: 1px solid #e2e8f0;
         }
-        .panel-header h2 { font-size: 17px; font-weight: 700; }
-        .panel-header p  { font-size: 13px; color: #3b82f6; font-weight: 600; margin-top: 2px; }
-
+        .panel-header h2 { font-size: 18px; font-weight: 700; }
+        .panel-header p { font-size: 14px; color: #3b82f6; font-weight: 600; }
         .steps-container { flex: 1; overflow-y: auto; padding: 8px 12px; }
-
         .step-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 10px;
-            margin-bottom: 3px;
-            opacity: 0.4;
-            font-size: 14px;
-            transition: opacity 0.15s, background 0.15s;
-            cursor: default;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 12px; margin-bottom: 4px;
+            opacity: 0.45; font-size: 15px;
         }
-        .step-row.active {
-            opacity: 1;
-            background: #eef4ff;
-            border-left: 4px solid #3b82f6;
-            font-weight: 700;
-        }
-        .step-row.completed { opacity: 0.65; }
-
+        .step-row.active { opacity: 1; background: #eef4ff; border-left: 4px solid #3b82f6; font-weight: 700; }
+        .step-row.completed { opacity: 0.7; }
         .step-number {
-            width: 24px; height: 24px;
-            background: #cbd5e1;
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: bold;
-            flex-shrink: 0;
+            width: 26px; height: 26px; background: #cbd5e1; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
         }
         .step-row.active .step-number { background: #3b82f6; }
-        .hidden-mode .step-name {
-            background: #e2e8f0;
-            color: transparent;
-            border-radius: 5px;
-            user-select: none;
-        }
-
+        .hidden-mode .step-name { background: #e2e8f0; color: transparent; border-radius: 6px; }
         .panel-footer {
-            padding: 8px 12px;
-            border-top: 1px solid #e2e8f0;
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
-            flex-shrink: 0;
+            padding: 8px 12px; border-top: 1px solid #e2e8f0;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            min-height: 46px;
-            display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.15s, filter 0.15s;
+            flex: 1; padding: 12px; border-radius: 14px; border: none;
+            font-weight: 700; font-size: 16px; cursor: pointer;
+            min-height: 48px; display: flex; align-items: center; justify-content: center;
         }
-        .btn:hover:not(:disabled) { filter: brightness(1.08); }
         .btn-secondary { background: #eef2f6; color: #1e293b; }
-        .btn-primary   { background: #3b82f6; color: white; }
-        .btn-street    { background: #f59e0b; color: #1e293b; }
-        .btn:disabled  { opacity: 0.32; cursor: not-allowed; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-street { background: #f59e0b; color: #1e293b; }
+        .btn:disabled { opacity: 0.35; }
 
-        /* ========== MODALI ========== */
         .modal {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(4px);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
             display: flex; align-items: center; justify-content: center;
-            z-index: 3000;
-            visibility: hidden; opacity: 0;
-            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 3000; visibility: hidden; opacity: 0; transition: 0.2s;
         }
         .modal.open { visibility: visible; opacity: 1; }
-
         .modal-box {
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            width: 93%;
-            height: 88vh;
-            display: flex; flex-direction: column; gap: 10px;
-            overflow: hidden;
+            background: white; padding: 20px; border-radius: 24px;
+            width: 92%; height: 85vh; display: flex; flex-direction: column; gap: 12px;
         }
-        .modal-box h3 { font-size: 17px; font-weight: 700; flex-shrink: 0; }
+        .modal-box h3 { font-size: 18px; }
         .modal-box input, .modal-box textarea {
-            width: 100%; padding: 11px 14px; font-size: 15px;
-            border: 1.5px solid #e2e8f0; border-radius: 10px; background: #f9fafb;
-            outline: none; transition: border-color 0.15s;
+            width: 100%; padding: 12px; font-size: 16px;
+            border: 1px solid #e2e8f0; border-radius: 12px; background: #f9fafb;
         }
-        .modal-box input:focus, .modal-box textarea:focus { border-color: #3b82f6; }
-        .add-step-box { display: flex; gap: 8px; flex-shrink: 0; }
+        .add-step-box { display: flex; gap: 8px; }
         .add-step-box input { flex: 1; }
-
         .step-list-modal {
-            flex: 1; overflow-y: auto;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
+            flex: 1; overflow-y: auto; margin: 6px 0;
+            border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;
             padding: 6px 0;
         }
         .step-item-modal {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 7px 10px; border-radius: 8px; background: #f8fafc;
-            margin-bottom: 3px; font-size: 14px;
+            padding: 8px 10px; border-radius: 10px; background: #f8fafc;
+            margin-bottom: 4px; font-size: 15px;
         }
-        .step-item-modal button {
-            background: none; border: none; cursor: pointer;
-            color: #94a3b8; font-size: 16px; padding: 2px 6px;
-            border-radius: 6px; transition: background 0.15s, color 0.15s;
-        }
-        .step-item-modal button:hover { background: #fee2e2; color: #ef4444; }
+        #modalMap { height: 35%; min-height: 150px; border-radius: 14px; border: 1px solid #e2e8f0; }
+        .modal-buttons { display: flex; gap: 8px; margin-top: 8px; }
+        .btn-save { background: #10b981; color: white; padding: 12px; border-radius: 14px; font-weight: bold; flex: 1; }
+        .btn-close { background: #e2e8f0; color: #1e293b; padding: 12px; border-radius: 14px; font-weight: bold; flex: 1; }
 
-        #modalMap {
-            height: 220px; min-height: 160px; flex-shrink: 0;
-            border-radius: 12px; border: 1px solid #e2e8f0;
-        }
-
-        .modal-buttons { display: flex; gap: 8px; flex-shrink: 0; }
-        .btn-save  { background: #10b981; color: white; padding: 12px; border-radius: 12px; font-weight: 700; flex: 1; border: none; cursor: pointer; font-size: 15px; }
-        .btn-close { background: #eef2f6; color: #1e293b; padding: 12px; border-radius: 12px; font-weight: 700; flex: 1; border: none; cursor: pointer; font-size: 15px; }
-        .btn-save:hover  { background: #059669; }
-        .btn-close:hover { background: #e2e8f0; }
-
-        /* ========== TOAST ========== */
         .toast {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: #10b981; color: white; padding: 11px 22px;
-            border-radius: 24px; font-size: 15px; font-weight: 700;
-            z-index: 4000; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            background: #10b981; color: white; padding: 12px 20px;
+            border-radius: 24px; font-size: 16px; font-weight: bold;
+            z-index: 4000; display: none;
         }
 
-        /* ========== LOADING OVERLAY ========== */
-        #loadingOverlay {
-            position: fixed; inset: 0;
-            background: #0b1e33;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 16px; z-index: 9999;
-            color: white; font-size: 18px; font-weight: 600;
-        }
-        #loadingOverlay .spinner {
-            width: 44px; height: 44px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ========== DESKTOP (≥ 900px) ========== */
-        @media (min-width: 900px) {
-            header { padding: 12px 24px; }
-
-            /* Nascondi header-row mobile, mostra struttura desktop */
-            .header-row   { display: none; }
-            .header-search { display: flex; }
-            .header-chips  { display: flex; }
-
-            /* Sidebar a destra */
+        @media (min-width: 768px) {
             .main-container { flex-direction: row; }
-
-            #map { flex: 1; border-radius: 0; }
-
             .control-panel {
-                width: 420px;
-                max-height: none;
-                border-radius: 0;
+                width: 380px; max-height: none;
+                border-radius: 20px 0 0 20px;
                 border-left: 1px solid #e2e8f0;
-                box-shadow: -4px 0 20px rgba(0,0,0,0.06);
             }
-
-            .panel-header { padding: 18px 20px 12px; }
-            .panel-header h2 { font-size: 19px; }
-            .panel-header p  { font-size: 14px; }
-
-            .steps-container { padding: 10px 16px; }
-            .step-row { font-size: 15px; padding: 10px 14px; }
-
-            .panel-footer { padding: 12px 16px 16px; }
-            .btn { font-size: 16px; min-height: 50px; }
-
-            /* Modale più grande su desktop */
-            .modal-box { width: 700px; height: 82vh; padding: 28px; gap: 14px; }
-            #modalMap { height: 280px; }
-        }
-
-        /* ========== DESKTOP LARGE (≥ 1280px) ========== */
-        @media (min-width: 1280px) {
-            .control-panel { width: 480px; }
-            .modal-box { width: 780px; }
+            .modal-box { width: 650px; height: 80vh; }
         }
     </style>
 </head>
 <body>
-    <!-- Loading overlay -->
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-        <span>Caricamento percorsi...</span>
-    </div>
-
     <header>
-        <!-- MOBILE: riga singola scrollabile -->
         <div class="header-row" style="position:relative;">
             <input type="text" id="searchBar" placeholder="🔍 Cerca percorso..." autocomplete="off" oninput="showSuggestions()">
             <ul class="suggestions" id="suggestionsList"></ul>
@@ -366,25 +173,6 @@
             <span class="chip danger" onclick="resetData()">🔄</span>
             <span class="chip" onclick="exportData()">📤</span>
             <span class="chip" onclick="importData()">📥</span>
-            <span id="syncStatusMobile" class="chip" style="font-size:12px; padding:6px 10px;">☁️</span>
-        </div>
-
-        <!-- DESKTOP: search + sync in prima riga, chips in seconda -->
-        <div class="header-search" style="position:relative;">
-            <input type="text" id="searchBarDesktop" placeholder="🔍 Cerca percorso..." autocomplete="off" oninput="showSuggestionsDesktop()">
-            <ul class="suggestions" id="suggestionsListDesktop"></ul>
-            <span id="syncStatus" class="ok">☁️ Online</span>
-        </div>
-        <div class="header-chips">
-            <span class="chip active" id="modeStudioD" onclick="setMode('studio')">📖 Studio</span>
-            <span class="chip" id="modeEsameD" onclick="setMode('esame')">🙈 Cieco</span>
-            <span class="chip" id="modeQuizD" onclick="setMode('quiz')">❓ Quiz</span>
-            <span class="chip" onclick="openAddModal()">➕ Nuovo</span>
-            <span class="chip" onclick="selectRandomRoute()">🔀 Random</span>
-            <span class="chip" onclick="openRoutesManager()">📋 Percorsi</span>
-            <span class="chip" onclick="exportData()">📤 Export</span>
-            <span class="chip" onclick="importData()">📥 Import</span>
-            <span class="chip danger" onclick="resetData()">🔄 Reset</span>
         </div>
     </header>
 
@@ -468,131 +256,16 @@
         const db = firebase.database();
         const cloudRef = db.ref('prontuario');
 
-        // ==================== DATI ====================
+        // ==================== DATI LOCALI ====================
         const DEFAULT = [{
             title: "CERCHIA DEI BASTIONI",
             steps: ["P.ZA 24 MAGGIO","V.LE GIAN GALEAZZO","P.LE DI PORTA LODOVICA","V.LE BEATRICE D'ESTE","L.GO ISABELLA D'ARAGONA","V.LE BEATRICE D'ESTE","V.LE FILIPPETTI","P.LE MEDAGLIE D'ORO","P.ZA 25 APRILE","VIALE CRISPI","BASTIONI DI PORTA VOLTA","P.LE BIANCAMANO","P.LE LEGA LOMBARDA","V.LE ELVEZIA","VIA MELZI D'ERIL","VIA CANOVA","VIALE CALDARA","VIALE REGINA MARGHERITA","V.LE MILTON","V.LE MOLIERE","P.ZA 5 GIORNATE","V.LE BIANCA MARIA","P.ZA DEL TRICOLORE","V.LE MAJNO","VIA CURIE","VIA 20 SETTEMBRE","P.ZA CONCILIAZIONE","VIA ENRICO TOTI","P.ZA OBERDAN","P.LE BARACCA","BASTIONI DI PORTA VENEZIA","VIALE CITTA' DI FIUME","P.ZA DELLA REPUBBLICA","VIALE MONTESANTO","P.LE PRINCIPESSA CLOTILDE","V.LE DI PORTA VERCELLINA","P.LE AQUILEIA","V.LE PAPINIANO","P.ZA SANT'AGOSTINO","V.LE PAPINIANO","BASTIONI DI PORTA NUOVA","P.LE GENERAL CANTORE","V.LE GABRIELE D'ANNUNZIO","P.ZA 24 MAGGIO"]
         }];
 
-        // Cache locale (fallback offline)
-        let routes    = JSON.parse(localStorage.getItem('routes'))    || DEFAULT;
-        let coords    = JSON.parse(localStorage.getItem('coords'))    || {};
-        let errors    = JSON.parse(localStorage.getItem('errors'))    || {};
+        let routes = JSON.parse(localStorage.getItem('routes')) || DEFAULT;
+        let coords = JSON.parse(localStorage.getItem('coords')) || {};
+        let errors = JSON.parse(localStorage.getItem('errors')) || {};
         let quizStats = JSON.parse(localStorage.getItem('quizStats')) || {};
-
-        let appReady = false; // diventa true dopo il primo caricamento da Firebase
-
-        // Indicatore stato sync
-        function setSyncStatus(state, label) {
-            const el  = document.getElementById('syncStatus');
-            const el2 = document.getElementById('syncStatusMobile');
-            if (el)  { el.className  = state; el.textContent  = label; }
-            if (el2) { el2.textContent = label; }
-        }
-
-        // ==================== CLOUD COME SORGENTE PRINCIPALE ====================
-        // Salva TUTTO su Firebase (routes, coords, errors, quizStats)
-        function saveToCloud() {
-            setSyncStatus('sync', '🔄 Salvo...');
-            cloudRef.set({ routes, coords, errors, quizStats, ts: Date.now() })
-                .then(() => {
-                    setSyncStatus('ok', '☁️ Salvato');
-                    // Aggiorna anche la cache locale
-                    localStorage.setItem('routes',    JSON.stringify(routes));
-                    localStorage.setItem('coords',    JSON.stringify(coords));
-                    localStorage.setItem('errors',    JSON.stringify(errors));
-                    localStorage.setItem('quizStats', JSON.stringify(quizStats));
-                })
-                .catch(e => {
-                    console.error('Errore salvataggio cloud:', e);
-                    setSyncStatus('err', '❌ Offline');
-                    // Salva comunque in locale come fallback
-                    localStorage.setItem('routes',    JSON.stringify(routes));
-                    localStorage.setItem('coords',    JSON.stringify(coords));
-                    localStorage.setItem('errors',    JSON.stringify(errors));
-                    localStorage.setItem('quizStats', JSON.stringify(quizStats));
-                });
-        }
-
-        // Ascolta i cambiamenti in tempo reale da Firebase (sync multi-dispositivo)
-        cloudRef.on('value', snap => {
-            const data = snap.val();
-
-            if (!appReady) {
-                // Primo caricamento: Firebase è la sorgente di verità
-                if (data) {
-                    if (data.routes)    routes    = data.routes;
-                    if (data.coords)    coords    = data.coords;
-                    if (data.errors)    errors    = data.errors;
-                    if (data.quizStats) quizStats = data.quizStats;
-                } else {
-                    // Nessun dato su cloud: carica il DEFAULT e salvalo subito
-                    routes = JSON.parse(localStorage.getItem('routes')) || DEFAULT;
-                    coords = JSON.parse(localStorage.getItem('coords')) || {};
-                    saveToCloud();
-                }
-                // Aggiorna cache locale
-                localStorage.setItem('routes',    JSON.stringify(routes));
-                localStorage.setItem('coords',    JSON.stringify(coords));
-                localStorage.setItem('errors',    JSON.stringify(errors));
-                localStorage.setItem('quizStats', JSON.stringify(quizStats));
-
-                // Avvia l'app
-                appReady = true;
-                document.getElementById('loadingOverlay').style.display = 'none';
-                initMap();
-                if (routes.length) selectRoute(routes[0]);
-                setSyncStatus('ok', '☁️ Online');
-                return;
-            }
-
-            // Aggiornamenti successivi: aggiorna solo se i dati sono cambiati
-            if (!data) return;
-            let changed = false;
-
-            if (data.routes && JSON.stringify(data.routes) !== JSON.stringify(routes)) {
-                routes = data.routes;
-                localStorage.setItem('routes', JSON.stringify(routes));
-                changed = true;
-            }
-            if (data.coords && JSON.stringify(data.coords) !== JSON.stringify(coords)) {
-                coords = data.coords;
-                localStorage.setItem('coords', JSON.stringify(coords));
-                changed = true;
-            }
-            if (data.errors) {
-                errors = data.errors;
-                localStorage.setItem('errors', JSON.stringify(errors));
-            }
-            if (data.quizStats) {
-                quizStats = data.quizStats;
-                localStorage.setItem('quizStats', JSON.stringify(quizStats));
-            }
-
-            if (changed && currentRoute) {
-                const key = `${currentRoute.title}_${currentStep}`;
-                if (coords[key] && marker) {
-                    marker.setLatLng([coords[key].lat, coords[key].lon]);
-                }
-                updateLines();
-                const updated = routes.find(r => r.title === currentRoute.title);
-                if (updated && JSON.stringify(updated.steps) !== JSON.stringify(currentRoute.steps)) {
-                    currentRoute = updated;
-                    renderSteps();
-                }
-            }
-            setSyncStatus('ok', '☁️ Online');
-        }, err => {
-            console.error('Firebase error:', err);
-            setSyncStatus('err', '❌ Offline');
-            // Se non è ancora pronto, avvia con la cache locale
-            if (!appReady) {
-                appReady = true;
-                document.getElementById('loadingOverlay').style.display = 'none';
-                initMap();
-                if (routes.length) selectRoute(routes[0]);
-            }
-        });
 
         // ==================== UTILITA' ====================
         function getDistance(lat1, lon1, lat2, lon2) {
@@ -602,6 +275,52 @@
             const a = Math.sin(dLat/2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) ** 2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
+
+        // ==================== SINCRONIZZAZIONE ====================
+        function saveToCloud() {
+            cloudRef.set({ routes, coords, errors, quizStats, ts: Date.now() });
+        }
+
+        cloudRef.on('value', snap => {
+            const data = snap.val();
+            if (!data) return;
+            let needsUpdate = false;
+            if (data.routes) {
+                const oldRoutes = JSON.stringify(routes);
+                const newRoutes = JSON.stringify(data.routes);
+                if (oldRoutes !== newRoutes) {
+                    localStorage.setItem('routes', JSON.stringify(data.routes));
+                    routes = data.routes;
+                    needsUpdate = true;
+                }
+            }
+            if (data.coords) {
+                localStorage.setItem('coords', JSON.stringify(data.coords));
+                coords = data.coords;
+                needsUpdate = true;
+            }
+            if (data.errors) {
+                localStorage.setItem('errors', JSON.stringify(data.errors));
+                errors = data.errors;
+            }
+            if (data.quizStats) {
+                localStorage.setItem('quizStats', JSON.stringify(data.quizStats));
+                quizStats = data.quizStats;
+            }
+            if (needsUpdate && currentRoute) {
+                const key = `${currentRoute.title}_${currentStep}`;
+                if (coords[key] && marker) {
+                    const { lat, lon } = coords[key];
+                    marker.setLatLng([lat, lon]);
+                }
+                updateLines();
+                const updated = routes.find(r => r.title === currentRoute.title);
+                if (updated && JSON.stringify(updated.steps) !== JSON.stringify(currentRoute.steps)) {
+                    currentRoute = updated;
+                    renderSteps();
+                }
+            }
+        });
 
         // ==================== MAPPA ====================
         let map, modalMap;
@@ -625,11 +344,7 @@
             if (marker) { map.removeLayer(marker); marker = null; }
             clearLines();
             document.getElementById('currentRouteTitle').textContent = route.title;
-            // Aggiorna entrambe le barre di ricerca
-            const sb = document.getElementById('searchBar');
-            const sbd = document.getElementById('searchBarDesktop');
-            if (sb)  sb.value  = route.title;
-            if (sbd) sbd.value = route.title;
+            document.getElementById('searchBar').value = route.title;
             renderSteps(); updateUI(); goToStep();
         }
 
@@ -757,46 +472,11 @@
         // ==================== MODALITÀ ====================
         function setMode(m) {
             mode = m;
-            // Aggiorna chip mobile
-            ['modeStudio','modeEsame','modeQuiz'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.className = 'chip';
-            });
-            const mEl = document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1));
-            if (mEl) mEl.classList.add('active');
-            // Aggiorna chip desktop
-            ['modeStudioD','modeEsameD','modeQuizD'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.className = 'chip';
-            });
-            const mKey = { studio: 'modeStudioD', esame: 'modeEsameD', quiz: 'modeQuizD' }[m];
-            const dEl = document.getElementById(mKey);
-            if (dEl) dEl.classList.add('active');
-
+            ['modeStudio','modeEsame','modeQuiz'].forEach(id => document.getElementById(id).className = 'chip');
+            document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.add('active');
             if (currentRoute) renderSteps();
             updateUI();
             if (m === 'quiz') document.getElementById('quizAnswer').focus();
-        }
-
-        // Ricerca desktop (barra header desktop)
-        function showSuggestionsDesktop() {
-            const q  = document.getElementById('searchBarDesktop').value.toUpperCase();
-            const ul = document.getElementById('suggestionsListDesktop');
-            ul.innerHTML = '';
-            if (!q) { ul.style.display = 'none'; return; }
-            const filtered = routes.filter(r => r.title.includes(q));
-            if (filtered.length) {
-                filtered.forEach(r => {
-                    const li = document.createElement('li'); li.textContent = r.title;
-                    li.onclick = () => {
-                        selectRoute(r);
-                        ul.style.display = 'none';
-                        document.getElementById('searchBarDesktop').value = r.title;
-                    };
-                    ul.appendChild(li);
-                });
-                ul.style.display = 'block';
-            } else ul.style.display = 'none';
         }
 
         // ==================== QUIZ ====================
@@ -1141,19 +821,9 @@
         }
 
         // ==================== AVVIO ====================
-        // L'app viene avviata dal callback di Firebase (cloudRef.on 'value')
-        // window.onload serve solo per timeout di sicurezza se Firebase non risponde
         window.onload = function() {
-            // Se Firebase non risponde entro 6 secondi, avvia con la cache locale
-            setTimeout(() => {
-                if (!appReady) {
-                    appReady = true;
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    initMap();
-                    if (routes.length) selectRoute(routes[0]);
-                    setSyncStatus('err', '❌ Offline');
-                }
-            }, 6000);
+            initMap();
+            if (routes.length) selectRoute(routes[0]);
         };
     </script>
 </body>
