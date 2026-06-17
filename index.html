@@ -354,7 +354,7 @@ function ls(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catc
 /* ── DATI ── */
 const DEF=[{id:'d0',title:'CERCHIA DEI BASTIONI',steps:["P.ZA 24 MAGGIO","V.LE GIAN GALEAZZO","P.LE DI PORTA LODOVICA","V.LE BEATRICE D'ESTE","L.GO ISABELLA D'ARAGONA","V.LE BEATRICE D'ESTE","V.LE FILIPPETTI","P.LE MEDAGLIE D'ORO","P.ZA 25 APRILE","VIALE CRISPI","BASTIONI DI PORTA VOLTA","P.LE BIANCAMANO","P.LE LEGA LOMBARDA","V.LE ELVEZIA","VIA MELZI D'ERIL","VIA CANOVA","VIALE CALDARA","VIALE REGINA MARGHERITA","V.LE MILTON","V.LE MOLIERE","P.ZA 5 GIORNATE","V.LE BIANCA MARIA","P.ZA DEL TRICOLORE","V.LE MAJNO","VIA CURIE","VIA 20 SETTEMBRE","P.ZA CONCILIAZIONE","VIA ENRICO TOTI","P.ZA OBERDAN","P.LE BARACCA","BASTIONI DI PORTA VENEZIA","VIALE CITTA' DI FIUME","P.ZA DELLA REPUBBLICA","VIALE MONTESANTO","P.LE PRINCIPESSA CLOTILDE","V.LE DI PORTA VERCELLINA","P.LE AQUILEIA","V.LE PAPINIANO","P.ZA SANT'AGOSTINO","V.LE PAPINIANO","BASTIONI DI PORTA NUOVA","P.LE GENERAL CANTORE","V.LE GABRIELE D'ANNUNZIO","P.ZA 24 MAGGIO"]}];
 
-function vR(r){if(!Array.isArray(r))return DEF;return r.filter(x=>x&&x.id&&Array.isArray(x.steps));}
+function vR(r){if(!Array.isArray(r))return DEF;const out=r.filter(x=>x&&x.id&&Array.isArray(x.steps));return out.length?out:DEF;}
 function vC(c){if(!c||typeof c!=='object'||Array.isArray(c))return {};return c;}
 
 let routes=vR(lg('routes',DEF));
@@ -404,8 +404,9 @@ function syncFromCloud(){
       if(d.qStats&&typeof d.qStats==='object'){qStats=d.qStats;}
       if(d.done&&typeof d.done==='object'){done=d.done;}
       save();
-      // Ricarica il percorso corrente con nuovi dati
-      if(cur)selectRoute(cur);
+      // Aggiorna solo le linee e la lista se percorso corrente è cambiato
+      // NON chiamare selectRoute (resetta step a 0)
+      if(cur){renderList();rebuildLines();}
       toast2('☁️ Dati aggiornati dal cloud');
     }catch(e){console.warn('sync err',e);}
   },()=>{});
@@ -472,6 +473,7 @@ function putMkr(lat,lon,name,k){
     mkr.setLatLng([lat,lon]);mkr.getPopup().setContent('<b>'+esc(name)+'</b>');
     const el=mkr.getElement();if(el){el.style.animation='none';void el.offsetWidth;el.style.animation='bo .45s ease forwards';}
   }else{
+    if(!map)return;
     mkr=L.marker([lat,lon],{draggable:true}).addTo(map).bindPopup('<b>'+esc(name)+'</b>');
     setTimeout(()=>{const el=mkr.getElement();if(el)el.style.animation='bo .45s ease forwards';},10);
   }
@@ -484,7 +486,7 @@ function putMkr(lat,lon,name,k){
 function selectRoute(r){
   if(!r||!Array.isArray(r.steps))return;
   cur=r;step=0;
-  if(mkr){map.removeLayer(mkr);mkr=null;}
+  if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}
   cancelDraw();clearLines();stopPl();hideNM();
   document.getElementById('pTitle').textContent=r.title;
   document.getElementById('sb').value=r.title;
@@ -493,8 +495,10 @@ function selectRoute(r){
   renderList();updateUI();goStep();closeSugg();
   ls('lRId',r.id);ls('lStep',0);
   const pts=r.steps.map((_,i)=>coords[r.id+'_'+i]).filter(Boolean);
-  if(pts.length>1)map.flyToBounds(pts.map(p=>[p.lat,p.lon]),{padding:[40,40],maxZoom:15,duration:.8});
-  else if(pts.length===1)map.flyTo([pts[0].lat,pts[0].lon],15,{duration:.8});
+  if(map){
+    if(pts.length>1)map.flyToBounds(pts.map(p=>[p.lat,p.lon]),{padding:[40,40],maxZoom:15,duration:.8});
+    else if(pts.length===1)map.flyTo([pts[0].lat,pts[0].lon],15,{duration:.8});
+  }
 }
 
 function rstRoute(){if(!cur)return;step=0;document.getElementById('qfb').textContent='';renderList();updateUI();goStep();hap();}
@@ -524,7 +528,7 @@ function renderList(){
     const nm=document.createElement('div');nm.className='sname'+(mode!=='s'&&!isA?' hid':'');nm.textContent=s;
     const cb=document.createElement('span');cb.className='cb '+(hc?'s':'u');cb.textContent=hc?'📍':'+';
     cb.title=hc?'Rimuovi e riposiziona':'Posiziona';
-    cb.onclick=ev=>{ev.stopPropagation();step=i;renderList();updateUI();goStep();if(hc){delete coords[k];save();autoSave();if(mkr){map.removeLayer(mkr);mkr=null;}cancelDraw();rebuildLines();renderList();}startPl(i);hap();};
+    cb.onclick=ev=>{ev.stopPropagation();step=i;renderList();updateUI();goStep();if(hc){delete coords[k];save();autoSave();if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}cancelDraw();rebuildLines();renderList();}startPl(i);hap();};
     d.appendChild(n);d.appendChild(nm);
     if(isW&&!isA){const wb=document.createElement('span');wb.className='wb';wb.textContent=wm[i]+'✗';d.appendChild(wb);}
     d.appendChild(cb);f.appendChild(d);
@@ -565,14 +569,14 @@ function updateUI(){
 }
 
 function goStep(){
-  if(!cur)return;
+  if(!cur||!map)return;
   const k=cur.id+'_'+step;
   if(coords[k]){
     putMkr(coords[k].lat,coords[k].lon,cur.steps[step],k);
-    map.setView([coords[k].lat,coords[k].lon],Math.max(map.getZoom(),15),{animate:true});
+    try{map.setView([coords[k].lat,coords[k].lon],Math.max(map.getZoom(),15),{animate:true});}catch(e){}
     hideNM();
   }else{
-    if(mkr){map.removeLayer(mkr);mkr=null;}
+    if(mkr){try{map.removeLayer(mkr);}catch(e){}mkr=null;}
     updateUI();showNM();
   }
   rebuildLines();
@@ -586,7 +590,7 @@ function clearLines(){
   if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}
 }
 function rebuildLines(){
-  cancelDraw();clearLines();if(!cur)return;
+  cancelDraw();clearLines();if(!cur||!map)return;
   const dn=[],rm=[];
   for(let i=0;i<=step;i++){const k=cur.id+'_'+i;if(coords[k])dn.push([coords[k].lat,coords[k].lon]);}
   for(let i=step;i<cur.steps.length;i++){const k=cur.id+'_'+i;if(coords[k])rm.push([coords[k].lat,coords[k].lon]);}
@@ -653,7 +657,7 @@ function skipQ(){
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&mode==='q'&&document.activeElement===document.getElementById('qa'))checkQ();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllM();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAllM();stopPl();}});
 
 /* ── ADD MODAL ── */
 let mMap=null,mobMap=null,mTC={},mPrev=[],mSel=null,mEId=null,mMkrs=[];
@@ -661,6 +665,7 @@ let mMap=null,mobMap=null,mTC={},mPrev=[],mSel=null,mEId=null,mMkrs=[];
 function isDesk(){return window.innerWidth>=768;}
 
 function openAdd(eid=null){
+  stopPl(); // annulla placing in corso
   mEId=eid;mTC={};mSel=null;mPrev=[];
   document.getElementById('addModal').classList.add('open');
   document.getElementById('mSList').innerHTML='';
@@ -800,7 +805,11 @@ function savRoute(){
   let rid;
   if(mEId){
     rid=mEId;const idx=routes.findIndex(r=>r.id===mEId);
-    if(idx!==-1){
+    if(idx===-1){
+      // percorso non trovato (eliminato nel frattempo) → crea nuovo
+      rid='r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5);
+      routes.push({id:rid,title,steps});
+    }else{
       routes[idx].title=title;routes[idx].steps=steps;
       Object.keys(coords).forEach(k=>{if(k.startsWith(rid+'_')){const si=parseInt(k.split('_').pop(),10);if(si>=steps.length)delete coords[k];}});
     }
@@ -861,7 +870,7 @@ function delRoute(id){
     document.getElementById('sList').innerHTML='';document.getElementById('pProg').textContent='Seleziona un percorso';
     document.getElementById('pBar').style.width='0%';document.getElementById('rstBtn').style.display='none';
     document.getElementById('pStat').textContent='';
-    if(mkr){map.removeLayer(mkr);mkr=null;}cancelDraw();clearLines();
+    if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}cancelDraw();clearLines();
   }
   renderMgr();
 }
