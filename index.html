@@ -37,6 +37,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;backgroun
 #sDots span:nth-child(3){animation:pu 1.2s ease .4s infinite}
 #sMsg{color:rgba(255,255,255,.5);font-size:13px;font-weight:600;animation:fu .5s .7s both}
 
+/* PWA BANNER */
+#pwaBanner{display:none;position:fixed;bottom:max(80px,calc(60px + env(safe-area-inset-bottom)));left:12px;right:12px;z-index:800;background:linear-gradient(135deg,var(--a),var(--pu));color:#fff;border-radius:16px;padding:12px 16px;box-shadow:0 8px 24px rgba(59,130,246,.4);animation:fu .3s ease}
+#pwaBanner p{font-size:13px;font-weight:600;margin-bottom:4px}
+#pwaBanner small{opacity:.8;font-size:12px}
+#pwaClose{position:absolute;top:10px;right:12px;background:none;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1}
+
 /* HEADER */
 header{background:linear-gradient(135deg,#0b1e33,#1a3a5c);color:#fff;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));z-index:900;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.3)}
 .hrow{display:flex;align-items:center;gap:8px}
@@ -221,6 +227,12 @@ textarea.mi2{resize:vertical;min-height:90px}
 </div>
 
 <div id="sInd">☁️ Salvato</div>
+
+<div id="pwaBanner">
+  <button id="pwaClose" onclick="closePwa()">✕</button>
+  <p>📱 Installa come app per schermo intero</p>
+  <small>Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong></small>
+</div>
 <div id="plBanner">📍 Clicca sulla mappa per posizionare</div>
 <div id="nmHint">📍 Nessun marker — premi + per posizionare</div>
 
@@ -299,7 +311,7 @@ textarea.mi2{resize:vertical;min-height:90px}
     <div class="mhdr"><h3 id="mTitle">➕ Nuovo Percorso</h3><p>Inserisci le vie · clicca una riga · clicca la mappa</p></div>
     <div class="mbody">
       <div class="mleft">
-        <input type="text" class="mi2" id="mRT" placeholder="Titolo (es. LINATE – DUOMO)">
+        <input type="text" class="mi2" id="mRT" placeholder="Titolo (es. LINATE – DUOMO)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mRS').focus();}">
         <textarea class="mi2" id="mRS" rows="5" placeholder="Incolla le vie, una per riga…" oninput="onMSChange()"></textarea>
         <div class="mslabel" id="mSLbl">Passi — clicca per posizionare</div>
         <div class="mslist" id="mSList"></div>
@@ -363,7 +375,10 @@ let qStats=lg('qStats',{});
 let done=lg('done',{});
 let dark=lg('dark',false);
 
-function save(){ls('routes',routes);ls('coords',coords);ls('qStats',qStats);ls('done',done);}
+function save(){
+  ls('routes',routes);ls('coords',coords);ls('qStats',qStats);ls('done',done);
+  ls('localTs',Date.now()); // timestamp per proteggere da sync cloud
+}
 
 /* ── FIREBASE — carica in background DOPO il boot ── */
 let fbOk=false, fbRef=null, fbTimer=null;
@@ -394,19 +409,23 @@ function cloudSave(){
 function syncFromCloud(){
   if(!fbOk||!fbRef)return;
   const imp=lg('imp',0);
+  const localTs=lg('localTs',0); // timestamp ultimo salvataggio locale
   fbRef.once('value',snap=>{
     try{
       const d=snap.val();
       if(!d||!d.ts)return;
-      if(imp&&imp>d.ts)return; // import locale più recente
+      // Non sovrascrivere se: import recente O dati locali più recenti del cloud
+      if(imp&&imp>d.ts)return;
+      if(localTs&&localTs>d.ts){toast2('📱 Dati locali più recenti');return;}
       if(d.routes){routes=vR(d.routes);}
       if(d.coords){coords=vC(d.coords);}
       if(d.qStats&&typeof d.qStats==='object'){qStats=d.qStats;}
       if(d.done&&typeof d.done==='object'){done=d.done;}
       save();
-      // Aggiorna solo le linee e la lista se percorso corrente è cambiato
-      // NON chiamare selectRoute (resetta step a 0)
+      // NON chiamare selectRoute — non resettare step
       if(cur){renderList();rebuildLines();}
+      // Aggiorna marker visibile se le coordinate dello step corrente sono cambiate
+      if(cur&&map){const k=cur.id+'_'+step;if(coords[k])putMkr(coords[k].lat,coords[k].lon,cur.steps[step],k);}
       toast2('☁️ Dati aggiornati dal cloud');
     }catch(e){console.warn('sync err',e);}
   },()=>{});
@@ -474,8 +493,10 @@ function putMkr(lat,lon,name,k){
     const el=mkr.getElement();if(el){el.style.animation='none';void el.offsetWidth;el.style.animation='bo .45s ease forwards';}
   }else{
     if(!map)return;
-    mkr=L.marker([lat,lon],{draggable:true}).addTo(map).bindPopup('<b>'+esc(name)+'</b>');
-    setTimeout(()=>{const el=mkr.getElement();if(el)el.style.animation='bo .45s ease forwards';},10);
+    try{
+      mkr=L.marker([lat,lon],{draggable:true}).addTo(map).bindPopup('<b>'+esc(name)+'</b>');
+      setTimeout(()=>{const el=mkr&&mkr.getElement();if(el)el.style.animation='bo .45s ease forwards';},10);
+    }catch(e){console.warn('putMkr error:',e);return;}
   }
   mkr.off('dragend');
   mkr.on('dragend',()=>{const p=mkr.getLatLng();coords[k]={lat:p.lat,lon:p.lng};save();autoSave();rebuildLines();renderList();hap();});
@@ -692,21 +713,25 @@ function openAdd(eid=null){
 }
 
 function initMMap(){
-  if(!mMap){
-    mMap=L.map('mm',{zoomControl:true}).setView([45.4642,9.1900],13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mMap);
-    mMap.on('click',onMClick);
-  }else mMap.invalidateSize();
-  refMkrs(mMap);zoomMMap(mMap);
+  try{
+    if(!mMap){
+      mMap=L.map('mm',{zoomControl:true}).setView([45.4642,9.1900],13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mMap);
+      mMap.on('click',onMClick);
+    }else mMap.invalidateSize();
+    refMkrs(mMap);zoomMMap(mMap);
+  }catch(e){console.warn('initMMap error:',e);}
 }
 
 function initMobMap(){
-  if(!mobMap){
-    mobMap=L.map('mmob',{zoomControl:true}).setView([45.4642,9.1900],13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mobMap);
-    mobMap.on('click',onMClick);
-  }else mobMap.invalidateSize();
-  refMkrs(mobMap);zoomMMap(mobMap);
+  try{
+    if(!mobMap){
+      mobMap=L.map('mmob',{zoomControl:true}).setView([45.4642,9.1900],13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mobMap);
+      mobMap.on('click',onMClick);
+    }else mobMap.invalidateSize();
+    refMkrs(mobMap);zoomMMap(mobMap);
+  }catch(e){console.warn('initMobMap error:',e);}
 }
 
 function zoomMMap(tm){
@@ -745,6 +770,9 @@ function onMSChange(){
   if(mPrev.length>0&&Object.keys(mTC).length>0){
     const n2c={};mPrev.forEach((s,i)=>{if(mTC[i])n2c[s]=mTC[i];});
     const nc={};ns.forEach((s,i)=>{if(n2c[s])nc[i]=n2c[s];});
+    // Avvisa se alcune coordinate sono state perse per rinomina
+    const lost=Object.keys(mTC).length-Object.keys(nc).length;
+    if(lost>0)toast2('⚠️ '+lost+' marker rimossi (via rinominata)');
     mTC=nc;
   }
   mPrev=[...ns];renderMList();
@@ -778,7 +806,9 @@ function remMCoord(i){delete mTC[i];const am=isDesk()?mMap:mobMap;if(am)refMkrs(
 
 function selMStep(i){
   mSel=i;renderMList();
-  const hint='Clicca sulla mappa: '+getMSteps()[i];
+  const steps=getMSteps();
+  const name=steps[i]||'(via '+( i+1)+')';
+  const hint='Clicca sulla mappa: '+name;
   document.getElementById('mmH').textContent=hint;document.getElementById('mmH').classList.add('show');
   document.getElementById('mmobH').textContent=hint;document.getElementById('mmobH').classList.add('show');
 }
@@ -801,7 +831,10 @@ function savRoute(){
   const steps=getMSteps();
   if(!title){toast2('⚠️ Inserisci un titolo');return;}
   if(!steps.length){toast2('⚠️ Inserisci almeno una via');return;}
-  const btn=document.querySelector('.bsv');if(btn){btn.disabled=true;setTimeout(()=>btn.disabled=false,1500);}
+  // Avvisa se ci sono vie duplicate (perdono coordinate)
+  const uniq=new Set(steps);
+  if(uniq.size<steps.length)toast2('⚠️ Ci sono '+(steps.length-uniq.size)+' vie duplicate');
+  const btn=document.querySelector('#addModal .bsv');if(btn){btn.disabled=true;setTimeout(()=>{if(btn)btn.disabled=false;},1500);}
   let rid;
   if(mEId){
     rid=mEId;const idx=routes.findIndex(r=>r.id===mEId);
@@ -818,8 +851,13 @@ function savRoute(){
     routes.push({id:rid,title,steps});
   }
   steps.forEach((_,i)=>{if(mTC[i])coords[rid+'_'+i]=mTC[i];});
-  save();autoSave();closeAdd();
-  const sv=routes.find(r=>r.id===rid);if(sv)selectRoute(sv);
+  try{
+    save();autoSave();
+  }catch(e){console.warn('save error:',e);}
+  closeAdd(); // chiudi sempre il modale
+  try{
+    const sv=routes.find(r=>r.id===rid);if(sv)selectRoute(sv);
+  }catch(e){console.warn('selectRoute error:',e);}
   toast2('✅ Percorso salvato');hap('m');
 }
 
@@ -1011,6 +1049,20 @@ function showInd(){const e=document.getElementById('sInd');e.classList.add('show
    1. window.onload → initMap + nasconde splash
    2. Firebase carica in background
 ══════════════════════════════════════════ */
+function checkPwa(){
+  try{
+    const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone=window.navigator.standalone===true;
+    if(isIos&&!isStandalone&&!lg('pwaDismissed',false)){
+      setTimeout(()=>{document.getElementById('pwaBanner').style.display='block';},3000);
+    }
+  }catch(e){}
+}
+function closePwa(){
+  document.getElementById('pwaBanner').style.display='none';
+  ls('pwaDismissed',true);
+}
+
 window.onload = function() {
   window.addEventListener('online',  () => toast2('🌐 Online'));
   window.addEventListener('offline', () => toast2('📵 Offline'));
@@ -1038,6 +1090,9 @@ window.onload = function() {
     const sp = document.getElementById('splash');
     if (sp) { sp.classList.add('hide'); setTimeout(() => { if(sp.parentNode) sp.parentNode.removeChild(sp); }, 500); }
   }, 600);
+
+  // 3b. PWA banner
+  checkPwa();
 
   // 4. Firebase in background — NON blocca il boot
   setTimeout(() => {
