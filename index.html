@@ -768,11 +768,35 @@ function getMSteps(){return document.getElementById('mRS').value.split('\n').map
 function onMSChange(){
   const ns=getMSteps();
   if(mPrev.length>0&&Object.keys(mTC).length>0){
-    const n2c={};mPrev.forEach((s,i)=>{if(mTC[i])n2c[s]=mTC[i];});
-    const nc={};ns.forEach((s,i)=>{if(n2c[s])nc[i]=n2c[s];});
-    // Avvisa se alcune coordinate sono state perse per rinomina
+    // Strategia: prima prova a fare match per INDICE (se via non cambiata)
+    // poi per NOME come fallback solo se la via non esiste più in quella posizione
+    const nc={};
+    ns.forEach((s,i)=>{
+      if(mTC[i]!==undefined){
+        // stesso indice: se il nome coincide oppure l'indice precedente aveva coord
+        if(mPrev[i]===s){
+          // via identica stessa posizione → mantieni coordinata per indice
+          nc[i]=mTC[i];
+        }
+        // nome cambiato a stesso indice → non ereditare (è una via diversa)
+      }
+    });
+    // Secondo passaggio: per vie che esistono in ns ma non hanno ancora coord,
+    // cerca per nome in mPrev (solo se il nome è UNICO in mPrev)
+    const nameCount={};
+    mPrev.forEach(s=>{nameCount[s]=(nameCount[s]||0)+1;});
+    ns.forEach((s,i)=>{
+      if(nc[i]===undefined){
+        // unico in mPrev → possiamo fare match per nome
+        if(nameCount[s]===1){
+          const pi=mPrev.indexOf(s);
+          if(pi!==-1&&mTC[pi]!==undefined)nc[i]=mTC[pi];
+        }
+        // duplicato in mPrev → non fare match per nome (ambiguo)
+      }
+    });
     const lost=Object.keys(mTC).length-Object.keys(nc).length;
-    if(lost>0)toast2('⚠️ '+lost+' marker rimossi (via rinominata)');
+    if(lost>0)toast2('⚠️ '+lost+' marker rimossi (via modificata)');
     mTC=nc;
   }
   mPrev=[...ns];renderMList();
