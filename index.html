@@ -2167,7 +2167,7 @@ function showQTResult() {
   const pct = Math.round(qtOk / tot * 100);
   document.getElementById('qtResEmoji').textContent = pct >= 80 ? '🏆' : pct >= 60 ? '👍' : '📚';
   document.getElementById('qtResTitle').textContent = pct >= 80 ? 'Ottimo risultato!' : pct >= 60 ? 'Buona prova!' : 'Continua a studiare!';
-  document.getElementById('qtResSubtitle').textContent = pct >= 80 ? 'Sei pronto per l'esame!' : 'Riprova per migliorare il punteggio';
+  document.getElementById('qtResSubtitle').textContent = pct >= 80 ? "Sei pronto per l'esame!" : 'Riprova per migliorare il punteggio';
   document.getElementById('qtResTotal').textContent = tot;
   document.getElementById('qtResOk').textContent = qtOk;
   document.getElementById('qtResErr').textContent = qtErr;
