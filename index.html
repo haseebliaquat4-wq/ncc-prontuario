@@ -2070,15 +2070,15 @@ function startQTCat(cat) {
   } else if (cat === 'errata') {
     const errIdxs = Object.keys(qtErrSet).map(Number);
     if (!errIdxs.length) { toast2('⚠️ Nessun errore registrato'); return; }
-    qtQ = errIdxs.map(i => ({...QUIZ_DOMANDE[i], orig: i}));
+    qtQ = errIdxs.map(i => { const [q, a, c] = QUIZ_DOMANDE[i]; return {q, a, c, orig: i}; });
     shuffle(qtQ);
   } else if (cat === 'all') {
-    qtQ = QUIZ_DOMANDE.map((q,i) => ({...q, orig:i}));
+    qtQ = QUIZ_DOMANDE.map(([q, a, c], i) => ({q, a, c, orig: i}));
     shuffle(qtQ);
   } else {
     const re = QT_CATS[cat];
     qtQ = QUIZ_DOMANDE
-      .map((q,i) => ({...q, orig:i}))
+      .map(([q, a, c], i) => ({q, a, c, orig: i}))
       .filter(q => re.test(q.q) || q.a.some(a => re.test(a)));
     shuffle(qtQ);
     if (!qtQ.length) { toast2('⚠️ Nessuna domanda per questa categoria'); return; }
