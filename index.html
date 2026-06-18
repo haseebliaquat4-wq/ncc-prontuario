@@ -1053,7 +1053,10 @@ let nmTimer=null;
 
 function initMap(){
   map=L.map('map',{zoomControl:false}).setView([45.4642,9.1900],13);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  // Tile layers: voyager (con nomi strade) e no_labels (senza)
+  const TILE_LABELS   = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  const TILE_NOLABELS = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png';
+  window._tileLayer = L.tileLayer(TILE_LABELS, {attribution:'© OpenStreetMap © CARTO'}).addTo(map);
   L.control.zoom({position:'topright'}).addTo(map);
 
   map.on('click',e=>{
@@ -1086,6 +1089,14 @@ function initDrag(){
   document.addEventListener('touchmove',e=>{if(!dr)return;const dy=sy-e.touches[0].clientY;panel.style.maxHeight=Math.min(window.innerHeight*.78,Math.max(130,sh+dy))+'px';},{passive:true});
   document.addEventListener('touchend',()=>{if(!dr)return;dr=false;panel.style.transition='';},{passive:true});
   window.addEventListener('resize',()=>{if(window.innerWidth>=768)panel.style.maxHeight='';});
+}
+
+function setTileMode(noLabels){
+  if(!map||!window._tileLayer)return;
+  const url=noLabels
+    ?'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png'
+    :'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  window._tileLayer.setUrl(url);
 }
 
 function startPl(i){plIdx=i;document.getElementById('map').classList.add('pl');document.getElementById('plBanner').style.display='block';}
@@ -1276,6 +1287,8 @@ function setMode(m){
     }
   }
   if(cur)renderList();updateUI();
+  // Nascondi nomi strade in modalità Cieco e Quiz
+  setTileMode(m==='c'||m==='q');
   if(m==='q')setTimeout(()=>document.getElementById('qa').focus(),100);
   hap();
 }
@@ -1331,8 +1344,19 @@ function skipQ(){
   else setTimeout(nextS,600);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&mode==='q'&&document.activeElement===document.getElementById('qa'))checkQ();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAllM();stopPl();}});
+document.addEventListener('keydown',e=>{
+  // Enter nel quiz
+  if(e.key==='Enter'&&mode==='q'&&document.activeElement===document.getElementById('qa')){checkQ();return;}
+  // Escape: chiude modali e annulla placing
+  if(e.key==='Escape'){closeAllM();stopPl();return;}
+  // Frecce: naviga tra gli step (solo se nessun modale aperto e nessun input attivo)
+  const isInput=['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);
+  const modalOpen=document.querySelector('.modal.open');
+  if(!isInput&&!modalOpen&&cur){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();nextS();}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prevS();}
+  }
+});
 
 /* ── ADD MODAL ── */
 let mMap=null,mobMap=null,mTC={},mPrev=[],mSel=null,mEId=null,mMkrs=[];
