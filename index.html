@@ -564,6 +564,10 @@ textarea.mi2{resize:none;min-height:100px;line-height:1.5;}
 .st-label{font-size:11px;font-weight:800;color:#3a2e00;background:#FFD60A;border:1px solid #d4a900;border-radius:6px;padding:2px 6px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25);}
 .st-label.aut{color:#0a3d1e;background:#5fd38a;border-color:#2f9c5a;}
 .st-label.tan{color:#fff;background:#0a84ff;border-color:#0060d0;}
+.ct-label{font-size:10px;font-weight:700;color:#222;background:rgba(255,255,255,.92);border:1px solid #bbb;border-radius:5px;padding:1px 5px;white-space:nowrap;transform:translateY(-2px);box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.end-dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3);vertical-align:middle;}
+.end-label{display:inline-block;margin-left:3px;font-size:11px;font-weight:800;color:#fff;border-radius:6px;padding:2px 7px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.st-row{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -880,7 +884,7 @@ textarea.mi2{resize:none;min-height:100px;line-height:1.5;}
     <div class="qpad">
       <div class="mt-lines" id="stCats"></div>
       <div id="stMap"></div>
-      <div class="mt-hint">Tocca un'etichetta per vedere nome e collegamenti</div>
+      <div class="mt-hint">Tocca una strada (linea o etichetta) per vederne il percorso: partenza, arrivo e città attraversate</div>
       <div id="stBody"></div>
       <button class="mt-train" onclick="sdStartStrade()">🎴 Allenati con le flashcard</button>
     </div>
@@ -1890,6 +1894,7 @@ window.__LUOGHI__={"Monumenti & Musei":[["Planetario","Corso Venezia 57"],["Aren
 <script>
 
 
+
 /* ════════════ STUDIO (Luoghi · Metro · Strade) ════════════ */
 let LUOGHI=[], sdBuilt=false, sdCurView='dash', SS=null, mtSel='all', stSel='Tutte';
 let studyProg=lg('studyProg',{});
@@ -2057,14 +2062,63 @@ const STRADE={
 };
 
 
-/* ===== coordinate rappresentative strade (Lombardia) ===== */
-const SCOORDS={
- SS9:[45.31,9.50],SS10:[45.13,10.10],SS11:[45.52,9.59],SS33:[45.66,8.72],SS35:[45.55,9.10],SS36:[46.05,9.39],SS38:[46.40,10.30],SS39:[46.16,10.12],SS42:[46.26,10.55],SS45bis:[45.62,10.60],SS233:[45.72,8.85],SS234:[45.20,9.62],SS235:[45.40,9.85],SS236:[45.32,10.45],SS237:[45.75,10.45],SS340:[46.02,9.24],SS342:[45.73,9.45],SS345:[45.85,10.25],SS402:[46.13,9.57],SS412:[45.30,9.30],SS415:[45.41,9.55],SS470:[45.84,9.66],SS494:[45.34,8.96],SS496:[45.05,10.85],SS525:[45.58,9.53],SS526:[45.43,8.90],SS527:[45.62,8.92],SS583:[45.93,9.25],SS591:[45.27,9.74],SS596:[45.18,8.95],
- A1:[45.25,9.55],A4:[45.55,9.98],A7:[45.22,9.08],A8:[45.66,8.92],A9:[45.76,9.05],A21:[45.28,10.05],A22:[45.10,10.75],A26:[45.70,8.62],A35:[45.50,9.78],A36:[45.70,9.18],
- A50:[45.43,9.08],A51:[45.50,9.31],A52:[45.55,9.13]
+/* ===== città/punti della Lombardia (coordinate) ===== */
+const CITY={
+'Milano':[45.464,9.190],'Monza':[45.584,9.274],'Como':[45.808,9.085],'Lecco':[45.856,9.394],'Bergamo':[45.695,9.670],'Brescia':[45.539,10.220],'Sondrio':[46.170,9.870],'Varese':[45.821,8.825],'Pavia':[45.185,9.156],'Cremona':[45.133,10.022],'Mantova':[45.157,10.792],'Lodi':[45.314,9.503],'Treviglio':[45.521,9.591],'Legnano':[45.593,8.918],'Gallarate':[45.660,8.791],'Busto Arsizio':[45.611,8.849],'Saronno':[45.625,9.034],'Sesto Calende':[45.726,8.636],'Vigevano':[45.317,8.857],'Crema':[45.366,9.685],'Codogno':[45.161,9.703],'Casalpusterlengo':[45.178,9.643],'Abbiategrasso':[45.398,8.919],'Magenta':[45.466,8.879],'Morbegno':[46.137,9.572],'Tirano':[46.215,10.169],'Bormio':[46.467,10.369],'Aprica':[46.155,10.150],'Edolo':[46.178,10.333],'Chiavenna':[46.319,9.398],'Colico':[46.137,9.371],'Menaggio':[46.022,9.238],'Bellagio':[45.985,9.261],'Porlezza':[46.040,9.131],'San Pellegrino Terme':[45.836,9.668],'Pontida':[45.733,9.508],"Vaprio d'Adda":[45.577,9.532],'San Benedetto Po':[45.043,10.929],'Montichiari':[45.413,10.391],'Goito':[45.252,10.668],'Orzinuovi':[45.401,9.926],'Voghera':[44.992,9.009],'Rho':[45.531,9.041],'Opera':[45.376,9.205],'Binasco':[45.330,9.108],'Paullo':[45.418,9.401],'Gaggiano':[45.404,9.034],'Mortara':[45.252,8.738],'Salò':[45.606,10.521],'Gardone Riviera':[45.624,10.572],'Vestone':[45.708,10.394],'Bagolino':[45.821,10.466],'Gardone Val Trompia':[45.685,10.185],'Lovere':[45.811,10.075],'Lainate':[45.575,9.027],'Casei Gerola':[44.992,8.918],'Romano di Lombardia':[45.519,9.752],'Lentate sul Seveso':[45.674,9.123],'Vergiate':[45.722,8.693],'Pegognaga':[44.992,10.852],'Piacenza (confine)':[45.052,9.693],'Chiasso (confine)':[45.833,9.030],'Passo dello Spluga':[46.508,9.341],'Passo dello Stelvio':[46.529,10.453],'Passo del Tonale':[46.258,10.586]
 };
-let stMap=null, stLayers={};
+/* ===== percorsi: partenza → … città attraversate … → arrivo ===== */
+const ROUTES={
+SS9:['Milano','Lodi','Casalpusterlengo','Piacenza (confine)'],
+SS10:['Voghera','Pavia','Cremona','Mantova'],
+SS11:['Milano','Treviglio','Brescia'],
+SS33:['Milano','Rho','Legnano','Gallarate','Sesto Calende'],
+SS35:['Como','Milano','Binasco','Pavia'],
+SS36:['Milano','Monza','Lecco','Colico','Chiavenna','Passo dello Spluga'],
+SS38:['Sondrio','Tirano','Bormio','Passo dello Stelvio'],
+SS39:['Sondrio','Aprica','Edolo'],
+SS42:['Bergamo','Lovere','Edolo','Passo del Tonale'],
+SS45bis:['Brescia','Salò','Gardone Riviera'],
+SS233:['Milano','Saronno','Varese'],
+SS234:['Pavia','Codogno','Cremona'],
+SS235:['Pavia','Lodi','Crema','Orzinuovi'],
+SS236:['Montichiari','Goito','Mantova'],
+SS237:['Brescia','Vestone','Bagolino'],
+SS340:['Como','Menaggio','Porlezza'],
+SS342:['Varese','Como','Pontida','Bergamo'],
+SS345:['Brescia','Gardone Val Trompia','Lovere'],
+SS402:['Colico','Morbegno','Sondrio'],
+SS412:['Milano','Opera','Pavia'],
+SS415:['Milano','Paullo','Crema'],
+SS470:['Bergamo','San Pellegrino Terme'],
+SS494:['Milano','Gaggiano','Abbiategrasso','Vigevano'],
+SS496:['Mantova','San Benedetto Po'],
+SS525:["Vaprio d'Adda",'Bergamo'],
+SS526:['Magenta','Abbiategrasso','Pavia'],
+SS527:['Monza','Saronno','Busto Arsizio'],
+SS583:['Como','Bellagio'],
+SS591:['Crema','Codogno'],
+SS596:['Pavia','Mortara'],
+A1:['Milano','Lodi','Piacenza (confine)'],
+A4:['Milano','Bergamo','Brescia'],
+A7:['Milano','Binasco','Pavia','Casei Gerola'],
+A8:['Milano','Legnano','Gallarate','Varese'],
+A9:['Lainate','Como','Chiasso (confine)'],
+A21:['Brescia','Cremona','Piacenza (confine)'],
+A22:['Mantova','Pegognaga'],
+A26:['Sesto Calende','Vergiate'],
+A35:['Treviglio','Romano di Lombardia','Brescia'],
+A36:['Varese','Lentate sul Seveso','Monza'],
+A50:[[45.515,9.085],[45.46,9.06],[45.40,9.07],[45.36,9.13]],
+A51:[[45.555,9.33],[45.50,9.31],[45.45,9.30],[45.40,9.31]],
+A52:[[45.555,9.10],[45.555,9.16],[45.55,9.22],[45.545,9.27]]
+};
+const COLcat={Statali:'#E8860A',Autostrade:'#1f9d55',Tangenziali:'#0a84ff'};
 const ST_CLASS={Autostrade:'aut',Tangenziali:'tan',Statali:''};
+let stMap=null, stLayers={}, stFocusG=null, stRoadMeta={};
+
+function routePts(code){const r=ROUTES[code];if(!r)return [];return r.map(w=>Array.isArray(w)?w:CITY[w]).filter(Boolean);}
+function routeNames(code){return (ROUTES[code]||[]).filter(w=>!Array.isArray(w));}
+function midPt(pts){return pts[Math.floor(pts.length/2)];}
 
 function initStradeMap(){
   try{
@@ -2079,28 +2133,63 @@ function initStradeMap(){
 function drawStradeMap(){
   Object.keys(STRADE).forEach(cat=>{
     const grp=window.L.layerGroup();
+    const col=COLcat[cat]||'#888';
     STRADE[cat].forEach(r=>{
-      const c=SCOORDS[r.c]; if(!c)return;
-      const cls=ST_CLASS[cat]||'';
-      const ic=window.L.divIcon({className:'',html:'<span class="st-label '+cls+'">'+r.c+'</span>',iconSize:null});
-      const mk=window.L.marker([c[0],c[1]],{icon:ic});
-      mk.bindPopup('<div class="mt-pop">'+esc(r.c)+' '+esc(r.n)+'<small>'+esc(r.i)+'</small></div>');
+      const pts=routePts(r.c); if(pts.length<2)return;
+      stRoadMeta[r.c]={cat:cat,name:r.n,info:r.i};
+      const pl=window.L.polyline(pts,{color:col,weight:3.5,opacity:.55,lineJoin:'round'});
+      pl.on('click',()=>stFocusRoad(r.c));
+      pl.addTo(grp);
+      const mid=midPt(pts);
+      const ic=window.L.divIcon({className:'',html:'<span class="st-label '+(ST_CLASS[cat]||'')+'">'+r.c+'</span>'});
+      const mk=window.L.marker(mid,{icon:ic});
+      mk.on('click',()=>stFocusRoad(r.c));
       mk.addTo(grp);
     });
     grp.addTo(stMap); stLayers[cat]=grp;
   });
 }
+function stFocusRoad(code){
+  if(!stMap)return;
+  const pts=routePts(code); if(pts.length<1)return;
+  const meta=stRoadMeta[code]||{}; const col=COLcat[meta.cat]||'#E8860A';
+  const names=routeNames(code);
+  if(stFocusG){stMap.removeLayer(stFocusG);stFocusG=null;}
+  stFocusG=window.L.layerGroup().addTo(stMap);
+  window.L.polyline(pts,{color:col,weight:7,opacity:1,lineJoin:'round'}).addTo(stFocusG);
+  // città intermedie
+  for(let i=1;i<names.length-1;i++){
+    const c=CITY[names[i]]; if(!c)continue;
+    window.L.circleMarker(c,{radius:5,color:'#fff',weight:2,fillColor:col,fillOpacity:1}).addTo(stFocusG);
+    window.L.marker(c,{icon:window.L.divIcon({className:'',html:'<span class="ct-label">'+esc(names[i])+'</span>'})}).addTo(stFocusG);
+  }
+  // partenza / arrivo
+  function endMk(pt,label,bg){
+    window.L.marker(pt,{icon:window.L.divIcon({className:'',html:'<span class="end-dot" style="background:'+bg+'"></span><span class="end-label" style="background:'+bg+'">'+label+'</span>'})}).addTo(stFocusG);
+  }
+  const a=pts[0], b=pts[pts.length-1];
+  const startName=Array.isArray(ROUTES[code][0])?'':names[0];
+  const endName=Array.isArray(ROUTES[code][ROUTES[code].length-1])?'':names[names.length-1];
+  endMk(a,'▶ '+(startName||'Partenza'),'#1f9d55');
+  endMk(b,'■ '+(endName||'Arrivo'),'#D52B1E');
+  const mids=names.slice(1,-1);
+  const pop='<div class="mt-pop">'+esc(code)+' '+esc(meta.name||'')+'<small>Da <b>'+esc(startName||'?')+'</b> a <b>'+esc(endName||'?')+'</b>'+(mids.length?'<br>Passa per: '+esc(mids.join(', ')):'')+'<br>'+esc(meta.info||'')+'</small></div>';
+  window.L.popup({maxWidth:260}).setLatLng(midPt(pts)).setContent(pop).openOn(stMap);
+  try{stMap.fitBounds(pts,{padding:[50,50]});}catch(e){}
+  hap();
+}
 function stFocusMap(){
   if(!stMap)return;
+  if(stFocusG){stMap.removeLayer(stFocusG);stFocusG=null;}
   Object.keys(stLayers).forEach(cat=>{
     const show=(stSel==='Tutte'||stSel===cat);
     if(show){if(!stMap.hasLayer(stLayers[cat]))stLayers[cat].addTo(stMap);}
-    else {if(stMap.hasLayer(stLayers[cat]))stMap.removeLayer(stLayers[cat]);}
+    else if(stMap.hasLayer(stLayers[cat]))stMap.removeLayer(stLayers[cat]);
   });
   if(stSel!=='Tutte'){
-    const pts=STRADE[stSel].map(r=>SCOORDS[r.c]).filter(Boolean);
-    if(pts.length)try{stMap.fitBounds(pts,{padding:[40,40]});}catch(e){}
-  } else { try{stMap.setView([45.65,9.75],8);}catch(e){} }
+    const all=[];STRADE[stSel].forEach(r=>routePts(r.c).forEach(p=>all.push(p)));
+    if(all.length)try{stMap.fitBounds(all,{padding:[40,40]});}catch(e){}
+  } else try{stMap.setView([45.65,9.75],8);}catch(e){}
 }
 
 /* ---- build luoghi ---- */
@@ -2218,7 +2307,7 @@ function renderStrade(){
   groups.forEach(g=>{
     if(stSel==='Tutte')h+='<div class="mt-tratta">'+esc(g)+'</div>';
     STRADE[g].forEach(r=>{
-      h+=`<div class="st-row"><span class="st-code">${esc(r.c)}</span><div class="st-tx"><strong>${esc(r.n)}</strong><small>${esc(r.i)}</small></div></div>`;
+      h+=`<div class="st-row" onclick="stFocusRoad('${r.c}')"><span class="st-code">${esc(r.c)}</span><div class="st-tx"><strong>${esc(r.n)}</strong><small>${esc(r.i)}</small></div></div>`;
     });
   });
   document.getElementById('stBody').innerHTML=h;
@@ -2359,6 +2448,7 @@ function sdToggleZone(i){const el=document.getElementById('sdz'+i);if(el)el.clas
 function goStudy(){openStudy();}
 const _oldGoHome=goHome;
 goHome=function(){closeStudy();_oldGoHome();};
+
 
 
 
