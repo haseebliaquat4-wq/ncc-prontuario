@@ -560,6 +560,10 @@ textarea.mi2{resize:none;min-height:100px;line-height:1.5;}
 .mt-pop{font-size:14px;font-weight:700;color:#111;}
 .mt-pop small{display:block;font-weight:600;color:#555;margin-top:3px;font-size:12px;}
 .leaflet-popup-content{margin:10px 12px;}
+#stMap{width:100%;height:62vh;min-height:380px;border-radius:20px;overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh-sm);background:var(--fill3);margin-bottom:10px;}
+.st-label{font-size:11px;font-weight:800;color:#3a2e00;background:#FFD60A;border:1px solid #d4a900;border-radius:6px;padding:2px 6px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.st-label.aut{color:#0a3d1e;background:#5fd38a;border-color:#2f9c5a;}
+.st-label.tan{color:#fff;background:#0a84ff;border-color:#0060d0;}
 </style>
 </head>
 <body>
@@ -875,6 +879,8 @@ textarea.mi2{resize:none;min-height:100px;line-height:1.5;}
   <div class="sd-view" id="sdStrade" style="display:none">
     <div class="qpad">
       <div class="mt-lines" id="stCats"></div>
+      <div id="stMap"></div>
+      <div class="mt-hint">Tocca un'etichetta per vedere nome e collegamenti</div>
       <div id="stBody"></div>
       <button class="mt-train" onclick="sdStartStrade()">🎴 Allenati con le flashcard</button>
     </div>
@@ -1883,8 +1889,9 @@ window.__LUOGHI__={"Monumenti & Musei":[["Planetario","Corso Venezia 57"],["Aren
 </script>
 <script>
 
+
 /* ════════════ STUDIO (Luoghi · Metro · Strade) ════════════ */
-let LUOGHI=[], sdBuilt=false, sdCurView='dash', SS=null, mtSel='all', stSel='Statali';
+let LUOGHI=[], sdBuilt=false, sdCurView='dash', SS=null, mtSel='all', stSel='Tutte';
 let studyProg=lg('studyProg',{});
 function sdSave(){ls('studyProg',studyProg);}
 function sdShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -2049,6 +2056,53 @@ const STRADE={
  ]
 };
 
+
+/* ===== coordinate rappresentative strade (Lombardia) ===== */
+const SCOORDS={
+ SS9:[45.31,9.50],SS10:[45.13,10.10],SS11:[45.52,9.59],SS33:[45.66,8.72],SS35:[45.55,9.10],SS36:[46.05,9.39],SS38:[46.40,10.30],SS39:[46.16,10.12],SS42:[46.26,10.55],SS45bis:[45.62,10.60],SS233:[45.72,8.85],SS234:[45.20,9.62],SS235:[45.40,9.85],SS236:[45.32,10.45],SS237:[45.75,10.45],SS340:[46.02,9.24],SS342:[45.73,9.45],SS345:[45.85,10.25],SS402:[46.13,9.57],SS412:[45.30,9.30],SS415:[45.41,9.55],SS470:[45.84,9.66],SS494:[45.34,8.96],SS496:[45.05,10.85],SS525:[45.58,9.53],SS526:[45.43,8.90],SS527:[45.62,8.92],SS583:[45.93,9.25],SS591:[45.27,9.74],SS596:[45.18,8.95],
+ A1:[45.25,9.55],A4:[45.55,9.98],A7:[45.22,9.08],A8:[45.66,8.92],A9:[45.76,9.05],A21:[45.28,10.05],A22:[45.10,10.75],A26:[45.70,8.62],A35:[45.50,9.78],A36:[45.70,9.18],
+ A50:[45.43,9.08],A51:[45.50,9.31],A52:[45.55,9.13]
+};
+let stMap=null, stLayers={};
+const ST_CLASS={Autostrade:'aut',Tangenziali:'tan',Statali:''};
+
+function initStradeMap(){
+  try{
+    if(!stMap){
+      stMap=L.map('stMap',{zoomControl:true,attributionControl:false}).setView([45.65,9.75],8);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(stMap);
+      drawStradeMap();
+    } else stMap.invalidateSize();
+    setTimeout(()=>{try{stMap.invalidateSize();}catch(e){}},250);
+  }catch(e){console.warn('strade map',e);}
+}
+function drawStradeMap(){
+  Object.keys(STRADE).forEach(cat=>{
+    const grp=window.L.layerGroup();
+    STRADE[cat].forEach(r=>{
+      const c=SCOORDS[r.c]; if(!c)return;
+      const cls=ST_CLASS[cat]||'';
+      const ic=window.L.divIcon({className:'',html:'<span class="st-label '+cls+'">'+r.c+'</span>',iconSize:null});
+      const mk=window.L.marker([c[0],c[1]],{icon:ic});
+      mk.bindPopup('<div class="mt-pop">'+esc(r.c)+' '+esc(r.n)+'<small>'+esc(r.i)+'</small></div>');
+      mk.addTo(grp);
+    });
+    grp.addTo(stMap); stLayers[cat]=grp;
+  });
+}
+function stFocusMap(){
+  if(!stMap)return;
+  Object.keys(stLayers).forEach(cat=>{
+    const show=(stSel==='Tutte'||stSel===cat);
+    if(show){if(!stMap.hasLayer(stLayers[cat]))stLayers[cat].addTo(stMap);}
+    else {if(stMap.hasLayer(stLayers[cat]))stMap.removeLayer(stLayers[cat]);}
+  });
+  if(stSel!=='Tutte'){
+    const pts=STRADE[stSel].map(r=>SCOORDS[r.c]).filter(Boolean);
+    if(pts.length)try{stMap.fitBounds(pts,{padding:[40,40]});}catch(e){}
+  } else { try{stMap.setView([45.65,9.75],8);}catch(e){} }
+}
+
 /* ---- build luoghi ---- */
 function buildLuoghi(){
   if(sdBuilt)return;
@@ -2155,17 +2209,21 @@ function metroIndex(){
 }
 
 /* ════ STRADE explorer ════ */
-function openStrade(){renderStrade();sdShow('strade');}
+function openStrade(){sdShow('strade');initStradeMap();renderStrade();stFocusMap();}
 function renderStrade(){
-  const cats=Object.keys(STRADE);
+  const cats=['Tutte'].concat(Object.keys(STRADE));
   document.getElementById('stCats').innerHTML=cats.map(c=>`<button class="mt-pill mt-cat ${c===stSel?'on':''}" onclick="stPick('${c}')">${c}</button>`).join('');
+  const groups=(stSel==='Tutte')?Object.keys(STRADE):[stSel];
   let h='';
-  STRADE[stSel].forEach(r=>{
-    h+=`<div class="st-row"><span class="st-code">${esc(r.c)}</span><div class="st-tx"><strong>${esc(r.n)}</strong><small>${esc(r.i)}</small></div></div>`;
+  groups.forEach(g=>{
+    if(stSel==='Tutte')h+='<div class="mt-tratta">'+esc(g)+'</div>';
+    STRADE[g].forEach(r=>{
+      h+=`<div class="st-row"><span class="st-code">${esc(r.c)}</span><div class="st-tx"><strong>${esc(r.n)}</strong><small>${esc(r.i)}</small></div></div>`;
+    });
   });
   document.getElementById('stBody').innerHTML=h;
 }
-function stPick(c){stSel=c;hap();renderStrade();}
+function stPick(c){stSel=c;hap();renderStrade();stFocusMap();}
 
 /* ════ FLASHCARD ENGINE (generico) ════ */
 function sdById(id){return LUOGHI.find(x=>x.id===id);}
@@ -2195,7 +2253,9 @@ function sdStartMetro(){
   sdStartDeck(cards,'metro',()=>sdStartMetro());
 }
 function sdStartStrade(){
-  let cards=STRADE[stSel].map(r=>({key:'STR_'+r.c,front:r.c,back:r.n+'\n'+r.i,tag:'Che strada è? Cosa collega?',pill:stSel}));
+  const groups=(stSel==='Tutte')?Object.keys(STRADE):[stSel];
+  let cards=[];
+  groups.forEach(g=>STRADE[g].forEach(r=>cards.push({key:'STR_'+r.c,front:r.c,back:r.n+'\n'+r.i,tag:'Che strada è? Cosa collega?',pill:g})));
   cards=sdShuffle(cards).sort((a,b)=>(studyProg[a.key]||0)-(studyProg[b.key]||0));
   sdStartDeck(cards,'strade',()=>sdStartStrade());
 }
@@ -2299,6 +2359,7 @@ function sdToggleZone(i){const el=document.getElementById('sdz'+i);if(el)el.clas
 function goStudy(){openStudy();}
 const _oldGoHome=goHome;
 goHome=function(){closeStudy();_oldGoHome();};
+
 
 
 </script>
