@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NCC Milano — Studio</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2B59C3">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body class="rd">
+
+<!-- SPLASH -->
+<div id="splash">
+<div id="sLogo">🚖</div>
+<div id="sTitle">NCC Milano</div>
+<div id="sSubtitle">Topografia & Quiz d'esame</div>
+<div id="sDots"><span></span><span></span><span></span></div>
+
+</div>
+
+<!-- HOME -->
+<div id="homeScreen">
+<div class="home-hd">
+<div class="home-logo">🚖</div>
+<div class="home-title">NCC Milano</div>
+<div class="home-sub">La tua preparazione all'esame</div>
+<div id="streakBadge"></div>
+</div>
+<div id="readyCard"></div>
+<div class="home-cards">
+<button class="home-card hc-topo" onclick="goTopografia()">
+<span class="hc-ic">🗺️</span>
+<span class="hc-tx"><strong>Topografia</strong><small>Mappa, percorsi e vie da memorizzare</small></span>
+<span class="hc-ar">›</span>
+</button>
+<button class="home-card hc-quiz" onclick="goQuiz()">
+<span class="hc-ic">📝</span>
+<span class="hc-tx"><strong>Quiz d'esame</strong><small>Simulazioni, argomenti e ripasso errori</small></span>
+<span class="hc-ar">›</span>
+</button>
+<button class="home-card hc-study" onclick="goStudy()">
+<span class="hc-ic">📚</span>
+<span class="hc-tx"><strong>Studio Luoghi</strong><small id="studyCardSub">Cosa &amp; Dove: luoghi di Milano con flashcard e ripasso</small></span>
+<span class="hc-ar">›</span>
+</button>
+</div>
+</div>
+
+<button id="homeBtn" onclick="goHome()" title="Torna alla home">🏠</button>
+
+<!-- PWA BANNER -->
+<div id="pwaBanner">
+<button id="pwaClose" onclick="closePwa()" aria-label="Chiudi">✕</button>
+<p>📱 Aggiungi alla schermata Home</p>
+<small>Tocca <strong>Condividi</strong> → <strong>Aggiungi a schermata Home</strong> per usarla come app</small>
+</div>
+
+<div id="sInd">☁️ Salvato</div>
+<div id="plBanner">📍 Tocca la mappa per posizionare</div>
+<div id="nmHint">📍 Nessun marker — tocca + per posizionare</div>
+
+<!-- HEADER (topografia) -->
+<header>
+<div class="hrow">
+<button class="ichip" id="homeTopBtn" onclick="goHome()" aria-label="Torna alla home" title="Home">🏠</button>
+<div class="sw">
+<span class="search-icon">🔍</span>
+<input type="text" id="sb" placeholder="Cerca percorso o via…" autocomplete="off" oninput="onSrch()" onfocus="onSrchFocus()" onkeydown="sbKey(event)">
+<button class="sb-arrow" id="sbArrow" onclick="toggleRouteList(event)" aria-label="Mostra elenco percorsi" title="Elenco percorsi">⌄</button>
+<ul class="sugg" id="sugg"></ul>
+</div>
+<div class="hchips">
+<button class="ichip" onclick="openAdd()" aria-label="Nuovo percorso" title="Nuovo percorso">➕</button>
+<button class="ichip" onclick="rndRoute()" aria-label="Percorso casuale" title="Casuale">🔀</button>
+<div class="mwrap">
+<button class="ichip" onclick="togMenu()" aria-label="Altre opzioni" title="Menu">⋯</button>
+<div class="omenu" id="omenu">
+<button onclick="goQuiz();cm()"><span class="mi">📝</span>Quiz d'esame</button>
+<button onclick="openMgr();cm()"><span class="mi">📋</span>Percorsi salvati</button>
+<button onclick="openStats();cm()"><span class="mi">📊</span>Statistiche vie</button>
+<button onclick="openWrong();cm()"><span class="mi">🔁</span>Vie da ripassare</button>
+<div class="mi-sep"></div>
+<button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
+<button onclick="doExport();cm()"><span class="mi">📤</span>Esporta backup</button>
+<button onclick="doImport();cm()"><span class="mi">📥</span>Importa backup</button>
+<button onclick="cloudSave();cm()"><span class="mi">💾</span>Salva su cloud</button>
+<div class="mi-sep"></div>
+<button onclick="doReset();cm()" class="red"><span class="mi">🗑️</span>Reimposta tutto</button>
+<div class="mi-sep"></div>
+<button onclick="cm()" style="color:var(--mu);font-size:12px;justify-content:center;font-weight:600" id="verItem">NCC Milano · v2 · 22/06/2026</button>
+</div>
+</div>
+</div>
+</div>
+<div class="seg-wrap">
+<div class="seg" id="segCtrl">
+<div class="seg-thumb" id="segThumb"></div>
+<button class="seg-btn on" id="cSt" onclick="setMode('s')">Studio</button>
+<button class="seg-btn" id="cCi" onclick="setMode('c')">Cieco</button>
+<button class="seg-btn" id="cQu" onclick="setMode('q')">Quiz vie</button>
+</div>
+</div>
+</header>
+
+<div class="main">
+<div id="map"></div>
+<div class="panel" id="panel">
+<div class="pdrag" id="pdrag"></div>
+<div class="phead">
+<div class="ptrow">
+<h2 id="pTitle">NCC Milano</h2>
+<button class="pib" id="rstBtn" onclick="rstRoute()" style="display:none" title="Ricomincia">↺</button>
+<button class="pib" id="playBtn" onclick="toggleAutoplay()" style="display:none" title="Riproduci percorso">▶</button>
+</div>
+<div class="psub">
+<span class="ppt" id="pProg">Seleziona un percorso</span>
+<span class="pst" id="pStat"></span>
+</div>
+<div class="pbw"><div class="pbf" id="pBar" style="width:0%"></div></div>
+</div>
+<div class="steps" id="sList"></div>
+<div class="pfoot">
+<div id="nf">
+<div class="brow">
+<button class="btn bs" id="bPrev" onclick="prevS()" disabled>◀</button>
+<button class="btn bw" id="bSV" onclick="openSV()" disabled>👁️</button>
+<button class="btn bp" id="bNext" onclick="nextS()" disabled>▶</button>
+</div>
+<button class="btn br" id="bRev" onclick="revealS()" style="display:none">👁️ Scopri via</button>
+</div>
+<div id="qf">
+<div class="qrow">
+<input id="qa" placeholder="Scrivi la via…" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+<button class="btn bp" onclick="checkQ()" style="flex:0;padding:14px 18px">→</button>
+</div>
+<div id="qfb" aria-live="polite"></div>
+<div class="brow">
+<button class="btn bs" onclick="skipQ()">Salta</button>
+<button class="btn br" onclick="revealS()">Mostra</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ════ QUIZ APP (full screen) ════ -->
+<div id="quizApp">
+<div class="qhead">
+<button class="qback" id="qBack" onclick="qNavBack()" aria-label="Indietro">‹</button>
+<h1 id="qTitle">Quiz d'esame</h1>
+<button class="qhi" onclick="qInfo()" aria-label="Informazioni">i</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="qview" id="qDash">
+<div class="qpad">
+<div class="qcard qcard-hero">
+<div class="qc-deco"></div>
+<div class="qc-eyebrow">Simulazione ufficiale</div>
+<h2>Esame Ruolo Conducenti</h2>
+<p>16 domande (4 per argomento) in 30 minuti. Max 4 errori totali e non più di 2 per singolo argomento.</p>
+<div class="qc-meta">
+<div><b>16</b><span>Domande</span></div>
+<div><b>30:00</b><span>Tempo</span></div>
+<div><b>max 4</b><span>Errori</span></div>
+</div>
+<button class="qc-play" onclick="qStartExam()">▶ Avvia simulazione</button>
+</div>
+
+<div class="qsec-title">Studia per argomento</div>
+<div id="qTilesArg"></div>
+
+<div class="qsec-title">Storico simulazioni</div>
+<div id="qHistWrap"></div>
+
+<div class="qsec-title">I tuoi errori</div>
+<div class="qerr-card">
+<div class="qerr-head">
+<h3>Ripassa i tuoi errori</h3>
+<button class="qerr-ripassa" id="qErrBtn" onclick="qStartCat('errata')">Ripassa</button>
+</div>
+<div class="qerr-grid">
+<div class="qerr-box">
+<div class="qe-lbl">Domande sbagliate</div>
+<div class="qring" id="qRing"></div>
+</div>
+<div class="qerr-box">
+<div class="qe-lbl">Numero errori</div>
+<div class="qerr-num" id="qErrNum">0</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- TOPIC SELECTION -->
+<div class="qview" id="qTopics" style="display:none">
+<div class="qpad">
+<div class="qtopsearch">
+<span class="si">🔍</span>
+<input id="qTopSearch" placeholder="Cerca l'argomento…" oninput="renderTopics()">
+</div>
+<div class="qtop-intro">
+<p>Seleziona uno o più argomenti e avvia il quiz</p>
+<button class="qtop-go" id="qTopGo" onclick="qStartSelectedTopics()" disabled>Avvia</button>
+</div>
+<div id="qTopList"></div>
+</div>
+</div>
+
+<!-- RUN -->
+<div class="qview-run" id="qRun">
+<div id="qTimeBar"><i></i></div>
+<div class="qrun-top">
+<div class="qrun-pillrow">
+<button class="qrun-x" onclick="qConfirmExit()" aria-label="Esci dal quiz">✕</button>
+<div class="qrun-pills" id="qPills"></div>
+<button class="qrun-end" onclick="qFinish(false)">Termina</button>
+</div>
+<div class="qrun-info">
+<button class="qrun-nav" id="qPrev" onclick="qGo(-1)">‹</button>
+<div class="qrun-meta">
+<div class="cell"><small>Domanda</small><span id="qPos">1 di 30</span></div>
+<div class="sep"></div>
+<div class="cell"><small>Tempo</small><span class="clock" id="qClock">30:00</span></div>
+<div class="sep"></div>
+<div class="cell"><small>Svolto</small><span id="qPct">0%</span></div>
+</div>
+<button class="qrun-nav" id="qNext" onclick="qGo(1)">›</button>
+</div>
+</div>
+<div class="qrun-body">
+<div class="qrun-qnum" id="qRunNum">Domanda 1</div>
+<div class="qrun-tools"><button id="qBm" onclick="qToggleBm()" aria-label="Segnalibro">☆</button><button id="qReport" onclick="qReportQ()" aria-label="Segnala errore">⚐</button></div>
+<div class="qrun-q" id="qRunQ"></div>
+<div class="qrun-listen">
+<span>Ascolta</span>
+<button id="qListen" onclick="qSpeak()">🔊</button>
+</div>
+</div>
+<div class="qrun-answers" id="qRunAns"></div>
+</div>
+
+<!-- RESULT -->
+<div class="qview" id="qResult" style="display:none">
+<div class="qpad">
+<div class="qres-verdict">
+<div class="qres-emoji" id="qResEmoji">🎉</div>
+<div class="qres-title" id="qResVerdict">Promosso</div>
+<div class="qres-time" id="qResTime">Tempo: 00:00</div>
+</div>
+<div class="qres-stats">
+<div class="qres-stat ok"><b id="qResOk">0</b><span>Corrette</span></div>
+<div class="qres-stat skip"><b id="qResSkip">0</b><span>Non date</span></div>
+<div class="qres-stat err"><b id="qResErr">0</b><span>Errate</span></div>
+</div>
+<div id="qResArgs" style="display:none"></div>
+<div class="qana-title">Analisi delle domande</div>
+<div id="qAnalysis"></div>
+<div class="qres-actions">
+<button class="btn bs" onclick="qRetry()">↺ Riprova</button>
+<button class="btn bp" onclick="qToDash()">Torna al menu</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ════ STUDIO LUOGHI ════ -->
+<div id="studyApp">
+<div class="qhead">
+<button class="qback" onclick="sdBack()" aria-label="Indietro">‹</button>
+<h1 id="sdTitle">Studio Luoghi</h1>
+<button class="qhi" onclick="sdInfo()" aria-label="Informazioni">i</button>
+</div>
+
+<!-- dashboard -->
+<div class="sd-view" id="sdDash">
+<div class="qpad">
+<div class="sd-hero">
+<div class="qc-deco"></div>
+<h2>Cosa &amp; Dove</h2>
+<p id="sdHeroSub">218 luoghi di Milano da sapere a memoria per il colloquio.</p>
+<div class="sd-herobar"><i id="sdHeroBar" style="width:0%"></i></div>
+<div class="sd-herostat"><span id="sdHeroL">Imparati 0/218</span><span id="sdHeroR">0%</span></div>
+</div>
+
+<div class="qsec-title">Studia con le flashcard</div>
+<div id="sdTiles"></div>
+
+<div class="qsec-title">Altri modi di ripassare</div>
+<button class="sd-tile" onclick="sdStart('errori')">
+<div class="sd-tile-ic" style="background:rgba(255,59,48,.12)">🔁</div>
+<div class="sd-tile-tx"><strong>Ripassa quelli che sbagli</strong><small id="sdErrSub">Le schede ancora da imparare</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
+<button class="sd-tile" onclick="sdShowZones()">
+<div class="sd-tile-ic" style="background:rgba(43,89,195,.12)">📍</div>
+<div class="sd-tile-tx"><strong>Ripassa per zona</strong><small>I luoghi raggruppati per via e piazza</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
+<button class="sd-tile" onclick="sdStart('mix')">
+<div class="sd-tile-ic" style="background:rgba(175,82,222,.12)">🎲</div>
+<div class="sd-tile-tx"><strong>Mix veloce</strong><small>15 schede a caso da tutte le categorie</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
+
+<div class="qsec-title">Mappa e viabilità</div>
+<button class="sd-tile" onclick="openMetro()">
+<div class="sd-tile-ic" style="background:rgba(213,43,30,.12)">🚇</div>
+<div class="sd-tile-tx"><strong>Metro di Milano</strong><small>5 linee, tutte le fermate e gli interscambi</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
+<button class="sd-tile" onclick="openStrade()">
+<div class="sd-tile-ic" style="background:rgba(255,149,0,.14)">🛣️</div>
+<div class="sd-tile-tx"><strong>Strade &amp; Autostrade</strong><small>Statali, autostrade e tangenziali della Lombardia</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
+</div>
+</div>
+
+<!-- metro -->
+<div class="sd-view" id="sdMetro" style="display:none">
+<div class="qpad">
+<div class="mt-lines" id="mtLines"></div>
+<div id="mtMap"></div>
+<div class="mt-hint" id="mtHint">Tocca una fermata sulla mappa per vedere nome e linee</div>
+<div id="mtBody"></div>
+<button class="mt-train" onclick="sdStartMetro()">🎴 Allenati: su quale linea è la fermata?</button>
+</div>
+</div>
+
+<!-- strade -->
+<div class="sd-view" id="sdStrade" style="display:none">
+<div class="qpad">
+<div class="mt-lines" id="stCats"></div>
+<div class="st-mapwrap">
+<div id="stMap"></div>
+<button class="st-reset" id="stReset" onclick="stResetFocus()" style="display:none">↩︎ Tutte le strade</button>
+</div>
+<div class="mt-hint" id="stHint">Tocca una strada (linea o etichetta) per vederne il percorso: partenza, arrivo e città attraversate</div>
+<div id="stRoadsBody"></div>
+<button class="mt-train" onclick="sdStartStrade()">🎴 Allenati con le flashcard</button>
+</div>
+</div>
+
+<!-- zone -->
+<div class="sd-view" id="sdZones" style="display:none">
+<div class="qpad"><div id="sdZoneList"></div></div>
+</div>
+
+<!-- flashcard run -->
+<div class="sd-run" id="sdRun">
+<div class="sd-runtop">
+<div class="sd-runhead">
+<button class="sd-runx" onclick="sdExit()" aria-label="Esci dal ripasso">✕</button>
+<div class="sd-runbar"><i id="sdRunBar" style="width:0%"></i></div>
+<div class="sd-runcount" id="sdRunCount">1/15</div>
+</div>
+<div class="sd-dir">
+<span>Modalità:</span>
+<button class="sd-dirbtn" id="sdDirBtn" onclick="sdToggleDir()">Nome → Indirizzo</button>
+</div>
+</div>
+<div class="sd-cardwrap">
+<div class="sd-card" id="sdCard" onclick="sdFlip()">
+<div class="sd-cat-pill" id="sdCardCat"></div>
+<div class="sd-card-tag" id="sdCardTag">Dove si trova?</div>
+<div class="sd-card-q" id="sdCardQ"></div>
+<div id="sdCardBack" style="display:none">
+<div class="sd-card-sep"></div>
+<div class="sd-card-a" id="sdCardA"></div>
+</div>
+<div class="sd-card-hint" id="sdCardHint">Tocca per vedere la risposta</div>
+</div>
+</div>
+<div class="sd-actions" id="sdActions">
+<button class="sd-show" id="sdShowBtn" onclick="sdFlip()">Mostra risposta</button>
+</div>
+</div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal center" id="addModal">
+<div class="mbox">
+<div class="mhandle"></div>
+<div class="mhdr">
+<div class="mhdr-left">
+<h3 id="mTitle">Nuovo Percorso</h3>
+<p>Inserisci le vie · clicca · posiziona sulla mappa</p>
+</div>
+<button class="mhdr-close" onclick="closeAdd()" aria-label="Chiudi">✕</button>
+</div>
+<div class="mbody">
+<div class="mleft">
+<input type="text" class="mi2" id="mRT" placeholder="Titolo (es. LINATE – DUOMO)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mRS').focus();}">
+<textarea class="mi2" id="mRS" rows="5" placeholder="Incolla le vie, una per riga…" oninput="onMSChange()"></textarea>
+<div class="mslabel" id="mSLbl">Passi — clicca per posizionare</div>
+<div class="mslist" id="mSList"></div>
+<button class="mtbtn" id="mtBtn" onclick="togMMap()">🗺️ Mostra mappa</button>
+<div id="mma"><div id="mmob"></div><div class="mmobh" id="mmobH"></div></div>
+</div>
+<div class="mright"><div id="mmCont"><div id="mm"></div><div class="mmhint" id="mmH"></div></div></div>
+</div>
+<div class="mfoot">
+<button class="bcn" onclick="closeAdd()">Annulla</button>
+<button class="bsv" onclick="savRoute()">Salva percorso</button>
+</div>
+</div>
+</div>
+
+<!-- MANAGER MODAL -->
+<div class="modal" id="mgrModal">
+<div class="mbox" style="max-width:600px">
+<div class="mhandle"></div>
+<div class="mhdr">
+<div class="mhdr-left"><h3>Percorsi</h3><p id="mgrCnt"></p></div>
+<button class="mhdr-close" onclick="closeMgr()" aria-label="Chiudi">✕</button>
+</div>
+<div class="fbar">
+<input class="finp" id="mgrF" placeholder="Cerca…" oninput="renderMgr()">
+<button class="fsrt" id="srtBtn" onclick="cycSort()">↕ Nome</button>
+</div>
+<div class="rlist" id="mgrList"></div>
+<div class="mfoot"><button class="bcn" style="flex:1" onclick="closeMgr()">Chiudi</button></div>
+</div>
+</div>
+
+<!-- STATS MODAL -->
+<div class="modal" id="stModal">
+<div class="mbox" style="max-width:500px">
+<div class="mhandle"></div>
+<div class="mhdr">
+<div class="mhdr-left"><h3>Statistiche vie</h3><p>Quiz sulle vie dei percorsi</p></div>
+<button class="mhdr-close" onclick="closeSt()" aria-label="Chiudi">✕</button>
+</div>
+<div style="flex:1;overflow-y:auto" id="stBody"></div>
+<div class="mfoot"><button class="bcn" style="flex:1" onclick="closeSt()">Chiudi</button></div>
+</div>
+</div>
+
+<!-- WRONG MODAL -->
+<div class="modal" id="wrModal">
+<div class="mbox" style="max-width:500px">
+<div class="mhandle"></div>
+<div class="mhdr">
+<div class="mhdr-left"><h3>Vie da ripassare</h3><p>Le vie dove hai sbagliato di più</p></div>
+<button class="mhdr-close" onclick="closeWr()" aria-label="Chiudi">✕</button>
+</div>
+<div style="flex:1;overflow-y:auto" id="wrBody"></div>
+<div class="mfoot">
+<button class="bcn" onclick="closeWr()">Chiudi</button>
+<button class="bsv" onclick="startWr()" id="wrBtn" style="display:none">▶ Inizia ripasso</button>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script src="quiz-data.js?v=2"></script>
+<script src="luoghi-data.js?v=2"></script>
+
+<script src="app.js"></script>
+</body>
