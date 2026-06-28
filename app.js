@@ -96,13 +96,19 @@ let map,mkr=null,dL=null,dDec=null,nL=null,dFlow=null;
 let drawTok=0,plIdx=null,cur=null,step=0,mode='s',_firstDraw=false;
 let _trail=null,_trailTok=0; /* [FIX] dichiarati qui: clearLines li usa prima del punto originale (TDZ) */
 let _prevActive=-1; /* [FIX] dichiarato in cima: selectRoute lo resetta prima del punto originale */
+let _revealed=false; /* [PUNTO 3] modalità Cieco: via attiva scoperta solo dopo "Rivela" */
 let tx0=0,ty0=0,lastRnd=-1,nmTimer=null;
+let userMovedMap=false,_progMove=false; /* [PUNTO 2] rispetto del movimento manuale della mappa */
 
 function initMap(){
 map=L.map('map',{zoomControl:false}).setView([45.4642,9.1900],13);
 const TILE_LABELS='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 window._tileLayer=L.tileLayer(TILE_LABELS,{attribution:'© OpenStreetMap © CARTO'}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
+/* [PUNTO 2] rileva quando l'utente muove/zooma la mappa di sua mano: da quel momento non forziamo il ricentraggio */
+map.on('dragstart',()=>{userMovedMap=true;});
+map.on('zoomstart',(e)=>{/* lo zoom programmato non conta come "manuale" */ if(!_progMove)userMovedMap=true;});
+map.on('movestart',(e)=>{if(!_progMove)userMovedMap=true;});
 map.on('click',e=>{
 if(plIdx===null||!cur)return;
 const k=`${cur.id}_${plIdx}`;coords[k]={lat:e.latlng.lat,lon:e.latlng.lng};
@@ -116,14 +122,68 @@ const dx=e.changedTouches[0].clientX-tx0,dy=Math.abs(e.changedTouches[0].clientY
 if(Math.abs(dx)>55&&dy<40){dx<0?nextS():prevS();}
 },{passive:true});
 initDrag();
+injectRecenterBtn();/*[PUNTO 2]*/
 }
+/* [PUNTO 2] crea il pulsante "ricentra" se non esiste già nell'HTML */
+function injectRecenterBtn(){
+try{
+if(document.getElementById('recenterBtn'))return;
+const mapEl=document.getElementById('map');if(!mapEl||!mapEl.parentNode)return;
+const b=document.createElement('button');
+b.id='recenterBtn';b.className='hidden';b.type='button';
+b.setAttribute('aria-label','Ricentra sul punto attuale');
+b.textContent='◎';
+b.onclick=recenterMap;
+mapEl.parentNode.appendChild(b);
+/* mostra il pulsante quando l'utente muove la mappa, nascondilo dopo il ricentraggio */
+map.on('dragstart zoomstart',()=>{if(!_progMove)showRecenter(true);});
+map.on('moveend',()=>{if(!userMovedMap)showRecenter(false);});
+}catch(e){}
+}
+function showRecenter(on){var b=document.getElementById('recenterBtn');if(b)b.classList.toggle('hidden',!on);}
 function initDrag(){
 const panel=document.getElementById('panel'),h=document.getElementById('pdrag');
-if(!h||window.innerWidth>=768)return;
-let sy=0,sh=0,dr=false;
-h.addEventListener('touchstart',e=>{dr=true;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';},{passive:true});
-document.addEventListener('touchmove',e=>{if(!dr)return;const dy=sy-e.touches[0].clientY;panel.style.maxHeight=Math.min(window.innerHeight*.78,Math.max(130,sh+dy))+'px';},{passive:true});
-document.addEventListener('touchend',()=>{if(!dr)return;dr=false;panel.style.transition='';},{passive:true});
+const head=document.querySelector('#panel .phead');
+const steps=document.getElementById('sList');
+if(!panel||window.innerWidth>=768)return;
+let sy=0,sh=0,dr=false,fromList=false,moved=false;
+/* snap points come una app nativa: alto / medio / minimo */
+function snapVals(){const H=window.innerHeight;return{full:Math.round(H*.78),mid:Math.round(H*.52),min:140};}
+function applyClosest(curH){
+const s=snapVals();const opts=[s.min,s.mid,s.full];
+let best=opts[0],bd=1e9;opts.forEach(v=>{const d=Math.abs(v-curH);if(d<bd){bd=d;best=v;}});
+panel.style.maxHeight=best+'px';
+}
+function onStart(e,isList){
+dr=true;moved=false;fromList=!!isList;
+sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;
+panel.style.transition='none';
+}
+function onMove(e){
+if(!dr)return;
+const dy=sy-e.touches[0].clientY; /* >0 trascini su, <0 trascini giù */
+/* se il gesto parte dalla lista e la lista NON è in cima, lascia scorrere la lista */
+if(fromList&&steps&&steps.scrollTop>0&&dy<0){dr=false;panel.style.transition='';return;}
+/* se la lista è in cima e trascini verso il basso, oppure parti dalla maniglia/header: muovi il pannello */
+const target=Math.min(window.innerHeight*.84,Math.max(120,sh+dy));
+panel.style.maxHeight=target+'px';
+if(Math.abs(dy)>4)moved=true;
+/* blocca lo scroll della pagina solo mentre stiamo davvero trascinando il pannello */
+if(moved&&e.cancelable)e.preventDefault();
+}
+function onEnd(){
+if(!dr)return;dr=false;panel.style.transition='';
+if(moved)applyClosest(panel.getBoundingClientRect().height);
+}
+/* la maniglia e l'header avviano sempre il drag del pannello */
+if(h){h.addEventListener('touchstart',e=>onStart(e,false),{passive:true});}
+if(head){head.addEventListener('touchstart',e=>onStart(e,false),{passive:true});}
+/* la lista avvia il drag solo se è scrollata in cima (così lo scroll normale resta libero) */
+if(steps){steps.addEventListener('touchstart',e=>{if(steps.scrollTop<=0)onStart(e,true);},{passive:true});}
+/* touchmove NON passive: così possiamo bloccare lo scroll pagina quando serve */
+document.addEventListener('touchmove',onMove,{passive:false});
+document.addEventListener('touchend',onEnd,{passive:true});
+document.addEventListener('touchcancel',onEnd,{passive:true});
 window.addEventListener('resize',()=>{if(window.innerWidth>=768)panel.style.maxHeight='';});
 }
 function setTileMode(noLabels){
@@ -151,7 +211,7 @@ mkr.openPopup();
 /* ── ROUTE ── */
 function selectRoute(r){
 if(!r||!Array.isArray(r.steps))return;
-cur=r;step=0;_prevActive=-1;if(typeof stopAutoplay==='function')stopAutoplay();/*[FIX] reset _prevActive*/
+cur=r;step=0;_prevActive=-1;_revealed=false;userMovedMap=false;if(typeof stopAutoplay==='function')stopAutoplay();/*[FIX] reset _prevActive + [PUNTO 2] tracking pulito + [PUNTO 3] via coperta*/
 _firstDraw=true; /* la prossima rebuildLines disegna la linea progressivamente */
 if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}
 cancelDraw();clearLines();stopPl();hideNM();
@@ -163,8 +223,10 @@ renderList();updateUI();goStep();closeSugg();
 ls('lRId',r.id);ls('lStep',0);
 const pts=r.steps.map((_,i)=>coords[r.id+'_'+i]).filter(Boolean);
 if(map){
+_progMove=true;/*[PUNTO 2] il flyTo iniziale non è "movimento manuale"*/
 if(pts.length>1)map.flyToBounds(pts.map(p=>[p.lat,p.lon]),{padding:[40,40],maxZoom:15,duration:.8});
 else if(pts.length===1)map.flyTo([pts[0].lat,pts[0].lon],15,{duration:.8});
+map.once('moveend',()=>{_progMove=false;});
 }
 }
 function rstRoute(){if(!cur)return;if(typeof stopAutoplay==='function')stopAutoplay();step=0;document.getElementById('qfb').textContent='';renderList();updateUI();goStep();hap();}
@@ -214,7 +276,17 @@ const d=listRows[i],isA=i===step,isD=i<step,isW=wm[i]>0;
 d.classList.toggle('act',isA);
 d.classList.toggle('done',isD);
 d.classList.toggle('wrg',isW&&!isA);
-if(d._nm)d._nm.classList.toggle('hid',mode!=='s'&&!isA);
+/* [PUNTO 3] gestione visibilità nome via:
+- modalità studio 's': tutto visibile
+- modalità cieco 'c': TUTTE coperte; la via attiva si scopre solo dopo "Rivela" (_revealed)
+- modalità quiz 'q': come prima (solo l'attiva eventualmente, gestita altrove) */
+if(d._nm){
+let hide;
+if(mode==='s')hide=false;
+else if(mode==='c')hide=!(isA&&_revealed); /* attiva visibile solo se rivelata */
+else hide=!isA; /* q: nascondi tutte tranne l'attiva */
+d._nm.classList.toggle('hid',hide);
+}
 if(d._wb)d._wb.style.display=(isW&&!isA)?'':'none';
 }
 /* effetto "evidenziazione che scorre" sulla nuova riga attiva */
@@ -225,9 +297,9 @@ _prevActive=step;
 }
 const ae=listRows[step];if(ae)ae.scrollIntoView({block:'nearest'});
 }
-function nextS(){if(!cur||step>=cur.steps.length-1)return;step++;syncListActive();updateUI();goStep();hap();ls('lStep',step);if(mode!=='q'&&step===cur.steps.length-1)routeFinishCheck();const b=document.getElementById('bNext');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}
-function prevS(){if(!cur||step<=0)return;if(typeof stopAutoplay==='function')stopAutoplay();step--;syncListActive();updateUI();goStep();hap();ls('lStep',step);const b=document.getElementById('bPrev');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}
-function revealS(){if(!cur)return;const el=listRows[step]?listRows[step]._nm:null;if(el)typewrite(el,cur.steps[step]);if(mode==='q'){document.getElementById('qfb').textContent=cur.steps[step]||'';document.getElementById('qfb').style.color='var(--mu)';}hap();}
+function nextS(){if(!cur||step>=cur.steps.length-1)return;step++;_revealed=false;syncListActive();updateUI();goStep();hap();ls('lStep',step);if(mode!=='q'&&step===cur.steps.length-1)routeFinishCheck();const b=document.getElementById('bNext');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}/*[PUNTO 3] _revealed=false: la nuova via riparte coperta*/
+function prevS(){if(!cur||step<=0)return;if(typeof stopAutoplay==='function')stopAutoplay();step--;_revealed=false;syncListActive();updateUI();goStep();hap();ls('lStep',step);const b=document.getElementById('bPrev');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}
+function revealS(){if(!cur)return;_revealed=true;/*[PUNTO 3] scopre la via attiva*/var _r=listRows[step];if(mode==='c'&&_r&&_r._nm){_r._nm.classList.remove('hid');typewrite(_r._nm,cur.steps[step]);}else{const el=listRows[step]?listRows[step]._nm:null;if(el)typewrite(el,cur.steps[step]);}if(mode==='q'){var _fb=$id('qfb');if(_fb){_fb.textContent=cur.steps[step]||'';_fb.style.color='var(--mu)';}}hap();}
 function showNM(){const e=document.getElementById('nmHint');e.style.display='block';clearTimeout(nmTimer);nmTimer=setTimeout(()=>hideNM(),2500);}
 function hideNM(){document.getElementById('nmHint').style.display='none';clearTimeout(nmTimer);}
 function updateUI(){
@@ -253,13 +325,34 @@ const lat=coords[k].lat,lon=coords[k].lon;
 putMkr(lat,lon,cur.steps[step],k);
 try{
 const ll=L.latLng(lat,lon);
-if(map.getZoom()<15)map.setView(ll,15,{animate:true,duration:.3});
-else if(!map.getBounds().pad(-0.22).contains(ll))map.panTo(ll,{animate:true,duration:.3});
-}catch(e){}
+const outOfView=!map.getBounds().pad(-0.18).contains(ll); /* punto vicino o oltre il bordo */
+const fullyOut=!map.getBounds().contains(ll); /* punto proprio fuori schermo */
+/* Regole:
+- se il marker è completamente fuori vista -> ricentra sempre (anche dopo pan manuale)
+- altrimenti, se l'utente NON ha mosso la mappa a mano -> mantieni il marker comodo (pan se vicino al bordo, o porta a zoom utile)
+- se l'utente HA mosso la mappa a mano -> non forzare nulla finché il punto resta visibile */
+let didMove=false;
+if(fullyOut){_progMove=true;map.setView(ll,Math.max(map.getZoom(),15),{animate:true,duration:.35});didMove=true;}
+else if(!userMovedMap){
+if(map.getZoom()<15){_progMove=true;map.setView(ll,15,{animate:true,duration:.3});didMove=true;}
+else if(outOfView){_progMove=true;map.panTo(ll,{animate:true,duration:.3});didMove=true;}
+}
+/* dopo un ricentraggio programmato, abbassa i flag a fine animazione */
+if(didMove){map.once('moveend',()=>{_progMove=false;userMovedMap=false;});}
+}catch(e){_progMove=false;}
 hideNM();
 }
 else{if(mkr){try{map.removeLayer(mkr);}catch(e){}mkr=null;}updateUI();showNM();}
 rebuildLines();
+}
+/* [PUNTO 2] pulsante "ricentra": riporta il punto al centro e riattiva il tracking automatico */
+function recenterMap(){
+if(!cur||!map)return;
+const k=cur.id+'_'+step;if(!coords[k])return;
+userMovedMap=false;_progMove=true;
+try{map.setView([coords[k].lat,coords[k].lon],Math.max(map.getZoom(),15),{animate:true,duration:.35});}catch(e){}
+map.once('moveend',()=>{_progMove=false;});
+hap();
 }
 
 /* ── LINES (ottimizzata: riusa i layer con setLatLngs invece di ricrearli/rianimarli) ── */
@@ -323,7 +416,7 @@ hap('m');
 
 /* ── MODE (route study) ── */
 function setMode(m){
-mode=m;
+mode=m;_revealed=false;/*[PUNTO 3] cambiando modalità la via riparte coperta in cieco*/
 const btns={s:'cSt',c:'cCi',q:'cQu'};const seg=document.getElementById('segCtrl');const thumb=document.getElementById('segThumb');
 Object.keys(btns).forEach(k=>{document.getElementById(btns[k]).classList.toggle('on',k===m);});
 if(seg&&thumb){const idx={s:0,c:1,q:2}[m]||0;const btnsEl=seg.querySelectorAll('.seg-btn');if(btnsEl[idx]){const btn=btnsEl[idx];thumb.style.left=btn.offsetLeft+'px';thumb.style.width=btn.offsetWidth+'px';}}
