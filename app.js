@@ -144,46 +144,27 @@ function showRecenter(on){var b=document.getElementById('recenterBtn');if(b)b.cl
 function initDrag(){
 const panel=document.getElementById('panel'),h=document.getElementById('pdrag');
 const head=document.querySelector('#panel .phead');
-const steps=document.getElementById('sList');
 if(!panel||window.innerWidth>=768)return;
-let sy=0,sh=0,dr=false,fromList=false,moved=false;
-/* snap points come una app nativa: alto / medio / minimo */
-function snapVals(){const H=window.innerHeight;return{full:Math.round(H*.78),mid:Math.round(H*.52),min:140};}
-function applyClosest(curH){
-const s=snapVals();const opts=[s.min,s.mid,s.full];
-let best=opts[0],bd=1e9;opts.forEach(v=>{const d=Math.abs(v-curH);if(d<bd){bd=d;best=v;}});
-panel.style.maxHeight=best+'px';
-}
-function onStart(e,isList){
-dr=true;moved=false;fromList=!!isList;
-sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;
-panel.style.transition='none';
-}
+let sy=0,sh=0,dr=false,moved=false;
+function snapVals(){const H=window.innerHeight;return[140,Math.round(H*.52),Math.round(H*.78)];}
+function applyClosest(curH){const opts=snapVals();let best=opts[0],bd=1e9;opts.forEach(v=>{const d=Math.abs(v-curH);if(d<bd){bd=d;best=v;}});panel.style.maxHeight=best+'px';}
+function onStart(e){dr=true;moved=false;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';}
 function onMove(e){
 if(!dr)return;
-const dy=sy-e.touches[0].clientY; /* >0 trascini su, <0 trascini giù */
-/* se il gesto parte dalla lista e la lista NON è in cima, lascia scorrere la lista */
-if(fromList&&steps&&steps.scrollTop>0&&dy<0){dr=false;panel.style.transition='';return;}
-/* se la lista è in cima e trascini verso il basso, oppure parti dalla maniglia/header: muovi il pannello */
-const target=Math.min(window.innerHeight*.84,Math.max(120,sh+dy));
-panel.style.maxHeight=target+'px';
+const dy=sy-e.touches[0].clientY;
+panel.style.maxHeight=Math.min(window.innerHeight*.84,Math.max(120,sh+dy))+'px';
 if(Math.abs(dy)>4)moved=true;
-/* blocca lo scroll della pagina solo mentre stiamo davvero trascinando il pannello */
-if(moved&&e.cancelable)e.preventDefault();
+if(moved&&e.cancelable)e.preventDefault(); /* blocca lo scroll pagina solo durante il drag della maniglia */
 }
-function onEnd(){
-if(!dr)return;dr=false;panel.style.transition='';
-if(moved)applyClosest(panel.getBoundingClientRect().height);
-}
-/* la maniglia e l'header avviano sempre il drag del pannello */
-if(h){h.addEventListener('touchstart',e=>onStart(e,false),{passive:true});}
-if(head){head.addEventListener('touchstart',e=>onStart(e,false),{passive:true});}
-/* la lista avvia il drag solo se è scrollata in cima (così lo scroll normale resta libero) */
-if(steps){steps.addEventListener('touchstart',e=>{if(steps.scrollTop<=0)onStart(e,true);},{passive:true});}
-/* touchmove NON passive: così possiamo bloccare lo scroll pagina quando serve */
-document.addEventListener('touchmove',onMove,{passive:false});
-document.addEventListener('touchend',onEnd,{passive:true});
-document.addEventListener('touchcancel',onEnd,{passive:true});
+function onEnd(){if(!dr)return;dr=false;panel.style.transition='';if(moved)applyClosest(panel.getBoundingClientRect().height);}
+/* IMPORTANTE: il drag parte SOLO da maniglia e header, MAI dalla lista (così i tap sulle vie e lo scroll restano liberi) */
+[h,head].forEach(el=>{
+if(!el)return;
+el.addEventListener('touchstart',onStart,{passive:true});
+el.addEventListener('touchmove',onMove,{passive:false}); /* non-passive solo sugli elementi-maniglia, non su tutto il documento */
+el.addEventListener('touchend',onEnd,{passive:true});
+el.addEventListener('touchcancel',onEnd,{passive:true});
+});
 window.addEventListener('resize',()=>{if(window.innerWidth>=768)panel.style.maxHeight='';});
 }
 function setTileMode(noLabels){
