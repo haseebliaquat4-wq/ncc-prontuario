@@ -90,7 +90,7 @@ function hap(t){try{if(!navigator.vibrate)return;navigator.vibrate(t==='m'?20:t=
 
 /* ── MAPPA ── */
 let map,mkr=null,dL=null,dDec=null,nL=null,dFlow=null;
-let drawTok=0,plIdx=null,cur=null,step=0,mode='s';
+let drawTok=0,plIdx=null,cur=null,step=0,mode='s',_firstDraw=false;
 let tx0=0,ty0=0,lastRnd=-1,nmTimer=null;
 
 function initMap(){
@@ -147,6 +147,7 @@ mkr.openPopup();
 function selectRoute(r){
 if(!r||!Array.isArray(r.steps))return;
 cur=r;step=0;if(typeof stopAutoplay==='function')stopAutoplay();
+_firstDraw=true; /* la prossima rebuildLines disegna la linea progressivamente */
 if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}
 cancelDraw();clearLines();stopPl();hideNM();
 document.getElementById('pTitle').textContent=r.title;
@@ -200,6 +201,7 @@ c.innerHTML='';c.appendChild(f);
 syncListActive();
 }
 /* aggiorna SOLO le classi delle righe — non ricostruisce il DOM (rende fluido l'avanti/indietro) */
+let _prevActive=-1;
 function syncListActive(){
 if(!cur||!listRows.length)return;
 const wm=(qStats[cur.id]||{}).wrong||{};
@@ -210,6 +212,12 @@ d.classList.toggle('done',isD);
 d.classList.toggle('wrg',isW&&!isA);
 if(d._nm)d._nm.classList.toggle('hid',mode!=='s'&&!isA);
 if(d._wb)d._wb.style.display=(isW&&!isA)?'':'none';
+}
+/* effetto "evidenziazione che scorre" sulla nuova riga attiva */
+if(step!==_prevActive){
+const ae=listRows[step];
+if(ae&&!prefersReducedMotion()){ae.classList.remove('sweep');void ae.offsetWidth;ae.classList.add('sweep');}
+_prevActive=step;
 }
 const ae=listRows[step];if(ae)ae.scrollIntoView({block:'nearest'});
 }
@@ -266,20 +274,35 @@ else nL=L.polyline(rm,{color:'#9aa6b8',weight:3,opacity:.5,dashArray:'1 9',lineC
 }else if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}
 /* linea "fatta" */
 if(dn.length>1){
-if(dL)dL.setLatLngs(dn);
-else dL=L.polyline(dn,{color:getAccent(),weight:5.5,opacity:.95,lineCap:'round',lineJoin:'round',className:'route-line'}).addTo(map);
+/* riusa il layer se esiste, altrimenti crealo (eventualmente vuoto per l'animazione) */
+const wantDraw=_firstDraw&&dn.length>2&&!prefersReducedMotion();
+if(!dL)dL=L.polyline(wantDraw?[]:dn,{color:getAccent(),weight:5.5,opacity:.95,lineCap:'round',lineJoin:'round',className:'route-line'}).addTo(map);
+else dL.setLatLngs(wantDraw?[]:dn);
 if(dFlow)dFlow.setLatLngs(dn);
 else dFlow=L.polyline(dn,{color:'#fff',weight:2.5,opacity:.85,lineCap:'round',className:'route-flow'}).addTo(map);
 try{
 if(dDec)dDec.setPaths(dL);
 else dDec=L.polylineDecorator(dL,{patterns:[{offset:'6%',repeat:'120px',symbol:L.Symbol.arrowHead({pixelSize:12,pathOptions:{color:getAccent(),weight:2}})}]}).addTo(map);
 }catch(e){}
+if(wantDraw){
+/* disegno progressivo: aggiunge i punti uno alla volta, poi aggiorna le frecce */
+const tok=drawTok,ref=dL;let i=0;
+if(dFlow)dFlow.setLatLngs([]); /* il flusso bianco compare a disegno finito */
+const draw=()=>{
+if(drawTok!==tok||!cur)return;
+if(i<dn.length){try{ref.addLatLng(dn[i++]);}catch(e){return;}setTimeout(draw,34);}
+else{try{if(dFlow)dFlow.setLatLngs(dn);}catch(e){}try{if(dDec)dDec.setPaths(ref);}catch(e){}}
+};
+draw();
+}
 }else{
 if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}
 if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}
 if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}
 }
+_firstDraw=false; /* il disegno progressivo vale solo per la prima volta */
 }
+function prefersReducedMotion(){try{return window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;}catch(e){return false;}}
 function openSV(){if(mkr){const p=mkr.getLatLng();window.open(`https://www.google.com/maps?layer=c&cbll=${p.lat},${p.lng}`,'_blank');}}
 
 /* ── CONFETTI ── */
@@ -1701,8 +1724,25 @@ if(!m)return;
 if(typeof map==='undefined'||!map){m.setLatLng(to);return;}
 var from=m.getLatLng();
 try{var p1=map.latLngToContainerPoint(from),p2=map.latLngToContainerPoint(L.latLng(to[0],to[1]));var dist=Math.hypot(p2.x-p1.x,p2.y-p1.y);if(dist<2||dist>520){m.setLatLng(to);return;}}catch(e){m.setLatLng(to);return;}
+try{trailFx([from.lat,from.lng],to);}catch(e){}
 var tok=++_slideTok,t0=performance.now(),dur=380,a=from.lat,b=from.lng,c=to[0],d=to[1];
 function step(now){if(tok!==_slideTok)return;var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);try{m.setLatLng([a+(c-a)*e,b+(d-b)*e]);}catch(err){return;}if(k<1)requestAnimationFrame(step);}
+requestAnimationFrame(step);
+}
+/* scia luminosa: una polilinea che appare e svanisce tra la via precedente e quella nuova */
+let _trail=null,_trailTok=0;
+function trailFx(from,to){
+if(!map||prefersReducedMotion())return;
+try{if(_trail){map.removeLayer(_trail);_trail=null;}}catch(e){}
+try{_trail=L.polyline([from,to],{color:'#fff',weight:8,opacity:.85,lineCap:'round',className:'route-trail'}).addTo(map);}catch(e){return;}
+var tok=++_trailTok,t0=performance.now(),dur=620;
+function step(now){
+if(tok!==_trailTok)return;
+var k=Math.min(1,(now-t0)/dur);
+try{if(_trail)_trail.setStyle({opacity:.85*(1-k),weight:8-5*k});}catch(e){}
+if(k<1)requestAnimationFrame(step);
+else{try{if(_trail){map.removeLayer(_trail);_trail=null;}}catch(e){}}
+}
 requestAnimationFrame(step);
 }
 function countUp(el,to,ms){
