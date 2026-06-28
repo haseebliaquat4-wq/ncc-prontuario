@@ -43,9 +43,12 @@ function save(){ls('routes',routes);ls('coords',coords);ls('qStats',qStats);ls('
 /* ── FIREBASE ── */
 let fbOk=false, fbRef=null;
 function initFB(){
+if(fbOk)return;/*[FIX] niente doppia init*/
+if(typeof firebase==='undefined'||!firebase.initializeApp){console.warn('Firebase non caricato');return;}/*[FIX] CDN giù -> esci pulito*/
 try{
 const cfg={apiKey:"AIzaSyBtVu_bZruWdB3nQz0MhrNmCE7lMonoGd4",authDomain:"ncc-milano-2dbd0.firebaseapp.com",databaseURL:"https://ncc-milano-2dbd0-default-rtdb.europe-west1.firebasedatabase.app",projectId:"ncc-milano-2dbd0",storageBucket:"ncc-milano-2dbd0.firebasestorage.app",messagingSenderId:"511775426532",appId:"1:511775426532:web:785259ec4e187e42aba9f1"};
-firebase.initializeApp(cfg);fbRef=firebase.database().ref('prontuario');fbOk=true;
+if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(cfg);/*[FIX] non re-inizializzare se già fatto*/
+fbRef=firebase.database().ref('prontuario');fbOk=true;
 }catch(e){console.warn('FB init fail',e);}
 }
 let asTimer=null;
@@ -81,7 +84,7 @@ toast2('☁️ Dati aggiornati dal cloud');
 }
 
 /* ── DARK ── */
-function applyDark(){document.body.classList.toggle('dark',dark);document.getElementById('dkIcon').textContent=dark?'☀️':'🌙';}
+function applyDark(){document.body.classList.toggle('dark',dark);var _di=$id('dkIcon');if(_di)_di.textContent=dark?'☀️':'🌙';/*[FIX] guardia su dkIcon*/}
 function togDark(){dark=!dark;ls('dark',dark);applyDark();if(typeof renderDash==='function'&&document.getElementById('quizApp').classList.contains('open'))renderDash();}
 applyDark();
 
@@ -91,6 +94,8 @@ function hap(t){try{if(!navigator.vibrate)return;navigator.vibrate(t==='m'?20:t=
 /* ── MAPPA ── */
 let map,mkr=null,dL=null,dDec=null,nL=null,dFlow=null;
 let drawTok=0,plIdx=null,cur=null,step=0,mode='s',_firstDraw=false;
+let _trail=null,_trailTok=0; /* [FIX] dichiarati qui: clearLines li usa prima del punto originale (TDZ) */
+let _prevActive=-1; /* [FIX] dichiarato in cima: selectRoute lo resetta prima del punto originale */
 let tx0=0,ty0=0,lastRnd=-1,nmTimer=null;
 
 function initMap(){
@@ -130,7 +135,7 @@ function startPl(i){plIdx=i;document.getElementById('map').classList.add('pl');d
 function stopPl(){plIdx=null;document.getElementById('map').classList.remove('pl');document.getElementById('plBanner').style.display='none';}
 function putMkr(lat,lon,name,k){
 if(mkr){
-slideMarker(mkr,[lat,lon]);mkr.getPopup().setContent('<b>'+esc(name)+'</b>');
+slideMarker(mkr,[lat,lon]);var _pp=mkr.getPopup();if(_pp)_pp.setContent('<b>'+esc(name)+'</b>');else mkr.bindPopup('<b>'+esc(name)+'</b>');/*[FIX] getPopup() può essere null*/
 const pe=mkr.getElement()&&mkr.getElement().querySelector('.pin-emoji');if(pe){pe.style.animation='none';void pe.offsetWidth;pe.style.animation='pinDrop .5s cubic-bezier(.34,1.56,.64,1)';}
 }else{
 if(!map)return;
@@ -146,7 +151,7 @@ mkr.openPopup();
 /* ── ROUTE ── */
 function selectRoute(r){
 if(!r||!Array.isArray(r.steps))return;
-cur=r;step=0;if(typeof stopAutoplay==='function')stopAutoplay();
+cur=r;step=0;_prevActive=-1;if(typeof stopAutoplay==='function')stopAutoplay();/*[FIX] reset _prevActive*/
 _firstDraw=true; /* la prossima rebuildLines disegna la linea progressivamente */
 if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}
 cancelDraw();clearLines();stopPl();hideNM();
@@ -201,7 +206,6 @@ c.innerHTML='';c.appendChild(f);
 syncListActive();
 }
 /* aggiorna SOLO le classi delle righe — non ricostruisce il DOM (rende fluido l'avanti/indietro) */
-let _prevActive=-1;
 function syncListActive(){
 if(!cur||!listRows.length)return;
 const wm=(qStats[cur.id]||{}).wrong||{};
@@ -229,17 +233,17 @@ function hideNM(){document.getElementById('nmHint').style.display='none';clearTi
 function updateUI(){
 if(!cur)return;
 const tot=cur.steps.length,pct=tot>1?(step/(tot-1))*100:(tot===1?100:0);
-document.getElementById('pProg').textContent=`Via ${step+1} di ${tot}`;
-document.getElementById('pBar').style.width=pct+'%';
+setTxt('pProg',`Via ${step+1} di ${tot}`);
+var _pb=$id('pBar');if(_pb)_pb.style.width=pct+'%';
 const pl=cur.steps.filter((_,i)=>!!coords[cur.id+'_'+i]).length;
-document.getElementById('pStat').textContent=pl+'/'+tot+' 📍'+(done[cur.id]?' ✓':'');
-document.getElementById('bPrev').disabled=step===0;
-document.getElementById('bNext').disabled=step===tot-1;
-document.getElementById('bSV').disabled=!mkr;
-document.getElementById('bRev').style.display=mode==='c'?'block':'none';
-document.getElementById('nf').style.display=mode==='q'?'none':'block';
-document.getElementById('qf').style.display=mode==='q'?'block':'none';
-if(mode==='q'){document.getElementById('qa').value='';document.getElementById('qfb').textContent='';}
+setTxt('pStat',pl+'/'+tot+' 📍'+(done[cur.id]?' ✓':''));
+var _bp=$id('bPrev');if(_bp)_bp.disabled=step===0;
+var _bn=$id('bNext');if(_bn)_bn.disabled=step===tot-1;
+var _bsv=$id('bSV');if(_bsv)_bsv.disabled=!mkr;
+var _brv=$id('bRev');if(_brv)_brv.style.display=mode==='c'?'block':'none';
+var _nf=$id('nf');if(_nf)_nf.style.display=mode==='q'?'none':'block';
+var _qf=$id('qf');if(_qf)_qf.style.display=mode==='q'?'block':'none';
+if(mode==='q'){var _qa=$id('qa');if(_qa)_qa.value='';setTxt('qfb','');}
 }
 function goStep(){
 if(!cur||!map)return;
@@ -260,7 +264,7 @@ rebuildLines();
 
 /* ── LINES (ottimizzata: riusa i layer con setLatLngs invece di ricrearli/rianimarli) ── */
 function cancelDraw(){drawTok++;}
-function clearLines(){if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}}
+function clearLines(){if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}if(typeof _trail!=='undefined'&&_trail){try{map.removeLayer(_trail);}catch(e){}_trail=null;_trailTok++;}/*[FIX] pulisce la scia*/}
 function rebuildLines(){
 cancelDraw();
 if(!cur||!map){clearLines();return;}
@@ -286,12 +290,12 @@ else dDec=L.polylineDecorator(dL,{patterns:[{offset:'6%',repeat:'120px',symbol:L
 }catch(e){}
 if(wantDraw){
 /* disegno progressivo: aggiunge i punti uno alla volta, poi aggiorna le frecce */
-const tok=drawTok,ref=dL;let i=0;
+const tok=drawTok,ref=dL,snap=dn.slice();let i=0;
 if(dFlow)dFlow.setLatLngs([]); /* il flusso bianco compare a disegno finito */
 const draw=()=>{
-if(drawTok!==tok||!cur)return;
-if(i<dn.length){try{ref.addLatLng(dn[i++]);}catch(e){return;}setTimeout(draw,34);}
-else{try{if(dFlow)dFlow.setLatLngs(dn);}catch(e){}try{if(dDec)dDec.setPaths(ref);}catch(e){}}
+if(drawTok!==tok||!cur){try{if(dFlow&&dFlow.getLatLngs().length===0)dFlow.setLatLngs(snap);}catch(e){}return;}/*[FIX] se interrotto, non lasciare il flusso vuoto*/
+if(i<snap.length){try{ref.addLatLng(snap[i++]);}catch(e){return;}setTimeout(draw,34);}
+else{try{if(dFlow)dFlow.setLatLngs(snap);}catch(e){}try{if(dDec)dDec.setPaths(ref);}catch(e){}}
 };
 draw();
 }
@@ -346,8 +350,8 @@ return s.split(' ').map(function(w){return MAP[w]||w;}).join(' ');
 }
 function checkQ(){
 if(!cur)return;
-const raw=document.getElementById('qa').value;if(!raw.trim())return;
-const ans=norm(raw),cor=norm(cur.steps[step]);const fb=document.getElementById('qfb');
+var _qael=document.getElementById('qa');const raw=_qael?_qael.value:'';if(!raw.trim())return;
+const ans=norm(raw),cor=norm(cur.steps[step]);const fb=document.getElementById('qfb');if(!fb)return;/*[FIX] guardia su fb*/
 if(!qStats[cur.id])qStats[cur.id]={correct:0,total:0,wrong:{}};
 if(!qStats[cur.id].wrong)qStats[cur.id].wrong={};
 qStats[cur.id].total++;
@@ -356,7 +360,7 @@ fb.textContent='✅ Corretto!';fb.style.color='var(--ok)';
 fb.style.animation='none';void fb.offsetWidth;fb.style.animation='fu .25s cubic-bezier(.34,1.3,.64,1)';
 qStats[cur.id].correct++;save();autoSave();hap('m');
 if(step===cur.steps.length-1){routeCelebrate();}
-else setTimeout(nextS,600);
+else{var _rid=cur.id,_st=step;setTimeout(function(){if(cur&&cur.id===_rid&&mode==='q'&&step===_st)nextS();},600);}/*[FIX] evita avanzamento se cambia percorso/modalità*/
 }else{
 fb.textContent='❌ '+cur.steps[step];fb.style.color='var(--err)';
 fb.style.animation='none';void fb.offsetWidth;fb.style.animation='fu .2s ease';
@@ -365,11 +369,11 @@ qStats[cur.id].wrong[step]=(qStats[cur.id].wrong[step]||0)+1;save();autoSave();h
 }
 function skipQ(){
 if(!cur)return;
-const fb=document.getElementById('qfb');fb.textContent='→ '+cur.steps[step];fb.style.color='var(--warn)';
+const fb=document.getElementById('qfb');if(fb){fb.textContent='→ '+cur.steps[step];fb.style.color='var(--warn)';}
 if(!qStats[cur.id])qStats[cur.id]={correct:0,total:0,wrong:{}};
 qStats[cur.id].total++;save();autoSave();
 if(step===cur.steps.length-1){routeCelebrate();}
-else setTimeout(nextS,600);
+else{var _rid=cur.id,_st=step;setTimeout(function(){if(cur&&cur.id===_rid&&mode==='q'&&step===_st)nextS();},600);}/*[FIX]*/
 }
 
 /* ── SEARCH (con focus = mostra tutti i percorsi) ── */
@@ -418,6 +422,10 @@ function cm(){document.getElementById('omenu').classList.remove('open');}
 document.addEventListener('click',e=>{const mw=document.querySelector('.mwrap');if(mw&&!mw.contains(e.target))cm();const sw=document.querySelector('.sw');if(sw&&!sw.contains(e.target)){document.getElementById('sugg').style.display='none';sbArrowSet(false);}});
 function closeAllM(){['addModal','mgrModal','stModal','wrModal'].forEach(id=>document.getElementById(id).classList.remove('open'));}
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* [FIX] helper per accessi DOM sicuri (evita crash se l'elemento manca) */
+function $id(id){return document.getElementById(id);}
+function setTxt(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+function setHTML(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
 
 /* ── ADD MODAL ── */
 let mMap=null,mobMap=null,mTC={},mPrev=[],mSel=null,mEId=null,mMkrs=[];
@@ -536,7 +544,7 @@ routes=routes.filter(r=>r.id!==id);
 Object.keys(coords).forEach(k=>{if(k.startsWith(id+'_'))delete coords[k];});
 delete qStats[id];delete done[id];save();autoSave();
 undoToast('Percorso eliminato',function(){if(_bk.route){routes.push(_bk.route);Object.assign(coords,_bk.coords);if(_bk.qStats)qStats[id]=_bk.qStats;if(_bk.done)done[id]=_bk.done;save();autoSave();renderMgr();toast2('↩️ Ripristinato');}});
-if(cur&&cur.id===id){cur=null;document.getElementById('pTitle').textContent='NCC Milano';document.getElementById('sList').innerHTML='';listRows=[];document.getElementById('pProg').textContent='Seleziona un percorso';document.getElementById('pBar').style.width='0%';document.getElementById('rstBtn').style.display='none';var _pb2=document.getElementById('playBtn');if(_pb2)_pb2.style.display='none';if(typeof stopAutoplay==='function')stopAutoplay();document.getElementById('pStat').textContent='';if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}cancelDraw();clearLines();}
+if(cur&&cur.id===id){cur=null;step=0;_prevActive=-1;setTxt('pTitle','NCC Milano');setHTML('sList','');listRows=[];setTxt('pProg','Seleziona un percorso');var _pbar=$id('pBar');if(_pbar)_pbar.style.width='0%';var _rb=$id('rstBtn');if(_rb)_rb.style.display='none';var _pb2=$id('playBtn');if(_pb2)_pb2.style.display='none';if(typeof stopAutoplay==='function')stopAutoplay();setTxt('pStat','');if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}cancelDraw();clearLines();}/*[FIX] reset step/_prevActive + DOM sicuro*/
 renderMgr();
 }
 
@@ -885,6 +893,7 @@ document.getElementById('qPct').textContent=Math.round(ans/Q.items.length*100)+'
 function qTick(){
 if(!Q)return;
 const clk=document.getElementById('qClock');
+if(!clk){if(Q.mode==='exam'){const rem=Q.limit-Q.elapsed;if(rem<=0){qFinish(true);return;}}Q.elapsed++;return;}/*[FIX] se il clock non è nel DOM, gestisci comunque il tempo senza crashare*/
 if(Q.mode==='exam'){
 const rem=Q.limit-Q.elapsed;
 if(rem===300)toast2('⏳ 5 minuti alla fine');
@@ -902,21 +911,22 @@ function fmtT(s){s=Math.max(0,s|0);const m=Math.floor(s/60),x=s%60;return (m<10?
 let qUtter=null;
 function qSpeak(){
 if(!('speechSynthesis'in window)){toast2('🔇 Sintesi vocale non disponibile');return;}
+if(!Q||!Q.items[Q.idx])return;/*[FIX] niente Q -> esci*/
 const btn=document.getElementById('qListen');
 if(speechSynthesis.speaking){qStopSpeak();return;}
 const it=Q.items[Q.idx];const LET=Array.from({length:Math.max(4,(Q&&Q.items[Q.idx]?Q.items[Q.idx].choices.length:4))},(_,i)=>String.fromCharCode(65+i));
 let txt=it.q+'. ';it.choices.forEach((c,i)=>txt+=LET[i]+'. '+c+'. ');
 qUtter=new SpeechSynthesisUtterance(txt);qUtter.lang=it.cat==='lingua'?'en-GB':'it-IT';qUtter.rate=.96;
-qUtter.onend=()=>btn.classList.remove('playing');
-qUtter.onerror=()=>btn.classList.remove('playing');
-btn.classList.add('playing');speechSynthesis.speak(qUtter);
+qUtter.onend=()=>{if(btn)btn.classList.remove('playing');};/*[FIX] guardia btn*/
+qUtter.onerror=()=>{if(btn)btn.classList.remove('playing');};
+if(btn)btn.classList.add('playing');speechSynthesis.speak(qUtter);
 }
 function qStopSpeak(){try{if('speechSynthesis'in window)speechSynthesis.cancel();}catch(e){}const b=document.getElementById('qListen');if(b)b.classList.remove('playing');}
 
 /* ── USCITA / FINE ── */
 function qConfirmExit(){
 if(confirm('Vuoi uscire dal quiz? I progressi di questa sessione andranno persi.')){
-if(Q&&Q.timer)clearInterval(Q.timer);qStopSpeak();renderDash();showQView('dash');
+if(Q&&Q.timer){clearInterval(Q.timer);Q.timer=null;}Q=null;qStopSpeak();renderDash();showQView('dash');/*[FIX] azzera Q e timer, graffe esplicite*/
 }
 }
 function qFinish(timeout){
@@ -1730,7 +1740,7 @@ function step(now){if(tok!==_slideTok)return;var k=Math.min(1,(now-t0)/dur),e=1-
 requestAnimationFrame(step);
 }
 /* scia luminosa: una polilinea che appare e svanisce tra la via precedente e quella nuova */
-let _trail=null,_trailTok=0;
+/* scia luminosa: una polilinea che appare e svanisce tra la via precedente e quella nuova */
 function trailFx(from,to){
 if(!map||prefersReducedMotion())return;
 try{if(_trail){map.removeLayer(_trail);_trail=null;}}catch(e){}
