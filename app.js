@@ -100,6 +100,7 @@ let _revealed=false; /* [PUNTO 3] modalità Cieco: via attiva scoperta solo dopo
 let tx0=0,ty0=0,lastRnd=-1,nmTimer=null;
 let userMovedMap=false,_progMove=false; /* [PUNTO 2] rispetto del movimento manuale della mappa */
 let _multiTouch=false; /* [FIX pinch] true durante gesti a due dita (zoom) */
+let _zooming=false,_lastZoomT=0,_touchN=0; /* [FIX zoom v2] stato zoom mappa */
 
 function initMap(){
 map=L.map('map',{zoomControl:false}).setView([45.4642,9.1900],13);
@@ -108,7 +109,8 @@ window._tileLayer=L.tileLayer(TILE_LABELS,{attribution:'© OpenStreetMap © CART
 L.control.zoom({position:'topright'}).addTo(map);
 /* [PUNTO 2] rileva quando l'utente muove/zooma la mappa di sua mano: da quel momento non forziamo il ricentraggio */
 map.on('dragstart',()=>{userMovedMap=true;});
-map.on('zoomstart',(e)=>{/* lo zoom programmato non conta come "manuale" */ if(!_progMove)userMovedMap=true;});
+map.on('zoomstart',(e)=>{_zooming=true;if(!_progMove)userMovedMap=true;});/*[FIX zoom v2] in zoom*/
+map.on('zoomend',(e)=>{_zooming=false;_lastZoomT=Date.now();});/*[FIX zoom v2] timestamp fine zoom*/
 map.on('movestart',(e)=>{if(!_progMove)userMovedMap=true;});
 map.on('click',e=>{
 if(plIdx===null||!cur)return;
@@ -116,13 +118,18 @@ const k=`${cur.id}_${plIdx}`;coords[k]={lat:e.latlng.lat,lon:e.latlng.lng};
 save();autoSave();putMkr(e.latlng.lat,e.latlng.lng,cur.steps[plIdx],k);
 rebuildLines();stopPl();renderList();toast2('📍 Salvato');hap('m');
 });
-document.getElementById('map').addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;_multiTouch=e.touches.length>1;},{passive:true});
-document.getElementById('map').addEventListener('touchmove',e=>{if(e.touches.length>1)_multiTouch=true;},{passive:true});/*[FIX pinch] segna se in qualunque momento ci sono 2+ dita*/
-document.getElementById('map').addEventListener('touchend',e=>{
-if(plIdx!==null){_multiTouch=false;return;}
-if(_multiTouch||e.touches.length>0){_multiTouch=false;return;}/*[FIX pinch] niente swipe se c'è stato un gesto multi-dito (zoom)*/
+var _mapEl=document.getElementById('map');
+_mapEl.addEventListener('touchstart',e=>{if(e.touches.length===1){tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;}_touchN=e.touches.length;_multiTouch=e.touches.length>1;},{passive:true});
+_mapEl.addEventListener('touchmove',e=>{if(e.touches.length>1){_multiTouch=true;_touchN=e.touches.length;}},{passive:true});
+_mapEl.addEventListener('touchend',e=>{
+var wasMulti=_multiTouch,started=_touchN;_touchN=e.touches.length;
+if(e.touches.length>0){return;} /* dita ancora sullo schermo: non è la fine del gesto */
+_multiTouch=false;
+if(plIdx!==null)return;
+/* [FIX zoom v2] blocca lo swipe se: posizionamento, gesto multi-dito, in zoom, o appena finito uno zoom (<450ms) */
+if(wasMulti||started>1||_zooming||(Date.now()-_lastZoomT)<450)return;
 const dx=e.changedTouches[0].clientX-tx0,dy=Math.abs(e.changedTouches[0].clientY-ty0);
-if(Math.abs(dx)>55&&dy<40){dx<0?nextS():prevS();}
+if(Math.abs(dx)>60&&dy<35){dx<0?nextS():prevS();}/*[FIX zoom v2] soglia un po' più severa*/
 },{passive:true});
 initDrag();
 injectRecenterBtn();/*[PUNTO 2]*/
@@ -144,6 +151,13 @@ map.on('moveend',()=>{if(!userMovedMap)showRecenter(false);});
 }catch(e){}
 }
 function showRecenter(on){var b=document.getElementById('recenterBtn');if(b)b.classList.toggle('hidden',!on);}
+/* [FIX grigio] ridisegna la mappa Leaflet quando lo spazio cambia (throttle con rAF) */
+let _resizePending=false;
+function mapResizeSoon(){
+if(_resizePending||!map)return;
+_resizePending=true;
+requestAnimationFrame(()=>{_resizePending=false;try{map.invalidateSize({pan:false});}catch(e){}});
+}
 function initDrag(){
 const panel=document.getElementById('panel'),h=document.getElementById('pdrag');
 const head=document.querySelector('#panel .phead');
@@ -159,8 +173,9 @@ const dy=sy-e.touches[0].clientY;
 panel.style.maxHeight=Math.min(window.innerHeight*.84,Math.max(120,sh+dy))+'px';
 if(Math.abs(dy)>4)moved=true;
 if(moved&&e.cancelable)e.preventDefault(); /* blocca lo scroll pagina solo durante il drag della maniglia */
+mapResizeSoon();/*[FIX grigio] aggiorna la mappa mentre il pannello cambia altezza*/
 }
-function onEnd(){if(!dr)return;dr=false;panel.style.transition='';panel.classList.remove('dragging');if(moved)applyClosest(panel.getBoundingClientRect().height);}
+function onEnd(){if(!dr)return;dr=false;panel.style.transition='';panel.classList.remove('dragging');if(moved)applyClosest(panel.getBoundingClientRect().height);mapResizeSoon();setTimeout(mapResizeSoon,350);/*[FIX grigio] dopo lo snap*/}
 /* IMPORTANTE: il drag parte SOLO da maniglia e header, MAI dalla lista (così i tap sulle vie e lo scroll restano liberi) */
 [h,head].forEach(el=>{
 if(!el)return;
@@ -683,7 +698,7 @@ function checkPwa(){try{const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent
 function closePwa(){document.getElementById('pwaBanner').style.display='none';ls('pwaDismissed',true);}
 
 /* ── HOME NAV ── */
-function goTopografia(){setAccent('topo');const h=document.getElementById('homeScreen');if(h)h.style.display='none';const hb=document.getElementById('homeBtn');if(hb)hb.style.display='flex';try{if(map)map.invalidateSize();}catch(e){}setMode('s');try{pushTrap();}catch(e){}}
+function goTopografia(){setAccent('topo');const h=document.getElementById('homeScreen');if(h)h.style.display='none';const hb=document.getElementById('homeBtn');if(hb)hb.style.display='flex';try{if(map)map.invalidateSize();}catch(e){}setMode('s');[60,250,500].forEach(t=>setTimeout(mapResizeSoon,t));/*[FIX grigio] la mappa misura bene solo a layout stabilizzato*/try{pushTrap();}catch(e){}}
 function goHome(){closeQuiz();setAccent('');if(typeof stopAutoplay==='function')stopAutoplay();const hb=document.getElementById('homeBtn');if(hb)hb.style.display='none';const h=document.getElementById('homeScreen');if(h)h.style.display='flex';try{showStreak();renderReadiness();}catch(e){}}
 function goQuiz(){openQuiz();}
 
@@ -1104,6 +1119,7 @@ try{buildQuiz();}catch(e){console.warn('quiz build',e);}
 try{buildLuoghi();}catch(e){console.warn('luoghi build',e);}
 try{restoreLast();}catch(e){console.warn('restore',e);}
 try{initSegThumb();}catch(e){}
+[120,400,800,1300].forEach(t=>setTimeout(()=>{try{mapResizeSoon();}catch(e){}},t));/*[FIX grigio] cattura il layout quando si stabilizza dopo il load*/
 setTimeout(()=>{const s=document.getElementById('splash');if(s)s.classList.add('hide');},900);
 setTimeout(()=>{try{checkPwa();}catch(e){}},100);
 setTimeout(()=>{
