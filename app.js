@@ -99,6 +99,7 @@ let _prevActive=-1; /* [FIX] dichiarato in cima: selectRoute lo resetta prima de
 let _revealed=false; /* [PUNTO 3] modalità Cieco: via attiva scoperta solo dopo "Rivela" */
 let tx0=0,ty0=0,lastRnd=-1,nmTimer=null;
 let userMovedMap=false,_progMove=false; /* [PUNTO 2] rispetto del movimento manuale della mappa */
+let _multiTouch=false; /* [FIX pinch] true durante gesti a due dita (zoom) */
 
 function initMap(){
 map=L.map('map',{zoomControl:false}).setView([45.4642,9.1900],13);
@@ -115,9 +116,11 @@ const k=`${cur.id}_${plIdx}`;coords[k]={lat:e.latlng.lat,lon:e.latlng.lng};
 save();autoSave();putMkr(e.latlng.lat,e.latlng.lng,cur.steps[plIdx],k);
 rebuildLines();stopPl();renderList();toast2('📍 Salvato');hap('m');
 });
-document.getElementById('map').addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;},{passive:true});
+document.getElementById('map').addEventListener('touchstart',e=>{tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;_multiTouch=e.touches.length>1;},{passive:true});
+document.getElementById('map').addEventListener('touchmove',e=>{if(e.touches.length>1)_multiTouch=true;},{passive:true});/*[FIX pinch] segna se in qualunque momento ci sono 2+ dita*/
 document.getElementById('map').addEventListener('touchend',e=>{
-if(plIdx!==null)return;
+if(plIdx!==null){_multiTouch=false;return;}
+if(_multiTouch||e.touches.length>0){_multiTouch=false;return;}/*[FIX pinch] niente swipe se c'è stato un gesto multi-dito (zoom)*/
 const dx=e.changedTouches[0].clientX-tx0,dy=Math.abs(e.changedTouches[0].clientY-ty0);
 if(Math.abs(dx)>55&&dy<40){dx<0?nextS():prevS();}
 },{passive:true});
@@ -145,10 +148,11 @@ function initDrag(){
 const panel=document.getElementById('panel'),h=document.getElementById('pdrag');
 const head=document.querySelector('#panel .phead');
 if(!panel||window.innerWidth>=768)return;
+if(!panel.querySelector('.snap-ticks')){var _t=document.createElement('div');_t.className='snap-ticks';_t.innerHTML='<i></i><i></i><i></i>';panel.appendChild(_t);}/*(6) tacche snap*/
 let sy=0,sh=0,dr=false,moved=false;
 function snapVals(){const H=window.innerHeight;return[140,Math.round(H*.52),Math.round(H*.78)];}
 function applyClosest(curH){const opts=snapVals();let best=opts[0],bd=1e9;opts.forEach(v=>{const d=Math.abs(v-curH);if(d<bd){bd=d;best=v;}});panel.style.maxHeight=best+'px';}
-function onStart(e){dr=true;moved=false;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';}
+function onStart(e){dr=true;moved=false;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';panel.classList.add('dragging');}
 function onMove(e){
 if(!dr)return;
 const dy=sy-e.touches[0].clientY;
@@ -156,7 +160,7 @@ panel.style.maxHeight=Math.min(window.innerHeight*.84,Math.max(120,sh+dy))+'px';
 if(Math.abs(dy)>4)moved=true;
 if(moved&&e.cancelable)e.preventDefault(); /* blocca lo scroll pagina solo durante il drag della maniglia */
 }
-function onEnd(){if(!dr)return;dr=false;panel.style.transition='';if(moved)applyClosest(panel.getBoundingClientRect().height);}
+function onEnd(){if(!dr)return;dr=false;panel.style.transition='';panel.classList.remove('dragging');if(moved)applyClosest(panel.getBoundingClientRect().height);}
 /* IMPORTANTE: il drag parte SOLO da maniglia e header, MAI dalla lista (così i tap sulle vie e lo scroll restano liberi) */
 [h,head].forEach(el=>{
 if(!el)return;
@@ -243,6 +247,7 @@ let wb=null;
 if(wm[i]>0){wb=document.createElement('span');wb.className='wb';wb.textContent=wm[i]+'✗';d.appendChild(wb);}
 d.appendChild(cb);
 d._nm=nm;d._wb=wb;
+if(i<12&&!prefersReducedMotion()){d.classList.add('casc');d.style.animationDelay=(i*0.028)+'s';}/*(18) cascata leggera solo sulle prime righe*/
 f.appendChild(d);listRows.push(d);
 });
 c.innerHTML='';c.appendChild(f);
@@ -935,11 +940,15 @@ qBmRender();
 }
 function qRenderPills(){
 let h='';
+const showRes=Q.mode==='study';/*(26) colori esito solo in studio*/
 Q.items.forEach((it,i)=>{
 const ans=Q.ans[i]>=0,cur=i===Q.idx;
-h+=`<button class="qpill${cur?' cur':''}${ans?' ans':''}" onclick="qJump(${i})">${i+1}</button>`;
+let extra='';
+if(showRes&&ans){extra=Q.ans[i]===it.correct?' good':' bad';}
+else if(ans){extra=' ans';}
+h+=`<button class="qpill${cur?' cur':''}${extra}" onclick="qJump(${i})">${i+1}</button>`;
 });
-const p=document.getElementById('qPills');p.innerHTML=h;
+const p=document.getElementById('qPills');if(!p)return;p.innerHTML=h;
 const cu=p.querySelector('.qpill.cur');if(cu)cu.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
 }
 function qPick(i){
@@ -973,7 +982,7 @@ const rem=Q.limit-Q.elapsed;
 if(rem===300)toast2('⏳ 5 minuti alla fine');
 if(rem===60)toast2('⏳ 1 minuto alla fine');
 if(rem<=0){clk.textContent='00:00';qFinish(true);return;}
-clk.textContent=fmtT(rem);clk.classList.toggle('warn',rem<=60);var _tb=document.getElementById('qTimeBar');if(_tb){_tb.classList.add('on');_tb.classList.toggle('warn',rem<=60);var _i=_tb.firstElementChild;if(_i)_i.style.transform='scaleX('+Math.max(0,rem/Q.limit)+')';}
+clk.textContent=fmtT(rem);clk.classList.toggle('warn',rem<=60);var _tb=document.getElementById('qTimeBar');if(_tb){_tb.classList.add('on');var _frac=rem/Q.limit;_tb.classList.toggle('warn',rem<=60);_tb.classList.toggle('mid',rem>60&&_frac<=.5);/*(27) fascia intermedia*/var _i=_tb.firstElementChild;if(_i)_i.style.transform='scaleX('+Math.max(0,_frac)+')';}
 }else{
 clk.textContent=fmtT(Q.elapsed);clk.classList.remove('warn');var _tb=document.getElementById('qTimeBar');if(_tb)_tb.classList.remove('on');
 }
@@ -1051,7 +1060,7 @@ countUp(document.getElementById('qResSkip'),skip);
 countUp(document.getElementById('qResErr'),err);
 const argBox=document.getElementById('qResArgs');
 if(Q.mode==='exam'){
-let bh=QARG.map(c=>{const e=argErr[c.id]||0,t=argTot[c.id]||0;const bad=e>Q.maxPerCat;return `<div class="qarg-box${bad?' bad':''}"><span class="qarg-lbl">${c.emoji} ${c.label}</span><span class="qarg-val">${e}<small>/${t}</small></span></div>`;}).join('');
+let bh=QARG.map(c=>{const e=argErr[c.id]||0,t=argTot[c.id]||0;const bad=e>Q.maxPerCat;const _p=t?Math.round(e/t*100):0;return `<div class="qarg-box${bad?' bad':''}" style="--argpct:${_p}%"><span class="qarg-lbl">${c.emoji} ${c.label}</span><span class="qarg-val">${e}<small>/${t}</small></span></div>`;}).join('');/*(29) mini-barra errori*/
 argBox.innerHTML='<div class="qarg-title">Errori per argomento <span>(max 2 per argomento)</span></div><div class="qarg-grid">'+bh+'</div>';
 argBox.style.display='block';
 }else{argBox.style.display='none';}
