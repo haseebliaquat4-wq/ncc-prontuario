@@ -9,6 +9,13 @@
 <meta name="theme-color" content="#2B59C3">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<!-- [VELOCITÀ] connessioni anticipate: tile mappa e CDN arrivano prima -->
+<link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin>
+<link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin>
+<link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin>
+<link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="styles.css">
 
@@ -87,13 +94,16 @@
 <button onclick="openWrong();cm()"><span class="mi">🔁</span>Vie da ripassare</button>
 <div class="mi-sep"></div>
 <button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
+<button onclick="togSnd()"><span class="mi" id="sndIcon">🔊</span>Suoni</button>
+<button onclick="togVib()"><span class="mi" id="vibIcon">📳</span>Vibrazione</button>
+<div class="mi-sep"></div>
 <button onclick="doExport();cm()"><span class="mi">📤</span>Esporta backup</button>
 <button onclick="doImport();cm()"><span class="mi">📥</span>Importa backup</button>
 <button onclick="cloudSave();cm()"><span class="mi">💾</span>Salva su cloud</button>
 <div class="mi-sep"></div>
 <button onclick="doReset();cm()" class="red"><span class="mi">🗑️</span>Reimposta tutto</button>
 <div class="mi-sep"></div>
-<button onclick="cm()" style="color:var(--mu);font-size:12px;justify-content:center;font-weight:600" id="verItem">NCC Milano · v2 · 22/06/2026</button>
+<button onclick="cm()" style="color:var(--mu);font-size:12px;justify-content:center;font-weight:600" id="verItem">NCC Milano · v3 · 07/07/2026</button>
 </div>
 </div>
 </div>
@@ -460,6 +470,14 @@
 </div>
 </div>
 
+<!-- ════ TAB BAR (navigazione rapida sempre visibile) ════ -->
+<nav id="tabbar" aria-label="Navigazione principale">
+<button class="tab on" data-t="home" onclick="tabGo('home')"><span class="tb-ic">🏠</span><span class="tb-lb">Home</span></button>
+<button class="tab" data-t="topo" onclick="tabGo('topo')"><span class="tb-ic">🗺️</span><span class="tb-lb">Mappa</span></button>
+<button class="tab" data-t="quiz" onclick="tabGo('quiz')"><span class="tb-ic">📝</span><span class="tb-lb">Quiz</span></button>
+<button class="tab" data-t="studio" onclick="tabGo('studio')"><span class="tb-ic">📚</span><span class="tb-lb">Studio</span></button>
+</nav>
+
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -470,5 +488,39 @@
 <script src="quiz-data.js?v=2"></script>
 <script src="luoghi-data.js?v=2"></script>
 
-<script src="app.js"></script>
+<script src="app.js?v=3"></script>
+
+<!-- ════ collegamento TAB BAR (dopo app.js) ════ -->
+<script>
+function tabSet(t){try{document.querySelectorAll('#tabbar .tab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t);});}catch(e){}}
+function tabGo(t){
+/* protezione: se sei nel mezzo di un esame o di un ripasso, chiedi conferma */
+try{
+if(typeof Q!=='undefined'&&Q&&typeof qCurView!=='undefined'&&qCurView==='run'){
+if(!confirm('Sei in un quiz: uscire? I progressi della sessione andranno persi.'))return;
+if(Q.timer){clearInterval(Q.timer);Q.timer=null;}Q=null;try{qStopSpeak();}catch(e){}
+}
+if(typeof SS!=='undefined'&&SS){
+if(!confirm('Sei in un ripasso: uscire?'))return;
+SS=null;try{sdRestoreCardWrap();}catch(e){}
+}
+}catch(e){}
+try{
+goHome(); /* chiude quiz/studio/topografia aperti */
+if(t==='topo')goTopografia();
+else if(t==='quiz')openQuiz();
+else if(t==='studio')openStudy();
+}catch(e){}
+try{hap();}catch(e){}
+}
+/* mantiene la tab evidenziata anche quando si naviga da altri punti (header, home card, tasto indietro) */
+(function(){
+try{
+var _gh=goHome;goHome=function(){_gh();tabSet('home');};
+var _gt=goTopografia;goTopografia=function(){_gt();tabSet('topo');};
+var _oq=openQuiz;openQuiz=function(){_oq();tabSet('quiz');};
+var _os=openStudy;openStudy=function(){_os();tabSet('studio');};
+}catch(e){}
+})();
+</script>
 </body>
