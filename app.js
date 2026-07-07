@@ -423,7 +423,7 @@ hap();
 
 /* ── LINES (ottimizzata: riusa i layer con setLatLngs invece di ricrearli/rianimarli) ── */
 function cancelDraw(){drawTok++;}
-function clearLines(){if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}if(typeof _trail!=='undefined'&&_trail){try{map.removeLayer(_trail);}catch(e){}_trail=null;_trailTok++;}/*[FIX] pulisce la scia*/}
+function clearLines(){try{clearTimeout(_followTimer);}catch(e){}/*[FIX] annulla il follow in sospeso al cambio percorso*/if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}if(typeof _trail!=='undefined'&&_trail){try{map.removeLayer(_trail);}catch(e){}_trail=null;_trailTok++;}/*[FIX] pulisce la scia*/}
 /* [ANTI-LAG] ricalcola le frecce del percorso al massimo una volta ogni ~140ms:
 scorrendo veloce le tappe, il decorator (operazione pesante) non viene rifatto a ogni passo */
 let _decorTimer=null;
@@ -431,7 +431,7 @@ function decorSoon(line){
 clearTimeout(_decorTimer);
 _decorTimer=setTimeout(()=>{
 try{
-if(!map||!line)return;
+if(!map||!line||line!==dL)return;/*[FIX] layer obsoleto (percorso cambiato/eliminato): niente frecce fantasma*/
 if(dDec)dDec.setPaths(line);
 else dDec=L.polylineDecorator(line,{patterns:[{offset:'6%',repeat:'120px',symbol:L.Symbol.arrowHead({pixelSize:12,pathOptions:{color:getAccent(),weight:2}})}]}).addTo(map);
 }catch(e){}
@@ -1206,7 +1206,7 @@ try{initFB();if(fbOk)syncFromCloud();}catch(e){console.warn('fb',e);}/*[FIX v5] 
 /* tastiera */
 var _qaEl=document.getElementById('qa');if(_qaEl)_qaEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkQ();}});/*[FIX v5] guardia: se #qa manca non blocca i listener successivi*/
 document.addEventListener('keydown',e=>{
-if(e.key==='Escape'){closeAllM();const qa=document.getElementById('quizApp');if(qCurOpen()&&qCurView==='run'){/*stay*/}cm();document.getElementById('sugg').style.display='none';}
+if(e.key==='Escape'){closeAllM();cm();document.getElementById('sugg').style.display='none';}
 if(document.activeElement&&['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
 if(qCurOpen()){
 if(qCurView==='run'){
@@ -1724,7 +1724,7 @@ function sdLen(){return SS.mode==='luoghi'?SS.deck.length:SS.cards.length;}
 function sdRenderCard(){
 if(!SS)return;
 const tot=sdLen(),c=sdCur();
-document.getElementById('sdRunBar').style.width=Math.round(SS.idx/tot*100)+'%';
+document.getElementById('sdRunBar').style.width=Math.round((SS.idx+1)/tot*100)+'%';/*[FIX] barra piena sull'ultima carta*/
 document.getElementById('sdRunCount').textContent=(SS.idx+1)+'/'+tot;
 SS.flipped=false;
 var _cc=document.getElementById('sdCard');if(_cc)_cc.classList.remove('flip');
@@ -1749,8 +1749,8 @@ hap();
 }
 function sdAnswer(known){
 if(!SS)return;
-const c=sdCur(),cur=studyProg[c.key]||0;
-studyProg[c.key]=known?Math.min(5,cur+1):0;
+const c=sdCur(),lvl=studyProg[c.key]||0;/*[FIX] niente shadowing di cur*/
+studyProg[c.key]=known?Math.min(5,lvl+1):0;
 sdSave();hap(known?'m':'e');
 SS.idx++;
 if(SS.idx>=sdLen())sdFinish();else sdRenderCard();
@@ -1873,11 +1873,11 @@ var b=document.createElement('div');b.className='joy-badge';
 b.textContent='\uD83C\uDF89 Percorso completato!';
 document.body.appendChild(b);
 setTimeout(function(){if(b.parentNode)b.remove();},2000);
-try{hap('e');}catch(e){}
+try{if(vibOn&&navigator.vibrate)navigator.vibrate([10,10,10]);}catch(e){}/*[FIX] niente suono errore sulla celebrazione: solo vibrazione festosa*/
 }
 
 /* ===== v2b: ricerca-Invio, ripetizione spaziata, storico esami ===== */
-function sbKey(e){if(e.key!=='Enter')return;e.preventDefault();var q=(document.getElementById('sb').value||'').toUpperCase().trim();var res=q?routes.filter(function(r){return r.title.includes(q)||r.steps.some(function(s){return s.includes(q);});}):routes;if(res&&res.length)selectRoute(res[0]);}
+function sbKey(e){if(e.key!=='Enter')return;e.preventDefault();var q=(document.getElementById('sb').value||'').toUpperCase().trim();if(!q)return;/*[FIX] Invio a vuoto: nessuna selezione casuale*/var res=q?routes.filter(function(r){return r.title.includes(q)||r.steps.some(function(s){return s.includes(q);});}):routes;if(res&&res.length)selectRoute(res[0]);}
 
 function srDue(id){var e=qtStats.err[id];return (e&&typeof e==='object')?(e.due||0):0;}
 function srMark(id,correct){
@@ -1959,7 +1959,7 @@ w.innerHTML='<div class="ready-card"><div class="ready-ring"><svg width="84" hei
 
 function qBmRender(){if(typeof Q==='undefined'||!Q)return;qtStats.bm=qtStats.bm||{};var it=Q.items[Q.idx];var bm=document.getElementById('qBm');if(bm){var on=!!qtStats.bm[it.id];bm.textContent=on?'★':'☆';bm.classList.toggle('on',on);}}
 function qToggleBm(){if(typeof Q==='undefined'||!Q)return;qtStats.bm=qtStats.bm||{};var id=Q.items[Q.idx].id;if(qtStats.bm[id])delete qtStats.bm[id];else qtStats.bm[id]=1;try{qtSave();}catch(e){}qBmRender();hap();toast2(qtStats.bm[id]?'★ Aggiunta ai segnalibri':'Rimossa dai segnalibri');}
-function qReportQ(){if(typeof Q==='undefined'||!Q)return;qtStats.report=qtStats.report||{};var id=Q.items[Q.idx].id;qtStats.report[id]=1;try{qtSave();}catch(e){}hap('e');toast2('⚐ Domanda segnalata, grazie');}
+function qReportQ(){if(typeof Q==='undefined'||!Q)return;qtStats.report=qtStats.report||{};var id=Q.items[Q.idx].id;qtStats.report[id]=1;try{qtSave();}catch(e){}hap();toast2('⚐ Domanda segnalata, grazie');}
 function qDashExtra(){try{qtStats.bm=qtStats.bm||{};var n=Object.keys(qtStats.bm).length;var wrap=document.getElementById('qTilesArg');if(!wrap||!n)return;var b=document.createElement('button');b.className='qtile';b.onclick=function(){qStartCat('bm');};b.innerHTML='<div class="qtile-ic" style="background:rgba(255,149,0,.14)">★</div><div class="qtile-tx"><strong>Segnalibri</strong><small>'+n+' domande salvate</small></div><div class="qtile-ar">›</div>';wrap.appendChild(b);}catch(e){}}
 
 let _autoTimer=null;
