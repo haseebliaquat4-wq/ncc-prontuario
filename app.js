@@ -88,8 +88,60 @@ function applyDark(){document.body.classList.toggle('dark',dark);var _di=$id('dk
 function togDark(){dark=!dark;ls('dark',dark);applyDark();if(typeof renderDash==='function'&&document.getElementById('quizApp').classList.contains('open'))renderDash();}
 applyDark();
 
-/* ── HAPTIC ── */
-function hap(t){try{if(!navigator.vibrate)return;navigator.vibrate(t==='m'?20:t==='e'?[10,10,10]:10);}catch(e){}}
+/* ── SUONI + VIBRAZIONE ──
+   Preferenze salvate: sndOn (suoni), vibOn (vibrazione). Default: entrambi attivi.
+   I suoni usano la Web Audio API: nessun file esterno, funzionano offline nella PWA. */
+let sndOn=lg('sndOn',true);
+let vibOn=lg('vibOn',true);
+let _ac=null;
+function _audioCtx(){
+try{if(!_ac){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;_ac=new AC();}
+if(_ac.state==='suspended')_ac.resume();/* iOS: sblocca l'audio dopo il primo tocco */
+return _ac;}catch(e){return null;}
+}
+/* riproduce una breve nota (o sequenza) senza scatti, con dissolvenza */
+function _tone(freq,dur,type,vol,when){
+var ac=_audioCtx();if(!ac)return;
+try{
+var t=when||ac.currentTime;
+var o=ac.createOscillator(),g=ac.createGain();
+o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+var v=vol==null?.09:vol;
+g.gain.setValueAtTime(0.0001,t);
+g.gain.exponentialRampToValueAtTime(v,t+0.012); /* attacco morbido */
+g.gain.exponentialRampToValueAtTime(0.0001,t+dur); /* rilascio: niente click */
+o.connect(g);g.connect(ac.destination);
+o.start(t);o.stop(t+dur+0.02);
+}catch(e){}
+}
+/* mappa i tipi ai suoni: 'm'=successo, 'e'=errore, 'win'=celebrazione, default=tap */
+function snd(t){
+if(!sndOn)return;
+var ac=_audioCtx();if(!ac)return;var n=ac.currentTime;
+if(t==='m'){ /* successo: due note ascendenti */
+_tone(660,.12,'sine',.08,n);_tone(990,.16,'sine',.08,n+.10);
+}else if(t==='e'){ /* errore: nota bassa, breve */
+_tone(180,.18,'square',.06,n);
+}else if(t==='win'){ /* celebrazione: arpeggio allegro */
+[523,659,784,1047].forEach(function(f,i){_tone(f,.18,'triangle',.09,n+i*.09);});
+}else{ /* tap: click discreto e cortissimo */
+_tone(420,.05,'sine',.05,n);
+}
+}
+/* hap = feedback unico (vibrazione + suono) — così tutti i punti esistenti suonano già */
+function hap(t){
+try{if(vibOn&&navigator.vibrate)navigator.vibrate(t==='m'?20:t==='e'?[10,10,10]:10);}catch(e){}
+try{snd(t);}catch(e){}
+}
+/* toggle da menu impostazioni */
+function togSnd(){sndOn=!sndOn;ls('sndOn',sndOn);if(sndOn)snd('m');updateAvToggles();toast2(sndOn?'🔊 Suoni attivati':'🔇 Suoni disattivati');}
+function togVib(){vibOn=!vibOn;ls('vibOn',vibOn);if(vibOn&&navigator.vibrate)try{navigator.vibrate(20);}catch(e){}updateAvToggles();toast2(vibOn?'📳 Vibrazione attivata':'📴 Vibrazione disattivata');}
+function updateAvToggles(){
+var s=document.getElementById('sndIcon');if(s)s.textContent=sndOn?'🔊':'🔇';
+var v=document.getElementById('vibIcon');if(v)v.textContent=vibOn?'📳':'📴';
+var sb=document.getElementById('sndBtn');if(sb)sb.classList.toggle('on',sndOn);
+var vb=document.getElementById('vibBtn');if(vb)vb.classList.toggle('on',vibOn);
+}
 
 /* ── MAPPA ── */
 let map,mkr=null,dL=null,dDec=null,nL=null,dFlow=null;
@@ -318,33 +370,46 @@ var _nf=$id('nf');if(_nf)_nf.style.display=mode==='q'?'none':'block';
 var _qf=$id('qf');if(_qf)_qf.style.display=mode==='q'?'block':'none';
 if(mode==='q'){var _qa=$id('qa');if(_qa)_qa.value='';setTxt('qfb','');}
 }
+let _followTimer=null;
 function goStep(){
 if(!cur||!map)return;
 const k=cur.id+'_'+step;
 if(coords[k]){
 const lat=coords[k].lat,lon=coords[k].lon;
 putMkr(lat,lon,cur.steps[step],k);
-try{
-const ll=L.latLng(lat,lon);
-const outOfView=!map.getBounds().pad(-0.18).contains(ll); /* punto vicino o oltre il bordo */
-const fullyOut=!map.getBounds().contains(ll); /* punto proprio fuori schermo */
-/* Regole:
-- se il marker è completamente fuori vista -> ricentra sempre (anche dopo pan manuale)
-- altrimenti, se l'utente NON ha mosso la mappa a mano -> mantieni il marker comodo (pan se vicino al bordo, o porta a zoom utile)
-- se l'utente HA mosso la mappa a mano -> non forzare nulla finché il punto resta visibile */
-let didMove=false;
-if(fullyOut){_progMove=true;map.setView(ll,Math.max(map.getZoom(),15),{animate:true,duration:.35});didMove=true;}
-else if(!userMovedMap){
-if(map.getZoom()<15){_progMove=true;map.setView(ll,15,{animate:true,duration:.3});didMove=true;}
-else if(outOfView){_progMove=true;map.panTo(ll,{animate:true,duration:.3});didMove=true;}
-}
-/* dopo un ricentraggio programmato, abbassa i flag a fine animazione */
-if(didMove){map.once('moveend',()=>{_progMove=false;userMovedMap=false;});}
-}catch(e){_progMove=false;}
+followMap(lat,lon); /* [ANTI-LAG] il ricentraggio è deferito e debounced (vedi followMap) */
 hideNM();
 }
 else{if(mkr){try{map.removeLayer(mkr);}catch(e){}mkr=null;}updateUI();showNM();}
 rebuildLines();
+}
+/* [FOLLOW v5 + ANTI-LAG] la mappa segue il percorso ad ogni avanti/indietro:
+inquadra una finestra di 3 tappe (precedente + attuale + successiva) con zoom
+clampato tra 13 e 16 — mai troppo vicino né lontano. Il movimento è debounced:
+se scorri veloce, si anima solo una volta all'ultima tappa (niente animazioni accodate). */
+function followMap(lat,lon){
+if(!map)return;
+clearTimeout(_followTimer);
+_followTimer=setTimeout(()=>{
+if(!cur||!map)return;
+try{
+const ll=L.latLng(lat,lon);
+const win=[];
+for(let di=-1;di<=1;di++){const kk=cur.id+'_'+(step+di);if(coords[kk])win.push([coords[kk].lat,coords[kk].lon]);}
+_progMove=true;
+if(win.length>1){
+const bb=L.latLngBounds(win);
+let tz=map.getBoundsZoom(bb,false,L.point(70,70));
+if(tz>16)tz=16;
+if(tz<13)map.setView(ll,13,{animate:true,duration:.4});
+else map.setView(bb.getCenter(),tz,{animate:true,duration:.4});
+}else{
+let z=map.getZoom();if(z<14||z>16)z=15;
+map.setView(ll,z,{animate:true,duration:.35});
+}
+map.once('moveend',()=>{_progMove=false;userMovedMap=false;});
+}catch(e){_progMove=false;}
+},90);
 }
 /* [PUNTO 2] pulsante "ricentra": riporta il punto al centro e riattiva il tracking automatico */
 function recenterMap(){
@@ -359,6 +424,19 @@ hap();
 /* ── LINES (ottimizzata: riusa i layer con setLatLngs invece di ricrearli/rianimarli) ── */
 function cancelDraw(){drawTok++;}
 function clearLines(){if(dFlow){try{map.removeLayer(dFlow);}catch(e){}dFlow=null;}if(dDec){try{map.removeLayer(dDec);}catch(e){}dDec=null;}if(dL){try{map.removeLayer(dL);}catch(e){}dL=null;}if(nL){try{map.removeLayer(nL);}catch(e){}nL=null;}if(typeof _trail!=='undefined'&&_trail){try{map.removeLayer(_trail);}catch(e){}_trail=null;_trailTok++;}/*[FIX] pulisce la scia*/}
+/* [ANTI-LAG] ricalcola le frecce del percorso al massimo una volta ogni ~140ms:
+scorrendo veloce le tappe, il decorator (operazione pesante) non viene rifatto a ogni passo */
+let _decorTimer=null;
+function decorSoon(line){
+clearTimeout(_decorTimer);
+_decorTimer=setTimeout(()=>{
+try{
+if(!map||!line)return;
+if(dDec)dDec.setPaths(line);
+else dDec=L.polylineDecorator(line,{patterns:[{offset:'6%',repeat:'120px',symbol:L.Symbol.arrowHead({pixelSize:12,pathOptions:{color:getAccent(),weight:2}})}]}).addTo(map);
+}catch(e){}
+},140);
+}
 function rebuildLines(){
 cancelDraw();
 if(!cur||!map){clearLines();return;}
@@ -378,10 +456,7 @@ if(!dL)dL=L.polyline(wantDraw?[]:dn,{color:getAccent(),weight:5.5,opacity:.95,li
 else dL.setLatLngs(wantDraw?[]:dn);
 if(dFlow)dFlow.setLatLngs(dn);
 else dFlow=L.polyline(dn,{color:'#fff',weight:2.5,opacity:.85,lineCap:'round',className:'route-flow'}).addTo(map);
-try{
-if(dDec)dDec.setPaths(dL);
-else dDec=L.polylineDecorator(dL,{patterns:[{offset:'6%',repeat:'120px',symbol:L.Symbol.arrowHead({pixelSize:12,pathOptions:{color:getAccent(),weight:2}})}]}).addTo(map);
-}catch(e){}
+if(!wantDraw)decorSoon(dL); /* [ANTI-LAG] le frecce (decorator) sono costose: aggiornale in modo debounced */
 if(wantDraw){
 /* disegno progressivo: aggiunge i punti uno alla volta, poi aggiorna le frecce */
 const tok=drawTok,ref=dL,snap=dn.slice();let i=0;
@@ -412,7 +487,8 @@ const sz=5+Math.random()*8;const isCircle=Math.random()>.5;
 e.style.cssText=`left:${10+Math.random()*80}%;top:${20+Math.random()*15}%;width:${sz}px;height:${sz}px;background:${c[i%c.length]};border-radius:${isCircle?'50%':'3px'};animation-delay:${Math.random()*.5}s;animation-duration:${.7+Math.random()*.7}s;transform:rotate(${Math.random()*360}deg)`;
 document.body.appendChild(e);setTimeout(()=>e.remove(),1500);
 }
-hap('m');
+try{if(vibOn&&navigator.vibrate)navigator.vibrate(20);}catch(e){}
+snd('win'); /* suono festoso di celebrazione */
 }
 
 /* ── MODE (route study) ── */
@@ -698,7 +774,7 @@ function checkPwa(){try{const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent
 function closePwa(){document.getElementById('pwaBanner').style.display='none';ls('pwaDismissed',true);}
 
 /* ── HOME NAV ── */
-function goTopografia(){setAccent('topo');const h=document.getElementById('homeScreen');if(h)h.style.display='none';const hb=document.getElementById('homeBtn');if(hb)hb.style.display='flex';try{if(map)map.invalidateSize();}catch(e){}setMode('s');[60,250,500].forEach(t=>setTimeout(mapResizeSoon,t));/*[FIX grigio] la mappa misura bene solo a layout stabilizzato*/try{pushTrap();}catch(e){}}
+function goTopografia(){setAccent('topo');const h=document.getElementById('homeScreen');if(h)h.style.display='none';const hb=document.getElementById('homeBtn');if(hb)hb.style.display='flex';try{if(map)map.invalidateSize();}catch(e){}var _lm=lg('lMode','s');setMode(_lm==='q'?'s':_lm);/*[FIX v5] ripristina l'ultima modalità (mai 'q' all'avvio)*/[60,250,500].forEach(t=>setTimeout(mapResizeSoon,t));/*[FIX grigio] la mappa misura bene solo a layout stabilizzato*/try{pushTrap();}catch(e){}}
 function goHome(){closeQuiz();setAccent('');if(typeof stopAutoplay==='function')stopAutoplay();const hb=document.getElementById('homeBtn');if(hb)hb.style.display='none';const h=document.getElementById('homeScreen');if(h)h.style.display='flex';try{showStreak();renderReadiness();}catch(e){}}
 function goQuiz(){openQuiz();}
 
@@ -918,7 +994,7 @@ if(cid==='bm'){let items=QUIZ_ALL.filter(function(it){return qtStats.bm&&qtStats
 if(cid==='errata'){
 let items=QUIZ_ALL.filter(it=>qtStats.err[it.id]);items.sort(function(a,b){return srDue(a.id)-srDue(b.id);});
 if(!items.length){toast2('🎉 Nessun errore da ripassare');return;}
-startQuiz(qShuffle(items.slice()),{mode:'study',title:'Ripasso errori'});return;
+startQuiz(items.slice(),{mode:'study',title:'Ripasso errori'});return;/*[FIX v5] niente shuffle: rispetta l'ordine della ripetizione spaziata (prima i più scaduti)*/
 }
 const arg=QARG.find(c=>c.id===cid);
 const items=qShuffle(QUIZ_ALL.filter(it=>it.cat===cid).slice()).slice(0,30);
@@ -1079,7 +1155,6 @@ let bh=QARG.map(c=>{const e=argErr[c.id]||0,t=argTot[c.id]||0;const bad=e>Q.maxP
 argBox.innerHTML='<div class="qarg-title">Errori per argomento <span>(max 2 per argomento)</span></div><div class="qarg-grid">'+bh+'</div>';
 argBox.style.display='block';
 }else{argBox.style.display='none';}
-const LET=Array.from({length:Math.max(4,(Q&&Q.items[Q.idx]?Q.items[Q.idx].choices.length:4))},(_,i)=>String.fromCharCode(65+i));
 let ah='';
 Q.items.forEach((it,i)=>{
 const a=Q.ans[i];
@@ -1119,14 +1194,17 @@ try{buildQuiz();}catch(e){console.warn('quiz build',e);}
 try{buildLuoghi();}catch(e){console.warn('luoghi build',e);}
 try{restoreLast();}catch(e){console.warn('restore',e);}
 try{initSegThumb();}catch(e){}
+try{updateAvToggles();}catch(e){}
+/* iOS/Safari: l'audio parte solo dopo un gesto dell'utente → sblocca al primo tocco */
+try{var _unlock=function(){_audioCtx();document.removeEventListener('touchend',_unlock);document.removeEventListener('click',_unlock);};document.addEventListener('touchend',_unlock,{once:true,passive:true});document.addEventListener('click',_unlock,{once:true});}catch(e){}
 [120,400,800,1300].forEach(t=>setTimeout(()=>{try{mapResizeSoon();}catch(e){}},t));/*[FIX grigio] cattura il layout quando si stabilizza dopo il load*/
 setTimeout(()=>{const s=document.getElementById('splash');if(s)s.classList.add('hide');},900);
 setTimeout(()=>{try{checkPwa();}catch(e){}},100);
 setTimeout(()=>{
-try{initFB();if(fbOk){syncFromCloud();fbRef.on('value',()=>{});}}catch(e){console.warn('fb',e);}
+try{initFB();if(fbOk)syncFromCloud();}catch(e){console.warn('fb',e);}/*[FIX v5] rimosso listener realtime vuoto fbRef.on('value'): teneva la connessione aperta senza fare nulla*/
 },1500);
 /* tastiera */
-document.getElementById('qa').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkQ();}});
+var _qaEl=document.getElementById('qa');if(_qaEl)_qaEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkQ();}});/*[FIX v5] guardia: se #qa manca non blocca i listener successivi*/
 document.addEventListener('keydown',e=>{
 if(e.key==='Escape'){closeAllM();const qa=document.getElementById('quizApp');if(qCurOpen()&&qCurView==='run'){/*stay*/}cm();document.getElementById('sugg').style.display='none';}
 if(document.activeElement&&['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
@@ -1838,7 +1916,6 @@ var tok=++_slideTok,t0=performance.now(),dur=380,a=from.lat,b=from.lng,c=to[0],d
 function step(now){if(tok!==_slideTok)return;var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);try{m.setLatLng([a+(c-a)*e,b+(d-b)*e]);}catch(err){return;}if(k<1)requestAnimationFrame(step);}
 requestAnimationFrame(step);
 }
-/* scia luminosa: una polilinea che appare e svanisce tra la via precedente e quella nuova */
 /* scia luminosa: una polilinea che appare e svanisce tra la via precedente e quella nuova */
 function trailFx(from,to){
 if(!map||prefersReducedMotion())return;
