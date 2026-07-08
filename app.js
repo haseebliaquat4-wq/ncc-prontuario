@@ -383,10 +383,10 @@ hideNM();
 else{if(mkr){try{map.removeLayer(mkr);}catch(e){}mkr=null;}updateUI();showNM();}
 rebuildLines();
 }
-/* [FOLLOW v5 + ANTI-LAG] la mappa segue il percorso ad ogni avanti/indietro:
-inquadra una finestra di 3 tappe (precedente + attuale + successiva) con zoom
-clampato tra 13 e 16 — mai troppo vicino né lontano. Il movimento è debounced:
-se scorri veloce, si anima solo una volta all'ultima tappa (niente animazioni accodate). */
+/* [FOLLOW v6 + ANTI-LAG] la mappa segue il percorso mostrando la ZONA:
+finestra di 5 tappe (2 precedenti + attuale + 2 successive), zoom clampato
+tra 12 e 15 — una via di mezzo: si vede il quartiere, non solo l'incrocio.
+Il movimento è debounced: scorrendo veloce si anima solo all'ultima tappa. */
 function followMap(lat,lon){
 if(!map)return;
 clearTimeout(_followTimer);
@@ -395,16 +395,16 @@ if(!cur||!map)return;
 try{
 const ll=L.latLng(lat,lon);
 const win=[];
-for(let di=-1;di<=1;di++){const kk=cur.id+'_'+(step+di);if(coords[kk])win.push([coords[kk].lat,coords[kk].lon]);}
+for(let di=-2;di<=2;di++){const kk=cur.id+'_'+(step+di);if(coords[kk])win.push([coords[kk].lat,coords[kk].lon]);}
 _progMove=true;
 if(win.length>1){
 const bb=L.latLngBounds(win);
-let tz=map.getBoundsZoom(bb,false,L.point(70,70));
-if(tz>16)tz=16;
-if(tz<13)map.setView(ll,13,{animate:true,duration:.4});
+let tz=map.getBoundsZoom(bb,false,L.point(90,90));
+if(tz>15)tz=15; /* mai troppo vicino: si vede sempre la zona */
+if(tz<12)map.setView(ll,12,{animate:true,duration:.4}); /* tappe lontanissime: resta sul punto, zoom minimo 12 */
 else map.setView(bb.getCenter(),tz,{animate:true,duration:.4});
 }else{
-let z=map.getZoom();if(z<14||z>16)z=15;
+let z=map.getZoom();if(z<13||z>15)z=14;
 map.setView(ll,z,{animate:true,duration:.35});
 }
 map.once('moveend',()=>{_progMove=false;userMovedMap=false;});
