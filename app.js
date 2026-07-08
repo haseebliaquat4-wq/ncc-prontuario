@@ -1972,3 +1972,130 @@ _autoTimer=setInterval(function(){if(typeof cur==='undefined'||!cur||step>=cur.s
 hap();
 }
 function stopAutoplay(){if(_autoTimer){clearInterval(_autoTimer);_autoTimer=null;}var btn=document.getElementById('playBtn');if(btn)btn.textContent='▶';}
+
+/* ═══════ PACCHETTO v6: ripasso rapido, badge, contatore, swipe, settimana ═══════ */
+
+/* ── RIPASSA 10 MINUTI: mix intelligente scelto dall'app ──
+   priorità: 1) errori quiz scaduti (ripetizione spaziata) 2) domande mai viste 3) resto */
+function smartReview(){
+try{buildQuiz();}catch(e){}
+let items=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=Date.now();});
+items.sort(function(a,b){return srDue(a.id)-srDue(b.id);});
+if(items.length<12){
+var have={};items.forEach(function(it){have[it.id]=1;});
+var unseen=qShuffle(QUIZ_ALL.filter(function(it){return !have[it.id]&&!qtStats.seenIds[it.id];}));
+items=items.concat(unseen.slice(0,12-items.length));
+}
+if(items.length<12){
+var have2={};items.forEach(function(it){have2[it.id]=1;});
+items=items.concat(qShuffle(QUIZ_ALL.filter(function(it){return !have2[it.id];})).slice(0,12-items.length));
+}
+items=items.slice(0,12);
+if(!items.length){toast2('Nessuna domanda disponibile');return;}
+openQuiz();
+startQuiz(items,{mode:'study',title:'Ripasso rapido'});
+}
+
+/* ── BADGE sulla tab Quiz: quanti errori sono da ripassare OGGI ── */
+function updateTabBadge(){
+try{
+var n=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;
+var tab=document.querySelector('#tabbar .tab[data-t="quiz"]');if(!tab)return;
+var b=tab.querySelector('.tb-badge');
+if(n>0){
+if(!b){b=document.createElement('span');b.className='tb-badge';tab.appendChild(b);}
+b.textContent=n>99?'99+':n;
+}else if(b)b.remove();
+}catch(e){}
+}
+
+/* ── CONTATORE domande viste (nel dashboard quiz) ── */
+function renderSeenCount(){
+try{
+var el=document.getElementById('qSeen');if(!el)return;
+var seen=Object.keys(qtStats.seenIds||{}).length,tot=QUIZ_ALL.length||919;
+var pct=tot?Math.round(seen/tot*100):0;
+el.innerHTML='📖 <b>'+seen+'</b> / '+tot+' domande viste · '+pct+'%';
+}catch(e){}
+}
+
+/* ── CONTEGGIO GIORNALIERO + grafico settimanale in home ── */
+function _dayKey(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function bumpDaily(n){try{qtStats.daily=qtStats.daily||{};var k=_dayKey();qtStats.daily[k]=(qtStats.daily[k]||0)+(n||1);
+/* tieni solo gli ultimi 30 giorni */
+var keys=Object.keys(qtStats.daily);if(keys.length>35){var cutoff=Date.now()-30*86400000;keys.forEach(function(kk){var p=kk.split('-');var t=new Date(+p[0],p[1]-1,+p[2]).getTime();if(t<cutoff)delete qtStats.daily[kk];});}
+}catch(e){}}
+function renderWeekly(){
+try{
+var w=document.getElementById('weekChart');if(!w)return;
+qtStats.daily=qtStats.daily||{};
+var days=[],max=1,tot7=0;
+var LBL=['D','L','M','M','G','V','S'];
+for(var i=6;i>=0;i--){
+var d=new Date();d.setDate(d.getDate()-i);
+var v=qtStats.daily[_dayKey(d)]||0;
+days.push({v:v,l:LBL[d.getDay()],today:i===0});
+if(v>max)max=v;tot7+=v;
+}
+if(tot7===0){w.innerHTML='';w.style.display='none';return;}
+w.style.display='';
+var bars=days.map(function(d){
+var h=Math.max(6,Math.round(d.v/max*40));
+return '<div class="wk-col"><div class="wk-bar'+(d.today?' today':'')+(d.v?'':' zero')+'" style="height:'+h+'px"></div><small>'+d.l+'</small></div>';
+}).join('');
+w.innerHTML='<div class="wk-card"><div class="wk-head"><strong>Ultimi 7 giorni</strong><span>'+tot7+' risposte</span></div><div class="wk-bars">'+bars+'</div></div>';
+}catch(e){}
+}
+
+/* aggancio conteggi: quiz teorico (qFinish), flashcard (sdAnswer), quiz vie (checkQ) */
+(function(){
+try{
+var _qf=qFinish;qFinish=function(t){var before=Q?Q.ans.filter(function(a){return a>=0;}).length:0;_qf(t);if(before)bumpDaily(before);try{qtSave();}catch(e){}updateTabBadge();renderSeenCount();};
+var _sa=sdAnswer;sdAnswer=function(k){bumpDaily(1);_sa(k);};
+var _cq=checkQ;checkQ=function(){var _t=cur?(qStats[cur.id]||{}).total||0:0;_cq();var _t2=cur?(qStats[cur.id]||{}).total||0:0;if(_t2>_t)bumpDaily(1);};
+var _rd=renderDash;renderDash=function(){_rd();renderSeenCount();};
+var _gh2=goHome;goHome=function(){_gh2();try{renderWeekly();updateTabBadge();}catch(e){}};
+}catch(e){}
+})();
+
+/* ── SWIPE sulle flashcard: destra = la sapevo, sinistra = no ── */
+let _swEl=null,_swX=0,_swY=0;
+document.addEventListener('touchstart',function(e){
+var c=e.target.closest?e.target.closest('#sdCard'):null;
+if(!c||!SS||!SS.flipped)return; /* solo a risposta scoperta */
+_swEl=c;_swX=e.touches[0].clientX;_swY=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+if(!_swEl)return;
+var dx=e.touches[0].clientX-_swX,dy=e.touches[0].clientY-_swY;
+if(Math.abs(dy)>80){_swEl.style.transform='';_swEl.style.transition='';_swEl=null;return;} /* stava scrollando */
+_swEl.style.transition='none';
+_swEl.style.transform='translateX('+dx+'px) rotate('+(dx/22)+'deg)';
+_swEl.classList.toggle('sw-yes',dx>50);
+_swEl.classList.toggle('sw-no',dx<-50);
+},{passive:true});
+document.addEventListener('touchend',function(e){
+if(!_swEl)return;
+var el=_swEl;_swEl=null;
+var dx=e.changedTouches[0].clientX-_swX;
+el.style.transition='transform .22s ease';
+el.classList.remove('sw-yes','sw-no');
+if(dx>85){el.style.transform='translateX(120vw) rotate(16deg)';setTimeout(function(){el.style.transform='';el.style.transition='';sdAnswer(true);},170);}
+else if(dx<-85){el.style.transform='translateX(-120vw) rotate(-16deg)';setTimeout(function(){el.style.transform='';el.style.transition='';sdAnswer(false);},170);}
+else{el.style.transform='';setTimeout(function(){el.style.transition='';},240);}
+},{passive:true});
+
+/* hint di swipe quando la risposta è scoperta */
+(function(){
+try{
+var _sf=sdFlip;
+sdFlip=function(){
+_sf();
+try{if(SS&&SS.flipped){var h=document.getElementById('sdCardHint');if(h){h.style.display='block';h.textContent='← Non la sapevo · scorri · La sapevo →';}}}catch(e){}
+};
+}catch(e){}
+})();
+
+/* avvio: badge e grafico appena l'app è pronta */
+setTimeout(function(){try{updateTabBadge();renderWeekly();}catch(e){}},1200);
+
