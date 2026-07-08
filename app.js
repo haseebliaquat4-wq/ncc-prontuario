@@ -216,13 +216,21 @@ const head=document.querySelector('#panel .phead');
 if(!panel||window.innerWidth>=768)return;
 if(!panel.querySelector('.snap-ticks')){var _t=document.createElement('div');_t.className='snap-ticks';_t.innerHTML='<i></i><i></i><i></i>';panel.appendChild(_t);}/*(6) tacche snap*/
 let sy=0,sh=0,dr=false,moved=false;
-function snapVals(){const H=window.innerHeight;return[140,Math.round(H*.52),Math.round(H*.78)];}
+function snapVals(){
+/* [FIX v6] spazio reale disponibile: altezza schermo MENO header, tab bar e 150px di mappa minima.
+Prima usava percentuali dell'intero schermo: con la tab bar lo spazio non c'era e lo snap rimandava giù il pannello. */
+var tb=document.getElementById('tabbar');var th=tb?tb.getBoundingClientRect().height:0;
+var hd=document.querySelector('header');var hh=hd?hd.getBoundingClientRect().height:0;
+var avail=window.innerHeight-th-hh-150;
+if(avail<220)avail=220;
+return[140,Math.round(avail*.58),avail];
+}
 function applyClosest(curH){const opts=snapVals();let best=opts[0],bd=1e9;opts.forEach(v=>{const d=Math.abs(v-curH);if(d<bd){bd=d;best=v;}});panel.style.maxHeight=best+'px';}
 function onStart(e){dr=true;moved=false;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';panel.classList.add('dragging');}
 function onMove(e){
 if(!dr)return;
 const dy=sy-e.touches[0].clientY;
-panel.style.maxHeight=Math.min(window.innerHeight*.84,Math.max(120,sh+dy))+'px';
+const _sv=snapVals();panel.style.maxHeight=Math.min(_sv[_sv.length-1],Math.max(120,sh+dy))+'px';/*[FIX v6] tetto = spazio reale disponibile*/
 if(Math.abs(dy)>4)moved=true;
 if(moved&&e.cancelable)e.preventDefault(); /* blocca lo scroll pagina solo durante il drag della maniglia */
 mapResizeSoon();/*[FIX grigio] aggiorna la mappa mentre il pannello cambia altezza*/
@@ -2098,4 +2106,3 @@ try{if(SS&&SS.flipped){var h=document.getElementById('sdCardHint');if(h){h.style
 
 /* avvio: badge e grafico appena l'app è pronta */
 setTimeout(function(){try{updateTabBadge();renderWeekly();}catch(e){}},1200);
-
