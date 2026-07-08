@@ -217,11 +217,12 @@ if(!panel||window.innerWidth>=768)return;
 if(!panel.querySelector('.snap-ticks')){var _t=document.createElement('div');_t.className='snap-ticks';_t.innerHTML='<i></i><i></i><i></i>';panel.appendChild(_t);}/*(6) tacche snap*/
 let sy=0,sh=0,dr=false,moved=false;
 function snapVals(){
-/* [FIX v6] spazio reale disponibile: altezza schermo MENO header, tab bar e 150px di mappa minima.
-Prima usava percentuali dell'intero schermo: con la tab bar lo spazio non c'era e lo snap rimandava giù il pannello. */
-var tb=document.getElementById('tabbar');var th=tb?tb.getBoundingClientRect().height:0;
+/* [FIX v7] limite = bordo SUPERIORE reale del dock (robusto anche se flottante),
+meno header e 150px di mappa minima. */
+var tb=document.getElementById('tabbar');
+var top=tb?tb.getBoundingClientRect().top:window.innerHeight;
 var hd=document.querySelector('header');var hh=hd?hd.getBoundingClientRect().height:0;
-var avail=window.innerHeight-th-hh-150;
+var avail=top-hh-150;
 if(avail<220)avail=220;
 return[140,Math.round(avail*.58),avail];
 }
