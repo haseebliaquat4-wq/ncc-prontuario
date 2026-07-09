@@ -42,6 +42,7 @@
 <div id="readyCard"></div>
 <button class="smart-btn" onclick="smartReview()">⚡ Ripassa 10 minuti<small>L'app sceglie per te: errori scaduti e domande nuove</small></button>
 <div id="weekChart"></div>
+<div id="planCard"></div>
 <div class="home-cards">
 <button class="home-card hc-topo" onclick="goTopografia()">
 <span class="hc-ic">🗺️</span>
@@ -98,6 +99,7 @@
 <button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
 <button onclick="togSnd()"><span class="mi" id="sndIcon">🔊</span>Suoni</button>
 <button onclick="togVib()"><span class="mi" id="vibIcon">📳</span>Vibrazione</button>
+<button onclick="togBerlina()"><span class="mi" id="berlIcon">🚘</span>Tema Berlina</button>
 <div class="mi-sep"></div>
 <button onclick="doExport();cm()"><span class="mi">📤</span>Esporta backup</button>
 <button onclick="doImport();cm()"><span class="mi">📥</span>Importa backup</button>
@@ -307,6 +309,11 @@
 <div id="sdTiles"></div>
 
 <div class="qsec-title">Altri modi di ripassare</div>
+<button class="sd-tile" onclick="sdStartColloquio()">
+<div class="sd-tile-ic" style="background:rgba(52,199,89,.14)">🎙️</div>
+<div class="sd-tile-tx"><strong>Colloquio vocale</strong><small>L'app chiede a voce "dove si trova...", tu rispondi come all'esame</small></div>
+<div class="sd-tile-ar">›</div>
+</button>
 <button class="sd-tile" onclick="sdStart('errori')">
 <div class="sd-tile-ic" style="background:rgba(255,59,48,.12)">🔁</div>
 <div class="sd-tile-tx"><strong>Ripassa quelli che sbagli</strong><small id="sdErrSub">Le schede ancora da imparare</small></div>
@@ -475,10 +482,10 @@
 
 <!-- ════ TAB BAR (navigazione rapida sempre visibile) ════ -->
 <nav id="tabbar" aria-label="Navigazione principale">
-<button class="tab on" data-t="home" onclick="tabGo('home')"><span class="tb-ic">🏠</span><span class="tb-lb">Home</span></button>
-<button class="tab" data-t="topo" onclick="tabGo('topo')"><span class="tb-ic">🗺️</span><span class="tb-lb">Mappa</span></button>
-<button class="tab" data-t="quiz" onclick="tabGo('quiz')"><span class="tb-ic">📝</span><span class="tb-lb">Quiz</span></button>
-<button class="tab" data-t="studio" onclick="tabGo('studio')"><span class="tb-ic">📚</span><span class="tb-lb">Studio</span></button>
+<button class="tab on" data-t="home" onclick="tabGo('home')"><span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg></span><span class="tb-lb">Home</span></button>
+<button class="tab" data-t="topo" onclick="tabGo('topo')"><span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.2V20l6-2.2 6 2.2 6-2.2V4l-6 2.2L9 4z"/><path d="M9 4v13.8M15 6.2V20"/></svg></span><span class="tb-lb">Mappa</span></button>
+<button class="tab" data-t="quiz" onclick="tabGo('quiz')"><span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="tb-lb">Quiz</span></button>
+<button class="tab" data-t="studio" onclick="tabGo('studio')"><span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/><path d="M9 7.5h7"/></svg></span><span class="tb-lb">Studio</span></button>
 </nav>
 
 <div class="toast" id="toast" aria-live="polite"></div>
@@ -503,7 +510,7 @@ if(typeof Q!=='undefined'&&Q&&typeof qCurView!=='undefined'&&qCurView==='run'){
 if(!confirm('Sei in un quiz: uscire? I progressi della sessione andranno persi.'))return;
 if(Q.timer){clearInterval(Q.timer);Q.timer=null;}Q=null;try{qStopSpeak();}catch(e){}
 }
-if(typeof SS!=='undefined'&&SS){
+if(typeof SS!=='undefined'&&SS&&!SS._done){
 if(!confirm('Sei in un ripasso: uscire?'))return;
 SS=null;try{sdRestoreCardWrap();}catch(e){}
 }
