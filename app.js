@@ -195,8 +195,8 @@ const b=document.createElement('button');
 b.id='recenterBtn';b.className='hidden';b.type='button';
 b.setAttribute('aria-label','Ricentra sul punto attuale');
 b.textContent='◎';
-b.onclick=recenterMap;
-mapEl.parentNode.appendChild(b);
+b.onclick=function(ev){try{ev.stopPropagation();}catch(e){}recenterMap();};/*[FIX] il tap non deve arrivare alla mappa (in posizionamento piazzava un marker)*/
+mapEl.appendChild(b);/*[FIX] dentro la mappa: resta sempre sopra il pannello, a qualsiasi altezza*/
 /* mostra il pulsante quando l'utente muove la mappa, nascondilo dopo il ricentraggio */
 map.on('dragstart zoomstart',()=>{if(!_progMove)showRecenter(true);});
 map.on('moveend',()=>{if(!userMovedMap)showRecenter(false);});
@@ -425,7 +425,7 @@ function recenterMap(){
 if(!cur||!map)return;
 const k=cur.id+'_'+step;if(!coords[k])return;
 userMovedMap=false;_progMove=true;
-try{map.setView([coords[k].lat,coords[k].lon],Math.max(map.getZoom(),15),{animate:true,duration:.35});}catch(e){}
+try{var _rz=map.getZoom();if(_rz<12)_rz=13;if(_rz>15)_rz=15;map.setView([coords[k].lat,coords[k].lon],_rz,{animate:true,duration:.35});}catch(e){}/*[FIX] zoom coerente col follow (12–15): niente scatto dentro improvviso*/
 map.once('moveend',()=>{_progMove=false;});
 hap();
 }
@@ -928,6 +928,12 @@ var _nv=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
 h+=`<button class="qtile" onclick="qStartNew()">
 <div class="qtile-ic" style="background:rgba(255,149,0,.14)">🆕</div>
 <div class="qtile-tx"><strong>Domande mai viste</strong><small>${_nv?_nv+' ancora da scoprire':'Le hai viste tutte 🎉'}</small></div>
+<div class="qtile-ar">›</div></button>`;
+/* [v10] classifica delle più sbagliate */
+var _hd=Object.keys(qtStats.wrongN||{}).length;
+h+=`<button class="qtile" onclick="qStartHard()">
+<div class="qtile-ic" style="background:rgba(229,72,77,.12)">💀</div>
+<div class="qtile-tx"><strong>Le più sbagliate</strong><small>${_hd?'Le 20 domande che sbagli di più':'Ancora nessun dato'}</small></div>
 <div class="qtile-ar">›</div></button>`;
 QARG.forEach(c=>{
 const p=catProgress(c.id);
@@ -1754,7 +1760,7 @@ const tot=sdLen(),c=sdCur();
 document.getElementById('sdRunBar').style.width=Math.round((SS.idx+1)/tot*100)+'%';/*[FIX] barra piena sull'ultima carta*/
 document.getElementById('sdRunCount').textContent=(SS.idx+1)+'/'+tot;
 SS.flipped=false;
-var _cc=document.getElementById('sdCard');if(_cc)_cc.classList.remove('flip');
+var _cc=document.getElementById('sdCard');if(_cc){_cc.classList.remove('flip','card-in');if(SS.idx>0){void _cc.offsetWidth;_cc.classList.add('card-in');}}/*[ANIM] la carta successiva entra da destra*/
 document.getElementById('sdCardCat').textContent=c.pill||'';
 document.getElementById('sdCardTag').textContent=c.tag;
 document.getElementById('sdCardQ').textContent=c.front;
@@ -1776,6 +1782,7 @@ hap();
 }
 function sdAnswer(known){
 if(!SS)return;
+if(SS._lock)return;SS._lock=true;setTimeout(function(){if(SS)SS._lock=false;},380);/*[FIX] doppio tap veloce non risponde alla carta successiva*/
 const c=sdCur(),lvl=studyProg[c.key]||0;/*[FIX] niente shadowing di cur*/
 studyProg[c.key]=known?Math.min(5,lvl+1):0;
 sdSave();hap(known?'m':'e');
@@ -1799,6 +1806,7 @@ else if(home==='strade'){renderStrade();sdShow('strade');}
 else {renderStudyDash();sdShow('dash');}
 }
 function sdFinish(){
+if(SS)SS._done=true;/*[FIX] sulla schermata Finito la tab bar non chiede piu conferma di uscita*/
 const n=sdLen();
 document.querySelector('.sd-cardwrap').innerHTML=
 '<div class="sd-done"><div class="e">🎉</div><h2>Finito!</h2><p>Hai ripassato '+n+' schede.</p></div>';
@@ -1917,6 +1925,7 @@ var days=[0,1,3,7][box]||7;
 qtStats.err[id]={box:box,due:Date.now()+days*86400000};
 }else{
 qtStats.err[id]={box:0,due:Date.now()};
+qtStats.wrongN=qtStats.wrongN||{};qtStats.wrongN[id]=(qtStats.wrongN[id]||0)+1;/*[v10] per la classifica delle piu sbagliate*/
 }
 }
 
@@ -2077,9 +2086,12 @@ w.innerHTML='<div class="wk-card"><div class="wk-head"><strong>Ultimi 7 giorni</
 /* aggancio conteggi: quiz teorico (qFinish), flashcard (sdAnswer), quiz vie (checkQ) */
 (function(){
 try{
-var _qf=qFinish;qFinish=function(t){var before=Q?Q.ans.filter(function(a){return a>=0;}).length:0;_qf(t);if(before)bumpDaily(before);try{qtSave();}catch(e){}updateTabBadge();renderSeenCount();};
-var _sa=sdAnswer;sdAnswer=function(k){bumpDaily(1);_sa(k);};
-var _cq=checkQ;checkQ=function(){var _t=cur?(qStats[cur.id]||{}).total||0:0;_cq();var _t2=cur?(qStats[cur.id]||{}).total||0:0;if(_t2>_t)bumpDaily(1);};
+var _qf=qFinish;qFinish=function(t){var before=Q?Q.ans.filter(function(a){return a>=0;}).length:0;_qf(t);
+if(qCurView==='result'){/*[FIX] conta SOLO se il quiz è davvero finito (non se l'utente annulla il confirm)*/
+if(before)bumpDaily(before);try{qtSave();}catch(e){}updateTabBadge();renderSeenCount();
+}};
+var _sa=sdAnswer;sdAnswer=function(k){var _b=SS?SS.idx:-1;_sa(k);if(SS===null||_b!==(SS?SS.idx:-1)){bumpDaily(1);try{qtSave();}catch(e){}}};/*[FIX] conta solo se la risposta è passata (lock) e SALVA: prima il grafico perdeva le flashcard al riavvio*/
+var _cq=checkQ;checkQ=function(){var _t=cur?(qStats[cur.id]||{}).total||0:0;_cq();var _t2=cur?(qStats[cur.id]||{}).total||0:0;if(_t2>_t){bumpDaily(1);try{qtSave();}catch(e){}}};/*[FIX] salva anche dal quiz vie*/
 var _rd=renderDash;renderDash=function(){_rd();renderSeenCount();};
 var _gh2=goHome;goHome=function(){_gh2();try{renderWeekly();updateTabBadge();}catch(e){}};
 }catch(e){}
@@ -2107,8 +2119,8 @@ var el=_swEl;_swEl=null;
 var dx=e.changedTouches[0].clientX-_swX;
 el.style.transition='transform .22s ease';
 el.classList.remove('sw-yes','sw-no');
-if(dx>85){el.style.transform='translateX(120vw) rotate(16deg)';setTimeout(function(){el.style.transform='';el.style.transition='';sdAnswer(true);},170);}
-else if(dx<-85){el.style.transform='translateX(-120vw) rotate(-16deg)';setTimeout(function(){el.style.transform='';el.style.transition='';sdAnswer(false);},170);}
+if(dx>85){el.style.transform='translateX(120vw) rotate(16deg)';setTimeout(function(){if(el.isConnected){el.style.transform='';el.style.transition='';}sdAnswer(true);},200);}
+else if(dx<-85){el.style.transform='translateX(-120vw) rotate(-16deg)';setTimeout(function(){if(el.isConnected){el.style.transform='';el.style.transition='';}sdAnswer(false);},200);}
 else{el.style.transform='';setTimeout(function(){el.style.transition='';},240);}
 },{passive:true});
 
@@ -2125,3 +2137,199 @@ try{if(SS&&SS.flipped){var h=document.getElementById('sdCardHint');if(h){h.style
 
 /* avvio: badge e grafico appena l'app è pronta */
 setTimeout(function(){try{updateTabBadge();renderWeekly();}catch(e){}},1200);
+
+/* ═══════ PACCHETTO v9: fix finali + animazioni ═══════ */
+
+/* [FIX 4] dopo la rotazione, azzera il max-height inline del pannello (altrimenti resta "corto") */
+window.addEventListener('orientationchange',function(){
+setTimeout(function(){try{var p=document.getElementById('panel');if(p)p.style.maxHeight='';mapResizeSoon();}catch(e){}},420);
+});
+
+/* [ANIM 9] transizione di scena anche su Home e Topografia (le altre viste la hanno già) */
+(function(){try{
+var g1=goHome;goHome=function(){g1();try{sceneAnim(document.getElementById('homeScreen'));}catch(e){}};
+var g2=goTopografia;goTopografia=function(){g2();try{sceneAnim(document.querySelector('.main'));}catch(e){}};
+}catch(e){}})();
+
+/* [ANIM 13] check animato sul numero della via quando rispondi giusto nel quiz vie */
+(function(){try{
+var _ck=checkQ;
+checkQ=function(){
+var _st=step;_ck();
+try{
+var fb=document.getElementById('qfb');
+if(fb&&fb.textContent.indexOf('Corretto')>=0){
+var r=listRows[_st];
+if(r){r.classList.remove('okpop');void r.offsetWidth;r.classList.add('okpop');setTimeout(function(){r.classList.remove('okpop');},600);}
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ═══ TEMA BERLINA (antracite + oro) ═══ */
+function togBerlina(){
+var on=document.body.classList.toggle('berlina');
+ls('berlina',on);
+var ic=document.getElementById('berlIcon');if(ic)ic.textContent=on?'✨':'🚘';
+toast2(on?'🚘 Tema Berlina attivo':'Tema Milano Notte attivo');hap('m');
+}
+try{if(lg('berlina',false)){document.body.classList.add('berlina');var _bi=document.getElementById('berlIcon');if(_bi)_bi.textContent='✨';}}catch(e){}
+
+/* ═══════ PACCHETTO v10: strumenti per l'esame ═══════ */
+
+/* ── LE PIÙ SBAGLIATE: le 20 domande con più errori storici ── */
+function qStartHard(){
+buildQuiz();
+qtStats.wrongN=qtStats.wrongN||{};
+var ids=Object.keys(qtStats.wrongN).sort(function(a,b){return qtStats.wrongN[b]-qtStats.wrongN[a];}).slice(0,20);
+var items=ids.map(function(id){return QUIZ_ALL[id|0];}).filter(Boolean);
+if(!items.length){toast2('Nessun errore storico — bravo!');return;}
+startQuiz(items,{mode:'study',title:'Le più sbagliate'});
+}
+
+/* ── PIANO DI STUDIO: data esame → quante domande nuove al giorno ── */
+function setExamDate(){
+var cur=lg('examDate',0);
+var v=prompt('Data del tuo esame (GG/MM/AAAA):',cur?new Date(cur).toLocaleDateString('it-IT'):'');
+if(v===null)return;v=v.trim();
+if(!v){ls('examDate',0);renderPlan();return;}
+var m=v.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+if(!m){toast2('⚠️ Formato: GG/MM/AAAA');return;}
+var y=+m[3];if(y<100)y+=2000;
+var d=new Date(y,(+m[2])-1,+m[1],23,59);
+if(isNaN(d.getTime())){toast2('⚠️ Data non valida');return;}
+ls('examDate',d.getTime());renderPlan();toast2('🎯 Data esame impostata');hap('m');
+}
+function renderPlan(){
+var w=document.getElementById('planCard');if(!w)return;
+try{buildQuiz();}catch(e){}
+var t=lg('examDate',0);
+var unseen=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
+if(!t){w.innerHTML='<button class="plan-set" onclick="setExamDate()">🎯 Imposta la data dell\'esame</button>';return;}
+var days=Math.ceil((t-Date.now())/86400000);
+if(days<0){w.innerHTML='<button class="plan-set" onclick="setExamDate()">🎯 Data esame passata — toccami per aggiornarla</button>';return;}
+var perDay=days>0?Math.ceil(unseen/days):unseen;
+w.innerHTML='<div class="plan-card" onclick="setExamDate()"><b>'+days+'</b><div class="plan-tx"><strong>giorn'+(days===1?'o':'i')+' all\'esame</strong><small>'+(unseen?('Fai '+perDay+' domande nuove al giorno per vederle tutte'):'Domande completate: concentrati sugli errori 💪')+'</small></div></div>';
+}
+
+/* ── OBIETTIVO GIORNALIERO nel grafico settimanale ── */
+function setDailyGoal(){
+var g=prompt('Obiettivo di risposte al giorno:',lg('dailyGoal',30));
+if(g===null)return;g=parseInt(g,10);
+if(!g||g<1){toast2('⚠️ Inserisci un numero');return;}
+ls('dailyGoal',g);renderWeekly();toast2('🎯 Obiettivo: '+g+' al giorno');
+}
+(function(){try{
+var _rw=renderWeekly;
+renderWeekly=function(){
+_rw();
+try{
+var w=document.getElementById('weekChart');if(!w||!w.firstChild)return;
+var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
+var sp=w.querySelector('.wk-head span');
+if(sp){sp.textContent='Oggi '+today+'/'+goal+(today>=goal?' ✓':'');sp.style.color=today>=goal?'var(--ok)':'';}
+var hd=w.querySelector('.wk-head');if(hd){hd.style.cursor='pointer';hd.onclick=setDailyGoal;}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── TRAGUARDI: celebrazioni una-tantum ── */
+function checkAch(){
+try{
+qtStats.ach=qtStats.ach||{};
+var seen=Object.keys(qtStats.seenIds||{}).length;
+var A=[
+['s100',seen>=100,'💯 Traguardo: 100 domande viste!'],
+['s500',seen>=500,'🚀 Traguardo: 500 domande viste!'],
+['sAll',QUIZ_ALL.length>0&&seen>=QUIZ_ALL.length,'🏆 INCREDIBILE: le hai viste TUTTE!'],
+['st7',(lg('streak',{n:0}).n||0)>=7,'🔥 Traguardo: 7 giorni di fila!'],
+['pass1',(qExamHist||[]).some(function(x){return x&&x.pass;}),'🎓 Prima simulazione superata!']
+];
+A.forEach(function(a){if(a[1]&&!qtStats.ach[a[0]]){qtStats.ach[a[0]]=1;try{qtSave();}catch(e){}setTimeout(function(){toast2(a[2]);try{confetti();}catch(e){}},700);}});
+}catch(e){}
+}
+(function(){try{var _qf2=qFinish;qFinish=function(t){_qf2(t);if(qCurView==='result')checkAch();};}catch(e){}})();
+
+/* ── WAKE LOCK: schermo acceso durante l'autoplay del percorso ── */
+let _wl=null;
+function _wlOn(){try{if('wakeLock'in navigator)navigator.wakeLock.request('screen').then(function(l){_wl=l;}).catch(function(){});}catch(e){}}
+function _wlOff(){try{if(_wl){_wl.release();_wl=null;}}catch(e){}}
+(function(){try{
+var _ta=toggleAutoplay;toggleAutoplay=function(){_ta();if(_autoTimer)_wlOn();else _wlOff();};
+var _sa2=stopAutoplay;stopAutoplay=function(){_sa2();_wlOff();};
+}catch(e){}})();
+
+/* ── MAPPA SCURA in tema notte ── */
+setTileMode=function(noLabels){
+if(!map||!window._tileLayer)return;
+var dk=document.body.classList.contains('dark');
+var url=dk
+?('https://{s}.basemaps.cartocdn.com/dark_'+(noLabels?'nolabels':'all')+'/{z}/{x}/{y}{r}.png')
+:('https://{s}.basemaps.cartocdn.com/rastertiles/voyager'+(noLabels?'_nolabels':'')+'/{z}/{x}/{y}{r}.png');
+window._tileLayer.setUrl(url);
+};
+(function(){try{var _td=togDark;togDark=function(){_td();try{setTileMode(mode==='c'||mode==='q');}catch(e){}};}catch(e){}})();
+setTimeout(function(){try{setTileMode(mode==='c'||mode==='q');}catch(e){}},900);
+
+/* ── LUNGHEZZA PERCORSO in km nel pannello ── */
+(function(){try{
+var _uu=updateUI;
+updateUI=function(){
+_uu();
+try{
+if(!cur||!map)return;
+var pts=[];for(var i=0;i<cur.steps.length;i++){var c=coords[cur.id+'_'+i];if(c)pts.push(c);}
+if(pts.length>1){
+var d=0;for(var j=1;j<pts.length;j++)d+=map.distance([pts[j-1].lat,pts[j-1].lon],[pts[j].lat,pts[j].lon]);
+if(d>200){var el=$id('pStat');if(el)el.textContent=el.textContent+' · '+(d/1000).toFixed(1)+' km';}
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── contatore "viste" animato ── */
+renderSeenCount=function(){
+try{
+var el=document.getElementById('qSeen');if(!el)return;
+var seen=Object.keys(qtStats.seenIds||{}).length,tot=QUIZ_ALL.length||919,pct=tot?Math.round(seen/tot*100):0;
+el.innerHTML='📖 <b>0</b> / '+tot+' domande viste · '+pct+'%'+_weakTxt();
+var b=el.querySelector('b');if(b)countUp(b,seen,500);
+}catch(e){}
+};
+/* punto debole: l'argomento dove vai peggio (min 6 domande fatte) */
+function _weakTxt(){
+try{
+var worst=null,wr=1.01;
+QARG.forEach(function(c){var s=qtStats.cat[c.id];if(s&&(s.seen||0)>=6){var r=(s.ok||0)/s.seen;if(r<wr){wr=r;worst=c;}}});
+return (worst&&wr<.75)?'<br>⚠️ Punto debole: <b>'+worst.label+'</b> ('+Math.round(wr*100)+'% corrette)':'';
+}catch(e){return'';}
+}
+
+/* ── COLLOQUIO VOCALE: l'app chiede a voce, tu rispondi come all'esame ── */
+function sdStartColloquio(){
+if(!('speechSynthesis'in window)){toast2('🔇 Sintesi vocale non disponibile');return;}
+buildLuoghi();
+var pool=sdShuffle(LUOGHI.slice()).sort(function(a,b){return (studyProg[a.id]||0)-(studyProg[b.id]||0);}).slice(0,15);
+var cards=pool.map(function(x){return {key:x.id,front:x.cosa,back:x.dove,tag:'🎙 Ascolta e rispondi a voce',pill:x.cat};});
+sdStartDeck(cards,'dash',function(){sdStartColloquio();});
+if(SS)SS.speak=true;
+}
+function sdSpeakFront(){
+try{
+if(!SS||!SS.speak||!('speechSynthesis'in window))return;
+speechSynthesis.cancel();
+var c=sdCur();var u=new SpeechSynthesisUtterance('Dove si trova: '+c.front+'?');
+u.lang='it-IT';u.rate=.95;speechSynthesis.speak(u);
+}catch(e){}
+}
+(function(){try{
+var _rc2=sdRenderCard;sdRenderCard=function(){_rc2();if(SS&&SS.speak)setTimeout(sdSpeakFront,180);};
+var _fl2=sdFlip;sdFlip=function(){var was=SS&&SS.flipped;_fl2();
+try{if(!was&&SS&&SS.speak&&SS.flipped){speechSynthesis.cancel();var c=sdCur();var u=new SpeechSynthesisUtterance(c.back);u.lang='it-IT';u.rate=.95;speechSynthesis.speak(u);}}catch(e){}
+};
+var _lr2=sdLeaveRun;sdLeaveRun=function(){try{if('speechSynthesis'in window)speechSynthesis.cancel();}catch(e){}_lr2();};
+}catch(e){}})();
+
+/* piano + traguardi anche all'avvio e al ritorno in home */
+(function(){try{var _gh3=goHome;goHome=function(){_gh3();try{renderPlan();}catch(e){}};}catch(e){}})();
+setTimeout(function(){try{renderPlan();checkAch();}catch(e){}},1400);
