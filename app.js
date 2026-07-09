@@ -923,6 +923,12 @@ h+=`<button class="qtile" onclick="showTopics()">
 <div class="qtile-ic" style="background:rgba(52,199,89,.14)">🧭</div>
 <div class="qtile-tx"><strong>Scegli gli argomenti</strong><small>Esercitati su argomenti specifici</small></div>
 <div class="qtile-ar">›</div></button>`;
+/* [v8] riquadro "Domande mai viste": fai proprio quelle che non ti sono mai uscite */
+var _nv=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
+h+=`<button class="qtile" onclick="qStartNew()">
+<div class="qtile-ic" style="background:rgba(255,149,0,.14)">🆕</div>
+<div class="qtile-tx"><strong>Domande mai viste</strong><small>${_nv?_nv+' ancora da scoprire':'Le hai viste tutte 🎉'}</small></div>
+<div class="qtile-ar">›</div></button>`;
 QARG.forEach(c=>{
 const p=catProgress(c.id);
 h+=`<button class="qtile" onclick="qStartCat('${c.id}')">
@@ -977,7 +983,8 @@ function qStartSelectedTopics(){
 const subs=Object.keys(qSel);
 if(!subs.length){toast2('Seleziona almeno un argomento');return;}
 let items=QUIZ_ALL.filter(it=>subs.indexOf(it.sub)>=0);
-items=qShuffle(items.slice()).slice(0,40);
+/* [v8] prima le mai viste, poi le già viste */
+items=qShuffle(items.filter(it=>!qtStats.seenIds[it.id])).concat(qShuffle(items.filter(it=>qtStats.seenIds[it.id]))).slice(0,40);
 startQuiz(items,{mode:'study',title:'Ripasso argomenti'});
 }
 
@@ -998,6 +1005,13 @@ items=qShuffle(items);
 if(!items.length){toast2('Nessuna domanda disponibile');return;}
 startQuiz(items,{mode:'exam',title:'Simulazione',limit:1800,maxErr:4,maxPerCat:2});
 }
+/* [v8] quiz solo con domande MAI viste */
+function qStartNew(){
+buildQuiz();
+let items=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];});
+if(!items.length){toast2('🎉 Le hai viste tutte! Ripassa gli errori');return;}
+startQuiz(qShuffle(items.slice()).slice(0,30),{mode:'study',title:'Domande nuove'});
+}
 function qStartCat(cid){
 if(cid==='bm'){let items=QUIZ_ALL.filter(function(it){return qtStats.bm&&qtStats.bm[it.id];});if(!items.length){toast2('Nessun segnalibro');return;}startQuiz(qShuffle(items.slice()),{mode:'study',title:'Segnalibri'});return;}
 if(cid==='errata'){
@@ -1006,7 +1020,11 @@ if(!items.length){toast2('🎉 Nessun errore da ripassare');return;}
 startQuiz(items.slice(),{mode:'study',title:'Ripasso errori'});return;/*[FIX v5] niente shuffle: rispetta l'ordine della ripetizione spaziata (prima i più scaduti)*/
 }
 const arg=QARG.find(c=>c.id===cid);
-const items=qShuffle(QUIZ_ALL.filter(it=>it.cat===cid).slice()).slice(0,30);
+/* [v8] priorità alle domande mai viste: prima le nuove (mescolate), poi le già viste */
+const pool=QUIZ_ALL.filter(it=>it.cat===cid);
+const nuove=qShuffle(pool.filter(it=>!qtStats.seenIds[it.id]));
+const viste=qShuffle(pool.filter(it=>qtStats.seenIds[it.id]));
+const items=nuove.concat(viste).slice(0,30);
 if(!items.length){toast2('Nessuna domanda');return;}
 startQuiz(items,{mode:'study',title:arg?arg.label:'Ripasso'});
 }
