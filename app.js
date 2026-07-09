@@ -2333,3 +2333,299 @@ var _lr2=sdLeaveRun;sdLeaveRun=function(){try{if('speechSynthesis'in window)spee
 /* piano + traguardi anche all'avvio e al ritorno in home */
 (function(){try{var _gh3=goHome;goHome=function(){_gh3();try{renderPlan();}catch(e){}};}catch(e){}})();
 setTimeout(function(){try{renderPlan();checkAch();}catch(e){}},1400);
+
+/* ═══════ PACCHETTO v11: sync leggero, ricerca globale, ordina le vie, offline, onboarding ═══════ */
+
+/* ── SYNC DIFFERENZIALE: al cloud va solo ciò che è cambiato (da ~400KB a pochi KB) ── */
+let _dirty={};
+function markDirty(){for(var i=0;i<arguments.length;i++)_dirty[arguments[i]]=1;}
+(function(){try{
+var _sv=save;save=function(){_sv();markDirty('routes','coords','qStats','done');};
+var _qs=qtSave;qtSave=function(){_qs();markDirty('qtStats');};
+var _ss=sdSave;sdSave=function(){_ss();markDirty('studyProg');};
+var _qf4=qFinish;qFinish=function(t){var wasExam=Q&&Q.mode==='exam';_qf4(t);if(wasExam&&qCurView==='result')markDirty('qExamHist');};
+}catch(e){}})();
+autoSave=function(){
+if(!fbOk||!fbRef)return;clearTimeout(asTimer);
+asTimer=setTimeout(function(){
+var all={routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist};
+var p={ts:Date.now()},any=false;
+Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined){p[k]=all[k];any=true;}});
+if(!any)Object.assign(p,all); /* prima volta o niente tracciato: invio completo */
+fbRef.update(p).then(function(){_dirty={};showInd();}).catch(function(){});
+},4000);
+};
+
+/* ── RICERCA GLOBALE: la barra trova anche Luoghi e fermate Metro ── */
+(function(){try{
+var _ds=doSrch;
+doSrch=function(){
+_ds();
+try{
+var q=document.getElementById('sb').value.toUpperCase().trim();
+if(!q||q.length<2)return;
+buildLuoghi();
+var ul=document.getElementById('sugg');
+var lres=LUOGHI.filter(function(x){return x.cosa.toUpperCase().includes(q)||x.dove.toUpperCase().includes(q);}).slice(0,5);
+if(lres.length){
+var hd=document.createElement('li');hd.className='sg-hd';hd.textContent='Luoghi (tocca per l\'indirizzo)';ul.appendChild(hd);
+lres.forEach(function(x){
+var li=document.createElement('li');
+var t=document.createElement('span');t.textContent='📍 '+x.cosa;
+var m=document.createElement('span');m.className='si-meta';m.textContent=x.dove;
+li.appendChild(t);li.appendChild(m);
+li.onmousedown=function(e){e.preventDefault();};
+li.onclick=function(){toast2('📍 '+x.cosa+' — '+x.dove);};
+ul.appendChild(li);
+});
+}
+var midx=metroIndex(),mres=[];
+Object.keys(midx).forEach(function(nm){if(nm.toUpperCase().includes(q))mres.push(nm);});
+mres=mres.slice(0,4);
+if(mres.length){
+var hd2=document.createElement('li');hd2.className='sg-hd';hd2.textContent='Metro';ul.appendChild(hd2);
+mres.forEach(function(nm){
+var lines=[].slice.call(midx[nm].lines);
+var li=document.createElement('li');
+var t=document.createElement('span');t.textContent='🚇 '+nm;
+var m=document.createElement('span');m.className='si-meta';m.textContent=lines.join(' · ');
+li.appendChild(t);li.appendChild(m);
+li.onmousedown=function(e){e.preventDefault();};
+li.onclick=function(){closeSugg();openStudy();openMetro();try{mtPick(lines[0]);}catch(e){}toast2('🚇 '+nm+' — linea '+lines.join('/'));};
+ul.appendChild(li);
+});
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── ORDINA LE VIE: ricomponi il percorso toccando le vie nell'ordine giusto ── */
+let OQ=null;
+function openOrderQuiz(){
+if(!cur){toast2('Seleziona prima un percorso');return;}
+try{cm();}catch(e){}
+var ov=document.getElementById('oqOverlay');
+if(!ov){ov=document.createElement('div');ov.id='oqOverlay';document.body.appendChild(ov);}
+OQ={k:0,err:0,order:qShuffle(cur.steps.map(function(s){return{n:s};}))};
+ov.innerHTML='<div class="oq-box"><div class="oq-head"><strong>🧩 Ordina le vie</strong><span id="oqScore">0/'+cur.steps.length+'</span><button class="oq-x" onclick="closeOrderQuiz()">✕</button></div><div class="oq-done" id="oqDone"></div><div class="oq-hint">Tocca le vie nell\'ordine del percorso — partendo dalla prima</div><div class="oq-pool" id="oqPool"></div></div>';
+ov.classList.add('open');
+renderOQ();try{pushTrap();}catch(e){}hap();
+}
+function renderOQ(){
+var pool=document.getElementById('oqPool');if(!pool||!OQ)return;
+pool.innerHTML='';
+OQ.order.forEach(function(o,pi){
+if(o.used)return;
+var b=document.createElement('button');b.className='oq-chip';b.textContent=o.n;
+b.onclick=function(){oqPick(pi,b);};
+pool.appendChild(b);
+});
+}
+function oqPick(pi,btn){
+if(!OQ||!cur)return;
+var o=OQ.order[pi];
+if(o.n===cur.steps[OQ.k]){
+o.used=true;OQ.k++;hap('m');
+var d=document.getElementById('oqDone');
+if(d){var row=document.createElement('div');row.className='oq-row';row.innerHTML='<span class="oq-n">'+OQ.k+'</span>'+esc(o.n);d.appendChild(row);d.scrollTop=d.scrollHeight;}
+var sc=document.getElementById('oqScore');if(sc)sc.textContent=OQ.k+'/'+cur.steps.length;
+btn.remove();
+if(OQ.k>=cur.steps.length){try{confetti();}catch(e){}toast2(OQ.err?('🧩 Completato con '+OQ.err+' error'+(OQ.err===1?'e':'i')):'🧩 Perfetto! Ordine esatto al primo colpo');setTimeout(closeOrderQuiz,1400);}
+}else{
+OQ.err++;hap('e');
+btn.classList.remove('bad');void btn.offsetWidth;btn.classList.add('bad');
+}
+}
+function closeOrderQuiz(){OQ=null;var ov=document.getElementById('oqOverlay');if(ov)ov.classList.remove('open');}
+(function(){try{var _ab=appBack;appBack=function(){if(OQ){closeOrderQuiz();return true;}return _ab();};}catch(e){}})();
+
+/* ── PRECARICA I TILE del percorso selezionato: mappa garantita offline ── */
+function _tileXY(lat,lon,z){var n=Math.pow(2,z);var x=Math.floor((lon+180)/360*n);var la=lat*Math.PI/180;var y=Math.floor((1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n);return[x,y];}
+function prefetchRouteTiles(r){
+try{
+if(!r||!navigator.onLine||!('serviceWorker'in navigator))return;
+var urls={},subs=['a','b','c'];
+r.steps.forEach(function(_,i){
+var c=coords[r.id+'_'+i];if(!c)return;
+[14,15].forEach(function(z){
+var t=_tileXY(c.lat,c.lon,z);
+for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){
+var X=t[0]+dx,Y=t[1]+dy;
+urls['https://'+subs[Math.abs(X+Y)%3]+'.basemaps.cartocdn.com/rastertiles/voyager/'+z+'/'+X+'/'+Y+'.png']=1;
+}
+});
+});
+var list=Object.keys(urls).slice(0,220),i=0;
+(function next(){
+if(i>=list.length)return;
+try{fetch(list[i],{mode:'no-cors'}).catch(function(){});}catch(e){}
+i++;setTimeout(next,80); /* uno alla volta, in background */
+})();
+}catch(e){}
+}
+(function(){try{var _sr=selectRoute;selectRoute=function(r){_sr(r);setTimeout(function(){try{prefetchRouteTiles(r);}catch(e){}},2000);};}catch(e){}})();
+
+/* ── ONBOARDING: 3 schermate al primo avvio ── */
+function showOnboard(){
+if(lg('onboarded',false))return;
+var slides=[
+['🗺️','Topografia','Studia i percorsi sulla mappa: Studio, Cieco e Quiz vie. Scorri sulla mappa per andare avanti e indietro tra le tappe.'],
+['📝','Quiz d\'esame','919 domande vere: simulazione da 16, ripasso per argomento, errori con ripetizione spaziata e domande mai viste.'],
+['🎙️','Studio & Colloquio','Flashcard con lo swipe, metro, strade e il colloquio vocale. Consiglio: imposta subito la data dell\'esame in Home!']
+];
+var ov=document.createElement('div');ov.id='obOverlay';document.body.appendChild(ov);
+var i=0;
+function draw(){
+var s=slides[i];
+ov.innerHTML='<div class="ob-box"><div class="ob-e">'+s[0]+'</div><h2>'+s[1]+'</h2><p>'+s[2]+'</p><div class="ob-dots">'+slides.map(function(_,j){return '<i class="'+(j===i?'on':'')+'"></i>';}).join('')+'</div><button class="ob-next">'+(i<slides.length-1?'Avanti':'Iniziamo! 🚖')+'</button></div>';
+ov.querySelector('.ob-next').onclick=function(){hap();if(i<slides.length-1){i++;draw();}else{ls('onboarded',true);ov.remove();}};
+}
+draw();
+}
+setTimeout(function(){try{showOnboard();}catch(e){}},1700);
+
+/* ═══════ PACCHETTO v11: offline garantito, backup, ricerca globale, satellite, tip ═══════ */
+
+/* ── PRECARICO TILE del percorso selezionato: quella zona funziona offline ── */
+function _tileXY(lat,lon,z){
+var n=Math.pow(2,z);
+var x=Math.floor((lon+180)/360*n);
+var la=lat*Math.PI/180;
+var y=Math.floor((1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n);
+return [x,y];
+}
+function preloadRouteTiles(){
+try{
+if(!navigator.onLine||!cur||!window._tileLayer)return;
+var tpl=window._tileLayer._url;if(!tpl||tpl.indexOf('cartocdn')<0)return;
+var r=(window.devicePixelRatio>1)?'@2x':'';
+var urls={},list=[];
+cur.steps.forEach(function(_,i){
+var c=coords[cur.id+'_'+i];if(!c)return;
+[13,14,15].forEach(function(z){
+var t=_tileXY(c.lat,c.lon,z);
+var s='abc'[(t[0]+t[1])%3]; /* stesso sottodominio che sceglierà Leaflet */
+var u=tpl.replace('{s}',s).replace('{z}',z).replace('{x}',t[0]).replace('{y}',t[1]).replace('{r}',r);
+if(!urls[u]){urls[u]=1;list.push(u);}
+});
+});
+list=list.slice(0,140); /* tetto di sicurezza */
+var i=0;
+(function next(){
+if(i>=list.length)return;
+try{fetch(list[i++],{mode:'no-cors'}).catch(function(){});}catch(e){}
+setTimeout(next,55); /* diluito: non intasa la rete */
+})();
+}catch(e){}
+}
+(function(){try{var _sr=selectRoute;selectRoute=function(r){_sr(r);setTimeout(preloadRouteTiles,900);};}catch(e){}})();
+
+/* ── BACKUP AUTOMATICO settimanale su cloud (silenzioso, ramo separato) ── */
+function weeklyBackup(){
+try{
+if(!fbOk||!fbRef||typeof firebase==='undefined')return;
+var last=lg('lastBk',0);
+if(Date.now()-last<6.5*86400000)return;
+firebase.database().ref('prontuario_backup').set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,ts:Date.now()})
+.then(function(){ls('lastBk',Date.now());console.log('backup settimanale ok');}).catch(function(){});
+}catch(e){}
+}
+setTimeout(weeklyBackup,6000);
+
+/* ── RICERCA GLOBALE: la barra trova anche luoghi, fermate metro e strade ── */
+(function(){try{
+var _ds=doSrch;
+doSrch=function(){
+_ds();
+try{
+var q=document.getElementById('sb').value.toUpperCase().trim();
+if(q.length<3)return;
+var ul=document.getElementById('sugg');if(!ul||ul.style.display!=='block')return;
+buildLuoghi();
+function hd(t){var li=document.createElement('li');li.className='sg-hd';li.textContent=t;return li;}
+function row(main,meta,fn){
+var li=document.createElement('li');
+var a=document.createElement('span');a.textContent=main;
+var b=document.createElement('span');b.className='si-meta';b.textContent=meta;
+li.appendChild(a);li.appendChild(b);
+li.onmousedown=function(e){e.preventDefault();};
+li.onclick=function(){document.getElementById('sugg').style.display='none';sbArrowSet(false);if(fn)fn();};
+return li;
+}
+/* luoghi: mostra subito l'indirizzo (risposta immediata) */
+var lu=LUOGHI.filter(function(x){return x.cosa.toUpperCase().indexOf(q)>=0||x.dove.toUpperCase().indexOf(q)>=0;}).slice(0,4);
+if(lu.length){ul.appendChild(hd('📚 Luoghi'));lu.forEach(function(x){ul.appendChild(row(x.cosa,x.dove,null));});}
+/* fermate metro: tap → apre la metro */
+var mi=metroIndex(),mk=Object.keys(mi).filter(function(n){return n.toUpperCase().indexOf(q)>=0;}).slice(0,4);
+if(mk.length){ul.appendChild(hd('🚇 Metro'));mk.forEach(function(n){
+var lines=[].slice.call(mi[n].lines).join(' · ');
+ul.appendChild(row(n,lines,function(){openStudy();openMetro();}));
+});}
+/* strade: tap → apre la strada evidenziata sulla mappa */
+var sr=[];Object.keys(STRADE).forEach(function(g){STRADE[g].forEach(function(x){if(x.c.toUpperCase().indexOf(q)>=0||x.n.toUpperCase().indexOf(q)>=0)sr.push(x);});});
+sr=sr.slice(0,4);
+if(sr.length){ul.appendChild(hd('🛣️ Strade'));sr.forEach(function(x){
+ul.appendChild(row(x.c+' '+x.n,'',function(){openStudy();openStrade();setTimeout(function(){try{stFocusRoad(x.c);}catch(e){}},350);}));
+});}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── VISTA SATELLITE: pulsante 🛰 sulla mappa ── */
+let _mapSat=lg('mapSat',false);
+(function(){try{
+var _stm=setTileMode;
+setTileMode=function(noLabels){
+if(_mapSat&&map&&window._tileLayer){
+window._tileLayer.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+}else _stm(noLabels);
+};
+}catch(e){}})();
+function togSat(){
+_mapSat=!_mapSat;ls('mapSat',_mapSat);
+try{setTileMode(mode==='c'||mode==='q');}catch(e){}
+var b=document.getElementById('satBtn');if(b)b.textContent=_mapSat?'🗺':'🛰';
+toast2(_mapSat?'🛰 Vista satellite':'🗺 Vista mappa');hap();
+}
+function injectSatBtn(){
+try{
+if(document.getElementById('satBtn'))return;
+var mapEl=document.getElementById('map');if(!mapEl)return;
+var b=document.createElement('button');
+b.id='satBtn';b.type='button';b.textContent=_mapSat?'🗺':'🛰';
+b.setAttribute('aria-label','Cambia vista mappa');
+b.onclick=function(ev){try{ev.stopPropagation();}catch(e){}togSat();};
+mapEl.appendChild(b);
+}catch(e){}
+}
+setTimeout(function(){injectSatBtn();try{if(_mapSat)setTileMode(mode==='c'||mode==='q');}catch(e){}},1100);
+
+/* ── SUGGERIMENTO DEL GIORNO in home ── */
+var TIPS=[
+'La Tangenziale Ovest (A50) incrocia la A7 al km 20',
+'La SS33 del Sempione parte dall\u2019Arco della Pace',
+'Linate si raggiunge con la M4 Blu, capolinea est',
+'Max 4 errori all\u2019esame, e mai più di 2 per argomento',
+'La M2 Verde ha 4 rami: Gessate, Cologno, Abbiategrasso, Assago',
+'La SS36 porta a Lecco, Colico e al passo dello Spluga',
+'Ripassare 10 minuti ogni giorno vale più di 2 ore la domenica',
+'Duomo è interscambio M1 Rossa ↔ M3 Gialla',
+'La SS9 è la Via Emilia: Milano → Lodi → Piacenza',
+'Cadorna: M1, M2 e Ferrovie Nord nello stesso nodo',
+'La A35 BreBeMi collega Brescia, Bergamo e Milano',
+'Rispondere a voce alta fissa la memoria: prova il Colloquio vocale',
+'La SS494 Vigevanese passa per Gaggiano e Abbiategrasso',
+'San Babila è interscambio M1 ↔ M4',
+'Il tuo punto debole è mostrato nel Quiz: parti da lì'
+];
+function renderTip(){
+try{
+var hd=document.querySelector('#homeScreen .home-hd');if(!hd)return;
+var el=document.getElementById('tipLine');
+if(!el){el=document.createElement('div');el.id='tipLine';hd.appendChild(el);}
+var day=Math.floor(Date.now()/86400000);
+el.textContent='💡 '+TIPS[day%TIPS.length];
+}catch(e){}
+}
+(function(){try{var _gh4=goHome;goHome=function(){_gh4();try{renderTip();}catch(e){}};}catch(e){}})();
+setTimeout(renderTip,600);
