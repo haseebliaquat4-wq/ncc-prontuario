@@ -424,6 +424,7 @@
 <div class="mleft">
 <input type="text" class="mi2" id="mRT" placeholder="Titolo (es. LINATE – DUOMO)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mRS').focus();}">
 <textarea class="mi2" id="mRS" rows="5" placeholder="Incolla le vie, una per riga…" oninput="onMSChange()"></textarea>
+<div class="mrow2"><button class="mtool" onclick="cleanSteps()">🧹 Sistema testo</button><button class="mtool mtool-go" onclick="quickPlace()">⚡ Posiziona in sequenza</button></div>
 <div class="mslabel" id="mSLbl">Passi — clicca per posizionare</div>
 <div class="mslist" id="mSList"></div>
 <button class="mtbtn" id="mtBtn" onclick="togMMap()">🗺️ Mostra mappa</button>
