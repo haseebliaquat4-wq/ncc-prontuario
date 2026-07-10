@@ -570,7 +570,7 @@ function showAllRoutes(){
 const ul=document.getElementById('sugg');ul.innerHTML='';
 const f=document.createDocumentFragment();
 const hd=document.createElement('li');hd.className='sg-hd';hd.textContent=routes.length+' percorsi salvati';f.appendChild(hd);
-[...routes].sort((a,b)=>a.title.localeCompare(b.title)).forEach(r=>{
+[...routes].sort((a,b)=>((b.fav?1:0)-(a.fav?1:0))||a.title.localeCompare(b.title)).forEach(r=>{
 const li=document.createElement('li');
 const pl=r.steps.filter((_,i)=>!!coords[r.id+'_'+i]).length;
 const t=document.createElement('span');t.textContent=r.title;
@@ -709,7 +709,7 @@ const pl=r.steps.filter((_,i)=>!!coords[r.id+'_'+i]).length;
 const qs=qStats[r.id],pct=qs&&qs.total?Math.round(qs.correct/qs.total*100):null;
 const d=document.createElement('div');d.className='ri'+(done[r.id]?' dn':'');
 d.onclick=()=>{selectRoute(r);closeMgr();hap();};
-d.innerHTML=`<div class="rii"><div class="rit">${esc(r.title)}</div><div class="rim">${pl}/${r.steps.length} 📍${pct!==null?' · Quiz '+pct+'%':''}</div></div><div class="ria" onclick="event.stopPropagation()"><button class="rab reb" onclick="openAdd('${r.id}');closeMgr()">✏️</button><button class="rab rdb" onclick="delRoute('${r.id}')">🗑️</button></div>`;
+d.innerHTML=`<div class="rii"><div class="rit">${esc(r.title)}</div><div class="rim">${pl}/${r.steps.length} 📍${pct!==null?' · Quiz '+pct+'%':''}</div></div><div class="ria" onclick="event.stopPropagation()"><button class="rab rfb" onclick="togFav('${r.id}')">${r.fav?'★':'☆'}</button><button class="rab reb" onclick="openAdd('${r.id}');closeMgr()">✏️</button><button class="rab rdb" onclick="delRoute('${r.id}')">🗑️</button></div>`;
 f.appendChild(d);
 });
 c.innerHTML='';c.appendChild(f);
@@ -935,6 +935,11 @@ h+=`<button class="qtile" onclick="qStartHard()">
 <div class="qtile-ic" style="background:rgba(229,72,77,.12)">💀</div>
 <div class="qtile-tx"><strong>Le più sbagliate</strong><small>${_hd?'Le 20 domande che sbagli di più':'Ancora nessun dato'}</small></div>
 <div class="qtile-ar">›</div></button>`;
+/* [v12] sprint contro il tempo */
+h+=`<button class="qtile" onclick="qStartSprint()">
+<div class="qtile-ic" style="background:rgba(217,119,6,.12)">⚡</div>
+<div class="qtile-tx"><strong>Sprint 3 minuti</strong><small>10 domande contro il tempo</small></div>
+<div class="qtile-ar">›</div></button>`;
 QARG.forEach(c=>{
 const p=catProgress(c.id);
 h+=`<button class="qtile" onclick="qStartCat('${c.id}')">
@@ -1100,8 +1105,8 @@ document.getElementById('qPct').textContent=Math.round(ans/Q.items.length*100)+'
 function qTick(){
 if(!Q)return;
 const clk=document.getElementById('qClock');
-if(!clk){if(Q.mode==='exam'){const rem=Q.limit-Q.elapsed;if(rem<=0){qFinish(true);return;}}Q.elapsed++;return;}/*[FIX] se il clock non è nel DOM, gestisci comunque il tempo senza crashare*/
-if(Q.mode==='exam'){
+if(!clk){if(Q.limit>0){const rem=Q.limit-Q.elapsed;if(rem<=0){qFinish(true);return;}}Q.elapsed++;return;}/*[FIX] se il clock non è nel DOM, gestisci comunque il tempo senza crashare*/
+if(Q.limit>0){/*[v12] countdown per ogni quiz a tempo (Sprint incluso)*/
 const rem=Q.limit-Q.elapsed;
 if(rem===300)toast2('⏳ 5 minuti alla fine');
 if(rem===60)toast2('⏳ 1 minuto alla fine');
@@ -2313,6 +2318,7 @@ var pool=sdShuffle(LUOGHI.slice()).sort(function(a,b){return (studyProg[a.id]||0
 var cards=pool.map(function(x){return {key:x.id,front:x.cosa,back:x.dove,tag:'🎙 Ascolta e rispondi a voce',pill:x.cat};});
 sdStartDeck(cards,'dash',function(){sdStartColloquio();});
 if(SS)SS.speak=true;
+setTimeout(sdSpeakFront,320);/*[FIX 200-scenari] la prima carta era muta: il flag arrivava dopo il render*/
 }
 function sdSpeakFront(){
 try{
@@ -2334,155 +2340,6 @@ var _lr2=sdLeaveRun;sdLeaveRun=function(){try{if('speechSynthesis'in window)spee
 (function(){try{var _gh3=goHome;goHome=function(){_gh3();try{renderPlan();}catch(e){}};}catch(e){}})();
 setTimeout(function(){try{renderPlan();checkAch();}catch(e){}},1400);
 
-/* ═══════ PACCHETTO v11: sync leggero, ricerca globale, ordina le vie, offline, onboarding ═══════ */
-
-/* ── SYNC DIFFERENZIALE: al cloud va solo ciò che è cambiato (da ~400KB a pochi KB) ── */
-let _dirty={};
-function markDirty(){for(var i=0;i<arguments.length;i++)_dirty[arguments[i]]=1;}
-(function(){try{
-var _sv=save;save=function(){_sv();markDirty('routes','coords','qStats','done');};
-var _qs=qtSave;qtSave=function(){_qs();markDirty('qtStats');};
-var _ss=sdSave;sdSave=function(){_ss();markDirty('studyProg');};
-var _qf4=qFinish;qFinish=function(t){var wasExam=Q&&Q.mode==='exam';_qf4(t);if(wasExam&&qCurView==='result')markDirty('qExamHist');};
-}catch(e){}})();
-autoSave=function(){
-if(!fbOk||!fbRef)return;clearTimeout(asTimer);
-asTimer=setTimeout(function(){
-var all={routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist};
-var p={ts:Date.now()},any=false;
-Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined){p[k]=all[k];any=true;}});
-if(!any)Object.assign(p,all); /* prima volta o niente tracciato: invio completo */
-fbRef.update(p).then(function(){_dirty={};showInd();}).catch(function(){});
-},4000);
-};
-
-/* ── RICERCA GLOBALE: la barra trova anche Luoghi e fermate Metro ── */
-(function(){try{
-var _ds=doSrch;
-doSrch=function(){
-_ds();
-try{
-var q=document.getElementById('sb').value.toUpperCase().trim();
-if(!q||q.length<2)return;
-buildLuoghi();
-var ul=document.getElementById('sugg');
-var lres=LUOGHI.filter(function(x){return x.cosa.toUpperCase().includes(q)||x.dove.toUpperCase().includes(q);}).slice(0,5);
-if(lres.length){
-var hd=document.createElement('li');hd.className='sg-hd';hd.textContent='Luoghi (tocca per l\'indirizzo)';ul.appendChild(hd);
-lres.forEach(function(x){
-var li=document.createElement('li');
-var t=document.createElement('span');t.textContent='📍 '+x.cosa;
-var m=document.createElement('span');m.className='si-meta';m.textContent=x.dove;
-li.appendChild(t);li.appendChild(m);
-li.onmousedown=function(e){e.preventDefault();};
-li.onclick=function(){toast2('📍 '+x.cosa+' — '+x.dove);};
-ul.appendChild(li);
-});
-}
-var midx=metroIndex(),mres=[];
-Object.keys(midx).forEach(function(nm){if(nm.toUpperCase().includes(q))mres.push(nm);});
-mres=mres.slice(0,4);
-if(mres.length){
-var hd2=document.createElement('li');hd2.className='sg-hd';hd2.textContent='Metro';ul.appendChild(hd2);
-mres.forEach(function(nm){
-var lines=[].slice.call(midx[nm].lines);
-var li=document.createElement('li');
-var t=document.createElement('span');t.textContent='🚇 '+nm;
-var m=document.createElement('span');m.className='si-meta';m.textContent=lines.join(' · ');
-li.appendChild(t);li.appendChild(m);
-li.onmousedown=function(e){e.preventDefault();};
-li.onclick=function(){closeSugg();openStudy();openMetro();try{mtPick(lines[0]);}catch(e){}toast2('🚇 '+nm+' — linea '+lines.join('/'));};
-ul.appendChild(li);
-});
-}
-}catch(e){}
-};
-}catch(e){}})();
-
-/* ── ORDINA LE VIE: ricomponi il percorso toccando le vie nell'ordine giusto ── */
-let OQ=null;
-function openOrderQuiz(){
-if(!cur){toast2('Seleziona prima un percorso');return;}
-try{cm();}catch(e){}
-var ov=document.getElementById('oqOverlay');
-if(!ov){ov=document.createElement('div');ov.id='oqOverlay';document.body.appendChild(ov);}
-OQ={k:0,err:0,order:qShuffle(cur.steps.map(function(s){return{n:s};}))};
-ov.innerHTML='<div class="oq-box"><div class="oq-head"><strong>🧩 Ordina le vie</strong><span id="oqScore">0/'+cur.steps.length+'</span><button class="oq-x" onclick="closeOrderQuiz()">✕</button></div><div class="oq-done" id="oqDone"></div><div class="oq-hint">Tocca le vie nell\'ordine del percorso — partendo dalla prima</div><div class="oq-pool" id="oqPool"></div></div>';
-ov.classList.add('open');
-renderOQ();try{pushTrap();}catch(e){}hap();
-}
-function renderOQ(){
-var pool=document.getElementById('oqPool');if(!pool||!OQ)return;
-pool.innerHTML='';
-OQ.order.forEach(function(o,pi){
-if(o.used)return;
-var b=document.createElement('button');b.className='oq-chip';b.textContent=o.n;
-b.onclick=function(){oqPick(pi,b);};
-pool.appendChild(b);
-});
-}
-function oqPick(pi,btn){
-if(!OQ||!cur)return;
-var o=OQ.order[pi];
-if(o.n===cur.steps[OQ.k]){
-o.used=true;OQ.k++;hap('m');
-var d=document.getElementById('oqDone');
-if(d){var row=document.createElement('div');row.className='oq-row';row.innerHTML='<span class="oq-n">'+OQ.k+'</span>'+esc(o.n);d.appendChild(row);d.scrollTop=d.scrollHeight;}
-var sc=document.getElementById('oqScore');if(sc)sc.textContent=OQ.k+'/'+cur.steps.length;
-btn.remove();
-if(OQ.k>=cur.steps.length){try{confetti();}catch(e){}toast2(OQ.err?('🧩 Completato con '+OQ.err+' error'+(OQ.err===1?'e':'i')):'🧩 Perfetto! Ordine esatto al primo colpo');setTimeout(closeOrderQuiz,1400);}
-}else{
-OQ.err++;hap('e');
-btn.classList.remove('bad');void btn.offsetWidth;btn.classList.add('bad');
-}
-}
-function closeOrderQuiz(){OQ=null;var ov=document.getElementById('oqOverlay');if(ov)ov.classList.remove('open');}
-(function(){try{var _ab=appBack;appBack=function(){if(OQ){closeOrderQuiz();return true;}return _ab();};}catch(e){}})();
-
-/* ── PRECARICA I TILE del percorso selezionato: mappa garantita offline ── */
-function _tileXY(lat,lon,z){var n=Math.pow(2,z);var x=Math.floor((lon+180)/360*n);var la=lat*Math.PI/180;var y=Math.floor((1-Math.log(Math.tan(la)+1/Math.cos(la))/Math.PI)/2*n);return[x,y];}
-function prefetchRouteTiles(r){
-try{
-if(!r||!navigator.onLine||!('serviceWorker'in navigator))return;
-var urls={},subs=['a','b','c'];
-r.steps.forEach(function(_,i){
-var c=coords[r.id+'_'+i];if(!c)return;
-[14,15].forEach(function(z){
-var t=_tileXY(c.lat,c.lon,z);
-for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){
-var X=t[0]+dx,Y=t[1]+dy;
-urls['https://'+subs[Math.abs(X+Y)%3]+'.basemaps.cartocdn.com/rastertiles/voyager/'+z+'/'+X+'/'+Y+'.png']=1;
-}
-});
-});
-var list=Object.keys(urls).slice(0,220),i=0;
-(function next(){
-if(i>=list.length)return;
-try{fetch(list[i],{mode:'no-cors'}).catch(function(){});}catch(e){}
-i++;setTimeout(next,80); /* uno alla volta, in background */
-})();
-}catch(e){}
-}
-(function(){try{var _sr=selectRoute;selectRoute=function(r){_sr(r);setTimeout(function(){try{prefetchRouteTiles(r);}catch(e){}},2000);};}catch(e){}})();
-
-/* ── ONBOARDING: 3 schermate al primo avvio ── */
-function showOnboard(){
-if(lg('onboarded',false))return;
-var slides=[
-['🗺️','Topografia','Studia i percorsi sulla mappa: Studio, Cieco e Quiz vie. Scorri sulla mappa per andare avanti e indietro tra le tappe.'],
-['📝','Quiz d\'esame','919 domande vere: simulazione da 16, ripasso per argomento, errori con ripetizione spaziata e domande mai viste.'],
-['🎙️','Studio & Colloquio','Flashcard con lo swipe, metro, strade e il colloquio vocale. Consiglio: imposta subito la data dell\'esame in Home!']
-];
-var ov=document.createElement('div');ov.id='obOverlay';document.body.appendChild(ov);
-var i=0;
-function draw(){
-var s=slides[i];
-ov.innerHTML='<div class="ob-box"><div class="ob-e">'+s[0]+'</div><h2>'+s[1]+'</h2><p>'+s[2]+'</p><div class="ob-dots">'+slides.map(function(_,j){return '<i class="'+(j===i?'on':'')+'"></i>';}).join('')+'</div><button class="ob-next">'+(i<slides.length-1?'Avanti':'Iniziamo! 🚖')+'</button></div>';
-ov.querySelector('.ob-next').onclick=function(){hap();if(i<slides.length-1){i++;draw();}else{ls('onboarded',true);ov.remove();}};
-}
-draw();
-}
-setTimeout(function(){try{showOnboard();}catch(e){}},1700);
 
 /* ═══════ PACCHETTO v11: offline garantito, backup, ricerca globale, satellite, tip ═══════ */
 
@@ -2629,3 +2486,412 @@ el.textContent='💡 '+TIPS[day%TIPS.length];
 }
 (function(){try{var _gh4=goHome;goHome=function(){_gh4();try{renderTip();}catch(e){}};}catch(e){}})();
 setTimeout(renderTip,600);
+
+/* ═══════ PACCHETTO v12: sprint, ordina le vie, long-press, statistiche pro, onboarding ═══════ */
+
+/* ── SPRINT 3 MINUTI ── */
+function qStartSprint(){
+buildQuiz();
+var items=qShuffle(QUIZ_ALL.slice()).slice(0,10);
+if(!items.length){toast2('Nessuna domanda');return;}
+startQuiz(items,{mode:'study',title:'Sprint 3 minuti',limit:180});
+toast2('⚡ 10 domande, 3 minuti. Via!');
+}
+
+/* ── PREFERITI ── */
+function togFav(id){
+var r=routes.find(function(x){return x.id===id;});if(!r)return;
+r.fav=!r.fav;save();autoSave();
+try{renderMgr();}catch(e){}
+toast2(r.fav?'★ Aggiunto ai preferiti':'☆ Rimosso dai preferiti');hap();
+}
+
+/* ── MEDIA nello storico simulazioni ── */
+(function(){try{
+var _reh=renderExamHist;
+renderExamHist=function(){
+_reh();
+try{
+if(!qExamHist.length)return;
+var w=document.getElementById('qHistWrap');if(!w||!w.firstChild)return;
+var okAvg=(qExamHist.reduce(function(s,x){return s+(x.ok||0);},0)/qExamHist.length).toFixed(1);
+var tAvg=Math.round(qExamHist.reduce(function(s,x){return s+(x.t||0);},0)/qExamHist.length);
+var line=document.createElement('div');
+line.style.cssText='margin-top:10px;font-size:12.5px;font-weight:650;color:var(--mu);text-align:center;font-variant-numeric:tabular-nums';
+line.textContent='Media: '+okAvg+'/16 corrette · '+fmtT(tAvg)+' a simulazione';
+w.firstChild.appendChild(line);
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── TEMPO MEDIO per domanda + "sbagliata N volte" nell'analisi ── */
+(function(){try{
+var _rr=renderResult;
+renderResult=function(ok,err,skip,timeout){
+_rr(ok,err,skip,timeout);
+try{
+var answered=ok+err;
+if(answered>0){
+var usedT=Q.mode==='exam'?Math.min(Q.limit,Q.elapsed):Q.elapsed;
+var el=document.getElementById('qResTime');
+if(el)el.textContent=el.textContent+' · '+Math.round(usedT/answered)+'s a domanda';
+}
+/* etichetta storica sulle domande recidive */
+qtStats.wrongN=qtStats.wrongN||{};
+var cards=document.querySelectorAll('#qAnalysis .qac');
+Q.items.forEach(function(it,i){
+var n=qtStats.wrongN[it.id]||0;
+if(n>=2&&cards[i]){
+var tag=document.createElement('div');
+tag.style.cssText='margin:0 16px 12px;font-size:11.5px;font-weight:750;color:var(--err)';
+tag.textContent='⚠ Sbagliata '+n+' volte in totale — dedicale attenzione';
+cards[i].appendChild(tag);
+}
+});
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── previsione nel piano quando manca la data ── */
+(function(){try{
+var _rp=renderPlan;
+renderPlan=function(){
+_rp();
+try{
+var w=document.getElementById('planCard');if(!w)return;
+var btn=w.querySelector('.plan-set');
+if(btn&&btn.textContent.indexOf('Imposta la data')>=0){
+var unseen=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
+var goal=lg('dailyGoal',30);
+if(unseen>0&&goal>0)btn.textContent='🎯 Imposta la data dell\'esame — al ritmo di '+goal+'/giorno finisci le nuove in '+Math.ceil(unseen/goal)+' giorni';
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── ORDINA LE VIE: mini-gioco sul percorso attivo ── */
+let ORD=null;
+function ordinaVie(){
+if(!cur){toast2('Seleziona prima un percorso');return;}
+if(cur.steps.length<6){toast2('Servono almeno 6 vie');return;}
+var start=Math.floor(Math.random()*(cur.steps.length-6+1));
+var target=cur.steps.slice(start,start+6);
+ORD={target:target,idx:0,err:0,start:start};
+var pool=qShuffle(target.slice());
+var old=document.getElementById('ordModal');if(old)old.remove();
+var m=document.createElement('div');m.id='ordModal';m.className='modal open';
+m.innerHTML='<div class="mbox" style="max-width:520px">'
++'<div class="mhandle"></div>'
++'<div class="mhdr"><div class="mhdr-left"><h3>🧩 Ordina le vie</h3><p>'+esc(cur.title)+' · dalla via '+(start+1)+'</p></div>'
++'<button class="mhdr-close" onclick="ordClose()">✕</button></div>'
++'<div style="padding:16px 18px;overflow-y:auto">'
++'<div class="ord-slots" id="ordSlots">'+target.map(function(_,i){return '<div class="ord-slot" id="ordS'+i+'">'+(start+i+1)+'.</div>';}).join('')+'</div>'
++'<div class="mslabel" style="margin:14px 0 8px">Tocca le vie nell\'ordine giusto</div>'
++'<div class="ord-pool" id="ordPool">'+pool.map(function(s){return '<button class="ord-btn" onclick="ordPick(this)">'+esc(s)+'</button>';}).join('')+'</div>'
++'</div></div>';
+document.body.appendChild(m);
+hap();
+}
+function ordPick(btn){
+if(!ORD)return;
+var v=btn.textContent;
+if(v===ORD.target[ORD.idx]){
+btn.classList.add('ok');btn.disabled=true;
+var sl=document.getElementById('ordS'+ORD.idx);
+if(sl){sl.textContent=(ORD.start+ORD.idx+1)+'. '+v;sl.classList.add('done');}
+ORD.idx++;hap('m');
+if(ORD.idx>=ORD.target.length){
+var perfetto=ORD.err===0;
+setTimeout(function(){
+toast2(perfetto?'🏆 Perfetto, ordine esatto!':'✅ Completato con '+ORD.err+' error'+(ORD.err===1?'e':'i'));
+if(perfetto)try{confetti();}catch(e){}
+ordClose();
+},450);
+}
+}else{
+ORD.err++;hap('e');
+btn.classList.remove('shk');void btn.offsetWidth;btn.classList.add('shk');
+}
+}
+function ordClose(){ORD=null;var m=document.getElementById('ordModal');if(m)m.remove();}
+
+/* ── LONG-PRESS su una via: azioni rapide ── */
+let _lpT=null,_lpRow=null,_lpDone=false,_lpX=0,_lpY=0;
+document.addEventListener('touchstart',function(e){
+var r=e.target.closest?e.target.closest('#sList .sr'):null;
+if(!r)return;
+_lpRow=r;_lpDone=false;_lpX=e.touches[0].clientX;_lpY=e.touches[0].clientY;
+clearTimeout(_lpT);
+_lpT=setTimeout(function(){_lpDone=true;showViaSheet(listRows.indexOf(_lpRow));hap('m');},550);
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+if(!_lpT)return;
+if(Math.abs(e.touches[0].clientX-_lpX)>10||Math.abs(e.touches[0].clientY-_lpY)>10){clearTimeout(_lpT);_lpT=null;}
+},{passive:true});
+document.addEventListener('touchend',function(){clearTimeout(_lpT);_lpT=null;},{passive:true});
+/* dopo un long-press, sopprimi il click "fantasma" sulla riga */
+document.addEventListener('click',function(e){
+if(_lpDone){_lpDone=false;e.stopPropagation();e.preventDefault();}
+},true);
+function showViaSheet(i){
+if(!cur||i<0)return;
+var old=document.getElementById('viaSheet');if(old)old.remove();
+var k=cur.id+'_'+i,has=!!coords[k];
+/* [FIX scenario] in Cieco/Quiz la via è coperta: il menu non deve svelarla (né mostrare Copia) */
+var hidden=(mode!=='s')&&!(i===step&&_revealed);
+var name=hidden?('Via n. '+(i+1)+' (nascosta)'):((i+1)+'. '+cur.steps[i]);
+var s=document.createElement('div');s.id='viaSheet';
+s.innerHTML='<div class="vs-name">'+esc(name)+'</div>'
++'<button onclick="vsAct(\'pin\','+i+')">📍 '+(has?'Riposiziona':'Posiziona')+' sulla mappa</button>'
++(has?'<button onclick="vsAct(\'sv\','+i+')">👁 Street View</button>':'')
++(hidden?'':'<button onclick="vsAct(\'copy\','+i+')">📋 Copia nome</button>')
++'<button class="vs-close" onclick="vsClose()">Chiudi</button>';
+document.body.appendChild(s);
+}
+function vsAct(a,i){
+var k=cur.id+'_'+i;
+if(a==='pin'){step=i;syncListActive();updateUI();goStep();if(coords[k]){delete coords[k];save();autoSave();if(mkr){try{map.removeLayer(mkr);}catch(e){}mkr=null;}rebuildLines();renderList();}startPl(i);}
+else if(a==='sv'&&coords[k]){window.open('https://www.google.com/maps?layer=c&cbll='+coords[k].lat+','+coords[k].lon,'_blank');}
+else if(a==='copy'){try{navigator.clipboard.writeText(cur.steps[i]);toast2('📋 Copiato');}catch(e){}}
+vsClose();hap();
+}
+function vsClose(){var s=document.getElementById('viaSheet');if(s)s.remove();}
+
+/* ── RISPARMIO BATTERIA: sotto il 20% spegne le animazioni pesanti ── */
+try{
+if(navigator.getBattery)navigator.getBattery().then(function(b){
+function ck(){document.body.classList.toggle('lowbat',b.level<=.2&&!b.charging);}
+ck();b.addEventListener('levelchange',ck);b.addEventListener('chargingchange',ck);
+});
+}catch(e){}
+
+/* ── ONBOARDING primo avvio ── */
+setTimeout(function(){
+try{
+if(lg('ob1',false))return;
+var o=document.createElement('div');o.id='obWrap';
+o.innerHTML='<div class="ob-card">'
++'<div class="ob-emoji">🚖</div><h2>Benvenuto!</h2>'
++'<div class="ob-row"><span>🗺️</span><div><b>Mappa</b> — studia i percorsi via per via, in 3 modalità</div></div>'
++'<div class="ob-row"><span>📝</span><div><b>Quiz</b> — 919 domande, simulazioni d\'esame e ripasso errori</div></div>'
++'<div class="ob-row"><span>📚</span><div><b>Studio</b> — luoghi, metro e strade con flashcard</div></div>'
++'<div class="ob-row"><span>⚡</span><div><b>Ripassa 10 minuti</b> — l\'app sceglie cosa studiare oggi</div></div>'
++'<button onclick="obClose()">Inizia</button></div>';
+document.body.appendChild(o);
+}catch(e){}
+},1600);
+function obClose(){ls('ob1',true);var o=document.getElementById('obWrap');if(o)o.remove();hap('m');}
+
+/* ═══════ PACCHETTO v13: sync differenziale + rifiniture da scenario-test ═══════ */
+
+/* ── SYNC DIFFERENZIALE: al cloud va solo ciò che è cambiato (da ~400KB a pochi KB) ── */
+let _dirty={};
+function markDirty(){for(var i=0;i<arguments.length;i++)_dirty[arguments[i]]=1;}
+(function(){try{
+var _sv=save;save=function(){_sv();markDirty('routes','coords','qStats','done');};
+var _qs=qtSave;qtSave=function(){_qs();markDirty('qtStats');};
+var _ss3=sdSave;sdSave=function(){_ss3();markDirty('studyProg');};
+var _qf5=qFinish;qFinish=function(t){var wasExam=Q&&Q.mode==='exam';_qf5(t);if(wasExam&&qCurView==='result')markDirty('qExamHist');};
+}catch(e){}})();
+autoSave=function(){
+if(!fbOk||!fbRef)return;clearTimeout(asTimer);
+asTimer=setTimeout(function(){
+try{
+var all={routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist};
+var p={ts:Date.now()},any=false;
+Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined){p[k]=all[k];any=true;}});
+if(!any)Object.assign(p,all); /* nulla di tracciato: invio completo di sicurezza */
+fbRef.update(p).then(function(){_dirty={};showInd();}).catch(function(){});
+}catch(e){}
+},4000);
+};
+
+/* ── Escape / tasto indietro chiudono anche gioco e action sheet ── */
+(function(){try{
+var _cam=closeAllM;
+closeAllM=function(){_cam();try{ordClose();}catch(e){}try{vsClose();}catch(e){}};
+}catch(e){}})();
+/* tap fuori dall'action sheet = chiudi */
+document.addEventListener('click',function(e){
+var s=document.getElementById('viaSheet');
+if(s&&!s.contains(e.target))vsClose();
+});
+
+/* ═══════ PACCHETTO v14: SYNC COMPLETO tra dispositivi ═══════ */
+
+/* ── le preferenze viaggiano col cloud: data esame, obiettivo, striscia ── */
+function getPrefs(){return {examDate:lg('examDate',0),dailyGoal:lg('dailyGoal',30),streak:lg('streak',{n:0,last:0})};}
+(function(){try{
+var _se=setExamDate;setExamDate=function(){_se();markDirty('prefs');autoSave();};
+var _sg=setDailyGoal;setDailyGoal=function(){_sg();markDirty('prefs');autoSave();};
+var _bs=bumpStreak;bumpStreak=function(){var r=_bs();markDirty('prefs');try{autoSave();}catch(e){}return r;};
+}catch(e){}})();
+
+/* ── indicatore di stato sync nell'angolo ── */
+function syncInd(t,stay){
+try{
+var e=document.getElementById('sInd');if(!e)return;
+e.textContent=t;e.classList.add('show');
+clearTimeout(e._t);if(!stay)e._t=setTimeout(function(){e.classList.remove('show');},1600);
+}catch(e2){}
+}
+
+/* ── autoSave definitivo: differenziale + prefs + indicatore ── */
+autoSave=function(){
+if(!fbOk||!fbRef)return;clearTimeout(asTimer);
+asTimer=setTimeout(function(){
+try{
+syncInd('⏳ Sync…',true);
+var all={routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs()};
+var p={ts:Date.now()},any=false;
+Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined){p[k]=all[k];any=true;}});
+if(!any)Object.assign(p,all);
+fbRef.update(p).then(function(){_dirty={};syncInd('☁️ ✓');}).catch(function(){syncInd('⚠️ Sync non riuscito');});
+}catch(e){syncInd('⚠️ Sync non riuscito');}
+},4000);
+};
+/* il salvataggio manuale include anche le preferenze */
+cloudSave=function(){
+if(!fbOk||!fbRef){toast2('⚠️ Firebase non disponibile');return;}
+toast2('💾 Salvataggio…');
+fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs(),ts:Date.now()})
+.then(function(){toast2('✅ Salvato su cloud');}).catch(function(){toast2('⚠️ Errore cloud');});
+};
+
+/* ── MERGE INTELLIGENTE: unisce i progressi invece di "vince il più recente".
+Le statistiche additive (domande viste, flashcard, errori...) si fondono SEMPRE:
+studiare su due dispositivi non fa più perdere nulla. ── */
+syncFromCloud=function(){
+if(!fbOk||!fbRef)return;
+var imp=lg('imp',0),localTs=lg('localTs',0);
+fbRef.once('value',function(snap){
+try{
+var d=snap.val();if(!d||!d.ts)return;
+if(imp&&imp>d.ts)return;
+var cloudNewer=!(localTs&&localTs>d.ts);
+/* [FIX 200-scenari] mut conta le modifiche REALI: niente più toast+upload a ogni apertura */
+var mut=0;
+function keepU(dst,src){dst=dst||{};if(src)Object.keys(src).forEach(function(k){if(dst[k]===undefined){dst[k]=src[k];mut++;}});return dst;}
+function maxU(dst,src){dst=dst||{};if(src)Object.keys(src).forEach(function(k){var v=Math.max(dst[k]||0,src[k]||0);if(v!==(dst[k]||0)){dst[k]=v;mut++;}else if(dst[k]===undefined){dst[k]=v;}});return dst;}
+var statMut=false,m0=mut;
+if(d.qtStats&&typeof d.qtStats==='object'){
+qtStats.seenIds=keepU(qtStats.seenIds,d.qtStats.seenIds);
+qtStats.bm=keepU(qtStats.bm,d.qtStats.bm);
+qtStats.ach=keepU(qtStats.ach,d.qtStats.ach);
+qtStats.report=keepU(qtStats.report,d.qtStats.report);
+qtStats.wrongN=maxU(qtStats.wrongN,d.qtStats.wrongN);
+qtStats.daily=maxU(qtStats.daily,d.qtStats.daily);
+if(d.qtStats.err){qtStats.err=qtStats.err||{};Object.keys(d.qtStats.err).forEach(function(k){var a=qtStats.err[k],b=d.qtStats.err[k];if(a===undefined){qtStats.err[k]=b;mut++;}else if(b&&typeof b==='object'&&typeof a==='object'&&(b.box||0)>(a.box||0)){qtStats.err[k]=b;mut++;}});}
+if(d.qtStats.cat){qtStats.cat=qtStats.cat||{};Object.keys(d.qtStats.cat).forEach(function(k){var a=qtStats.cat[k]||{seen:0,ok:0},b=d.qtStats.cat[k]||{};var ns=Math.max(a.seen||0,b.seen||0),no=Math.max(a.ok||0,b.ok||0);if(ns!==(a.seen||0)||no!==(a.ok||0))mut++;qtStats.cat[k]={seen:ns,ok:no};});}
+if(mut>m0){ls('qtStats',qtStats);statMut=true;}
+}
+if(d.studyProg&&typeof d.studyProg==='object'){var m1=mut;studyProg=maxU(studyProg,d.studyProg);if(mut>m1){ls('studyProg',studyProg);statMut=true;}}
+if(d.done&&typeof d.done==='object'){Object.keys(d.done).forEach(function(k){if(!done[k]&&d.done[k]){done[k]=d.done[k];mut++;statMut=true;}});}
+if(d.qExamHist&&Array.isArray(d.qExamHist)){
+var seenD={};qExamHist.forEach(function(x){if(x)seenD[x.d]=1;});
+var added=0;d.qExamHist.forEach(function(x){if(x&&!seenD[x.d]){qExamHist.push(x);added++;}});
+if(added){qExamHist.sort(function(a,b){return (a.d||0)-(b.d||0);});if(qExamHist.length>50)qExamHist=qExamHist.slice(-50);ls('qExamHist',qExamHist);mut+=added;statMut=true;}
+}
+if(d.prefs&&typeof d.prefs==='object'){
+try{
+if(d.prefs.examDate&&(cloudNewer||!lg('examDate',0))&&lg('examDate',0)!==d.prefs.examDate){ls('examDate',d.prefs.examDate);mut++;}
+if(d.prefs.dailyGoal&&cloudNewer&&lg('dailyGoal',30)!==d.prefs.dailyGoal){ls('dailyGoal',d.prefs.dailyGoal);mut++;}
+if(d.prefs.streak){var st=lg('streak',{n:0,last:0});var cs=d.prefs.streak;
+if((cs.last||0)>(st.last||0)){ls('streak',cs);mut++;}
+else if((cs.last||0)===(st.last||0)&&(cs.n||0)>(st.n||0)){ls('streak',{n:cs.n,last:st.last});mut++;}/*stesso giorno: vince la striscia più lunga*/
+}
+}catch(e){}
+}
+/* percorsi e mappa: se il cloud è più recente prendi i suoi, ma TIENI i percorsi/pin solo-locali */
+if(cloudNewer){
+if(d.routes){var cr=vR(d.routes);var have={};cr.forEach(function(r){have[r.id]=1;});routes.forEach(function(r){if(!have[r.id])cr.push(r);});routes=cr;}
+if(d.coords){var cc=vC(d.coords);Object.keys(coords).forEach(function(k){if(cc[k]===undefined)cc[k]=coords[k];});coords=cc;}
+if(d.qStats&&typeof d.qStats==='object'){Object.keys(d.qStats).forEach(function(k){var a=qStats[k],b=d.qStats[k];if(!a||(((b&&b.total)||0)>=((a&&a.total)||0)))qStats[k]=b;});}
+save();
+}else if(statMut){save();}
+if(mut>0||cloudNewer){
+if(statMut)markDirty('qtStats','studyProg','done','qExamHist','prefs');
+if(cloudNewer)markDirty('routes','coords','qStats','done');
+autoSave();
+toast2(cloudNewer?'☁️ Dati aggiornati dal cloud':'☁️ Progressi uniti dai tuoi dispositivi');
+}
+if(cur){renderList();rebuildLines();}
+if(cur&&map){var k2=cur.id+'_'+step;if(coords[k2])putMkr(coords[k2].lat,coords[k2].lon,cur.steps[step],k2);}
+try{renderPlan();renderWeekly();updateTabBadge();showStreak();renderReadiness();renderTip();}catch(e){}
+}catch(e){console.warn('sync err',e);}
+},function(){});
+};
+
+/* ── RIPRISTINO dal backup settimanale ── */
+function restoreBackup(){
+if(!fbOk||!fbRef||typeof firebase==='undefined'){toast2('⚠️ Cloud non disponibile');return;}
+toast2('🛟 Cerco il backup…');
+firebase.database().ref('prontuario_backup').once('value',function(snap){
+var d=snap.val();
+if(!d||!d.ts){toast2('Nessun backup trovato');return;}
+var when=new Date(d.ts).toLocaleDateString('it-IT');
+if(!confirm('Trovato backup del '+when+'.\n\nRipristinarlo? I dati attuali verranno sostituiti.'))return;
+try{
+if(d.routes)routes=vR(d.routes);
+if(d.coords)coords=vC(d.coords);
+if(d.qStats)qStats=d.qStats;if(d.done)done=d.done;
+if(d.qtStats){qtStats=d.qtStats;ls('qtStats',qtStats);}
+if(d.studyProg){studyProg=d.studyProg;ls('studyProg',studyProg);}
+if(d.qExamHist){qExamHist=d.qExamHist;ls('qExamHist',qExamHist);}
+if(d.prefs){if(d.prefs.examDate)ls('examDate',d.prefs.examDate);if(d.prefs.dailyGoal)ls('dailyGoal',d.prefs.dailyGoal);if(d.prefs.streak)ls('streak',d.prefs.streak);}
+ls('imp',Date.now());save();
+toast2('✅ Backup ripristinato — aggiorno il cloud…');
+/* [FIX 200-scenari] spingi il ripristino anche sul ramo principale: senza questo,
+gli altri dispositivi avrebbero risincronizzato i dati vecchi */
+fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs(),ts:Date.now()})
+.then(function(){setTimeout(function(){location.reload();},600);})
+.catch(function(){setTimeout(function(){location.reload();},600);});
+}catch(e){toast2('⚠️ Errore nel ripristino');}
+},function(){toast2('⚠️ Errore di rete');});
+}
+/* il backup settimanale ora include anche le preferenze */
+weeklyBackup=function(){
+try{
+if(!fbOk||!fbRef||typeof firebase==='undefined')return;
+if(Date.now()-lg('lastBk',0)<6.5*86400000)return;
+firebase.database().ref('prontuario_backup').set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs(),ts:Date.now()})
+.then(function(){ls('lastBk',Date.now());}).catch(function(){});
+}catch(e){}
+};
+
+/* ═══════ PACCHETTO v15: design pro ═══════ */
+
+/* ── theme-color dinamico: la barra di stato segue il tema ── */
+function updateThemeColor(){
+try{
+var b=document.body,dark=b.classList.contains('dark'),ber=b.classList.contains('berlina');
+var c=ber?(dark?'#0A0A0D':'#F5F4F0'):(dark?'#07080D':'#F4F5F8');
+var m=document.querySelector('meta[name="theme-color"]');
+if(!m){m=document.createElement('meta');m.name='theme-color';document.head.appendChild(m);}
+m.content=c;
+}catch(e){}
+}
+(function(){try{
+var _ad=applyDark;applyDark=function(){_ad();updateThemeColor();};
+var _tb2=togBerlina;togBerlina=function(){_tb2();updateThemeColor();};
+}catch(e){}})();
+setTimeout(updateThemeColor,300);
+
+/* ── flash di ricompensa quando raggiungi l'obiettivo del giorno ── */
+(function(){try{
+var _rw2=renderWeekly;
+renderWeekly=function(){
+_rw2();
+try{
+var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
+if(today>=goal&&goal>0&&lg('goalHit','')!==_dayKey()){
+ls('goalHit',_dayKey());
+setTimeout(function(){toast2('🎯 Obiettivo di oggi raggiunto!');try{confetti();}catch(e){}},400);
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* [FIX 200-scenari] il timer a 6000ms aveva catturato la VECCHIA weeklyBackup (senza preferenze):
+questo parte prima, esegue la versione nuova e imposta lastBk, così la vecchia si auto-salta */
+setTimeout(function(){try{weeklyBackup();}catch(e){}},5200);
