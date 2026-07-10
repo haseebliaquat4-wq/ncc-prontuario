@@ -1088,16 +1088,40 @@ Q._locked=true;
 var it=Q.items[Q.idx];
 var btns=document.querySelectorAll('#qRunAns .qans');
 btns.forEach(function(b,bi){b.style.pointerEvents='none';if(bi===it.correct)b.classList.add('good');if(bi===i&&i!==it.correct)b.classList.add('bad');});
-if(i!==it.correct)hap('e');
 qRenderPills();qUpdatePct();
+if(i!==it.correct){
+/* [v19] errore: PAUSA di riflessione — un tocco su "perché" e si va avanti.
+Fermarsi sull'errore (invece di scorrere via) è ciò che lo fissa in memoria. */
+hap('e');
+var wrap=document.getElementById('qRunAns');
+if(wrap&&!wrap.querySelector('.why-bar')){
+var bar=document.createElement('div');bar.className='why-bar';
+bar.innerHTML='<small>Perché l\'hai sbagliata?</small><div class="why-chips">'
++'<button data-w="k">🤷 Non la sapevo</button>'
++'<button data-w="c">🔀 Confusa con un\'altra</button>'
++'<button data-w="l">👀 Letta male</button>'
++'<button data-w="x" class="why-skip">Avanti ›</button></div>';
+bar.querySelectorAll('button').forEach(function(b){
+b.onclick=function(){
+var wv=b.getAttribute('data-w');
+if(wv!=='x'){try{qtStats.why=qtStats.why||{};var W=qtStats.why[it.id]=qtStats.why[it.id]||{};W[wv]=(W[wv]||0)+1;qtSave();}catch(e){}}
+if(!Q)return;Q._locked=false;
+if(Q.idx<Q.items.length-1)qGo(1);else qRenderRun();
+hap();
+};
+});
+wrap.appendChild(bar);
+}
+}else{
 setTimeout(function(){if(!Q)return;Q._locked=false;if(Q.idx<Q.items.length-1)qGo(1);else qRenderRun();},900);
+}
 }else{
 qRenderRun();
 if(Q.idx<Q.items.length-1)setTimeout(function(){qGo(1);},220);
 }
 }
-function qJump(i){Q.idx=i;qRenderRun();}
-function qGo(d){const n=Q.idx+d;if(n<0||n>=Q.items.length)return;Q.idx=n;qRenderRun();hap();}
+function qJump(i){if(Q)Q._locked=false;Q.idx=i;qRenderRun();}
+function qGo(d){if(Q)Q._locked=false;/*[FIX] navigando via si sblocca sempre*/const n=Q.idx+d;if(n<0||n>=Q.items.length)return;Q.idx=n;qRenderRun();hap();}
 function qUpdatePct(){
 const ans=Q.ans.filter(a=>a>=0).length;
 document.getElementById('qPct').textContent=Math.round(ans/Q.items.length*100)+'%';
@@ -2796,6 +2820,9 @@ if(d.prefs&&typeof d.prefs==='object'){
 try{
 if(d.prefs.examDate&&(cloudNewer||!lg('examDate',0))&&lg('examDate',0)!==d.prefs.examDate){ls('examDate',d.prefs.examDate);mut++;}
 if(d.prefs.dailyGoal&&cloudNewer&&lg('dailyGoal',30)!==d.prefs.dailyGoal){ls('dailyGoal',d.prefs.dailyGoal);mut++;}
+if(d.prefs.targetDate&&(cloudNewer||!lg('targetDate',0))&&lg('targetDate',0)!==d.prefs.targetDate){ls('targetDate',d.prefs.targetDate);mut++;}
+if(d.prefs.targetMeta&&(cloudNewer||!lg('targetMeta',null))){ls('targetMeta',d.prefs.targetMeta);}
+if(d.prefs.rSR){try{rSR=rSR||{};Object.keys(d.prefs.rSR).forEach(function(k){var a=rSR[k],b=d.prefs.rSR[k];if(!a||((b&&b.last)||0)>((a&&a.last)||0)){rSR[k]=b;mut++;}});ls('rSR',rSR);}catch(e){}}
 if(d.prefs.streak){var st=lg('streak',{n:0,last:0});var cs=d.prefs.streak;
 if((cs.last||0)>(st.last||0)){ls('streak',cs);mut++;}
 else if((cs.last||0)===(st.last||0)&&(cs.n||0)>(st.n||0)){ls('streak',{n:cs.n,last:st.last});mut++;}/*stesso giorno: vince la striscia più lunga*/
@@ -2969,4 +2996,399 @@ agganciato a renderWeekly, che il sync già richiama (nessun loop: il coach non 
 (function(){try{
 var _rw3=renderWeekly;
 renderWeekly=function(){_rw3();try{renderCoach();}catch(e){}};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v17: COORDINATE SUGGERITE (con piena libertà manuale) ═══════
+Flusso: selezioni una via → l'app cerca il punto (Photon, vincolato a Milano)
+→ appare un MARKER FANTASMA con barra "Conferma / Ignora".
+Il tocco manuale sulla mappa resta SEMPRE attivo e ha SEMPRE la precedenza. */
+
+let _geoTok=0,_geoGhost=null,_geoGhostMap=null;
+let geoCache=lg('geoCache',{});
+
+/* espande le abbreviazioni del prontuario in nomi che il geocoder capisce */
+function expandVia(s){
+s=String(s||'').trim();
+s=s.replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim(); /* via le note tra parentesi */
+var corner=/\bANGOLO\b|\bANG\.?\b/i.test(s);
+if(corner)s=s.split(/\bANGOLO\b|\bANG\.?\s/i)[0].trim(); /* incrocio: cerca la prima via */
+var MAP=[[/^V\.?LE\b/i,'Viale'],[/^VIALE\b/i,'Viale'],[/^P\.?ZA\b/i,'Piazza'],[/^PIAZZA\b/i,'Piazza'],
+[/^P\.?LE\b/i,'Piazzale'],[/^PIAZZALE\b/i,'Piazzale'],[/^C\.?SO\b/i,'Corso'],[/^CORSO\b/i,'Corso'],
+[/^L\.?GO\b/i,'Largo'],[/^LARGO\b/i,'Largo'],[/^V\.?LO\b/i,'Vicolo'],[/^ALZ\.?\b/i,'Alzaia'],
+[/^BAST\.?\b/i,'Bastioni'],[/^BASTIONI\b/i,'Bastioni'],[/^GALL\.?\b/i,'Galleria'],
+[/^P\.?TA\b/i,'Porta'],[/^STAZ\.?\b/i,'Stazione'],[/^V\.?\s/i,'Via '],[/^VIA\b/i,'Via']];
+for(var i=0;i<MAP.length;i++){if(MAP[i][0].test(s)){s=s.replace(MAP[i][0],MAP[i][1]);break;}}
+s=s.replace(/\bF\.?LLI\b/gi,'Fratelli').replace(/\bS\.?\s/g,'San ').replace(/\bSS\.?\s/g,'Santi ');
+/* Title Case sul resto */
+s=s.toLowerCase().replace(/(^|[\s'’-])(\w)/g,function(m,a,b){return a+b.toUpperCase();});
+return {q:s,corner:corner};
+}
+
+/* interroga Photon vincolato all'area di Milano; cache locale per le vie già cercate */
+function geoLookup(name,cb){
+var ex=expandVia(name);
+var key=ex.q.toUpperCase();
+if(geoCache[key]){cb(geoCache[key],ex.corner);return;}
+if(!navigator.onLine){cb(null);return;}
+var url='https://photon.komoot.io/api/?q='+encodeURIComponent(ex.q+' Milano')
++'&lat=45.4642&lon=9.19&limit=3&bbox=8.90,45.28,9.50,45.65';
+fetch(url).then(function(r){return r.json();}).then(function(j){
+try{
+var f=(j.features||[]).filter(function(x){
+var c=x.geometry&&x.geometry.coordinates;
+return c&&c[0]>8.90&&c[0]<9.50&&c[1]>45.28&&c[1]<45.65; /* gabbia: solo Milano e hinterland */
+})[0];
+if(!f){cb(null);return;}
+var c=f.geometry.coordinates,p=f.properties||{};
+var label=(p.name||ex.q)+(p.city&&p.city!=='Milano'?' · '+p.city:'');
+var res={lat:c[1],lon:c[0],label:label};
+geoCache[key]=res;
+try{var ks=Object.keys(geoCache);if(ks.length>800)delete geoCache[ks[0]];ls('geoCache',geoCache);}catch(e){}
+cb(res,ex.corner);
+}catch(e){cb(null);}
+}).catch(function(){cb(null);});
+}
+
+function geoCleanup(){
+_geoTok++;
+try{if(_geoGhost&&_geoGhostMap)_geoGhostMap.removeLayer(_geoGhost);}catch(e){}
+_geoGhost=null;_geoGhostMap=null;
+var b=document.getElementById('geoBar');if(b)b.remove();
+}
+/* mostra fantasma + barra Conferma/Ignora; onOk(lat,lon) applica il punto */
+function geoSuggest(name,tm,onOk){
+geoCleanup();
+if(!tm||!name)return;
+var tok=_geoTok;
+geoLookup(name,function(res,corner){
+if(tok!==_geoTok||!res)return; /* nel frattempo hai fatto altro: lascia perdere */
+try{
+_geoGhostMap=tm;
+_geoGhost=L.marker([res.lat,res.lon],{opacity:.55,icon:L.divIcon({className:'geo-ghost-wrap',html:'<div class="geo-ghost">📍</div>',iconSize:[34,34],iconAnchor:[17,32]})}).addTo(tm);
+tm.setView([res.lat,res.lon],Math.max(tm.getZoom(),15),{animate:true});
+var bar=document.createElement('div');bar.id='geoBar';
+bar.innerHTML='<div class="gb-tx"><b>'+(corner?'⚠️ Incrocio — verifica: ':'Trovato: ')+esc(res.label)+'</b><small>Conferma, trascina la mappa e tocca a mano, oppure ignora</small></div>'
++'<button class="gb-ok">✓ Conferma</button><button class="gb-no">✕</button>';
+bar.querySelector('.gb-ok').onclick=function(){var la=res.lat,lo=res.lon;geoCleanup();hap('m');onOk(la,lo);};
+bar.querySelector('.gb-no').onclick=function(){geoCleanup();hap();};
+document.body.appendChild(bar);
+}catch(e){}
+});
+}
+
+/* ── aggancio 1: mappa principale (posizionamento con +) ── */
+(function(){try{
+var _sp=startPl;
+startPl=function(i){
+_sp(i);
+if(cur&&cur.steps[i])geoSuggest(cur.steps[i],map,function(lat,lon){
+var k=cur.id+'_'+i;coords[k]={lat:lat,lon:lon};
+save();autoSave();putMkr(lat,lon,cur.steps[i],k);
+rebuildLines();stopPl();renderList();toast2('📍 Posizionato');
+});
+};
+var _stp=stopPl;stopPl=function(){_stp();geoCleanup();};/* il tocco manuale (che chiama stopPl) pulisce il fantasma */
+}catch(e){}})();
+
+/* ── aggancio 2: modale Nuovo/Modifica percorso ── */
+(function(){try{
+var _sm=selMStep;
+selMStep=function(i){
+_sm(i);
+var steps=getMSteps(),nm=steps[i];if(!nm)return;
+var tm=isDesk()?mMap:mobMap;if(!tm)return;
+geoSuggest(nm,tm,function(lat,lon){
+mTC[i]={lat:lat,lon:lon};
+var am=isDesk()?mMap:mobMap;if(am)refMkrs(am);
+renderMList();
+document.getElementById('mmH').classList.remove('show');document.getElementById('mmobH').classList.remove('show');
+var nx=steps.findIndex(function(_,j){return j>i&&!mTC[j];});
+if(nx!==-1)selMStep(nx);else mSel=null; /* avanza da solo alla prossima via, come il tocco manuale */
+});
+};
+var _omc=onMClick;onMClick=function(e){geoCleanup();_omc(e);};/* il click manuale vince e pulisce */
+var _ca2=closeAdd;closeAdd=function(){geoCleanup();_ca2();};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v18: TRAGUARDO + BOTTONE 5 MINUTI ═══════
+Filosofia: "finisci tutto entro il traguardo, poi solo mantenimento leggero".
+Il coach conosce due fasi e cambia comportamento da solo. */
+
+/* le preferenze sincronizzate includono il traguardo */
+getPrefs=function(){return {examDate:lg('examDate',0),dailyGoal:lg('dailyGoal',30),streak:lg('streak',{n:0,last:0}),targetDate:lg('targetDate',0),targetMeta:lg('targetMeta',null)};};
+
+/* ── imposta il traguardo: una data GG/MM/AAAA oppure un numero di giorni (es. 90) ── */
+function setTargetDate(){
+var cur=lg('targetDate',0);
+var v=prompt('Traguardo "tutto finito": scrivi i GIORNI (es. 90) o una data GG/MM/AAAA:',cur?new Date(cur).toLocaleDateString('it-IT'):'90');
+if(v===null)return;v=v.trim();
+if(!v){ls('targetDate',0);ls('targetMeta',null);renderPlan();renderCoach();return;}
+var t=0;
+if(/^\d{1,3}$/.test(v)){t=Date.now()+parseInt(v,10)*86400000;}
+else{var m=v.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);if(!m){toast2('⚠️ Scrivi un numero di giorni o GG/MM/AAAA');return;}var y=+m[3];if(y<100)y+=2000;t=new Date(y,(+m[2])-1,+m[1],23,59).getTime();}
+if(t<Date.now()+86400000){toast2('⚠️ Il traguardo deve essere nel futuro');return;}
+ls('targetDate',t);
+/* baseline: da dove parti oggi (serve per dire "sei in pari") */
+try{buildQuiz();buildLuoghi();}catch(e){}
+ls('targetMeta',{start:Date.now(),
+q0:Object.keys(qtStats.seenIds||{}).length,qT:QUIZ_ALL.length||919,
+l0:LUOGHI.filter(function(x){return (studyProg[x.id]||0)>=SD_MASTER;}).length,lT:LUOGHI.length||218,
+r0:routes.filter(function(r){return done[r.id];}).length,rT:Math.max(routes.length,1)});
+markDirty('prefs');autoSave();
+renderPlan();renderCoach();toast2('🏁 Traguardo impostato');hap('m');
+}
+
+/* ── stato del traguardo: copertura, ritmi giornalieri, in pari/indietro ── */
+function targetInfo(){
+try{buildQuiz();buildLuoghi();}catch(e){}
+var t=lg('targetDate',0);if(!t)return null;
+var seen=Object.keys(qtStats.seenIds||{}).length,qT=QUIZ_ALL.length||919;
+var lM=LUOGHI.filter(function(x){return (studyProg[x.id]||0)>=SD_MASTER;}).length,lT=LUOGHI.length||218;
+var rD=routes.filter(function(r){return done[r.id];}).length,rT=Math.max(routes.length,1);
+var days=Math.max(0,Math.ceil((t-Date.now())/86400000));
+var doneAll=(seen>=qT&&lM>=lT&&rD>=rT);
+var perQ=days>0?Math.ceil(Math.max(0,qT-seen)/days):0;
+var perL=days>0?Math.ceil(Math.max(0,lT-lM)/days):0;
+var perR=days>0?Math.ceil(Math.max(0,rT-rD)/days*10)/10:0; /* può essere 0.5 = uno ogni 2 giorni */
+/* in pari? confronto col ritmo previsto dalla baseline */
+var behind=0,meta=lg('targetMeta',null);
+if(meta&&t>meta.start){
+var exp=Math.min(1,(Date.now()-meta.start)/(t-meta.start));
+function pr(a0,a,aT){var tot=Math.max(1,aT-a0);return Math.min(1,Math.max(0,(a-a0)/tot));}
+var act=(pr(meta.q0,seen,meta.qT)+pr(meta.l0,lM,meta.lT)+pr(meta.r0,rD,meta.rT))/3;
+behind=Math.round((exp-act)*((t-meta.start)/86400000));
+}
+return {t:t,days:days,doneAll:doneAll,seen:seen,qT:qT,lM:lM,lT:lT,rD:rD,rT:rT,perQ:perQ,perL:perL,perR:perR,behind:behind,
+pctQ:Math.round(seen/qT*100),pctL:Math.round(lM/lT*100),pctR:Math.round(rD/rT*100)};
+}
+
+/* ── piano in home: versione traguardo ── */
+renderPlan=function(){
+var w=document.getElementById('planCard');if(!w)return;
+var ti=targetInfo();
+var ex=lg('examDate',0);
+var exLine=ex?('Esame tra '+Math.max(0,Math.ceil((ex-Date.now())/86400000))+' giorni'):'Data esame non impostata';
+if(!ti){
+w.innerHTML='<button class="plan-set" onclick="setTargetDate()">🏁 Imposta il TRAGUARDO: "tutto finito entro..."</button>'
++'<button class="plan-set plan-exam" onclick="setExamDate()">🎯 '+exLine+' — tocca per cambiare</button>';
+return;
+}
+if(ti.doneAll){
+w.innerHTML='<div class="plan-card" onclick="setTargetDate()"><b>🏆</b><div class="plan-tx"><strong>Copertura completata!</strong><small>Ora si mantiene: errori, ritenzione e simulazioni. '+exLine+'</small></div></div>';
+return;
+}
+var st=ti.behind>1?('<span class="tg-pill late">Indietro di ~'+ti.behind+' g</span>'):(ti.behind<-1?'<span class="tg-pill ahead">In anticipo ✨</span>':'<span class="tg-pill ok">In pari ✅</span>');
+function bar(lbl,pct){return '<div class="tg-row"><span>'+lbl+'</span><div class="tg-bar"><i style="width:'+pct+'%"></i></div><b>'+pct+'%</b></div>';}
+var rTxt=ti.rD>=ti.rT?'percorsi ✓':(ti.perR<1?('1 percorso ogni '+Math.round(1/Math.max(.1,ti.perR))+' g'):ti.perR+' percorsi');/*[FIX] niente "ogni 10 g" a percorsi finiti*/
+w.innerHTML='<div class="tg-card" onclick="setTargetDate()">'
++'<div class="tg-hd"><b>'+ti.days+'</b><div><strong>giorn'+(ti.days===1?'o':'i')+' al traguardo</strong><small>Tocca per cambiare il traguardo</small></div>'+st+'</div>'
++bar('📝 Domande',ti.pctQ)+bar('📚 Luoghi',ti.pctL)+bar('🗺️ Percorsi',ti.pctR)
++'<div class="tg-rhythm">Oggi: <b>'+ti.perQ+'</b> nuove · <b>'+ti.perL+'</b> luoghi · <b>'+rTxt+'</b></div>'
++'</div>'
++'<button class="plan-set plan-exam" onclick="setExamDate()">🎯 '+exLine+' — tocca per cambiare</button>';/*[FIX] la data esame resta modificabile anche col traguardo attivo*/
+};
+
+/* ── COACH a due fasi: copertura → mantenimento ── */
+coachTasks=function(){
+try{buildQuiz();buildLuoghi();}catch(e){}
+var t=[];
+var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;
+var ti=targetInfo();
+var copertura=ti&&!ti.doneAll;
+/* errori scaduti: SEMPRE per primi (in copertura senza allarme) */
+if(due>0)t.push({ic:'🔁',tx:'Ripassa '+due+' error'+(due===1?'e':'i')+' in scadenza',sub:copertura?'Normale accumularli ora: tienili in agenda':'La ripetizione spaziata li ha messi in agenda per OGGI',fn:function(){openQuiz();setTimeout(function(){qStartCat('errata');},250);},p:1});
+if(copertura){
+/* FASE COPERTURA: nuove + luoghi + percorso, ai ritmi del traguardo */
+if(ti.seen<ti.qT)t.push({ic:'📝',tx:ti.perQ+' domande nuove',sub:'Ritmo del traguardo · te ne restano '+(ti.qT-ti.seen),fn:function(){openQuiz();setTimeout(qStartNew,250);},p:2,prog:[ti.seen,ti.qT]});
+if(ti.lM<ti.lT)t.push({ic:'📚',tx:'Flashcard luoghi (mazzo da 15)',sub:'Ritmo: ~'+Math.max(8,ti.perL)+' al giorno · imparati '+ti.lM+' su '+ti.lT,fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:3,prog:[ti.lM,ti.lT]});
+if(ti.rD<ti.rT&&routes.length)t.push({ic:'🗺️',tx:'Il percorso del giorno',sub:'Completati '+ti.rD+' su '+ti.rT+' — aprilo in Cieco',fn:function(){goTopografia();setTimeout(routeOfDay,300);},p:4,prog:[ti.rD,ti.rT]});
+}else{
+/* FASE MANTENIMENTO (o nessun traguardo): debolezze, ritenzione, simulazione */
+var wk=_weakCat();
+if(wk)t.push({ic:wk.c.emoji,tx:'10 domande di '+wk.c.label,sub:'Argomento più debole: '+Math.round(wk.r*100)+'% corrette',fn:(function(id){return function(){openQuiz();setTimeout(function(){qStartCat(id);},250);};})(wk.c.id),p:2});
+var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
+if(today<goal)t.push({ic:'📝',tx:(goal-today)+' risposte per l\'obiettivo',sub:'Mantenimento: mix scelto dal coach',fn:function(){smartReview();},p:3,prog:[today,goal]});
+var wn=qtStats.wrongN||{},rec=Object.keys(wn).filter(function(k){return wn[k]>=3;}).length;
+if(rec>=5)t.push({ic:'💀',tx:'Smonta '+Math.min(rec,20)+' recidive',sub:'Sbagliate 3+ volte',fn:function(){openQuiz();setTimeout(qStartHard,250);},p:4});
+try{var rr=readinessScore();if(rr.flash<rr.quiz-15&&rr.flash<80)t.push({ic:'🃏',tx:'15 flashcard Luoghi',sub:'Luoghi al '+rr.flash+'%: ti tiene bassa la prontezza',fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:3.5});}catch(e){}/*[FIX] spinta luoghi anche in mantenimento*/
+if(routes.length)t.push({ic:'🗺️',tx:'Ripasso percorso a rotazione',sub:'Un Cieco al giorno tiene la mappa fresca',fn:function(){goTopografia();setTimeout(routeOfDay,300);},p:5});
+}
+var lastEx=(qExamHist&&qExamHist.length)?(qExamHist[qExamHist.length-1].d||0):0;
+if(Date.now()-lastEx>6*86400000)t.push({ic:'🎓',tx:'Simulazione della settimana',sub:lastEx?'L\'ultima è di oltre 6 giorni fa':'La prima misura da dove parti',fn:function(){openQuiz();setTimeout(qStartExam,250);},p:6});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+};
+
+/* percorso del giorno: il primo non completato, o il completato più "vecchio" (rotazione per data) */
+function routeOfDay(){
+if(!routes.length){toast2('Nessun percorso salvato');return;}
+var nd=routes.filter(function(r){return !done[r.id];});
+var r;
+if(nd.length)r=nd[Math.floor(Date.now()/86400000)%nd.length];
+else r=routes[Math.floor(Date.now()/86400000)%routes.length];
+selectRoute(r);setMode('c');toast2('🗺️ Percorso del giorno: '+r.title);
+}
+
+/* ── BOTTONE UNICO "5 MINUTI": micro-sessione mista scelta dal coach ── */
+function startMicro(){
+buildQuiz();
+var items=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=Date.now();});
+items.sort(function(a,b){return srDue(a.id)-srDue(b.id);});
+items=items.slice(0,4); /* max 4 errori: il difficile diluito, mai concentrato */
+var have={};items.forEach(function(it){have[it.id]=1;});
+var nuove=qShuffle(QUIZ_ALL.filter(function(it){return !have[it.id]&&!qtStats.seenIds[it.id];}));
+items=items.concat(nuove.slice(0,8-items.length));
+if(items.length<8){var h2={};items.forEach(function(it){h2[it.id]=1;});items=items.concat(qShuffle(QUIZ_ALL.filter(function(it){return !h2[it.id];})).slice(0,8-items.length));}
+if(!items.length){toast2('Nessuna domanda disponibile');return;}
+openQuiz();
+startQuiz(qShuffle(items),{mode:'study',title:'Sessione 5 minuti',micro:true});
+}
+/* fine micro-quiz → aggancia le 5 flashcard (concatenazione senza pensare) */
+(function(){try{
+var _qf7=qFinish;
+qFinish=function(t){
+_qf7(t);
+try{
+if(qCurView==='result'){
+var _old=document.getElementById('microNext');if(_old)_old.remove();/*[FIX] via il bottone dalle sessioni non-micro*/
+if(lastQuiz&&lastQuiz.opts&&lastQuiz.opts.micro){
+var box=document.querySelector('#qResult .qres-actions');
+if(box){
+var b=document.createElement('button');
+b.id='microNext';b.className='btn';b.textContent='🃏 Chiudi con 5 luoghi';
+b.onclick=function(){openStudy();setTimeout(sdStartMicro,300);};
+box.insertBefore(b,box.firstChild);
+}
+}
+}
+}catch(e){}
+};
+}catch(e){}})();
+function sdStartMicro(){
+buildLuoghi();
+if(!LUOGHI.length){toast2('Luoghi non disponibili');return;}
+var pool=sdShuffle(LUOGHI.slice()).sort(function(a,b){return (studyProg[a.id]||0)-(studyProg[b.id]||0);}).slice(0,5);
+var cards=pool.map(function(x){return {key:x.id,front:x.cosa,back:x.dove,tag:'Dove si trova?',pill:x.cat};});
+sdStartDeck(cards,'dash',function(){sdStartMicro();});
+}
+
+/* ═══════ PACCHETTO v19: SPIRALE PERCORSI + APPRENDIMENTO ATTIVO ═══════ */
+
+/* ── SPIRALE DEI PERCORSI: come gli errori quiz, ma sulla topografia.
+Completi un percorso → l'app te lo ripropone dopo 2, 4, 9, 21, 45 giorni. ── */
+let rSR=lg('rSR',{});
+function rsrMark(id){
+try{
+var e=rSR[id]||{box:0};
+var box=Math.min(5,(e.box||0)+1);
+var days=[2,4,9,21,45][box-1]||45;
+rSR[id]={box:box,due:Date.now()+days*86400000,last:Date.now()};
+ls('rSR',rSR);markDirty('prefs');
+}catch(e2){}
+}
+(function(){try{
+var _rc3=routeCelebrate;
+routeCelebrate=function(){_rc3();try{if(cur)rsrMark(cur.id);}catch(e){}};
+}catch(e){}})();
+/* le prefs sincronizzate includono la spirale */
+(function(){try{
+var _gp=getPrefs;
+getPrefs=function(){var p=_gp();p.rSR=rSR;return p;};
+}catch(e){}})();
+
+/* percorso del giorno v2: prima quelli IN SCADENZA nella spirale, poi i mai fatti, poi rotazione */
+routeOfDay=function(){
+if(!routes.length){toast2('Nessun percorso salvato');return;}
+var now=Date.now();
+var due=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
+var r;
+if(due.length){
+due.sort(function(a,b){return rSR[a.id].due-rSR[b.id].due;});
+r=due[0];
+selectRoute(r);setMode('c');
+toast2('🔁 Ripasso in scadenza: '+r.title);return;
+}
+var nd=routes.filter(function(x){return !done[x.id];});
+if(nd.length)r=nd[Math.floor(now/86400000)%nd.length];
+else{var srt=routes.slice().sort(function(a,b){return ((rSR[a.id]||{}).last||0)-((rSR[b.id]||{}).last||0);});r=srt[0];}
+selectRoute(r);setMode('c');
+toast2('🗺️ Percorso del giorno: '+r.title);
+};
+/* il coach mostra i percorsi in scadenza col loro nome */
+(function(){try{
+var _ct2=coachTasks;
+coachTasks=function(){
+var t=_ct2();
+try{
+var now=Date.now();
+var due=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
+if(due.length){
+due.sort(function(a,b){return rSR[a.id].due-rSR[b.id].due;});
+var name=due[0].title;if(name.length>26)name=name.slice(0,25)+'…';
+/* sostituisce l'eventuale task percorso generico con quello in scadenza */
+t=t.filter(function(x){return x.ic!=='🗺️';});
+t.unshift({ic:'🗺️',tx:'Ripassa: '+name,sub:due.length>1?('E altri '+(due.length-1)+' percorsi in scadenza'):'La spirale dice che stai per dimenticarlo',fn:function(){goTopografia();setTimeout(routeOfDay,300);},p:1.5});
+t.sort(function(a,b){return a.p-b.p;});
+t=t.slice(0,4);
+}
+}catch(e){}
+return t;
+};
+}catch(e){}})();
+
+/* ── INTERLEAVING: le "nuove" alternano gli argomenti (A,B,C,D,A,B...) ──
+La scienza della memoria: mescolare gli argomenti fissa il 30-40% in più del blocco singolo. */
+qStartNew=function(){
+buildQuiz();
+var pools={};
+QARG.forEach(function(c){pools[c.id]=qShuffle(QUIZ_ALL.filter(function(it){return it.cat===c.id&&!qtStats.seenIds[it.id];}));});
+var items=[],more=true;
+while(items.length<30&&more){
+more=false;
+QARG.forEach(function(c){var p=pools[c.id];if(p.length&&items.length<30){items.push(p.pop());more=true;}});
+}
+if(!items.length){toast2('🎉 Le hai viste tutte! Ripassa gli errori');return;}
+startQuiz(items,{mode:'study',title:'Domande nuove · argomenti misti'});
+};
+
+/* ── TEST DI RITENZIONE: misura cosa stai DIMENTICANDO ──
+Domande che sapevi 14+ giorni fa: se le sbagli ora, rientrano nella ripetizione spaziata. */
+(function(){try{
+var _qf8=qFinish;
+qFinish=function(t){
+_qf8(t);
+try{
+if(qCurView==='result'&&Q&&Q.items){
+qtStats.lastOk=qtStats.lastOk||{};
+Q.items.forEach(function(it,i){if(Q.ans[i]===it.correct)qtStats.lastOk[it.id]=Date.now();});
+qtSave();
+}
+}catch(e){}
+};
+}catch(e){}})();
+function qStartRet(){
+buildQuiz();
+qtStats.lastOk=qtStats.lastOk||{};
+var cut=Date.now()-14*86400000;
+var pool=QUIZ_ALL.filter(function(it){return qtStats.lastOk[it.id]&&qtStats.lastOk[it.id]<cut&&!qtStats.err[it.id];});
+if(pool.length<5){toast2('Ancora poche domande "vecchie": riprova tra qualche giorno');return;}
+ls('lastRet',Date.now());
+startQuiz(qShuffle(pool).slice(0,10),{mode:'study',title:'Test di ritenzione'});
+}
+/* il coach lo propone una volta a settimana, quando c'è abbastanza materiale */
+(function(){try{
+var _ct3=coachTasks;
+coachTasks=function(){
+var t=_ct3();
+try{
+qtStats.lastOk=qtStats.lastOk||{};
+var cut=Date.now()-14*86400000;
+var pool=QUIZ_ALL.filter(function(it){return qtStats.lastOk[it.id]&&qtStats.lastOk[it.id]<cut&&!qtStats.err[it.id];}).length;
+if(pool>=10&&Date.now()-lg('lastRet',0)>6.5*86400000){
+t.push({ic:'🧪',tx:'Test di ritenzione (10 domande)',sub:'Cose che sapevi 2+ settimane fa: vediamo se resistono',fn:function(){openQuiz();setTimeout(qStartRet,250);},p:2.7});
+t.sort(function(a,b){return a.p-b.p;});t=t.slice(0,4);
+}
+}catch(e){}
+return t;
+};
 }catch(e){}})();
