@@ -709,7 +709,7 @@ const pl=r.steps.filter((_,i)=>!!coords[r.id+'_'+i]).length;
 const qs=qStats[r.id],pct=qs&&qs.total?Math.round(qs.correct/qs.total*100):null;
 const d=document.createElement('div');d.className='ri'+(done[r.id]?' dn':'');
 d.onclick=()=>{selectRoute(r);closeMgr();hap();};
-d.innerHTML=`<div class="rii"><div class="rit">${esc(r.title)}</div><div class="rim">${pl}/${r.steps.length} 📍${pct!==null?' · Quiz '+pct+'%':''}</div></div><div class="ria" onclick="event.stopPropagation()"><button class="rab rfb" onclick="togFav('${r.id}')">${r.fav?'★':'☆'}</button><button class="rab reb" onclick="openAdd('${r.id}');closeMgr()">✏️</button><button class="rab rdb" onclick="delRoute('${r.id}')">🗑️</button></div>`;
+d.innerHTML=`<div class="rii"><div class="rit">${esc(r.title)}</div><div class="rim">${pl}/${r.steps.length} 📍${pct!==null?' · Quiz '+pct+'%':''}</div></div><div class="ria" onclick="event.stopPropagation()"><button class="rab rfb" onclick="togFav('${r.id}')">${r.fav?'★':'☆'}</button><button class="rab rcb" onclick="dupRoute('${r.id}')" title="Duplica">📄</button><button class="rab reb" onclick="openAdd('${r.id}');closeMgr()">✏️</button><button class="rab rdb" onclick="delRoute('${r.id}')">🗑️</button></div>`;
 f.appendChild(d);
 });
 c.innerHTML='';c.appendChild(f);
@@ -3390,5 +3390,94 @@ t.sort(function(a,b){return a.p-b.p;});t=t.slice(0,4);
 }
 }catch(e){}
 return t;
+};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v20: INSERIMENTO SENZA FATICA ═══════ */
+
+/* ── PULIZIA TESTO INCOLLATO: dal foglio del prontuario a una via per riga ──
+Gestisce: numerazioni (1. 2) 3-), frecce →, punti e virgola, virgole, trattini,
+numeri civici finali, doppioni consecutivi. */
+function cleanSteps(){
+var ta=document.getElementById('mRS');if(!ta)return;
+var raw=ta.value;if(!raw.trim()){toast2('Incolla prima il testo');return;}
+var parts=raw.replace(/\r/g,'\n')
+.replace(/\s\d{1,3}[\.\)]\s+/g,'\n')  /* [FIX] numerazione inline: "... 13) P.le ..." spezza */
+.split(/\n|→|➔|=>|->|;|·|\||,|\s[-–—]\s/); /* [FIX] "A - B - C": trattino con spazi = separatore */
+var out=[],prev='';
+parts.forEach(function(p){
+p=p.replace(/^\s*\d+\s*[\.\)\-–—:]+\s*/,'');      /* 1.  12)  3 -  */
+p=p.replace(/^[\-•*›>»\s]+/,'');                    /* bullet e frecce residue */
+p=p.replace(/\s+n\.?\s*\d{1,4}\s*$/i,'');          /* "n. 12" finale */
+p=p.replace(/\s+\d{1,4}\s*$/,'');                   /* civico finale */
+p=p.replace(/\s+/g,' ').trim().toUpperCase();
+if(p&&p.length>2&&p!==prev){out.push(p);prev=p;}
+});
+if(!out.length){toast2('Nessuna via riconosciuta');return;}
+ta.value=out.join('\n');
+onMSChange();
+toast2('🧹 Sistemato: '+out.length+' vie');hap('m');
+}
+/* auto-pulizia quando incolli un blocco "sporco" */
+(function(){
+try{
+var ta=document.getElementById('mRS');if(!ta)return;
+ta.addEventListener('paste',function(){
+setTimeout(function(){
+var v=ta.value;
+var oneBlob=(v.match(/\n/g)||[]).length<2&&v.length>40&&/,|→|;/.test(v);
+var numbered=/^\s*\d+[\.\)]/m.test(v);
+if(oneBlob||numbered)cleanSteps();
+},80);
+});
+}catch(e){}
+})();
+
+/* ── POSIZIONA IN SEQUENZA: apre la mappa e parte dalla prima via senza punto ──
+(con le coordinate suggerite v17 diventa: conferma → conferma → conferma) */
+function quickPlace(){
+var steps=getMSteps();
+if(!steps.length){toast2('Inserisci prima le vie');return;}
+var i=steps.findIndex(function(_,j){return !mTC[j];});
+if(i<0){toast2('✓ Tutte le vie sono posizionate');return;}
+if(!isDesk()){
+var a=document.getElementById('mma');
+if(a&&!a.classList.contains('open'))togMMap();
+}
+setTimeout(function(){selMStep(i);},300);
+hap();
+}
+
+/* ── DUPLICA PERCORSO: parti da uno esistente (stessi pin) e modifichi ── */
+function dupRoute(id){
+var r=routes.find(function(x){return x.id===id;});if(!r)return;
+var nid='r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5);
+routes.push({id:nid,title:r.title+' (COPIA)',steps:r.steps.slice()});
+r.steps.forEach(function(_,i){var k=id+'_'+i;if(coords[k])coords[nid+'_'+i]={lat:coords[k].lat,lon:coords[k].lon};});
+save();autoSave();
+toast2('📄 Copia creata: modificala e salvala');hap('m');
+closeMgr();openAdd(nid);
+}
+
+/* ── STORIA DELLA VIA nel long-press: "compare in N percorsi" ──
+Le vie ricorrenti si imparano prima se le riconosci. */
+(function(){try{
+var _svs=showViaSheet;
+showViaSheet=function(i){
+_svs(i);
+try{
+if(!cur||i<0)return;
+var hidden=(mode!=='s')&&!(i===step&&_revealed);
+if(hidden)return; /* in Cieco niente indizi */
+var nm=cur.steps[i];
+var n=routes.filter(function(r){return r.steps.indexOf(nm)>=0;}).length;
+if(n>1){
+var s=document.getElementById('viaSheet');if(!s)return;
+var info=document.createElement('div');info.className='vs-info';
+info.textContent='🔗 Questa via compare in '+n+' percorsi';
+var nameEl=s.querySelector('.vs-name');
+if(nameEl)nameEl.after(info);
+}
+}catch(e){}
 };
 }catch(e){}})();
