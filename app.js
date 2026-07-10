@@ -2895,3 +2895,78 @@ setTimeout(function(){toast2('🎯 Obiettivo di oggi raggiunto!');try{confetti()
 /* [FIX 200-scenari] il timer a 6000ms aveva catturato la VECCHIA weeklyBackup (senza preferenze):
 questo parte prima, esegue la versione nuova e imposta lastBk, così la vecchia si auto-salta */
 setTimeout(function(){try{weeklyBackup();}catch(e){}},5200);
+
+/* ═══════ PACCHETTO v16: COACH GIORNALIERO ═══════
+Ogni giorno costruisce il tuo piano in ordine di priorità:
+1) errori in scadenza (la memoria li sta perdendo ORA)
+2) argomento più debole  3) obiettivo del giorno
+4) flashcard se indietro  5) recidive  6) simulazione settimanale */
+
+let COACH=[];
+function _weakCat(){
+try{
+var worst=null,wr=1.01;
+QARG.forEach(function(c){var s=qtStats.cat[c.id];if(s&&(s.seen||0)>=6){var r=(s.ok||0)/s.seen;if(r<wr){wr=r;worst=c;}}});
+return (worst&&wr<.75)?{c:worst,r:wr}:null;
+}catch(e){return null;}
+}
+function coachTasks(){
+try{buildQuiz();buildLuoghi();}catch(e){}
+var t=[];
+/* 1 — errori scaduti: priorità assoluta */
+var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;
+if(due>0)t.push({ic:'🔁',tx:'Ripassa '+due+' error'+(due===1?'e':'i')+' in scadenza',sub:'La ripetizione spaziata li ha messi in agenda per OGGI',fn:function(){openQuiz();setTimeout(function(){qStartCat('errata');},250);},p:1});
+/* 2 — argomento debole */
+var wk=_weakCat();
+if(wk)t.push({ic:wk.c.emoji,tx:'10 domande di '+wk.c.label,sub:'Il tuo argomento più debole: '+Math.round(wk.r*100)+'% di risposte corrette',fn:(function(id){return function(){openQuiz();setTimeout(function(){qStartCat(id);},250);};})(wk.c.id),p:2});
+/* 3 — obiettivo del giorno */
+var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
+var unseen=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
+if(today<goal)t.push({ic:'📝',tx:(goal-today)+' risposte per l\'obiettivo di oggi',sub:unseen?('Meglio se nuove: te ne restano '+unseen+' mai viste'):'Le hai viste tutte: ripasso libero',fn:unseen?function(){openQuiz();setTimeout(qStartNew,250);}:function(){smartReview();},p:3,prog:[today,goal]});
+else t.push({ic:'✅',tx:'Obiettivo di oggi raggiunto — '+today+'/'+goal,sub:'Vuoi strafare? Sprint 3 minuti',fn:function(){openQuiz();setTimeout(qStartSprint,250);},p:8,done:true});
+/* 4 — flashcard se molto indietro rispetto al quiz */
+try{
+var r=readinessScore();
+if(r.flash<r.quiz-15&&r.flash<80)t.push({ic:'🃏',tx:'15 flashcard Luoghi',sub:'Luoghi al '+r.flash+'%: è la parte che ti tiene bassa la prontezza',fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:4});
+}catch(e){}
+/* 5 — recidive */
+var wn=qtStats.wrongN||{},rec=Object.keys(wn).filter(function(k){return wn[k]>=3;}).length;
+if(rec>=5)t.push({ic:'💀',tx:'Sfida le tue '+Math.min(rec,20)+' recidive',sub:'Domande sbagliate 3 o più volte: vanno smontate una a una',fn:function(){openQuiz();setTimeout(qStartHard,250);},p:5});
+/* 6 — simulazione settimanale */
+var lastEx=(qExamHist&&qExamHist.length)?(qExamHist[qExamHist.length-1].d||0):0;
+if(Date.now()-lastEx>6*86400000)t.push({ic:'🎓',tx:'Simulazione della settimana',sub:lastEx?'L\'ultima risale a più di 6 giorni fa':'Non ne hai ancora fatta nessuna',fn:function(){openQuiz();setTimeout(qStartExam,250);},p:6});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}
+function coachGo(i){try{if(COACH[i]&&COACH[i].fn){hap();COACH[i].fn();}}catch(e){}}
+function renderCoach(){
+try{
+var w=document.getElementById('coachCard');if(!w)return;
+COACH=coachTasks();
+if(!COACH.length){w.innerHTML='';return;}
+var doneAll=COACH.every(function(x){return x.done;});
+var h='<div class="coach"><div class="coach-hd"><strong>'+(doneAll?'🏁 Piano di oggi completato':'🎯 Il tuo piano di oggi')+'</strong><span>'+new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})+'</span></div>';
+COACH.forEach(function(x,i){
+var pr='';
+if(x.prog){var pc=Math.min(100,Math.round(x.prog[0]/x.prog[1]*100));pr='<div class="coach-bar"><i style="width:'+pc+'%"></i></div>';}
+h+='<button class="coach-row'+(x.done?' done':'')+'" onclick="coachGo('+i+')">'
++'<span class="coach-ic">'+x.ic+'</span>'
++'<span class="coach-tx"><b>'+x.tx+'</b><small>'+x.sub+'</small>'+pr+'</span>'
++'<span class="coach-ar">'+(x.done?'✓':'›')+'</span></button>';
+});
+h+='</div>';
+w.innerHTML=h;
+}catch(e){}
+}
+/* si aggiorna a ogni ritorno in home e all'avvio */
+(function(){try{var _gh5=goHome;goHome=function(){_gh5();try{renderCoach();}catch(e){}};}catch(e){}})();
+setTimeout(function(){try{renderCoach();}catch(e){}},1500);
+/* e dopo ogni sessione conclusa (i numeri cambiano) */
+(function(){try{var _qf6=qFinish;qFinish=function(t){_qf6(t);if(qCurView==='result')setTimeout(function(){try{renderCoach();}catch(e){}},300);};}catch(e){}})();
+
+/* [FIX 200-scenari] il Coach si aggiorna anche dopo il sync tra dispositivi:
+agganciato a renderWeekly, che il sync già richiama (nessun loop: il coach non chiama renderWeekly) */
+(function(){try{
+var _rw3=renderWeekly;
+renderWeekly=function(){_rw3();try{renderCoach();}catch(e){}};
+}catch(e){}})();
