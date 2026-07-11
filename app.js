@@ -2201,10 +2201,8 @@ setTimeout(function(){try{var p=document.getElementById('panel');if(p)p.style.ma
 });
 
 /* [ANIM 9] transizione di scena anche su Home e Topografia (le altre viste la hanno già) */
-(function(){try{
-var g1=goHome;goHome=function(){g1();try{sceneAnim(document.getElementById('homeScreen'));}catch(e){}};
-var g2=goTopografia;goTopografia=function(){g2();try{sceneAnim(document.querySelector('.main'));}catch(e){}};
-}catch(e){}})();
+/* [FIX scatti] la vecchia animazione di scena su Home/Topografia è stata rimossa:
+si sommava alla slide direzionale (due animazioni insieme = scatti) */
 
 /* [ANIM 13] check animato sul numero della via quando rispondi giusto nel quiz vie */
 (function(){try{
@@ -3499,12 +3497,15 @@ try{
 if(document.querySelector('#tabbar .tab.on')&&document.querySelector('#tabbar .tab.on').dataset.t!==t)return;/* uscita annullata dal confirm */
 _cur=t;
 if(t===from)return;
-var el=t==='home'?document.getElementById('homeScreen'):t==='topo'?document.querySelector('.main'):t==='quiz'?document.getElementById('quizApp'):document.getElementById('studyApp');
+document.body.classList.add('switching');/*[FIX scatti] pausa i gradienti animati durante il cambio*/
+setTimeout(function(){document.body.classList.remove('switching');},420);
+if(t==='topo')return;/*[FIX scatti] la mappa NON si anima mai: transform su Leaflet = scatti garantiti*/
+var el=t==='home'?document.getElementById('homeScreen'):t==='quiz'?document.getElementById('quizApp'):document.getElementById('studyApp');
 if(!el)return;
 var d=ORDER.indexOf(t)-ORDER.indexOf(from);
 el.classList.remove('slide-l','slide-r');void el.offsetWidth;
 el.classList.add(d>0?'slide-l':'slide-r');
-setTimeout(function(){el.classList.remove('slide-l','slide-r');},440);
+setTimeout(function(){el.classList.remove('slide-l','slide-r');},340);
 }catch(e){}
 };
 }catch(e){}
