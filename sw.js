@@ -3,14 +3,16 @@
    - TILE mappa: cache-first (i posti già visti si ricaricano all'istante, anche offline)
    - resto: stale-while-revalidate (risposta subito dalla cache, aggiornamento in background) */
 
-const CACHE_NAME = 'ncc-v3';
+const CACHE_NAME = 'ncc-v6';
 const TILE_CACHE = 'ncc-tiles-v1';
 const TILE_LIMIT = 600; /* massimo tile salvati (≈30-40 MB) */
 
 const PRECACHE = [
   './',
   './index.html',
-  './styles.css',
+  './styles.css?v=21',
+  './icon-512.png',
+  './favicon.svg',
   './app.js?v=3',
   './quiz-data.js?v=2',
   './luoghi-data.js?v=2',
@@ -64,7 +66,7 @@ self.addEventListener('fetch', event => {
         cache.match(req).then(hit => {
           if (hit) return hit;
           return fetch(req).then(res => {
-            if (res && res.ok) { cache.put(req, res.clone()); trimTiles(); }
+            if (res && (res.ok || res.type === 'opaque')) { cache.put(req, res.clone()); trimTiles(); } /* [FIX] i tile cross-origin sono 'opaque': prima venivano scartati e offline la mappa era bianca */
             return res;
           }).catch(() => hit);
         })
