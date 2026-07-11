@@ -215,7 +215,7 @@ const panel=document.getElementById('panel'),h=document.getElementById('pdrag');
 const head=document.querySelector('#panel .phead');
 if(!panel||window.innerWidth>=768)return;
 if(!panel.querySelector('.snap-ticks')){var _t=document.createElement('div');_t.className='snap-ticks';_t.innerHTML='<i></i><i></i><i></i>';panel.appendChild(_t);}/*(6) tacche snap*/
-let sy=0,sh=0,dr=false,moved=false;
+let sy=0,sh=0,dr=false,moved=false,lv=0,lt=0,ly=0;/*[v22] velocità per il momentum*/
 function snapVals(){
 /* [FIX v7] limite = bordo SUPERIORE reale del dock (robusto anche se flottante),
 meno header e 150px di mappa minima. */
@@ -230,13 +230,28 @@ function applyClosest(curH){const opts=snapVals();let best=opts[0],bd=1e9;opts.f
 function onStart(e){dr=true;moved=false;sy=e.touches[0].clientY;sh=panel.getBoundingClientRect().height;panel.style.transition='none';panel.classList.add('dragging');}
 function onMove(e){
 if(!dr)return;
-const dy=sy-e.touches[0].clientY;
+const cy=e.touches[0].clientY,now=performance.now();
+if(lt){var dt=now-lt;if(dt>0)lv=(ly-cy)/dt;} /* px/ms, positivo = verso l'alto */
+ly=cy;lt=now;
+const dy=sy-cy;
 const _sv=snapVals();panel.style.maxHeight=Math.min(_sv[_sv.length-1],Math.max(120,sh+dy))+'px';/*[FIX v6] tetto = spazio reale disponibile*/
 if(Math.abs(dy)>4)moved=true;
 if(moved&&e.cancelable)e.preventDefault(); /* blocca lo scroll pagina solo durante il drag della maniglia */
 mapResizeSoon();/*[FIX grigio] aggiorna la mappa mentre il pannello cambia altezza*/
 }
-function onEnd(){if(!dr)return;dr=false;panel.style.transition='';panel.classList.remove('dragging');if(moved)applyClosest(panel.getBoundingClientRect().height);mapResizeSoon();setTimeout(mapResizeSoon,350);/*[FIX grigio] dopo lo snap*/}
+function onEnd(){
+if(!dr)return;dr=false;panel.style.transition='';panel.classList.remove('dragging');
+if(moved){
+var hgt=panel.getBoundingClientRect().height,opts=snapVals();
+if(Math.abs(lv)>0.45){
+/* [v22] MOMENTUM: rilascio veloce → si aggancia allo scatto successivo nella direzione del gesto */
+var target=lv>0?opts.find(function(v){return v>hgt+10;}):opts.slice().reverse().find(function(v){return v<hgt-10;});
+if(target===undefined)target=lv>0?opts[opts.length-1]:opts[0];
+panel.style.maxHeight=target+'px';
+}else applyClosest(hgt);
+}
+lv=0;lt=0;ly=0;
+mapResizeSoon();setTimeout(mapResizeSoon,350);/*[FIX grigio] dopo lo snap*/}
 /* IMPORTANTE: il drag parte SOLO da maniglia e header, MAI dalla lista (così i tap sulle vie e lo scroll restano liberi) */
 [h,head].forEach(el=>{
 if(!el)return;
@@ -940,6 +955,17 @@ h+=`<button class="qtile" onclick="qStartSprint()">
 <div class="qtile-ic" style="background:rgba(217,119,6,.12)">⚡</div>
 <div class="qtile-tx"><strong>Sprint 3 minuti</strong><small>10 domande contro il tempo</small></div>
 <div class="qtile-ar">›</div></button>`;
+/* [v23] esame completo */
+h+=`<button class="qtile" onclick="qStartFull()">
+<div class="qtile-ic" style="background:rgba(110,90,224,.12)">🎓</div>
+<div class="qtile-tx"><strong>Esame completo</strong><small>Simulazione + percorso in Cieco a sorpresa</small></div>
+<div class="qtile-ar">›</div></button>`;
+/* [v23] confusioni, se ce ne sono */
+try{qtStats.why=qtStats.why||{};var _cf=Object.keys(qtStats.why).filter(function(k){return (qtStats.why[k].c||0)>=1;}).length;
+if(_cf>=3)h+=`<button class="qtile" onclick="qStartConf()">
+<div class="qtile-ic" style="background:rgba(36,71,214,.10)">🔀</div>
+<div class="qtile-tx"><strong>Le confusioni</strong><small>${_cf} domande che scambi con altre</small></div>
+<div class="qtile-ar">›</div></button>`;}catch(e){}
 QARG.forEach(c=>{
 const p=catProgress(c.id);
 h+=`<button class="qtile" onclick="qStartCat('${c.id}')">
@@ -3453,6 +3479,267 @@ var info=document.createElement('div');info.className='vs-info';
 info.textContent='🔗 Questa via compare in '+n+' percorsi';
 var nameEl=s.querySelector('.vs-name');
 if(nameEl)nameEl.after(info);
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v22: ANIMAZIONI & FLUIDITÀ ═══════ */
+
+/* ── slide direzionale tra le tab: vai a destra → entra da destra ── */
+setTimeout(function(){
+try{
+if(typeof window.tabGo!=='function')return;
+var ORDER=['home','topo','quiz','studio'];
+var _tg=window.tabGo,_cur='home';
+window.tabGo=function(t){
+var from=_cur;
+_tg(t);
+try{
+if(document.querySelector('#tabbar .tab.on')&&document.querySelector('#tabbar .tab.on').dataset.t!==t)return;/* uscita annullata dal confirm */
+_cur=t;
+if(t===from)return;
+var el=t==='home'?document.getElementById('homeScreen'):t==='topo'?document.querySelector('.main'):t==='quiz'?document.getElementById('quizApp'):document.getElementById('studyApp');
+if(!el)return;
+var d=ORDER.indexOf(t)-ORDER.indexOf(from);
+el.classList.remove('slide-l','slide-r');void el.offsetWidth;
+el.classList.add(d>0?'slide-l':'slide-r');
+setTimeout(function(){el.classList.remove('slide-l','slide-r');},440);
+}catch(e){}
+};
+}catch(e){}
+},900);
+
+/* ── contachilometri sui giorni al traguardo ── */
+(function(){try{
+var _rp3=renderPlan;
+renderPlan=function(){
+_rp3();
+try{
+var b=document.querySelector('.tg-hd>b');if(!b)return;
+var v=parseInt(b.textContent,10);if(isNaN(v))return;
+var last=window._tgLast;window._tgLast=v;
+if(last===undefined){b.textContent='0';countUp(b,v,700);}
+else if(last!==v){b.textContent=String(last);countUp(b,v,500);}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── anello di prontezza che si DISEGNA all'arrivo in home ── */
+(function(){try{
+var _rr4=renderReadiness;
+renderReadiness=function(){
+_rr4();
+try{
+var cs=document.querySelectorAll('#readyCard .ready-ring circle');
+var c=null;
+cs.forEach(function(x){if(x.getAttribute('stroke-dashoffset')||x.style.strokeDashoffset)c=x;});
+if(!c&&cs.length)c=cs[cs.length-1];
+if(!c)return;
+var full=c.getAttribute('stroke-dasharray');if(!full)return;
+c.style.setProperty('--circ',full);
+c.classList.remove('draw');void c.getBoundingClientRect();c.classList.add('draw');
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── toast impilati: i messaggi non si cancellano più a vicenda ── */
+toast2=function(msg,ms){
+try{
+var st=document.getElementById('toastStack');
+if(!st){st=document.createElement('div');st.id='toastStack';document.body.appendChild(st);}
+var t=document.createElement('div');t.className='toastN';t.textContent=msg;
+st.appendChild(t);
+while(st.children.length>3)st.firstChild.remove();
+requestAnimationFrame(function(){t.classList.add('show');});
+setTimeout(function(){t.classList.add('hide');setTimeout(function(){try{t.remove();}catch(e){}},300);},ms||2300);
+}catch(e){}
+};
+
+/* ── header che si compatta scorrendo la lista delle vie (più mappa visibile) ── */
+(function(){try{
+var sl=document.getElementById('sList');if(!sl)return;
+var on=false;
+sl.addEventListener('scroll',function(){
+var c=sl.scrollTop>36;
+if(c!==on){on=c;document.body.classList.toggle('hdr-mini',c);}
+},{passive:true});
+}catch(e){}})();
+
+/* ── coriandoli con fisica: deriva laterale e rotazione casuali ── */
+(function(){try{
+var _cf2=confetti;
+confetti=function(){
+_cf2();
+try{
+document.querySelectorAll('.cp').forEach(function(p){
+p.style.setProperty('--dx',(Math.random()*180-90).toFixed(0)+'px');
+p.style.setProperty('--rot',(Math.random()*840-420).toFixed(0)+'deg');
+});
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v23: VERSO L'ESAME ═══════ */
+
+/* ── SEMAFORO: "se l'esame fosse domani?" — verde/giallo/rosso con motivo ── */
+function renderExamLight(){
+try{
+var rc=document.getElementById('readyCard');if(!rc)return;
+try{buildQuiz();}catch(e){}
+var el=document.getElementById('examLight');
+if(!el){el=document.createElement('div');el.id='examLight';rc.after(el);}
+var hist=(qExamHist||[]).slice(-5);
+var avg=hist.length?hist.reduce(function(s,x){return s+(x.ok||0);},0)/hist.length:0;
+var ti=targetInfo();
+var cov=ti?Math.round((ti.pctQ+ti.pctR)/2):Math.round(Object.keys(qtStats.seenIds||{}).length/(QUIZ_ALL.length||919)*100);
+var open=Object.keys(qtStats.err||{}).length;
+var cls,dot,ttl,why;
+if(hist.length>=3&&avg>=14&&cov>=95&&open<15){cls='ok';dot='🟢';ttl='PRONTO';why='Media '+avg.toFixed(1)+'/16, copertura '+cov+'%, errori sotto controllo';}
+else if((hist.length>=2&&avg>=12)||cov>=70){cls='mid';dot='🟡';ttl='QUASI';
+why=cov<95?('Copertura al '+cov+'%: continua con nuove e percorsi'):(hist.length<3?'Servono più simulazioni per giudicare':(avg<14?('Media '+avg.toFixed(1)+'/16: puntiamo a 14+'):('Ancora '+open+' errori aperti')));}
+else{cls='no';dot='🔴';ttl='NON ANCORA';
+why=hist.length===0?'Fai la prima simulazione per avere una misura':('Copertura '+cov+'%'+(hist.length?(' · media '+avg.toFixed(1)+'/16'):''));}
+el.innerHTML='<div class="xl '+cls+'"><span class="xl-dot">'+dot+'</span><div class="xl-tx"><b>Se l\'esame fosse domani: '+ttl+'</b><small>'+why+'</small></div></div>';
+}catch(e){}
+}
+(function(){try{
+var _rr5=renderReadiness;
+renderReadiness=function(){_rr5();try{renderExamLight();}catch(e){}};
+}catch(e){}})();
+
+/* ── REPORT DELLA DOMENICA: la settimana in 6 righe ── */
+function weeklyReport(force){
+try{
+var now=Date.now();
+if(!force){
+if(now-lg('wkRepTs',0)<6*86400000)return;
+var isSun=new Date().getDay()===0;
+if(!isSun&&now-lg('wkRepTs',0)<7.5*86400000)return; /* di norma esce la domenica */
+}
+try{buildQuiz();}catch(e){}
+var dd=qtStats.daily||{},d7=0;
+for(var i=0;i<7;i++){var dt=new Date();dt.setDate(dt.getDate()-i);d7+=dd[_dayKey(dt)]||0;}
+if(!force&&d7===0)return; /* settimana vuota: meglio il silenzio del rimprovero */
+var snap=lg('wkSnap',null);
+var seen=Object.keys(qtStats.seenIds||{}).length;
+var rD=routes.filter(function(r){return done[r.id];}).length;
+var open=Object.keys(qtStats.err||{}).length;
+var lines=[];
+lines.push('📝 <b>'+d7+'</b> risposte negli ultimi 7 giorni'+(snap?(' <span class="'+(d7>=snap.d7?'up':'dn')+'">'+(d7>=snap.d7?'+':'')+(d7-snap.d7)+'</span>'):''));
+lines.push('🆕 <b>'+(snap?Math.max(0,seen-snap.seen):seen)+'</b> domande nuove'+(snap?' questa settimana':' viste finora'));
+lines.push('🗺️ <b>'+(snap?Math.max(0,rD-snap.rD):rD)+'</b> percorsi completati'+(snap?' questa settimana':' finora'));
+lines.push('🔁 <b>'+open+'</b> errori in lavorazione');
+if(snap&&snap.cat){
+var best=null,bd=-1,worst=null,wd=1;
+QARG.forEach(function(c){
+var a=qtStats.cat[c.id],b=snap.cat[c.id];
+if(a&&b&&a.seen>b.seen){
+var r1=a.ok/a.seen,r0=b.seen?b.ok/b.seen:0,df=r1-r0;
+if(df>bd){bd=df;best=c;}
+if(df<wd){wd=df;worst=c;}
+}
+});
+if(best&&bd>0.02)lines.push('📈 In crescita: <b>'+best.label+'</b> (+'+Math.round(bd*100)+'%)');
+if(worst&&wd<-0.02)lines.push('📉 Da tenere d\'occhio: <b>'+worst.label+'</b> ('+Math.round(wd*100)+'%)');
+}
+if(!force){/*[FIX 300] solo il report automatico aggiorna la baseline: quello dal menu è in sola lettura*/
+var cat={};QARG.forEach(function(c){var s2=qtStats.cat[c.id];if(s2)cat[c.id]={seen:s2.seen,ok:s2.ok};});
+ls('wkSnap',{ts:now,d7:d7,seen:seen,rD:rD,cat:cat});
+ls('wkRepTs',now);
+}
+var old=document.getElementById('wkModal');if(old)old.remove();
+var m=document.createElement('div');m.id='wkModal';m.className='modal center open';
+m.innerHTML='<div class="mbox" style="max-width:440px">'
++'<div class="mhdr"><div class="mhdr-left"><h3>📅 La tua settimana</h3><p>'+new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})+'</p></div>'
++'<button class="mhdr-close" onclick="document.getElementById(\'wkModal\').remove()">✕</button></div>'
++'<div style="padding:16px 20px 20px">'+lines.map(function(l){return '<div class="wk-line">'+l+'</div>';}).join('')
++'<button class="bsv" style="width:100%;margin-top:14px" onclick="document.getElementById(\'wkModal\').remove()">Si continua 💪</button></div></div>';
+document.body.appendChild(m);
+hap('m');
+}catch(e){}
+}
+(function(){try{
+var _gh6=goHome;goHome=function(){_gh6();setTimeout(function(){try{weeklyReport();}catch(e){}},700);};
+var _cam2=closeAllM;closeAllM=function(){_cam2();try{var w=document.getElementById('wkModal');if(w)w.remove();}catch(e){}};
+}catch(e){}})();
+setTimeout(function(){try{weeklyReport();}catch(e){}},2200);
+
+/* ── LE CONFUSIONI: le domande che TU hai marcato "confusa con un'altra" ── */
+function qStartConf(){
+buildQuiz();
+qtStats.why=qtStats.why||{};
+var ids=Object.keys(qtStats.why).filter(function(k){return (qtStats.why[k].c||0)>=1;});
+var items=ids.map(function(id){return QUIZ_ALL[id|0];}).filter(Boolean);
+if(items.length<3){toast2('Poche domande marcate 🔀 finora');return;}
+startQuiz(qShuffle(items).slice(0,15),{mode:'study',title:'Le confusioni'});
+}
+/* il coach le propone in mantenimento quando ce ne sono abbastanza */
+(function(){try{
+var _ct4=coachTasks;
+coachTasks=function(){
+var t=_ct4();
+try{
+var ti=targetInfo();
+var mantenimento=!ti||ti.doneAll;
+qtStats.why=qtStats.why||{};
+var n=Object.keys(qtStats.why).filter(function(k){return (qtStats.why[k].c||0)>=1;}).length;
+if(mantenimento&&n>=6){
+t.push({ic:'🔀',tx:'Sciogli '+Math.min(n,15)+' confusioni',sub:'Le domande che scambi con altre: guardarle in fila le separa',fn:function(){openQuiz();setTimeout(qStartConf,250);},p:4.2});
+t.sort(function(a,b){return a.p-b.p;});t=t.slice(0,4);
+}
+}catch(e){}
+return t;
+};
+}catch(e){}})();
+
+/* ── ESAME COMPLETO: simulazione + percorso in Cieco a sorpresa ── */
+let _fullExam=false,_fullRoute=null;
+(function(){try{
+var _rd2=renderDash;
+renderDash=function(){_rd2();_fullExam=false;/*[FIX 300] tornare alla dashboard annulla l'esame completo in sospeso*/};
+}catch(e){}})();
+function qStartFull(){
+if(!routes.length){toast2('Serve almeno un percorso salvato');qStartExam();return;}
+_fullExam=true;
+qStartExam();
+toast2('🎓 Esame completo: dopo il quiz, un percorso a sorpresa');
+}
+(function(){try{
+var _qf9=qFinish;
+qFinish=function(t){
+_qf9(t);
+try{
+if(qCurView==='result'&&_fullExam&&lastQuiz&&lastQuiz.opts&&lastQuiz.opts.mode==='exam'){
+_fullExam=false;
+var box=document.querySelector('#qResult .qres-actions');
+if(box&&!document.getElementById('fullNext')){
+var b=document.createElement('button');
+b.id='fullNext';b.className='btn bp';b.textContent='🗺️ Ora il percorso a sorpresa';
+b.onclick=function(){
+var withPins=routes.filter(function(r){return r.steps.some(function(_,i){return coords[r.id+'_'+i];});});
+var pool=withPins.length?withPins:routes;
+var r=pool[Math.floor(Math.random()*pool.length)];
+_fullRoute=r.id;
+goTopografia();
+setTimeout(function(){selectRoute(r);setMode('c');toast2('🎲 A sorpresa: '+r.title+' — completalo in Cieco!');},300);
+};
+box.insertBefore(b,box.firstChild);
+}
+}else if(qCurView==='result'){
+var oldB=document.getElementById('fullNext');if(oldB)oldB.remove();
+}
+}catch(e){}
+};
+var _sr2=selectRoute;
+selectRoute=function(r){if(_fullRoute&&r&&r.id!==_fullRoute)_fullRoute=null;/*[FIX 300] cambi percorso = sfida annullata*/_sr2(r);};
+var _rc4=routeCelebrate;
+routeCelebrate=function(){
+_rc4();
+try{
+if(_fullRoute&&cur&&cur.id===_fullRoute){
+_fullRoute=null;
+setTimeout(function(){toast2('🏁 ESAME COMPLETO terminato — quiz + topografia!');try{confetti();}catch(e){}},900);
 }
 }catch(e){}
 };
