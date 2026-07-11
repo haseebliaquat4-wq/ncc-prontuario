@@ -3872,3 +3872,34 @@ setTimeout(function(){toast2('📈 Superi sempre l\'obiettivo: prova ad alzarlo 
 }catch(e){}
 };
 }catch(e){}})();
+
+/* ═══════ PACCHETTO v25: FIX SCATTI DEFINITIVO + coerenza icone + morbidezza ═══════ */
+
+/* ── la mappa smette di dipingere quando non è in scena ──
+visibility:hidden conserva le dimensioni: Leaflet non perde i tile e non serve reinizializzare */
+function _sceneFlag(t){
+try{document.body.classList.toggle('on-topo',t==='topo');}catch(e){}
+}
+(function(){try{
+var _gt2=goTopografia;goTopografia=function(){_gt2();_sceneFlag('topo');setTimeout(mapResizeSoon,80);};
+var _gh7=goHome;goHome=function(){_gh7();_sceneFlag('home');};
+var _oq2=openQuiz;openQuiz=function(){_oq2();_sceneFlag('quiz');};
+var _os2=openStudy;openStudy=function(){_os2();_sceneFlag('studio');};
+}catch(e){}})();
+/* stato iniziale: si parte dalla home */
+_sceneFlag('home');
+
+/* ── icone: colore semantico per pastiglia (niente più blu su fondo rosso) ── */
+var ICOC={'🆕':'var(--warn)','⚡':'var(--warn)','💀':'var(--err)','🎓':'var(--pu)','🔀':'var(--a)','📝':'var(--a)','🗺️':'var(--a)','🔁':'var(--a)','🧪':'var(--pu)','🌤':'var(--warn)','✅':'var(--ok)'};
+/* consolidamento: ⚡ resta solo su "Inizia 5 minuti"; lo Sprint ha il cronometro,
+le più sbagliate il bersaglio (via il teschio: stesso concetto, segno più pulito) */
+ICO['⚡']='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9M9 2.5h6M12 2.5v3.5"/></svg>';
+ICO['💀']='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>';
+swapIco=function(sel){
+try{
+document.querySelectorAll(sel).forEach(function(el){
+var t=el.textContent.trim();
+if(ICO[t]){el.innerHTML=ICO[t];if(ICOC[t])el.style.color=ICOC[t];}
+});
+}catch(e){}
+};
