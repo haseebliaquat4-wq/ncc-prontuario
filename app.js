@@ -3239,8 +3239,7 @@ var items=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=
 items.sort(function(a,b){return srDue(a.id)-srDue(b.id);});
 items=items.slice(0,4); /* max 4 errori: il difficile diluito, mai concentrato */
 var have={};items.forEach(function(it){have[it.id]=1;});
-var nuove=qShuffle(QUIZ_ALL.filter(function(it){return !have[it.id]&&!qtStats.seenIds[it.id];}));
-items=items.concat(nuove.slice(0,8-items.length));
+items=items.concat(_newRR(8-items.length,have));/*[v24] nuove ad argomenti alternati anche qui*/
 if(items.length<8){var h2={};items.forEach(function(it){h2[it.id]=1;});items=items.concat(qShuffle(QUIZ_ALL.filter(function(it){return !h2[it.id];})).slice(0,8-items.length));}
 if(!items.length){toast2('Nessuna domanda disponibile');return;}
 openQuiz();
@@ -3595,8 +3594,13 @@ var avg=hist.length?hist.reduce(function(s,x){return s+(x.ok||0);},0)/hist.lengt
 var ti=targetInfo();
 var cov=ti?Math.round((ti.pctQ+ti.pctR)/2):Math.round(Object.keys(qtStats.seenIds||{}).length/(QUIZ_ALL.length||919)*100);
 var open=Object.keys(qtStats.err||{}).length;
+/* [v24] ritenzione: se l'ultimo test dice che dimentichi, niente verde */
+var ret=lg('retScore',null);
+var retPct=ret&&ret.tot?Math.round(ret.ok/ret.tot*100):null;
+var retOld=ret?(Date.now()-ret.ts>21*86400000):true;
 var cls,dot,ttl,why;
-if(hist.length>=3&&avg>=14&&cov>=95&&open<15){cls='ok';dot='🟢';ttl='PRONTO';why='Media '+avg.toFixed(1)+'/16, copertura '+cov+'%, errori sotto controllo';}
+if(hist.length>=3&&avg>=14&&cov>=95&&open<15&&(retPct===null||retPct>=75)){cls='ok';dot='🟢';ttl='PRONTO';why='Media '+avg.toFixed(1)+'/16, copertura '+cov+'%'+(retPct!==null?(', ritenzione '+retPct+'%'):'')+', errori sotto controllo';}
+else if(hist.length>=3&&avg>=14&&cov>=95&&open<15&&retPct!==null&&retPct<75){cls='mid';dot='🟡';ttl='QUASI';why='Tutto bene TRANNE la ritenzione: '+retPct+'% — la memoria sta perdendo pezzi, ripassa il vecchio';}
 else if((hist.length>=2&&avg>=12)||cov>=70){cls='mid';dot='🟡';ttl='QUASI';
 why=cov<95?('Copertura al '+cov+'%: continua con nuove e percorsi'):(hist.length<3?'Servono più simulazioni per giudicare':(avg<14?('Media '+avg.toFixed(1)+'/16: puntiamo a 14+'):('Ancora '+open+' errori aperti')));}
 else{cls='no';dot='🔴';ttl='NON ANCORA';
@@ -3741,6 +3745,129 @@ try{
 if(_fullRoute&&cur&&cur.id===_fullRoute){
 _fullRoute=null;
 setTimeout(function(){toast2('🏁 ESAME COMPLETO terminato — quiz + topografia!');try{confetti();}catch(e){}},900);
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ═══════ PACCHETTO v24: ICONE SVG + COACH PIÙ INTELLIGENTE ═══════ */
+
+/* ── libreria icone a tratto (sostituiscono le emoji nei punti chiave) ── */
+var ICO={
+'🔁':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>',
+'📝':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+'🗺️':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.2V20l6-2.2 6 2.2 6-2.2V4l-6 2.2L9 4z"/><path d="M9 4v13.8M15 6.2V20"/></svg>',
+'🎓':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5 12 5l10 4.5-10 4.5L2 9.5z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9.5V15"/></svg>',
+'🧪':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"/><path d="M7 15h10"/></svg>',
+'🔀':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>',
+'💀':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a8 8 0 0 0-8 8c0 2.5 1.2 4.6 3 6v3h10v-3c1.8-1.4 3-3.5 3-6a8 8 0 0 0-8-8z"/><circle cx="9" cy="11" r="1.4"/><circle cx="15" cy="11" r="1.4"/></svg>',
+'⚡':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>',
+'🆕':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+'✅':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg>',
+'🌤':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/></svg>'
+};
+function swapIco(sel){
+try{
+document.querySelectorAll(sel).forEach(function(el){
+var t=el.textContent.trim();
+if(ICO[t])el.innerHTML=ICO[t];
+});
+}catch(e){}
+}
+(function(){try{
+var _rc5=renderCoach;renderCoach=function(){_rc5();swapIco('#coachCard .coach-ic');};
+var _rd3=renderDash;renderDash=function(){_rd3();swapIco('#qDash .qtile-ic');};
+}catch(e){}})();
+
+/* ── riempimento "nuove" INTERLEAVED anche nelle micro-sessioni ── */
+function _newRR(n,exclude){
+var pools={};
+QARG.forEach(function(c){pools[c.id]=qShuffle(QUIZ_ALL.filter(function(it){return it.cat===c.id&&!qtStats.seenIds[it.id]&&!(exclude&&exclude[it.id]);}));});
+var out=[],more=true;
+while(out.length<n&&more){
+more=false;
+QARG.forEach(function(c){if(out.length<n&&pools[c.id].length){out.push(pools[c.id].pop());more=true;}});
+}
+return out;
+}
+
+/* ── RIENTRO MORBIDO: dopo 3+ giorni di pausa il coach riparte piano, senza colpe ── */
+function startSoft(){
+buildQuiz();
+qtStats.lastOk=qtStats.lastOk||{};
+/* 4 domande che già sapevi (vittorie facili per riprendere il ritmo) + 2 nuove */
+var known=qShuffle(QUIZ_ALL.filter(function(it){return qtStats.lastOk[it.id]&&!qtStats.err[it.id];})).slice(0,4);
+var ex={};known.forEach(function(it){ex[it.id]=1;});
+var items=known.concat(_newRR(6-known.length,ex));
+if(items.length<3)items=qShuffle(QUIZ_ALL.slice()).slice(0,6);
+startQuiz(qShuffle(items),{mode:'study',title:'Rientro morbido'});
+toast2('🌤 Si riparte piano: 6 domande e sei di nuovo in pista');
+}
+(function(){try{
+var _ct5=coachTasks;
+coachTasks=function(){
+var t=_ct5();
+try{
+var dd=qtStats.daily||{},last=0;
+Object.keys(dd).forEach(function(k){
+var p=k.split('-');var ts=new Date(+p[0],p[1]-1,+p[2]).getTime();
+if(dd[k]>0&&ts>last)last=ts;
+});
+var gap=last?Math.floor((Date.now()-last)/86400000):0;
+if(gap>=3){
+t.unshift({ic:'🌤',tx:'Rientro morbido — 6 domande',sub:'Sono passati '+gap+' giorni: tutto ok, si riparte leggeri',fn:function(){openQuiz();setTimeout(startSoft,250);},p:0.4});
+t=t.slice(0,4);
+}
+}catch(e){}
+return t;
+};
+}catch(e){}})();
+
+/* ── RITENZIONE nel semaforo: il verde richiede anche che la memoria TENGA ── */
+(function(){try{
+var _qf10=qFinish;
+qFinish=function(t){
+_qf10(t);
+try{
+if(qCurView==='result'&&lastQuiz&&lastQuiz.opts&&lastQuiz.opts.title==='Test di ritenzione'&&Q&&Q.items){
+var ok=0;Q.items.forEach(function(it,i){if(Q.ans[i]===it.correct)ok++;});
+ls('retScore',{ok:ok,tot:Q.items.length,ts:Date.now()});
+}
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── il coach SPIEGA la sua strategia del giorno ── */
+(function(){try{
+var _rc6=renderCoach;
+renderCoach=function(){
+_rc6();
+try{
+var w=document.getElementById('coachCard');if(!w||!w.firstChild)return;
+var hd=w.querySelector('.coach-hd');if(!hd||hd.parentNode.querySelector('.coach-why'))return;
+var ti=targetInfo();
+var msg=(ti&&!ti.doneAll)
+?'Fase copertura: prima gli errori in scadenza, poi il nuovo al ritmo del traguardo.'
+:'Fase mantenimento: si difende ciò che sai — scadenze, punti deboli, simulazioni.';
+var d=document.createElement('div');d.className='coach-why';d.textContent=msg;
+hd.after(d);
+}catch(e){}
+};
+}catch(e){}})();
+
+/* ── OBIETTIVO ADATTIVO: se lo superi sempre, il coach propone di alzarlo ── */
+(function(){try{
+var _rw4=renderWeekly;
+renderWeekly=function(){
+_rw4();
+try{
+if(Date.now()-lg('goalSuggTs',0)<6.5*86400000)return;
+var goal=lg('dailyGoal',30),dd=qtStats.daily||{},hit=0,sum=0;
+for(var i=1;i<=7;i++){var dt=new Date();dt.setDate(dt.getDate()-i);var v=dd[_dayKey(dt)]||0;if(v>=goal)hit++;sum+=v;}
+if(hit>=6&&sum/7>=goal*1.4){
+ls('goalSuggTs',Date.now());
+var sug=Math.round(sum/7/5)*5;
+setTimeout(function(){toast2('📈 Superi sempre l\'obiettivo: prova ad alzarlo a '+sug+' (tocca il grafico)',3500);},1200);
 }
 }catch(e){}
 };
