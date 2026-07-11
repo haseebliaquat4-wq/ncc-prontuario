@@ -52,17 +52,17 @@
 <div id="planCard"></div>
 <div class="home-cards">
 <button class="home-card hc-topo" onclick="goTopografia()">
-<span class="hc-ic">🗺️</span>
+<span class="hc-ic"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.2V20l6-2.2 6 2.2 6-2.2V4l-6 2.2L9 4z"/><path d="M9 4v13.8M15 6.2V20"/></svg></span>
 <span class="hc-tx"><strong>Topografia</strong><small>Mappa, percorsi e vie da memorizzare</small></span>
 <span class="hc-ar">›</span>
 </button>
 <button class="home-card hc-quiz" onclick="goQuiz()">
-<span class="hc-ic">📝</span>
+<span class="hc-ic"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
 <span class="hc-tx"><strong>Quiz d'esame</strong><small>Simulazioni, argomenti e ripasso errori</small></span>
 <span class="hc-ar">›</span>
 </button>
 <button class="home-card hc-study" onclick="goStudy()">
-<span class="hc-ic">📚</span>
+<span class="hc-ic"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/><path d="M9 7.5h7"/></svg></span>
 <span class="hc-tx"><strong>Studio Luoghi</strong><small id="studyCardSub">Cosa &amp; Dove: luoghi di Milano con flashcard e ripasso</small></span>
 <span class="hc-ar">›</span>
 </button>
@@ -103,6 +103,7 @@
 <button onclick="openStats();cm()"><span class="mi">📊</span>Statistiche vie</button>
 <button onclick="openWrong();cm()"><span class="mi">🔁</span>Vie da ripassare</button>
 <button onclick="ordinaVie();cm()"><span class="mi">🧩</span>Ordina le vie</button>
+<button onclick="weeklyReport(true);cm()"><span class="mi">📅</span>Report settimanale</button>
 <button onclick="openOrderQuiz()"><span class="mi">🧩</span>Ordina le vie</button>
 <div class="mi-sep"></div>
 <button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
