@@ -3726,6 +3726,7 @@ var withPins=routes.filter(function(r){return r.steps.some(function(_,i){return 
 var pool=withPins.length?withPins:routes;
 var r=pool[Math.floor(Math.random()*pool.length)];
 _fullRoute=r.id;
+closeQuiz();/*[FIX 100-anim] il quiz è uno strato fisso SOPRA la mappa: senza chiuderlo copriva tutto*/
 goTopografia();
 setTimeout(function(){selectRoute(r);setMode('c');toast2('🎲 A sorpresa: '+r.title+' — completalo in Cieco!');},300);
 };
