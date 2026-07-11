@@ -2951,11 +2951,7 @@ var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
 var unseen=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
 if(today<goal)t.push({ic:'📝',tx:(goal-today)+' risposte per l\'obiettivo di oggi',sub:unseen?('Meglio se nuove: te ne restano '+unseen+' mai viste'):'Le hai viste tutte: ripasso libero',fn:unseen?function(){openQuiz();setTimeout(qStartNew,250);}:function(){smartReview();},p:3,prog:[today,goal]});
 else t.push({ic:'✅',tx:'Obiettivo di oggi raggiunto — '+today+'/'+goal,sub:'Vuoi strafare? Sprint 3 minuti',fn:function(){openQuiz();setTimeout(qStartSprint,250);},p:8,done:true});
-/* 4 — flashcard se molto indietro rispetto al quiz */
-try{
-var r=readinessScore();
-if(r.flash<r.quiz-15&&r.flash<80)t.push({ic:'🃏',tx:'15 flashcard Luoghi',sub:'Luoghi al '+r.flash+'%: è la parte che ti tiene bassa la prontezza',fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:4});
-}catch(e){}
+/* [rimosso su richiesta] niente flashcard nel coach */
 /* 5 — recidive */
 var wn=qtStats.wrongN||{},rec=Object.keys(wn).filter(function(k){return wn[k]>=3;}).length;
 if(rec>=5)t.push({ic:'💀',tx:'Sfida le tue '+Math.min(rec,20)+' recidive',sub:'Domande sbagliate 3 o più volte: vanno smontate una a una',fn:function(){openQuiz();setTimeout(qStartHard,250);},p:5});
@@ -3057,23 +3053,9 @@ var b=document.getElementById('geoBar');if(b)b.remove();
 }
 /* mostra fantasma + barra Conferma/Ignora; onOk(lat,lon) applica il punto */
 function geoSuggest(name,tm,onOk){
-geoCleanup();
-if(!tm||!name)return;
-var tok=_geoTok;
-geoLookup(name,function(res,corner){
-if(tok!==_geoTok||!res)return; /* nel frattempo hai fatto altro: lascia perdere */
-try{
-_geoGhostMap=tm;
-_geoGhost=L.marker([res.lat,res.lon],{opacity:.55,icon:L.divIcon({className:'geo-ghost-wrap',html:'<div class="geo-ghost">📍</div>',iconSize:[34,34],iconAnchor:[17,32]})}).addTo(tm);
-tm.setView([res.lat,res.lon],Math.max(tm.getZoom(),15),{animate:true});
-var bar=document.createElement('div');bar.id='geoBar';
-bar.innerHTML='<div class="gb-tx"><b>'+(corner?'⚠️ Incrocio — verifica: ':'Trovato: ')+esc(res.label)+'</b><small>Conferma, trascina la mappa e tocca a mano, oppure ignora</small></div>'
-+'<button class="gb-ok">✓ Conferma</button><button class="gb-no">✕</button>';
-bar.querySelector('.gb-ok').onclick=function(){var la=res.lat,lo=res.lon;geoCleanup();hap('m');onOk(la,lo);};
-bar.querySelector('.gb-no').onclick=function(){geoCleanup();hap();};
-document.body.appendChild(bar);
-}catch(e){}
-});
+/* [DISATTIVATO su richiesta] niente marker automatico: posizionamento manuale puro.
+La funzione resta come stub per gli agganci esistenti. */
+geoCleanup();return;
 }
 
 /* ── aggancio 1: mappa principale (posizionamento con +) ── */
@@ -3143,23 +3125,22 @@ function targetInfo(){
 try{buildQuiz();buildLuoghi();}catch(e){}
 var t=lg('targetDate',0);if(!t)return null;
 var seen=Object.keys(qtStats.seenIds||{}).length,qT=QUIZ_ALL.length||919;
-var lM=LUOGHI.filter(function(x){return (studyProg[x.id]||0)>=SD_MASTER;}).length,lT=LUOGHI.length||218;
 var rD=routes.filter(function(r){return done[r.id];}).length,rT=Math.max(routes.length,1);
 var days=Math.max(0,Math.ceil((t-Date.now())/86400000));
-var doneAll=(seen>=qT&&lM>=lT&&rD>=rT);
+var doneAll=(seen>=qT&&rD>=rT);/* solo quiz + topografia */
 var perQ=days>0?Math.ceil(Math.max(0,qT-seen)/days):0;
-var perL=days>0?Math.ceil(Math.max(0,lT-lM)/days):0;
+var perL=0,lM=0,lT=0;/* luoghi esclusi dal piano su richiesta */
 var perR=days>0?Math.ceil(Math.max(0,rT-rD)/days*10)/10:0; /* può essere 0.5 = uno ogni 2 giorni */
 /* in pari? confronto col ritmo previsto dalla baseline */
 var behind=0,meta=lg('targetMeta',null);
 if(meta&&t>meta.start){
 var exp=Math.min(1,(Date.now()-meta.start)/(t-meta.start));
 function pr(a0,a,aT){var tot=Math.max(1,aT-a0);return Math.min(1,Math.max(0,(a-a0)/tot));}
-var act=(pr(meta.q0,seen,meta.qT)+pr(meta.l0,lM,meta.lT)+pr(meta.r0,rD,meta.rT))/3;
+var act=(pr(meta.q0,seen,meta.qT)+pr(meta.r0,rD,meta.rT))/2;/* media su quiz+percorsi */
 behind=Math.round((exp-act)*((t-meta.start)/86400000));
 }
-return {t:t,days:days,doneAll:doneAll,seen:seen,qT:qT,lM:lM,lT:lT,rD:rD,rT:rT,perQ:perQ,perL:perL,perR:perR,behind:behind,
-pctQ:Math.round(seen/qT*100),pctL:Math.round(lM/lT*100),pctR:Math.round(rD/rT*100)};
+return {t:t,days:days,doneAll:doneAll,seen:seen,qT:qT,rD:rD,rT:rT,perQ:perQ,perR:perR,behind:behind,
+pctQ:Math.round(seen/qT*100),pctR:Math.round(rD/rT*100)};
 }
 
 /* ── piano in home: versione traguardo ── */
@@ -3182,8 +3163,8 @@ function bar(lbl,pct){return '<div class="tg-row"><span>'+lbl+'</span><div class
 var rTxt=ti.rD>=ti.rT?'percorsi ✓':(ti.perR<1?('1 percorso ogni '+Math.round(1/Math.max(.1,ti.perR))+' g'):ti.perR+' percorsi');/*[FIX] niente "ogni 10 g" a percorsi finiti*/
 w.innerHTML='<div class="tg-card" onclick="setTargetDate()">'
 +'<div class="tg-hd"><b>'+ti.days+'</b><div><strong>giorn'+(ti.days===1?'o':'i')+' al traguardo</strong><small>Tocca per cambiare il traguardo</small></div>'+st+'</div>'
-+bar('📝 Domande',ti.pctQ)+bar('📚 Luoghi',ti.pctL)+bar('🗺️ Percorsi',ti.pctR)
-+'<div class="tg-rhythm">Oggi: <b>'+ti.perQ+'</b> nuove · <b>'+ti.perL+'</b> luoghi · <b>'+rTxt+'</b></div>'
++bar('📝 Domande',ti.pctQ)+bar('🗺️ Percorsi',ti.pctR)
++'<div class="tg-rhythm">Oggi: <b>'+ti.perQ+'</b> domande nuove · <b>'+rTxt+'</b></div>'
 +'</div>'
 +'<button class="plan-set plan-exam" onclick="setExamDate()">🎯 '+exLine+' — tocca per cambiare</button>';/*[FIX] la data esame resta modificabile anche col traguardo attivo*/
 };
@@ -3200,7 +3181,6 @@ if(due>0)t.push({ic:'🔁',tx:'Ripassa '+due+' error'+(due===1?'e':'i')+' in sca
 if(copertura){
 /* FASE COPERTURA: nuove + luoghi + percorso, ai ritmi del traguardo */
 if(ti.seen<ti.qT)t.push({ic:'📝',tx:ti.perQ+' domande nuove',sub:'Ritmo del traguardo · te ne restano '+(ti.qT-ti.seen),fn:function(){openQuiz();setTimeout(qStartNew,250);},p:2,prog:[ti.seen,ti.qT]});
-if(ti.lM<ti.lT)t.push({ic:'📚',tx:'Flashcard luoghi (mazzo da 15)',sub:'Ritmo: ~'+Math.max(8,ti.perL)+' al giorno · imparati '+ti.lM+' su '+ti.lT,fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:3,prog:[ti.lM,ti.lT]});
 if(ti.rD<ti.rT&&routes.length)t.push({ic:'🗺️',tx:'Il percorso del giorno',sub:'Completati '+ti.rD+' su '+ti.rT+' — aprilo in Cieco',fn:function(){goTopografia();setTimeout(routeOfDay,300);},p:4,prog:[ti.rD,ti.rT]});
 }else{
 /* FASE MANTENIMENTO (o nessun traguardo): debolezze, ritenzione, simulazione */
@@ -3210,7 +3190,6 @@ var today=(qtStats.daily||{})[_dayKey()]||0,goal=lg('dailyGoal',30);
 if(today<goal)t.push({ic:'📝',tx:(goal-today)+' risposte per l\'obiettivo',sub:'Mantenimento: mix scelto dal coach',fn:function(){smartReview();},p:3,prog:[today,goal]});
 var wn=qtStats.wrongN||{},rec=Object.keys(wn).filter(function(k){return wn[k]>=3;}).length;
 if(rec>=5)t.push({ic:'💀',tx:'Smonta '+Math.min(rec,20)+' recidive',sub:'Sbagliate 3+ volte',fn:function(){openQuiz();setTimeout(qStartHard,250);},p:4});
-try{var rr=readinessScore();if(rr.flash<rr.quiz-15&&rr.flash<80)t.push({ic:'🃏',tx:'15 flashcard Luoghi',sub:'Luoghi al '+rr.flash+'%: ti tiene bassa la prontezza',fn:function(){openStudy();setTimeout(function(){sdStart('mix');},300);},p:3.5});}catch(e){}/*[FIX] spinta luoghi anche in mantenimento*/
 if(routes.length)t.push({ic:'🗺️',tx:'Ripasso percorso a rotazione',sub:'Un Cieco al giorno tiene la mappa fresca',fn:function(){goTopografia();setTimeout(routeOfDay,300);},p:5});
 }
 var lastEx=(qExamHist&&qExamHist.length)?(qExamHist[qExamHist.length-1].d||0):0;
@@ -3250,16 +3229,7 @@ qFinish=function(t){
 _qf7(t);
 try{
 if(qCurView==='result'){
-var _old=document.getElementById('microNext');if(_old)_old.remove();/*[FIX] via il bottone dalle sessioni non-micro*/
-if(lastQuiz&&lastQuiz.opts&&lastQuiz.opts.micro){
-var box=document.querySelector('#qResult .qres-actions');
-if(box){
-var b=document.createElement('button');
-b.id='microNext';b.className='btn';b.textContent='🃏 Chiudi con 5 luoghi';
-b.onclick=function(){openStudy();setTimeout(sdStartMicro,300);};
-box.insertBefore(b,box.firstChild);
-}
-}
+var _old=document.getElementById('microNext');if(_old)_old.remove();/* [su richiesta] niente aggancio flashcard: il coach spinge solo quiz e topografia */
 }
 }catch(e){}
 };
@@ -3444,7 +3414,13 @@ if(!isDesk()){
 var a=document.getElementById('mma');
 if(a&&!a.classList.contains('open'))togMMap();
 }
-setTimeout(function(){selMStep(i);},300);
+setTimeout(function(){
+selMStep(i);
+/* [FIX 100-scenari] se la mappa mobile non era ancora pronta, il suggerimento
+coordinate veniva saltato in silenzio: secondo tentativo a mappa creata */
+var tm=isDesk()?mMap:mobMap;
+if(!tm)setTimeout(function(){selMStep(i);},400);
+},300);
 hap();
 }
 
