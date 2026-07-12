@@ -695,7 +695,7 @@ const btn=document.querySelector('#addModal .bsv');if(btn){btn.disabled=true;set
 let rid;
 if(mEId){
 rid=mEId;const idx=routes.findIndex(r=>r.id===mEId);
-if(idx===-1){rid='r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5);routes.push({id:rid,title,steps});}
+if(idx===-1){routes.push({id:rid,title,steps});/*[FIX dup] stesso id: ricrearlo con id nuovo generava un duplicato coi pin orfani*/}
 else{routes[idx].title=title;routes[idx].steps=steps;Object.keys(coords).forEach(k=>{if(k.startsWith(rid+'_')){const si=parseInt(k.split('_').pop(),10);if(si>=steps.length)delete coords[k];}});}
 }else{rid='r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5);routes.push({id:rid,title,steps});}
 steps.forEach((_,i)=>{if(mTC[i])coords[rid+'_'+i]=mTC[i];});
@@ -736,8 +736,10 @@ var _bk={route:routes.find(r=>r.id===id),coords:{},qStats:qStats[id],done:done[i
 Object.keys(coords).forEach(k=>{if(k.startsWith(id+'_'))_bk.coords[k]=coords[k];});
 routes=routes.filter(r=>r.id!==id);
 Object.keys(coords).forEach(k=>{if(k.startsWith(id+'_'))delete coords[k];});
-delete qStats[id];delete done[id];save();autoSave();
-undoToast('Percorso eliminato',function(){if(_bk.route){routes.push(_bk.route);Object.assign(coords,_bk.coords);if(_bk.qStats)qStats[id]=_bk.qStats;if(_bk.done)done[id]=_bk.done;save();autoSave();renderMgr();toast2('↩️ Ripristinato');}});
+delete qStats[id];delete done[id];
+try{rDelMark(id);}catch(e){}/*[FIX dup] lapide: la cancellazione vince su ogni dispositivo*/
+save();autoSave();
+undoToast('Percorso eliminato',function(){if(_bk.route){routes.push(_bk.route);Object.assign(coords,_bk.coords);if(_bk.qStats)qStats[id]=_bk.qStats;if(_bk.done)done[id]=_bk.done;try{rDelUnmark(id);}catch(e){}save();autoSave();renderMgr();toast2('↩️ Ripristinato');}});
 if(cur&&cur.id===id){cur=null;step=0;_prevActive=-1;setTxt('pTitle','NCC Milano');setHTML('sList','');listRows=[];setTxt('pProg','Seleziona un percorso');var _pbar=$id('pBar');if(_pbar)_pbar.style.width='0%';var _rb=$id('rstBtn');if(_rb)_rb.style.display='none';var _pb2=$id('playBtn');if(_pb2)_pb2.style.display='none';if(typeof stopAutoplay==='function')stopAutoplay();setTxt('pStat','');if(mkr){try{if(map)map.removeLayer(mkr);}catch(e){}mkr=null;}cancelDraw();clearLines();}/*[FIX] reset step/_prevActive + DOM sicuro*/
 renderMgr();
 }
@@ -2846,6 +2848,11 @@ if(d.prefs.examDate&&(cloudNewer||!lg('examDate',0))&&lg('examDate',0)!==d.prefs
 if(d.prefs.dailyGoal&&cloudNewer&&lg('dailyGoal',30)!==d.prefs.dailyGoal){ls('dailyGoal',d.prefs.dailyGoal);mut++;}
 if(d.prefs.targetDate&&(cloudNewer||!lg('targetDate',0))&&lg('targetDate',0)!==d.prefs.targetDate){ls('targetDate',d.prefs.targetDate);mut++;}
 if(d.prefs.targetMeta&&(cloudNewer||!lg('targetMeta',null))){ls('targetMeta',d.prefs.targetMeta);}
+if(d.prefs.rDel){try{var td=lg('rDel',{});Object.keys(d.prefs.rDel).forEach(function(k){if(!td[k]){td[k]=d.prefs.rDel[k];mut++;}});ls('rDel',td);
+/* applica subito: se una lapide arriva dal cloud, il percorso locale sparisce */
+var n0=routes.length;routes=routes.filter(function(r){return !td[r.id];});
+if(routes.length<n0){Object.keys(coords).forEach(function(k){var rid=k.slice(0,k.lastIndexOf('_'));if(td[rid])delete coords[k];});}
+}catch(e){}}
 if(d.prefs.rSR){try{rSR=rSR||{};Object.keys(d.prefs.rSR).forEach(function(k){var a=rSR[k],b=d.prefs.rSR[k];if(!a||((b&&b.last)||0)>((a&&a.last)||0)){rSR[k]=b;mut++;}});ls('rSR',rSR);}catch(e){}}
 if(d.prefs.streak){var st=lg('streak',{n:0,last:0});var cs=d.prefs.streak;
 if((cs.last||0)>(st.last||0)){ls('streak',cs);mut++;}
@@ -2855,7 +2862,9 @@ else if((cs.last||0)===(st.last||0)&&(cs.n||0)>(st.n||0)){ls('streak',{n:cs.n,la
 }
 /* percorsi e mappa: se il cloud è più recente prendi i suoi, ma TIENI i percorsi/pin solo-locali */
 if(cloudNewer){
-if(d.routes){var cr=vR(d.routes);var have={};cr.forEach(function(r){have[r.id]=1;});routes.forEach(function(r){if(!have[r.id])cr.push(r);});routes=cr;}
+if(d.routes){var cr=vR(d.routes);
+var tomb=lg('rDel',{});cr=cr.filter(function(r){return !tomb[r.id];});/*[FIX dup] i cancellati non risorgono*/
+var have={};cr.forEach(function(r){have[r.id]=1;});routes.forEach(function(r){if(!have[r.id]&&!tomb[r.id])cr.push(r);});routes=cr;}
 if(d.coords){var cc=vC(d.coords);Object.keys(coords).forEach(function(k){if(cc[k]===undefined)cc[k]=coords[k];});coords=cc;}
 if(d.qStats&&typeof d.qStats==='object'){Object.keys(d.qStats).forEach(function(k){var a=qStats[k],b=d.qStats[k];if(!a||(((b&&b.total)||0)>=((a&&a.total)||0)))qStats[k]=b;});}
 save();
@@ -2890,6 +2899,7 @@ if(d.qtStats){qtStats=d.qtStats;ls('qtStats',qtStats);}
 if(d.studyProg){studyProg=d.studyProg;ls('studyProg',studyProg);}
 if(d.qExamHist){qExamHist=d.qExamHist;ls('qExamHist',qExamHist);}
 if(d.prefs){if(d.prefs.examDate)ls('examDate',d.prefs.examDate);if(d.prefs.dailyGoal)ls('dailyGoal',d.prefs.dailyGoal);if(d.prefs.streak)ls('streak',d.prefs.streak);}
+try{var _t=lg('rDel',{});routes.forEach(function(r){delete _t[r.id];});ls('rDel',_t);}catch(e){}/*[FIX 1000] i percorsi ripristinati non devono avere lapidi attive*/
 ls('imp',Date.now());save();
 toast2('✅ Backup ripristinato — aggiorno il cloud…');
 /* [FIX 200-scenari] spingi il ripristino anche sul ramo principale: senza questo,
@@ -3904,3 +3914,82 @@ if(ICO[t]){el.innerHTML=ICO[t];if(ICOC[t])el.style.color=ICOC[t];}
 });
 }catch(e){}
 };
+
+/* ═══════ FIX PERCORSI DUPLICATI / SALVATAGGI PERSI ═══════ */
+
+/* ── lapidi delle cancellazioni ── */
+function rDelMark(id){var t=lg('rDel',{});t[id]=Date.now();
+var ks=Object.keys(t);if(ks.length>300){ks.sort(function(a,b){return t[a]-t[b];});delete t[ks[0]];}
+ls('rDel',t);markDirty('prefs');}
+function rDelUnmark(id){var t=lg('rDel',{});delete t[id];ls('rDel',t);markDirty('prefs');}
+(function(){try{
+var _gp2=getPrefs;
+getPrefs=function(){var p=_gp2();p.rDel=lg('rDel',{});return p;};
+}catch(e){}})();
+
+/* ── FLUSH IMMEDIATO all'uscita: niente più salvataggi persi chiudendo l'app ──
+Il salvataggio cloud aspetta 4s (per non spammare): se chiudi prima, ora parte SUBITO. */
+function flushNow(){
+try{
+if(!fbOk||!fbRef)return;
+if(!navigator.onLine)return;/*[FIX 1000] offline: NON svuotare _dirty, l'invio ripartirà alla prossima occasione*/
+if(!Object.keys(_dirty).length)return;
+clearTimeout(asTimer);
+var all={routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs()};
+var p={ts:Date.now()};
+Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined)p[k]=all[k];});
+fbRef.update(p);/* fire-and-forget: il browser completa la richiesta anche uscendo */
+_dirty={};
+}catch(e){}
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushNow();});
+window.addEventListener('pagehide',flushNow);
+
+/* ── AUTO-PULIZIA duplicati: guarisce i dati già danneggiati ──
+1) stesso id due volte → tiene il primo
+2) stesso contenuto (titolo+vie) con id diversi → tiene quello con più pin, lapide sull'altro */
+function dedupRoutes(){
+try{
+var seen={},bySig={},removed=0;
+var keep=[];
+routes.forEach(function(r){
+if(!r||!r.id)return;
+if(seen[r.id]){removed++;return;}
+seen[r.id]=1;keep.push(r);
+});
+routes=keep;
+routes.forEach(function(r){
+var sig=(r.title||'').trim().toUpperCase()+'§'+r.steps.join('|');
+(bySig[sig]=bySig[sig]||[]).push(r);
+});
+Object.keys(bySig).forEach(function(sig){
+var g=bySig[sig];if(g.length<2)return;
+/* tieni quello con più coordinate posizionate */
+g.sort(function(a,b){
+var pa=a.steps.filter(function(_,i){return coords[a.id+'_'+i];}).length;
+var pb=b.steps.filter(function(_,i){return coords[b.id+'_'+i];}).length;
+return pb-pa;
+});
+g.slice(1).forEach(function(r){
+routes=routes.filter(function(x){return x.id!==r.id;});
+Object.keys(coords).forEach(function(k){if(k.indexOf(r.id+'_')===0)delete coords[k];});
+delete qStats[r.id];delete done[r.id];
+try{rDelMark(r.id);}catch(e){}
+removed++;
+});
+});
+if(removed>0){
+save();autoSave();
+toast2('🧹 Rimossi '+removed+' percorsi duplicati');
+try{renderMgr();}catch(e){}
+if(cur&&!routes.find(function(r){return r.id===cur.id;})){cur=null;}
+}
+return removed;
+}catch(e){return 0;}
+}
+/* all'avvio e dopo ogni merge dal cloud */
+setTimeout(function(){try{dedupRoutes();}catch(e){}},2600);
+(function(){try{
+var _sfc=syncFromCloud;
+syncFromCloud=function(){_sfc();setTimeout(function(){try{dedupRoutes();}catch(e){}},1500);};
+}catch(e){}})();
