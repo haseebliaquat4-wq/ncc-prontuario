@@ -320,3 +320,21 @@ window.addEventListener('orientationchange',function(){setTimeout(move,450);});
 setTimeout(initPill,700);
 
 })();
+
+
+/* [FIX 500-scene] il cambio tab passa da goHome per un istante: il report
+settimanale programmato lì poteva spuntare SOPRA la schermata Quiz.
+Ora esce solo se la home è davvero visibile. */
+(function(){
+'use strict';
+try{
+var _wr=weeklyReport;
+weeklyReport=function(force){
+if(!force){
+var hs=document.getElementById('homeScreen');
+if(hs&&hs.style.display==='none')return;
+}
+_wr(force);
+};
+}catch(e){}
+})();
