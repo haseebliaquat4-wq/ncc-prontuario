@@ -395,6 +395,7 @@ _led=[];
 try{bumpDaily(n);}catch(e){}
 try{qtSave();}catch(e){}
 try{updateTabBadge();renderSeenCount();}catch(e){}
+try{flushNow();}catch(e){}/*[FIX] su chiusura brusca il flush del core parte PRIMA del registro: rispediamo subito*/
 setTimeout(function(){toast2('💾 Progresso salvato: '+n+' rispost'+(n===1?'a':'e'));},400);
 }catch(e){}
 };
@@ -792,5 +793,22 @@ var _ghO=goHome;goHome=function(){_killTopoOv();_killQuizOv();_ghO();};
 var _oqO=openQuiz;openQuiz=function(){_killTopoOv();_oqO();};
 var _osO=openStudy;openStudy=function(){_killTopoOv();_killQuizOv();_osO();};
 var _gtO=goTopografia;goTopografia=function(){_killQuizOv();_gtO();};
+}catch(e){}
+})();
+
+
+/* [FIX quiz] la ✕ del run diceva "i progressi andranno persi" — non è più vero:
+il registro per-risposta li salva. Testo onesto, stesso comportamento. */
+(function(){
+'use strict';
+try{
+window.qConfirmExit=function(){
+if(confirm('Vuoi uscire dal quiz? Le risposte già date sono salvate; le domande non ancora fatte restano in coda.')){
+if(typeof Q!=='undefined'&&Q&&Q.timer){clearInterval(Q.timer);Q.timer=null;}
+Q=null;
+try{qStopSpeak();}catch(e){}
+renderDash();showQView('dash');
+}
+};
 }catch(e){}
 })();
