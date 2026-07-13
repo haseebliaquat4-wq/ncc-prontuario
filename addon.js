@@ -212,25 +212,14 @@ var _rdS=renderDash;renderDash=function(){_rdS();injectSmartTile();};
 senza drammi. Insistere nei giorni storti brucia motivazione, non fissa nulla. */
 var _wrongRun=0;
 try{
-var _smB=srMark;
-srMark=function(id,correct){
-_smB(id,correct);
-try{
-if(typeof Q==='undefined'||!Q||Q.mode!=='study')return;
-if(correct){_wrongRun=0;return;}
-_wrongRun++;
-if(_wrongRun===4&&!Q._bail){
-Q._bail=true;
-showBail();
-}
-}catch(e2){}
-};
+/* [FIX errori] il trigger vive ora nel registro per-risposta (vedi Addon Errori):
+srMark scatta solo a fine sessione, quindi qui non deve fare nulla */
 }catch(e){}
 try{
 var _sq=startQuiz;
 startQuiz=function(items,opts){_wrongRun=0;_sq(items,opts);};
 }catch(e){}
-function showBail(){
+window.showBail=function(){
 try{
 if(document.getElementById('bailSheet'))return;
 var s=document.createElement('div');s.id='bailSheet';
@@ -337,4 +326,158 @@ if(hs&&hs.style.display==='none')return;
 _wr(force);
 };
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON ERRORI — registrazione live, schede da 40, coach mirato
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── REGISTRO PER-RISPOSTA: il lavoro non si perde MAI più ──
+Ogni risposta finisce in un registro. Se termini normalmente, il conteggio
+ufficiale lo fa il core (registro scartato). Se ESCI a metà, il registro
+viene applicato: errori aggiornati, badge aggiornato, progresso salvato. */
+var _led=[],_ledDone=false;
+try{
+var _sqL=startQuiz;
+startQuiz=function(items,opts){_led=[];_ledDone=false;_wrongRunL=0;_sqL(items,opts);};
+}catch(e){}
+var _wrongRunL=0;
+try{
+var _qpL=qPick;
+qPick=function(i){
+var idx0,it,prev;
+try{if(typeof Q!=='undefined'&&Q){idx0=Q.idx;it=Q.items[idx0];prev=Q.ans[idx0];}}catch(e){}
+_qpL(i);
+try{
+if(!Q||it===undefined)return;
+if(Q.ans[idx0]!==i)return; /* la risposta non è passata (lock) */
+var ok=(i===it.correct);
+if(prev!==-1){ /* esame: risposta CAMBIATA → aggiorna la voce esistente */
+for(var li=_led.length-1;li>=0;li--){if(_led[li].id===it.id){_led[li].ok=ok;break;}}
+return;
+}
+_led.push({id:it.id,cat:it.cat,ok:ok});
+/* saper mollare — ora LIVE, solo durante la sessione */
+if(Q.mode==='study'&&qCurView==='run'){
+if(ok)_wrongRunL=0;
+else{_wrongRunL++;if(_wrongRunL===4&&!Q._bail){Q._bail=true;showBail();}}
+}
+}catch(e){}
+};
+}catch(e){}
+/* fine regolare: il core registra tutto, il registro si scarta.
+   E guardia anti doppio-conteggio: qFinish non può girare due volte sulla stessa sessione */
+try{
+var _qfL=qFinish;
+qFinish=function(t){
+try{if(typeof Q!=='undefined'&&Q&&Q._finished)return;if(Q)Q._finished=true;}catch(e){}
+_qfL(t);
+if(qCurView==='result'){_ledDone=true;_led=[];}
+};
+}catch(e){}
+/* uscita a metà: applica il registro (stesse operazioni del conteggio ufficiale) */
+window.applyLedger=function(){
+try{
+if(_ledDone||!_led.length)return;
+var n=_led.length;
+_led.forEach(function(r){
+try{
+qtStats.seenIds[r.id]=1;
+qtStats.cat[r.cat]=qtStats.cat[r.cat]||{seen:0,ok:0};
+qtStats.cat[r.cat].seen++;
+if(r.ok){qtStats.cat[r.cat].ok++;qtStats.lastOk=qtStats.lastOk||{};qtStats.lastOk[r.id]=Date.now();}
+srMark(r.id,r.ok);
+}catch(e){}
+});
+_led=[];
+try{bumpDaily(n);}catch(e){}
+try{qtSave();}catch(e){}
+try{updateTabBadge();renderSeenCount();}catch(e){}
+setTimeout(function(){toast2('💾 Progresso salvato: '+n+' rispost'+(n===1?'a':'e'));},400);
+}catch(e){}
+};
+try{
+var _rdL=renderDash;renderDash=function(){applyLedger();_rdL();};/* la ✕ del quiz torna alla dash senza goHome */
+var _ghL=goHome;goHome=function(){applyLedger();_ghL();};
+var _gtL=goTopografia;goTopografia=function(){applyLedger();_gtL();};
+var _osL=openStudy;openStudy=function(){applyLedger();_osL();};
+window.addEventListener('pagehide',function(){try{applyLedger();}catch(e){}});
+}catch(e){}
+
+/* ── SCHEDA ERRORI DA 40: mai più valanghe da 65 domande ──
+Ordine: prima gli scaduti (i più vecchi in cima), a parità le recidive. */
+try{
+var _qscE=qStartCat;
+qStartCat=function(cid){
+if(cid!=='errata'){_qscE(cid);return;}
+buildQuiz();
+var all=QUIZ_ALL.filter(function(it){return qtStats.err[it.id];});
+if(!all.length){toast2('🎉 Nessun errore da ripassare');return;}
+var now=Date.now();
+all.sort(function(a,b){
+var da=srDue(a.id),db=srDue(b.id);
+var oa=da<=now?0:1,ob=db<=now?0:1;
+if(oa!==ob)return oa-ob;                       /* scaduti prima */
+if(da!==db)return da-db;                        /* poi i più vecchi */
+return ((qtStats.wrongN||{})[b.id]||0)-((qtStats.wrongN||{})[a.id]||0); /* a parità, le recidive */
+});
+var tot=all.length,deck=all.slice(0,40);
+var schede=Math.ceil(tot/40);
+startQuiz(deck,{mode:'study',title:schede>1?('Scheda errori · '+deck.length+' di '+tot):'Ripasso errori',scheda:true});
+};
+}catch(e){}
+/* a fine scheda: bottone "Prossima scheda" finché ci sono errori in scadenza */
+try{
+var _qfS=qFinish;
+qFinish=function(t){
+_qfS(t);
+try{
+if(qCurView!=='result')return;
+var old=document.getElementById('nextDeck');if(old)old.remove();
+if(!(lastQuiz&&lastQuiz.opts&&lastQuiz.opts.scheda))return;
+var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;
+if(due<1)return;
+var box=document.querySelector('#qResult .qres-actions');
+if(!box)return;
+var b=document.createElement('button');
+b.id='nextDeck';b.className='btn bp';
+b.textContent='🔁 Prossima scheda ('+due+' in scadenza)';
+b.onclick=function(){qStartCat('errata');};
+box.insertBefore(b,box.firstChild);
+}catch(e){}
+};
+}catch(e){}
+
+/* ── COACH MIRATO SUGLI ERRORI ──
+Non più "65 errori" e basta: quanti oggi, quanti arretrati,
+quale argomento li genera, e il piano a schede. */
+try{
+var _ctE=coachTasks;
+coachTasks=function(){
+var t=_ctE();
+try{
+var task=t.find(function(x){return x.ic==='🔁';});
+if(!task)return t;
+var now=Date.now(),ids=Object.keys(qtStats.err||{});
+var due=ids.filter(function(id){return srDue(id)<=now;});
+if(!due.length)return t;
+var old3=due.filter(function(id){return now-srDue(id)>3*86400000;}).length;
+/* argomento che genera più errori in scadenza */
+var byCat={};
+due.forEach(function(id){var it=QUIZ_ALL[id|0];if(it)byCat[it.cat]=(byCat[it.cat]||0)+1;});
+var topId=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];})[0];
+var topArg=QARG.find(function(c){return c.id===topId;});
+var schede=Math.ceil(due.length/40);
+task.tx=due.length<=40?('Scheda errori — '+due.length+' in scadenza'):('Scheda errori 1 di '+schede+' (40 alla volta)');
+var bits=[];
+if(old3>0)bits.push(old3+' arretrat'+(old3===1?'o':'i')+' da 3+ giorni');
+if(topArg&&byCat[topId]>=5)bits.push('soprattutto '+topArg.label+' ('+byCat[topId]+')');
+task.sub=bits.length?bits.join(' · '):'La memoria li sta perdendo proprio oggi';
+}catch(e){}
+return t;
+};
+}catch(e){}
+
 })();
