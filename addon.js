@@ -1074,6 +1074,14 @@ w.innerHTML='<div class="tg-card defense" onclick="setExamDate()">'
 +'<div class="tg-hd"><b>'+(days!==null?days:'—')+'</b>'
 +'<div><strong>giorni all\u2019esame · 🛡️ modalità difesa</strong>'
 +'<small>Copertura completa ✓ — ora: ritenzione, simulazioni, recidive</small></div></div></div>';
+/* contachilometri anche qui: il numero verde rolla come gli altri */
+try{
+if(days!==null&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+var db=w.querySelector('.tg-hd b');
+var lastD=window._dfLast;window._dfLast=days;
+if(db){if(lastD!==undefined&&lastD!==days){db.textContent=String(lastD);countUp(db,days,500);}else{db.textContent='0';countUp(db,days,700);}}
+}
+}catch(e){}
 }catch(e){}
 };
 }catch(e){}
