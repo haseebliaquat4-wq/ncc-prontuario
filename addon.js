@@ -812,3 +812,315 @@ renderDash();showQView('dash');
 };
 }catch(e){}
 })();
+
+/* ═══════════════════════════════════════════════════
+   ADDON HOME — suggerimenti vivi + countdown esame grande
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── SUGGERIMENTI: pool triplo + personali, uno DIVERSO a ogni apertura ── */
+var TIPS2=[
+/* metro */
+'Centrale FS: interscambio M2 Verde ↔ M3 Gialla',
+'Loreto: interscambio M1 Rossa ↔ M2 Verde',
+'Porta Garibaldi: M2 ↔ M5 Lilla, più i treni regionali',
+'Lotto: interscambio M1 Rossa ↔ M5 Lilla',
+'Sant\u2019Ambrogio: interscambio M2 Verde ↔ M4 Blu',
+'Zara: interscambio M3 Gialla ↔ M5 Lilla',
+/* strade */
+'A4 Torino\u2013Venezia: l\u2019asse nord di Milano',
+'L\u2019A1 del Sole parte verso Bologna dall\u2019uscita di Melegnano',
+'A7 per Genova: esce da Milano a sud-ovest',
+'Tangenziale Est A51: collega Melegnano alla Brianza',
+'Tangenziale Nord A52: cerniera tra Rho e Monza',
+'SS35 dei Giovi: la direttrice della Comasina verso Meda',
+'A8 dei Laghi: parte dalla barriera di Milano Nord verso Varese',
+'A50, A51, A52: Ovest, Est, Nord — le tre tangenziali in ordine',
+/* regole d\u2019esame */
+'16 domande in 30 minuti: 1 minuto e 52 secondi l\u2019una',
+'Rileggi sempre le domande con NON, MAI e SOLO: è lì che si cade',
+'Max 2 errori per argomento: un argomento debole boccia da solo',
+/* metodo */
+'Gli errori di ieri ripassati oggi si fissano il doppio',
+'Il Cieco è il vero test: lo Studio serve solo a costruire la mappa',
+'Sbagliare qui è gratis. Sbagliare all\u2019esame no: sbaglia adesso',
+'Meglio chiudere una scheda errori che aprire dieci argomenti',
+'Ripetere ad alta voce le vie in ordine: all\u2019orale conta la sequenza',
+/* app */
+'Long-press su una via: vedi in quanti percorsi compare',
+'\u26a1 Riscaldamento prima della simulazione: 5 errori in 2 minuti',
+'Tocca il punto debole nel Quiz per lanciare una missione',
+'Il bottone \u25b6 5 minuti pesca sempre le domande a più alto rischio',
+'Completa un percorso in Cieco: la scia dorata è il tuo momento'
+];
+function personalTips(){
+var out=[];
+try{
+var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;
+if(due>0)out.push('Hai '+due+' error'+(due===1?'e':'i')+' in scadenza: la memoria li perde OGGI');
+var worst=null,wr=1.01;
+QARG.forEach(function(c){var s=qtStats.cat[c.id];if(s&&(s.seen||0)>=6){var r=(s.ok||0)/s.seen;if(r<wr){wr=r;worst=c;}}});
+if(worst&&wr<.7)out.push('Il tuo punto debole è '+worst.label+' ('+Math.round(wr*100)+'%): max 2 errori per argomento all\u2019esame');
+var st=lg('streak',null);
+if(st&&st.n>=5)out.push('\ud83d\udd25 '+st.n+' giorni di fila: la costanza sta battendo il talento');
+var r2=lg('retScore',null);
+if(r2&&r2.tot&&Date.now()-r2.ts<14*86400000){var p=Math.round(r2.ok/r2.tot*100);if(p>=80)out.push('Ritenzione al '+p+'%: la tua memoria sta tenendo, avanti così');}
+}catch(e){}
+return out;
+}
+try{
+window.renderTip=function(){
+try{
+var hd=document.querySelector('#homeScreen .home-hd');if(!hd)return;
+var el=document.getElementById('tipLine');
+if(!el){el=document.createElement('div');el.id='tipLine';hd.appendChild(el);}
+var pool=TIPS.concat(TIPS2).concat(personalTips());
+var hist=lg('tipHist',[]);
+var cand=pool.filter(function(t){return hist.indexOf(t)<0;});
+if(!cand.length)cand=pool;
+var pick=cand[Math.floor(Math.random()*cand.length)];
+hist.push(pick);while(hist.length>6)hist.shift();
+ls('tipHist',hist);
+el.textContent='\ud83d\udca1 '+pick;
+}catch(e){}
+};
+}catch(e){}
+
+/* ── COUNTDOWN ESAME grande e animato, gemello del traguardo ── */
+try{
+var _rpE=renderPlan;
+renderPlan=function(){
+_rpE();
+try{
+var btn=document.querySelector('.plan-exam');if(!btn)return;
+var ed=lg('examDate',null);if(!ed)return;
+var d=Math.max(0,Math.ceil((new Date(ed).getTime()-Date.now())/86400000));
+if(!isFinite(d))return;
+btn.classList.add('plan-exam-big');
+btn.innerHTML='<b class="ex-n">0</b><div class="ex-tx"><strong>giorn'+(d===1?'o':'i')+' all\u2019esame</strong><small>\ud83c\udfaf tocca per cambiare la data</small></div>';
+var b=btn.querySelector('.ex-n');
+var last=window._exLast;window._exLast=d;
+if(last===undefined){b.textContent='0';try{countUp(b,d,700);}catch(e){b.textContent=d;}}
+else if(last!==d){b.textContent=String(last);try{countUp(b,d,500);}catch(e){b.textContent=d;}}
+else b.textContent=d;
+}catch(e){}
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON HOME — suggerimenti a rotazione + card esame grande
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── suggerimenti: pool triplicato, uno DIVERSO a ogni apertura ── */
+var TIPS2=[
+/* metro — nodi di interscambio */
+'Loreto è interscambio M1 Rossa ↔ M2 Verde',
+'Centrale FS: M2 Verde ↔ M3 Gialla sotto la stazione',
+'Garibaldi FS è interscambio M2 ↔ M5 Lilla',
+'Zara è interscambio M3 Gialla ↔ M5 Lilla',
+'Lotto è interscambio M1 Rossa ↔ M5 Lilla',
+'Sant\u2019Ambrogio è interscambio M2 Verde ↔ M4 Blu',
+'M5 Lilla: da Bignami a San Siro Stadio',
+'M4 Blu: da Linate a San Cristoforo, passa per San Babila',
+'M3 Gialla: da Comasina a San Donato',
+/* strade e autostrade */
+'Tangenziali: Est = A51, Ovest = A50, Nord = A52, Est Esterna = A58',
+'A50 Tangenziale Ovest: da Assago (A7) fino alla A8 verso Rho',
+'A50 Ovest: incrocia la SS494 Vigevanese e la A1 a sud',
+'A51 Tangenziale Est: da San Donato (A1) verso Usmate e la SS36',
+'A51 Est: l\u2019uscita Forlanini serve l\u2019aeroporto di Linate',
+'A52 Tangenziale Nord: collega Sesto S.G. (A51) con Rho (A8)',
+'A52 Nord: aggancia la Milano\u2013Meda (SS35) a Paderno Dugnano',
+'A58 TEEM: da Melegnano (A1) ad Agrate (A4), fuori dalle tangenziali storiche',
+'A4 Torino\u2013Venezia: corre a nord della città',
+'A1 del Sole parte da Milano Sud (Melegnano)',
+'A8/A9 dei Laghi partono dalla barriera di Milano Nord',
+'SS35 dei Giovi: la Milano\u2013Meda verso Como',
+'Naviglio Grande e Naviglio Pavese partono dalla Darsena',
+/* trappole d'esame */
+'Occhio a NON, SOLO e SEMPRE: metà degli errori nasce lì',
+'Leggi TUTTE le risposte: la prima "quasi giusta" è una trappola',
+'Se due risposte sembrano uguali, la differenza è in UNA parola',
+'16 domande, 4 argomenti: un argomento debole boccia da solo',
+/* metodo */
+'Gli errori di ieri ripassati oggi si fissano il doppio',
+'Il Cieco vale il doppio dello Studio: prima copri, poi ricorda',
+'Tieni premuto su una via: scopri in quanti percorsi compare',
+'⚡ Riscaldamento prima della simulazione: 5 errori in 2 minuti',
+'Prima la scheda errori, poi le nuove: si costruisce sul solido',
+'In Cieco ripeti ad alta voce: "la settima via è\u2026"',
+'Sbagliare in allenamento è il modo più veloce di imparare',
+'Tocca il punto debole nel Quiz: parte una missione 🎯'
+];
+/* suggerimenti dai TUOI errori: la domanda che sbagli spesso diventa ripasso-lampo */
+function personalTips(){
+try{
+buildQuiz();
+var wn=qtStats.wrongN||{};
+var ids=Object.keys(wn).filter(function(id){return wn[id]>=2;})
+.sort(function(a,b){return wn[b]-wn[a];}).slice(0,20);
+return ids.map(function(id){
+var it=QUIZ_ALL[id|0];if(!it||!it.a)return null;
+var q=it.q.length>72?it.q.slice(0,70)+'…':it.q;
+var a=it.a[it.correct]||'';if(a.length>60)a=a.slice(0,58)+'…';
+return '📌 '+q+' → '+a;
+}).filter(Boolean);
+}catch(e){return [];}
+}
+var _tipTxt=null;
+try{
+window.renderTip=function(){
+try{
+var hd=document.querySelector('#homeScreen .home-hd');if(!hd)return;
+var el=document.getElementById('tipLine');
+if(!el){el=document.createElement('div');el.id='tipLine';hd.appendChild(el);}
+if(_tipTxt===null){
+var pers=personalTips();
+if(pers.length&&Math.random()<0.5){
+_tipTxt=pers[Math.floor(Math.random()*pers.length)];
+}else{
+var pool=(typeof TIPS!=='undefined'&&TIPS.length?TIPS:[]).concat(TIPS2);
+_tipTxt='💡 '+pool[Math.floor(Math.random()*pool.length)];
+}
+el.classList.add('tip-in');
+}
+el.textContent=_tipTxt;
+}catch(e){}
+};
+}catch(e){}
+
+/* ── card ESAME: gemella del traguardo — numero grande, contachilometri, respiro ── */
+function bigExam(){
+try{
+var btn=document.querySelector('.plan-exam');if(!btn)return;
+var d=lg('examDate',null);if(!d)return;
+var days=Math.max(0,Math.ceil((new Date(d).getTime()-Date.now())/86400000));
+btn.classList.add('ex-big');
+btn.innerHTML='<b>0</b><div class="ex-tx"><strong>giorn'+(days===1?'o':'i')+' all\u2019esame</strong><small>Tocca per cambiare la data</small></div><span class="ex-ic">🎯</span>';
+var b=btn.querySelector('b');
+var last=window._exLast;window._exLast=days;
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){b.textContent=days;return;}
+if(last!==undefined&&last!==days){b.textContent=String(last);try{countUp(b,days,500);}catch(e){b.textContent=days;}}
+else{try{countUp(b,days,700);}catch(e){b.textContent=days;}}
+}catch(e){}
+}
+try{
+var _rpX=renderPlan;
+renderPlan=function(){_rpX();bigExam();};
+}catch(e){}
+setTimeout(bigExam,900);
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON "IL COACH TI HA VISTO" — ricalibrato sul tuo ritmo reale
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── 1 · PRONTEZZA ONESTA: solo Quiz + Mappa (Luoghi escluso, come da tua regola) ── */
+try{
+window.readinessScore=function(){
+var qok=0,qseen=0;try{var c=qtStats.cat||{};Object.keys(c).forEach(function(k){qok+=c[k].ok||0;qseen+=c[k].seen||0;});}catch(e){}
+var quiz=qseen?Math.round(qok/qseen*100):0;
+var rdone=0,rtot=0;try{rtot=routes.length;rdone=routes.filter(function(r){return done[r.id];}).length;}catch(e){}
+var topo=rtot?Math.round(rdone/rtot*100):0;
+return {score:Math.round(quiz*0.6+topo*0.4),quiz:quiz,flash:0,topo:topo};
+};
+}catch(e){}
+/* la riga sotto l'anello non nomina più Luoghi */
+try{
+var _rrH=renderReadiness;
+renderReadiness=function(){
+_rrH();
+try{
+var sm=document.querySelector('#readyCard .ready-tx small');
+var r=readinessScore();
+if(sm)sm.textContent='Quiz '+r.quiz+'% · Mappa '+r.topo+'%';
+}catch(e){}
+};
+}catch(e){}
+
+/* ── 2 · GIRO COMPLETO + 9 · MODALITÀ DIFESA ── */
+window.showLapDone=function(){
+try{
+if(document.getElementById('lapDone'))return;
+var o=document.createElement('div');o.id='lapDone';
+o.innerHTML='<div class="gm-card lap"><div class="gm-e">🏁</div><h2>GIRO COMPLETO</h2>'
++'<p>Tutte le domande viste, tutti i percorsi completati.<br>Da oggi si cambia pelle: <b>ritenzione, simulazioni, recidive</b>.<br>Non si impara più — si difende.</p>'
++'<button onclick="document.getElementById(\'lapDone\').remove()">Modalità difesa 🛡️</button></div>';
+o.addEventListener('click',function(e){if(e.target===o)o.remove();});
+document.body.appendChild(o);
+try{confetti();setTimeout(confetti,600);}catch(e){}
+}catch(e){}
+};
+try{
+var _rpV=renderPlan;
+renderPlan=function(){
+_rpV();
+try{
+var ti=targetInfo();
+if(!ti||!ti.doneAll)return;
+if(!lg('lapDone',false)){ls('lapDone',true);setTimeout(window.showLapDone,800);}
+var w=document.getElementById('planCard');if(!w)return;
+var d=lg('examDate',null);
+var days=d?Math.max(0,Math.ceil((new Date(d).getTime()-Date.now())/86400000)):null;
+w.innerHTML='<div class="tg-card defense" onclick="setExamDate()">'
++'<div class="tg-hd"><b>'+(days!==null?days:'—')+'</b>'
++'<div><strong>giorni all\u2019esame · 🛡️ modalità difesa</strong>'
++'<small>Copertura completa ✓ — ora: ritenzione, simulazioni, recidive</small></div></div></div>';
+}catch(e){}
+};
+}catch(e){}
+
+/* ── 3+7+8 · COACH RICALIBRATO ── */
+try{
+var _ctR=coachTasks;
+coachTasks=function(){
+var t=_ctR();
+try{
+var ti=targetInfo();
+var now=Date.now();
+/* 7 · task da 1-2 errori = rumore: li copre la sessione 5 minuti */
+var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=now;}).length;
+if(due>0&&due<3){
+t=t.filter(function(x){return x.ic!=='🔁';});
+}
+/* 3 · copertura alta ma poche simulazioni: la vera incognita ora è quella */
+var cov=ti?ti.pctQ:Math.round(Object.keys(qtStats.seenIds||{}).length/(QUIZ_ALL.length||919)*100);
+var simsW=(qExamHist||[]).filter(function(x){return x.d&&(now-x.d)<7*86400000;}).length;
+if(cov>=80&&simsW<2){
+var ex=t.find(function(x){return x.ic==='🎓';});
+if(ex){ex.p=0.8;ex.sub='Copertura al '+cov+'%: ora contano le simulazioni ('+simsW+' questa settimana, servono 2-3)';}
+else t.push({ic:'🎓',tx:'Simulazione d\u2019esame',sub:'Copertura al '+cov+'%: ora contano le simulazioni ('+simsW+' su 2-3 settimanali)',fn:function(){openQuiz();setTimeout(qStartExam,250);},p:0.8});
+}
+/* 8 · sei più veloce del piano: il coach propone di accorciare il traguardo */
+if(ti&&!ti.doneAll&&ti.days>21&&lg('tgFastDay','')!==new Date().toDateString()){
+var dd=qtStats.daily||{},sum=0;
+for(var i=1;i<=7;i++){var dt=new Date();dt.setDate(dt.getDate()-i);sum+=dd[_dayKey(dt)]||0;}
+var avg=sum/7;
+if(avg>=40){
+var remaining=Math.max(0,ti.qT-ti.seen);
+var est=Math.ceil(remaining/Math.max(10,avg*0.25));
+if(ti.days>est*2+10){
+t.push({ic:'⏩',tx:'Sei più veloce del piano',sub:'A questo ritmo copri tutto in ~'+est+' giorni (traguardo: '+ti.days+'). Tocca per accorciarlo',fn:function(){
+ls('tgFastDay',new Date().toDateString());
+toast2('💡 Suggerimento: prova '+(est+7)+' giorni');
+setTimeout(setTargetDate,600);
+},p:2.4});
+}
+}
+}
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+})();
