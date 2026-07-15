@@ -1132,3 +1132,122 @@ return t;
 }catch(e){}
 
 })();
+
+/* ═══════════════════════════════════════════════════
+   ADDON SPIRALE VISIBILE — i percorsi tornano nei giorni giusti, e si vede
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── registro completamenti (per il "percorso di ieri") ── */
+try{
+var _rcS=routeCelebrate;
+routeCelebrate=function(){
+var firstTime=false;
+try{firstTime=!!(cur&&!(rSR[cur.id]&&rSR[cur.id].box));}catch(e){}
+_rcS();
+try{
+if(!cur)return;
+var log=lg('rDoneLog',{});log[cur.id]=Date.now();
+var ks=Object.keys(log);if(ks.length>150){ks.sort(function(a,b){return log[a]-log[b];});delete log[ks[0]];}
+ls('rDoneLog',log);
+/* PRIMO completamento → primo ripasso DOMANI (24h), poi la spirale normale */
+if(firstTime&&rSR[cur.id]){
+rSR[cur.id].due=Date.now()+86400000;
+ls('rSR',rSR);markDirty('prefs');
+}
+/* catena: se ci sono ALTRI percorsi in scadenza, il debrief propone il prossimo */
+setTimeout(function(){
+try{
+var now=Date.now();
+var nx=routes.find(function(r){return r.id!==cur.id&&rSR[r.id]&&rSR[r.id].due<=now;});
+if(!nx)return;
+var card=document.querySelector('#routeDebrief .rdb');if(!card)return;
+if(card.querySelector('.rdb-next'))return;
+var b=document.createElement('button');
+b.className='rdb-next';
+b.textContent='▶ Prossimo in scadenza: '+(nx.title.length>26?nx.title.slice(0,24)+'…':nx.title);
+b.onclick=function(){
+var ov=document.getElementById('routeDebrief');if(ov)ov.remove();
+try{clearDbMarks();}catch(e){}
+selectRoute(nx);setTimeout(function(){setMode('c');},250);
+};
+card.appendChild(b);
+}catch(e){}
+},600);
+}catch(e){}
+};
+}catch(e){}
+
+/* ── coach: "il percorso di ieri" + scadenze in blocco ── */
+try{
+var _ctS=coachTasks;
+coachTasks=function(){
+var t=_ctS();
+try{
+var now=Date.now(),today=new Date().toDateString();
+/* percorso completato IERI → ripasso a 24h (come gli errori di ieri) */
+if(lg('rY1day','')!==today){
+var log=lg('rDoneLog',{});
+var yid=Object.keys(log).find(function(id){
+var age=now-log[id];
+return age>16*3600000&&age<40*3600000&&routes.find(function(r){return r.id===id;})&&rSR[id]&&(rSR[id].box||0)<=1;
+});
+if(yid){
+var yr=routes.find(function(r){return r.id===yid;});
+t.unshift({ic:'🌄',tx:'Il percorso di ieri, in Cieco',sub:yr.title+' — rivederlo a 24 ore lo fissa il doppio',fn:function(){
+ls('rY1day',today);
+goTopografia();
+setTimeout(function(){selectRoute(yr);setTimeout(function(){setMode('c');},250);},300);
+},p:0.5});
+}
+}
+/* 2+ percorsi in scadenza → un task unico "in blocco" */
+var dueR=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
+if(dueR.length>=2){
+t=t.filter(function(x){return x.ic!=='🗺️';});
+var names=dueR.slice(0,3).map(function(r){return r.title.length>18?r.title.slice(0,16)+'…':r.title;}).join(' · ');
+t.push({ic:'🗺️',tx:dueR.length+' percorsi in scadenza',sub:names+(dueR.length>3?' e altri':'')+' — in catena, uno dopo l\u2019altro',fn:function(){
+goTopografia();
+setTimeout(function(){selectRoute(dueR[0]);setTimeout(function(){setMode('c');},250);},300);
+},p:1.4});
+}
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+/* ── LA CODA VISIBILE: card "Prossimi ripassi percorsi" in home ── */
+function renderSpiral(){
+try{
+var w=document.getElementById('planCard');if(!w)return;
+var old=document.getElementById('spiralCard');if(old)old.remove();
+var withSR=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due;});
+if(!withSR.length)return;
+var now=Date.now();
+withSR.sort(function(a,b){return rSR[a.id].due-rSR[b.id].due;});
+var rows=withSR.slice(0,5).map(function(r){
+var d=Math.ceil((rSR[r.id].due-now)/86400000);
+var when=d<=0?'<b class="sp-now">oggi</b>':(d===1?'<b>domani</b>':'<b>tra '+d+' g</b>');
+var tt=r.title.length>26?r.title.slice(0,24)+'…':r.title;
+return '<div class="sp-row" data-id="'+r.id+'"><span>'+esc(tt)+'</span>'+when+'</div>';
+}).join('');
+var el=document.createElement('div');el.id='spiralCard';
+el.innerHTML='<div class="sp-hd">🌀 Prossimi ripassi percorsi</div>'+rows;
+el.addEventListener('click',function(e){
+var row=e.target.closest('.sp-row');if(!row)return;
+var r=routes.find(function(x){return x.id===row.dataset.id;});if(!r)return;
+goTopografia();
+setTimeout(function(){selectRoute(r);setTimeout(function(){setMode('c');},250);},300);
+});
+w.after(el);
+}catch(e){}
+}
+try{
+var _rpS=renderPlan;
+renderPlan=function(){_rpS();renderSpiral();};
+}catch(e){}
+
+})();
