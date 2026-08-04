@@ -965,9 +965,9 @@ var wn=qtStats.wrongN||{};
 var ids=Object.keys(wn).filter(function(id){return wn[id]>=2;})
 .sort(function(a,b){return wn[b]-wn[a];}).slice(0,20);
 return ids.map(function(id){
-var it=QUIZ_ALL[id|0];if(!it||!it.a)return null;
+var it=QUIZ_ALL[id|0];if(!it||!it.choices)return null;
 var q=it.q.length>72?it.q.slice(0,70)+'…':it.q;
-var a=it.a[it.correct]||'';if(a.length>60)a=a.slice(0,58)+'…';
+var a=it.choices[it.correct]||'';if(a.length>60)a=a.slice(0,58)+'…';
 return '📌 '+q+' → '+a;
 }).filter(Boolean);
 }catch(e){return [];}
@@ -1248,6 +1248,382 @@ w.after(el);
 try{
 var _rpS=renderPlan;
 renderPlan=function(){_rpS();renderSpiral();};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON RECUPERO — numeri onesti + il coach capisce il debito
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── 1 · FIX 107%: si contano solo le domande che esistono davvero ──
+seenIds accumula anche id di vecchie versioni del set: la copertura sballava sopra il 100. */
+try{
+var _tiF=targetInfo;
+targetInfo=function(){
+var ti=_tiF();
+try{
+if(!ti)return ti;
+var valid=0;
+Object.keys(qtStats.seenIds||{}).forEach(function(id){if(QUIZ_ALL[id|0])valid++;});
+ti.seen=Math.min(valid,ti.qT);
+ti.pctQ=Math.min(100,Math.round(ti.seen/ti.qT*100));
+ti.pctR=Math.min(100,ti.pctR);
+ti.doneAll=(ti.seen>=ti.qT*0.98&&ti.pctR>=98);/* 98% = copertura di fatto completa */
+}catch(e){}
+return ti;
+};
+}catch(e){}
+
+/* ── 2 · IL DEBITO: quanto lavoro arretrato hai davvero ── */
+window.debtInfo=function(){
+try{
+buildQuiz();
+var now=Date.now(),ids=Object.keys(qtStats.err||{});
+var due=ids.filter(function(id){return srDue(id)<=now;});
+var old3=due.filter(function(id){return now-srDue(id)>3*86400000;}).length;
+var dueR=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=Date.now();}).length;
+var byCat={};
+due.forEach(function(id){var it=QUIZ_ALL[id|0];if(it)byCat[it.cat]=(byCat[it.cat]||0)+1;});
+var topId=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];})[0];
+return {open:ids.length,due:due.length,old3:old3,dueR:dueR,topId:topId,topN:byCat[topId]||0,
+heavy:(due.length>=100||old3>=60)};
+}catch(e){return {open:0,due:0,old3:0,dueR:0,heavy:false};}
+};
+
+/* ── 3 · PILLOLA ONESTA: "In anticipo" non vale se hai 193 errori arretrati ── */
+try{
+var _rpD=renderPlan;
+renderPlan=function(){
+_rpD();
+try{
+var d=debtInfo();
+var pill=document.querySelector('.tg-pill');
+if(pill&&d.due>=50){
+pill.className='tg-pill late';
+pill.textContent='Indietro sugli errori · '+d.due;
+}
+/* barra del debito sotto le due copertura */
+var card=document.querySelector('.tg-card');
+if(card&&!card.querySelector('.tg-debt')&&d.due>0){
+var pct=Math.min(100,Math.round(d.due/Math.max(1,d.open)*100));
+var rows=card.querySelectorAll('.tg-row');
+var el=document.createElement('div');el.className='tg-row tg-debt';
+el.innerHTML='<span>🔁 Errori</span><div class="tg-bar debt"><i style="width:'+pct+'%"></i></div><b>'+d.due+'</b>';
+if(rows.length)rows[rows.length-1].after(el);
+}
+}catch(e){}
+};
+}catch(e){}
+
+/* ── 4 · MODALITÀ RECUPERO: copertura fatta + debito pesante = si cambia strategia ── */
+try{
+var _rcW=renderCoach;
+renderCoach=function(){
+_rcW();
+try{
+var d=debtInfo();
+var why=document.querySelector('.coach-why');
+if(!why)return;
+if(d.heavy){
+var giorni=Math.ceil(d.due/40);
+why.textContent='🚑 Modalità recupero: '+d.due+' errori scaduti'+(d.old3?(' ('+d.old3+' da 3+ giorni)'):'')+'. Stop alle nuove: '+giorni+' giorni a 40 al giorno e sei in pari.';
+why.classList.add('why-alert');
+}else why.classList.remove('why-alert');
+}catch(e){}
+};
+}catch(e){}
+
+/* ── 5 · COACH: priorità ribaltate quando il debito è pesante ── */
+try{
+var _ctD=coachTasks;
+coachTasks=function(){
+var t=_ctD();
+try{
+var d=debtInfo();
+if(!d.heavy)return t;
+/* le nuove domande NON servono: la copertura è fatta, il problema è tenerla */
+t=t.filter(function(x){return x.ic!=='🆕'&&x.ic!=='⏩';});
+/* la scheda errori diventa la prima cosa, con il conto delle schede */
+var sc=t.find(function(x){return x.ic==='🔁';});
+if(sc){sc.p=0.2;}
+else t.unshift({ic:'🔁',tx:'Scheda errori 1 di '+Math.ceil(d.due/40)+' (40 alla volta)',sub:d.old3+' arretrati da 3+ giorni',fn:function(){openQuiz();setTimeout(function(){qStartCat('errata');},250);},p:0.2});
+/* missione automatica sull'argomento che genera il debito */
+if(d.topId&&d.topN>=40&&!lg('mission',null)){
+var arg=QARG.find(function(c){return c.id===d.topId;});
+if(arg){
+t.push({ic:'🎯',tx:'Il buco è '+arg.label,sub:d.topN+' dei tuoi errori scaduti sono lì — tocca per una sessione mirata',fn:function(){openQuiz();setTimeout(function(){qStartCat(d.topId);},250);},p:1.1});
+}
+}
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+/* ── 6 · CODA PERCORSI: dire quanti e da quanto, non cinque volte "oggi" ── */
+try{
+var _rpQ=renderPlan;
+renderPlan=function(){
+_rpQ();
+try{
+var card=document.getElementById('spiralCard');if(!card)return;
+var hd=card.querySelector('.sp-hd');if(!hd)return;
+var now=Date.now();
+var due=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
+var late=due.filter(function(r){return now-rSR[r.id].due>3*86400000;}).length;
+if(due.length)hd.innerHTML='🌀 Ripassi percorsi — <b class="sp-cnt">'+due.length+' in scadenza</b>'+(late?(' · '+late+' da 3+ giorni'):'');
+}catch(e){}
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON IMPARARE — gemelle, risposte mescolate, quasi-promossi
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── 2 · RISPOSTE MESCOLATE: niente più "è la terza" ──
+Se l'ordine è fisso, dopo 3 ripassi memorizzi la posizione invece della regola.
+Ogni domanda riceve una permutazione diversa a ogni sessione. */
+try{
+var _sqM=startQuiz;
+startQuiz=function(items,opts){
+try{
+if(!opts||opts.mode!=='exam'){/* in esame si resta fedeli al set originale */
+items=items.map(function(it){
+if(!it||!it.choices)return it;
+var idx=it.choices.map(function(_,i){return i;});
+for(var i=idx.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=idx[i];idx[i]=idx[j];idx[j]=tmp;}
+var cp=Object.create(Object.getPrototypeOf(it));
+Object.keys(it).forEach(function(k){cp[k]=it[k];});
+cp.choices=idx.map(function(k){return it.choices[k];});
+cp.correct=idx.indexOf(it.correct);
+return cp;
+});
+}
+}catch(e){}
+_sqM(items,opts);
+};
+}catch(e){}
+
+/* ── 1 · DOMANDE GEMELLE: la regola, non la risposta ──
+Sbagli una domanda → ti mostro subito le altre che testano lo STESSO sotto-argomento.
+Se le sbagli tutte, il buco è la regola: quella impari, e ne copri quindici. */
+window.qStartTwins=function(it){
+try{
+buildQuiz();
+var pool=QUIZ_ALL.filter(function(x){return x.sub===it.sub&&x.id!==it.id;});
+if(pool.length<2){toast2('Nessuna domanda gemella su questo tema');return;}
+var twins=qShuffle(pool).slice(0,4);
+startQuiz([it].concat(twins),{mode:'study',title:'La stessa regola, 5 modi'});
+}catch(e){}
+};
+/* il bottone appare nel riquadro "perché l'hai sbagliata" */
+document.addEventListener('click',function(ev){
+try{
+var chip=ev.target.closest('.why-chips button');
+if(!chip)return;
+var it=(typeof Q!=='undefined'&&Q&&Q.items)?Q.items[Q.idx]:null;
+if(!it||!it.sub)return;
+setTimeout(function(){
+try{
+var box=document.querySelector('.why-chips');if(!box||document.getElementById('twinBtn'))return;
+var n=QUIZ_ALL.filter(function(x){return x.sub===it.sub&&x.id!==it.id;}).length;
+if(n<2)return;
+var b=document.createElement('button');
+b.id='twinBtn';b.className='twin-btn';
+b.textContent='🧬 Altre '+Math.min(n,4)+' sulla stessa regola';
+b.onclick=function(){qStartTwins(it);};
+box.after(b);
+}catch(e){}
+},120);
+}catch(e){}
+},true);
+
+/* ── 3 · PRIORITÀ AI QUASI-PROMOSSI ──
+Box 2 = una sola risposta giusta e l'errore è archiviato. Box 0 = ne servono tre.
+Mettendo davanti i quasi-promossi, la pila si svuota 2-3 volte più in fretta. */
+try{
+var _qscP=qStartCat;
+qStartCat=function(cid){
+if(cid!=='errata'){_qscP(cid);return;}
+buildQuiz();
+var now=Date.now();
+var all=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=now;});
+if(all.length<5){_qscP(cid);return;}
+all.sort(function(a,b){
+var ea=qtStats.err[a.id],eb=qtStats.err[b.id];
+var ba=(typeof ea==='object'&&ea.box)?ea.box:0;
+var bb=(typeof eb==='object'&&eb.box)?eb.box:0;
+if(ba!==bb)return bb-ba;                    /* prima i quasi-promossi (box alto) */
+return srDue(a.id)-srDue(b.id);             /* poi i più vecchi */
+});
+var tot=all.length,deck=all.slice(0,40);
+var quasi=deck.filter(function(it){var e=qtStats.err[it.id];return e&&e.box>=2;}).length;
+var title=tot>40?('Scheda errori · 40 di '+tot):'Ripasso errori';
+showErrCover(deck,title+(quasi?(' · '+quasi+' a un passo dall\u2019uscita'):''),function(){
+startQuiz(deck,{mode:'study',title:title,scheda:true});
+});
+};
+}catch(e){}
+
+/* ── bilancio del giorno: entrati vs usciti ── */
+try{
+var _smL=srMark;
+srMark=function(id,correct){
+var before=qtStats.err[id]!==undefined;
+_smL(id,correct);
+try{
+var after=qtStats.err[id]!==undefined;
+var k=_dayKey(),bal=lg('errBal',{});
+bal[k]=bal[k]||{in:0,out:0};
+if(!before&&after)bal[k].in++;
+if(before&&!after)bal[k].out++;
+ls('errBal',bal);
+}catch(e){}
+};
+}catch(e){}
+try{
+var _rcB=renderCoach;
+renderCoach=function(){
+_rcB();
+try{
+var b=(lg('errBal',{}))[_dayKey()];if(!b||(!b.in&&!b.out))return;
+var why=document.querySelector('.coach-why');if(!why||why.querySelector('.bal'))return;
+var net=b.out-b.in;
+var s=document.createElement('span');s.className='bal '+(net>=0?'good':'bad');
+s.textContent=' · Oggi: +'+b.in+' nuovi, −'+b.out+' smaltiti = '+(net>=0?'−':'+')+Math.abs(net)+(net>=0?' ✅':' ⚠️');
+why.appendChild(s);
+}catch(e){}
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON MODELLO STUDENTE — voto atteso, rischio reale, padronanza per tema
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+var SUBLAB={geo_terr:'Geografia · territorio',geo_vie:'Geografia · vie e strade',
+norm_legge:'Normativa · legge',norm_aero:'Normativa · aeroporti',
+reg_com:'Regolamento · comunale',reg_dov:'Regolamento · doveri',lingua:'Inglese'};
+
+/* probabilità stimata di rispondere GIUSTO a una domanda, oggi */
+function pOk(it){
+try{
+var id=it.id,now=Date.now();
+var e=(qtStats.err||{})[id];
+if(e&&typeof e==='object'){var b=e.box||0;return 0.34+0.15*b;}     /* in pila: 34/49/64% */
+if(!(qtStats.seenIds||{})[id])return 0.55;                          /* mai vista */
+var p=((qtStats.wrongN||{})[id]||0)>0?0.84:0.94;                    /* già sbagliata in passato? */
+var lo=(qtStats.lastOk||{})[id];
+if(lo){var d=(now-lo)/86400000;p-=Math.min(0.16,d*0.004);}          /* decadimento nel tempo */
+return Math.max(0.4,p);
+}catch(e2){return 0.7;}
+}
+function binom(n,k,p){
+var c=1;for(var i=0;i<k;i++)c=c*(n-i)/(i+1);
+return c*Math.pow(p,k)*Math.pow(1-p,n-k);
+}
+var _mCache=null,_mTs=0;
+window.studentModel=function(){
+try{
+if(_mCache&&Date.now()-_mTs<4000)return _mCache;/*[FIX] niente doppio calcolo per render (scatti)*/
+buildQuiz();
+var cats=QARG.map(function(c){
+var qs=QUIZ_ALL.filter(function(x){return x.cat===c.id;});
+if(!qs.length)return null;
+var s=0;qs.forEach(function(x){s+=pOk(x);});
+var pe=1-(s/qs.length);
+var dist=[];for(var k=0;k<=4;k++)dist.push(binom(4,k,pe));
+var over=dist[3]+dist[4];                                   /* 3+ errori in questo argomento = bocciato */
+return {id:c.id,label:c.label,emoji:c.emoji,pErr:pe,dist:dist,over:over,expErr:4*pe};
+}).filter(Boolean);
+if(!cats.length)return null;
+/* probabilità di passare: nessun argomento oltre 2 errori E totale entro 4 */
+var pass=0;
+(function walk(i,sum,prob){
+if(prob<1e-9)return;
+if(i===cats.length){if(sum<=4)pass+=prob;return;}
+for(var k=0;k<=2;k++)walk(i+1,sum+k,prob*cats[i].dist[k]);
+})(0,0,1);
+var expErr=cats.reduce(function(a,c){return a+c.expErr;},0);
+var worst=cats.slice().sort(function(a,b){return b.over-a.over;})[0];
+/* padronanza per sotto-argomento */
+var subs={};
+QUIZ_ALL.forEach(function(x){
+if(!x.sub)return;
+subs[x.sub]=subs[x.sub]||{n:0,s:0};
+subs[x.sub].n++;subs[x.sub].s+=pOk(x);
+});
+var subList=Object.keys(subs).map(function(k){
+return {sub:k,label:SUBLAB[k]||k,n:subs[k].n,m:Math.round(subs[k].s/subs[k].n*100)};
+}).sort(function(a,b){return a.m-b.m;});
+_mCache={expScore:Math.max(0,16-expErr),fail:Math.round((1-pass)*100),cats:cats,worst:worst,subs:subList};
+_mTs=Date.now();
+return _mCache;
+}catch(e){return null;}
+};
+
+/* ── card in home: voto atteso + rischio + il colpevole ── */
+function renderModel(){
+try{
+var anchor=document.getElementById('examLight');if(!anchor)return;
+var m=studentModel();
+var old=document.getElementById('modelCard');if(old)old.remove();
+if(!m)return;
+if(Object.keys(qtStats.seenIds||{}).length<40)return;/*[FIX] pochi dati = stima inaffidabile: meglio tacere*/
+var cls=m.fail<=15?'ok':(m.fail<=40?'mid':'no');
+var bars=m.cats.map(function(c){
+var risk=Math.round(c.over*100);
+var rc=risk<=10?'ok':(risk<=30?'mid':'no');
+return '<div class="mc-row"><span>'+c.emoji+' '+c.label+'</span><div class="mc-bar '+rc+'"><i style="width:'+Math.min(100,risk*2)+'%"></i></div><b>'+risk+'%</b></div>';
+}).join('');
+var el=document.createElement('div');el.id='modelCard';el.className='mc '+cls;
+el.innerHTML='<div class="mc-hd"><div><small>VOTO ATTESO OGGI</small><b>'+m.expScore.toFixed(1)+'<span>/16</span></b></div>'
++'<div class="mc-risk"><small>RISCHIO BOCCIATURA</small><b>'+m.fail+'%</b></div></div>'
++'<div class="mc-sub">Rischio di 3+ errori per argomento (all\u2019esame ne bastano 3 per essere respinti)</div>'
++bars
++(m.worst&&m.worst.over>0.12?('<div class="mc-tip">⚠️ Il pericolo è <b>'+m.worst.label+'</b> — tocca per una sessione mirata</div>'):'');
+var tip=el.querySelector('.mc-tip');
+if(tip)tip.addEventListener('click',function(){openQuiz();setTimeout(function(){qStartCat(m.worst.id);},250);});/*[FIX] solo il consiglio avvia, non tutta la card*/
+anchor.after(el);
+}catch(e){}
+}
+try{
+var _relM2=renderExamLight;
+renderExamLight=function(){_relM2();renderModel();};
+}catch(e){}
+
+/* ── coach: il tema più debole, non l'argomento generico ── */
+try{
+var _ctS2=coachTasks;
+coachTasks=function(){
+var t=_ctS2();
+try{
+var m=studentModel();if(!m||!m.subs.length)return t;
+var w=m.subs[0];
+if(w.m>=70||w.n<8)return t;
+t.push({ic:'🔬',tx:'Il tuo tema più debole: '+w.label,sub:'Padronanza '+w.m+'% su '+w.n+' domande — 12 domande solo su questo',fn:function(){
+buildQuiz();
+var pool=QUIZ_ALL.filter(function(x){return x.sub===w.sub;});
+pool.sort(function(a,b){return pOk(a)-pOk(b);});
+openQuiz();
+setTimeout(function(){startQuiz(qShuffle(pool.slice(0,12)),{mode:'study',title:w.label});},250);
+},p:1.3});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
 }catch(e){}
 
 })();
