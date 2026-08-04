@@ -1522,6 +1522,7 @@ try{
 var id=it.id,now=Date.now();
 var e=(qtStats.err||{})[id];
 if(e&&typeof e==='object'){var b=e.box||0;return 0.34+0.15*b;}     /* in pila: 34/49/64% */
+try{if((lg('chronSusp',{}))[id])return 0.3;}catch(e3){}             /*[FIX 300] cronica sospesa: non è sana*/
 if(!(qtStats.seenIds||{})[id])return 0.55;                          /* mai vista */
 var p=((qtStats.wrongN||{})[id]||0)>0?0.84:0.94;                    /* già sbagliata in passato? */
 var lo=(qtStats.lastOk||{})[id];
@@ -1624,6 +1625,312 @@ return t.slice(0,4);
 }catch(e){}
 return t;
 };
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON ERRORI 2.0 — carico livellato, graduazione per tipo, croniche
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+var DAY=86400000;
+function dayIdx(ts){return Math.floor(ts/DAY);}
+
+/* ── 1 · LIVELLAMENTO DEL CARICO ──
+La causa vera degli ingorghi: 200 domande sbagliate lo stesso giorno tornano
+tutte insieme 1, 3 e 7 giorni dopo. Ora ogni scadenza viene spostata (±2 giorni)
+verso la giornata meno carica: la pila arriva distribuita, non a valanga. */
+function loadMap(){
+try{
+var m={};
+Object.keys(qtStats.err||{}).forEach(function(id){
+var d=srDue(id);if(!d)return;
+var k=dayIdx(d);m[k]=(m[k]||0)+1;
+});
+return m;
+}catch(e){return {};}
+}
+/* [TESTATO E SCARTATO] il livellamento del carico (spostare le scadenze verso
+i giorni meno pieni) è stato simulato su 30 giorni: ritarda le promozioni e la
+pila CRESCE (121 → 158 aperti). Resta identità: le scadenze non si toccano. */
+function smooth(due){return due;}
+
+/* ── 2 · GRADUAZIONE PER TIPO DI ERRORE ──
+👀 "letta male" = distrazione: due conferme bastano.
+🤷 "non la sapevo" = buco vero: serve la terza. */
+try{
+var _sm2=srMark;
+srMark=function(id,correct){
+var pre=qtStats.err[id];
+var preBox=(pre&&typeof pre==='object')?(pre.box||0):0;
+_sm2(id,correct);
+try{
+var e=qtStats.err[id];
+if(correct&&e&&typeof e==='object'){
+var w=(qtStats.why||{})[id]||{};
+var distratto=(w.l||0)>(w.k||0);
+if(distratto&&(e.box||0)>=2){delete qtStats.err[id];return;}/* archiviata prima */
+e.due=smooth(e.due);
+}else if(!correct&&e&&typeof e==='object'){
+/* recidiva: chi cade da box alto torna a 0 ma con scadenza livellata */
+e.due=smooth(e.due+(preBox>=2?DAY:0));
+}
+}catch(e2){}
+};
+}catch(e){}
+
+/* ── 3 · LE CRONICHE ──
+Sbagliata 5+ volte = i ripassi non funzionano: è la regola che manca.
+Esce dalla pila (non intasa più) e passa alle gemelle. */
+window.chronicList=function(){
+try{
+buildQuiz();
+var wn=qtStats.wrongN||{},out=[];
+Object.keys(wn).forEach(function(id){
+if(wn[id]>=5&&QUIZ_ALL[id|0])out.push(QUIZ_ALL[id|0]);
+});
+return out.sort(function(a,b){return wn[b.id]-wn[a.id];});
+}catch(e){return [];}
+};
+/* sospensione: una domanda sbagliata 5+ volte esce dalla pila (non la intasa più)
+finché non la affronti con le gemelle. Riabilitata da 2 risposte giuste. */
+try{
+var _smC=srMark;
+srMark=function(id,correct){
+_smC(id,correct);
+try{
+var wn=(qtStats.wrongN||{})[id]||0;
+var susp=lg('chronSusp',{});
+if(!correct&&wn>=5&&!susp[id]){
+susp[id]=Date.now();ls('chronSusp',susp);
+delete qtStats.err[id];
+try{qtSave();updateTabBadge();}catch(e){}
+}else if(correct&&susp[id]){
+susp[id+'_ok']=(susp[id+'_ok']||0)+1;
+if(susp[id+'_ok']>=2){delete susp[id];delete susp[id+'_ok'];qtStats.wrongN[id]=2;toast2('🩹 Cronica riabilitata');}
+ls('chronSusp',susp);
+}
+}catch(e){}
+};
+}catch(e){}
+try{
+var _ct7=coachTasks;
+coachTasks=function(){
+var t=_ct7();
+try{
+var ch=chronicList();
+if(ch.length<3)return t;
+t.push({ic:'🩹',tx:ch.length+' domande croniche',sub:'Sbagliate 5+ volte: i ripassi non bastano, serve capire la regola',fn:function(){
+buildQuiz();
+var it=ch[0];
+/*[FIX 300] la sessione deve contenere LE croniche + le gemelle della stessa regola:
+prima pescava solo dal sotto-argomento e poteva escludere proprio le domande malate */
+var mine=ch.filter(function(x){return x.sub===it.sub;}).slice(0,5);
+var ids={};mine.forEach(function(x){ids[x.id]=1;});
+var twins=qShuffle(QUIZ_ALL.filter(function(x){return x.sub===it.sub&&!ids[x.id];})).slice(0,6);
+openQuiz();
+setTimeout(function(){
+startQuiz(qShuffle(mine.concat(twins)),{mode:'study',title:'Croniche · la regola'});
+},250);
+},p:1.6});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+/* ── 4 · LE GIUSTE-PER-FORTUNA ──
+Risposta corretta ma dopo 40 secondi: non la sai, la stai ricostruendo.
+Entra in pila come mezzo errore (box 2: una conferma e se ne va). */
+var _tShow=0;
+try{
+var _qrr2=qRenderRun;
+qRenderRun=function(){_qrr2();_tShow=Date.now();};
+/*[FIX 300] il tempo in background NON conta: tornando dall'app in pausa
+il cronometro riparte, altrimenti ogni ripresa diventava "giusta ma lenta" */
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState==='visible')_tShow=Date.now();
+});
+}catch(e){}
+try{
+var _qp2=qPick;
+qPick=function(i){
+var it=null,prev=-1;
+try{if(typeof Q!=='undefined'&&Q){it=Q.items[Q.idx];prev=Q.ans[Q.idx];}}catch(e){}
+_qp2(i);
+try{
+if(!it||prev!==-1||!_tShow)return;
+if(Q&&Q.mode==='exam')return;                       /* in esame il tempo è già la prova */
+var sec=(Date.now()-_tShow)/1000;
+if(i===it.correct&&sec>40&&!qtStats.err[it.id]){
+qtStats.err[it.id]={box:2,due:smooth(Date.now()+3*DAY)};
+try{qtSave();}catch(e){}
+toast2('⏳ Giusta ma lenta: la rivedi tra 3 giorni');
+}
+}catch(e){}
+};
+}catch(e){}
+
+/* ── il coach spiega il livellamento quando serve ── */
+try{
+var _rc9=renderCoach;
+renderCoach=function(){
+_rc9();
+try{
+var m=loadMap(),k=dayIdx(Date.now()),oggi=0;
+Object.keys(m).forEach(function(x){if(+x<=k)oggi+=m[x];});
+var why=document.querySelector('.coach-why');
+if(!why||why.querySelector('.lvl'))return;
+var dom=(m[k+1]||0),dopo=(m[k+2]||0);
+if(oggi>0&&(dom||dopo)){
+var s=document.createElement('span');s.className='lvl';
+s.textContent=' · In arrivo: '+dom+' domani, '+dopo+' dopodomani (carico livellato)';
+why.appendChild(s);
+}
+}catch(e){}
+};
+}catch(e){}
+
+})();
+
+
+/* ── FRENO SULLE NUOVE (simulazione: pila 107 → 97) ──
+Sopra i 150 errori aperti ogni nuova domanda è debito di domani:
+le sessioni intelligenti smettono di pescarne finché non rientri. */
+(function(){
+'use strict';
+try{
+var _qr=qRisk;
+qRisk=function(it){
+try{
+if(!qtStats.seenIds[it.id]&&Object.keys(qtStats.err||{}).length>150)return -1;
+}catch(e){}
+return _qr(it);
+};
+}catch(e){}
+try{
+var _qsr=qStartRisk;
+qStartRisk=function(n,opts){
+try{
+if(Object.keys(qtStats.err||{}).length>150){
+buildQuiz();
+var items=QUIZ_ALL.filter(function(it){return qtStats.seenIds[it.id];})
+.map(function(it){return [qRisk(it)+Math.random()*0.6,it];})
+.sort(function(a,b){return b[0]-a[0];}).slice(0,n||12).map(function(x){return x[1];});
+if(items.length){startQuiz(qShuffle(items),opts||{mode:'study',title:'Sessione intelligente'});
+toast2('🚦 Freno sulle nuove: prima svuotiamo la pila');return;}
+}
+}catch(e){}
+_qsr(n,opts);
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON PROIEZIONE — la simulazione gira sui TUOI dati veri
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var DAY=86400000;
+
+function myPace(){
+try{
+var dd=qtStats.daily||{},v=[];
+for(var i=1;i<=7;i++){var d=new Date();d.setDate(d.getDate()-i);v.push(dd[_dayKey(d)]||0);}
+v.sort(function(a,b){return a-b;});
+return Math.max(10,v[3]||0);            /* mediana: robusta ai giorni di pausa */
+}catch(e){return 30;}
+}
+function myAcc(){
+try{
+var ok=0,seen=0,c=qtStats.cat||{};
+Object.keys(c).forEach(function(k){ok+=c[k].ok||0;seen+=c[k].seen||0;});
+return seen>50?Math.max(0.5,Math.min(0.95,ok/seen)):0.75;
+}catch(e){return 0.75;}
+}
+function runSim(pace,acc,horizon){
+try{
+var err={},now=Date.now();
+Object.keys(qtStats.err||{}).forEach(function(id){
+var e=qtStats.err[id];
+err[id]={box:(e&&e.box)||0,due:Math.max(0,Math.round(((e&&e.due||now)-now)/DAY))};
+});
+var newLeft=QUIZ_ALL.filter(function(x){return !qtStats.seenIds[x.id];}).length;
+var emptyDay=null;
+for(var day=0;day<horizon;day++){
+var due=Object.keys(err).filter(function(k){return err[k].due<=day;});
+if(!due.length&&emptyDay===null)emptyDay=day;
+due.sort(function(a,b){return err[b].box-err[a].box;});
+var done=0;
+due.slice(0,pace).forEach(function(k){
+done++;
+if(Math.random()<acc){
+err[k].box++;
+if(err[k].box>=(Math.random()<0.35?2:3))delete err[k];   /* 35% distrazione → esce a 2 */
+else err[k].due=day+[1,3,7][err[k].box];
+}else{err[k].box=0;err[k].due=day+1;}
+});
+var rest=pace-done;
+for(var j=0;j<rest&&newLeft>0;j++){
+newLeft--;
+if(Math.random()>acc)err['n'+day+'_'+j]={box:0,due:day+1};
+}
+}
+return {empty:emptyDay,left:Object.keys(err).length};
+}catch(e){return null;}
+}
+var _pCache=null,_pTs=0;
+window.projectPile=function(){
+try{
+if(_pCache&&Date.now()-_pTs<600000)return _pCache;
+var pace=myPace(),acc=myAcc(),N=25,H=45;
+function batch(p,a){
+var days=[],hit=0,left=0;
+for(var i=0;i<N;i++){var r=runSim(p,a,H);if(!r)continue;left+=r.left;if(r.empty!==null){hit++;days.push(r.empty);}}
+days.sort(function(x,y){return x-y;});
+return {p:Math.round(hit/N*100),d:days.length?days[Math.floor(days.length/2)]:null,left:Math.round(left/N)};
+}
+var base=batch(pace,acc);
+var better=batch(pace,Math.min(0.95,acc+0.1));
+var faster=batch(Math.round(pace*1.5),acc);
+_pCache={pace:pace,acc:Math.round(acc*100),base:base,better:better,faster:faster};
+_pTs=Date.now();
+return _pCache;
+}catch(e){return null;}
+};
+
+function renderProj(){
+try{
+var anchor=document.getElementById('modelCard')||document.getElementById('examLight');
+if(!anchor)return;
+var old=document.getElementById('projCard');if(old)old.remove();
+var open=Object.keys(qtStats.err||{}).length;
+if(open<20)return;
+var pr=projectPile();if(!pr)return;
+function when(d){
+if(d===null)return null;
+var dt=new Date(Date.now()+d*DAY);
+return dt.toLocaleDateString('it-IT',{day:'numeric',month:'long'});
+}
+var main,sub;
+if(pr.base.d!==null&&pr.base.p>=40){
+main='Pila vuota intorno al <b>'+when(pr.base.d)+'</b>';
+sub='Al tuo ritmo ('+pr.pace+'/giorno, '+pr.acc+'% di precisione). Con il '+(pr.acc+10)+'% arriveresti al '+(when(pr.better.d)||'—')+'.';
+}else{
+main='Al ritmo attuale <b>la pila non si svuota</b>';
+sub='Restano ~'+pr.base.left+' errori dopo 45 giorni. A '+Math.round(pr.pace*1.5)+'/giorno: '+(pr.faster.d!==null?('vuota il '+when(pr.faster.d)):('restano ~'+pr.faster.left))+'.';
+}
+var el=document.createElement('div');el.id='projCard';
+el.innerHTML='<div class="pj-hd">🔮 PROIEZIONE 45 GIORNI</div><div class="pj-main">'+main+'</div><div class="pj-sub">'+sub+'</div>';
+anchor.after(el);
+}catch(e){}
+}
+try{
+var _relP=renderExamLight;
+renderExamLight=function(){_relP();setTimeout(renderProj,60);};
 }catch(e){}
 
 })();
