@@ -1934,3 +1934,231 @@ renderExamLight=function(){_relP();setTimeout(renderProj,60);};
 }catch(e){}
 
 })();
+
+/* ═══════════════════════════════════════════════════
+   ADDON OTTIMIZZATORE — il modello si tara, la sessione massimizza i punti
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* ── 1 · AUTOTARATURA: il modello impara quanto sbaglia se stesso ──
+Ogni simulazione confronta voto previsto e voto reale. Se il modello è
+sistematicamente ottimista o pessimista, si corregge (media mobile). */
+try{
+var _qfC=qFinish;
+qFinish=function(t){
+var pred=null;
+try{if(typeof Q!=='undefined'&&Q&&Q.mode==='exam'){var m=studentModel();if(m)pred=(m.expRaw!==undefined?m.expRaw:m.expScore);}}catch(e){}/*[FIX] si tara sul valore GREZZO, altrimenti la correzione si auto-annulla*/
+_qfC(t);
+try{
+if(pred===null||!lastQuiz||!lastQuiz.opts||lastQuiz.opts.mode!=='exam')return;
+var h=(qExamHist||[]);var last=h[h.length-1];if(!last)return;
+var err=(last.ok||0)-pred;                       /* >0 = il modello ti sottovaluta */
+var bias=lg('modelBias',0);
+bias=Math.max(-2.5,Math.min(2.5,bias*0.7+err*0.3));
+ls('modelBias',bias);
+var n=lg('modelN',0)+1;ls('modelN',n);
+if(n>=2&&Math.abs(bias)>0.6){
+setTimeout(function(){toast2('🎛 Modello tarato sui tuoi esami: '+(bias>0?'+':'')+bias.toFixed(1)+' punti',3200);},1400);
+}
+}catch(e){}
+};
+}catch(e){}
+/* la taratura entra nella card del voto atteso */
+try{
+var _smB2=studentModel;
+studentModel=function(){
+var m=_smB2();
+try{
+if(!m)return m;
+var b=lg('modelBias',0);
+m.expRaw=m.expScore;
+if(Math.abs(b)>0.2&&lg('modelN',0)>=2){
+m.expScore=Math.max(0,Math.min(16,m.expScore+b));
+m.tuned=b;
+}
+}catch(e){}
+return m;
+};
+}catch(e){}
+
+/* ── 2 · SESSIONE OTTIMALE: le domande che valgono più punti d'esame ──
+Non "le più a rischio": quelle che, imparate, abbassano di più la probabilità
+di essere respinti. Un errore in un argomento già sicuro vale poco; uno
+nell'argomento che ti boccia vale moltissimo. */
+function sensitivity(m){
+try{
+/* quanto cala il rischio bocciatura se l'errore-per-domanda di un argomento cala dell'1% */
+function failWith(cats){
+var pass=0;
+(function walk(i,sum,prob){
+if(prob<1e-9)return;
+if(i===cats.length){if(sum<=4)pass+=prob;return;}
+for(var k=0;k<=2;k++)walk(i+1,sum+k,prob*cats[i][k]);
+})(0,0,1);
+return 1-pass;
+}
+function distOf(pe){var d=[];for(var k=0;k<=4;k++){var c=1;for(var i=0;i<k;i++)c=c*(4-i)/(i+1);d.push(c*Math.pow(pe,k)*Math.pow(1-pe,4-k));}return d;}
+var base=m.cats.map(function(c){return c.dist;});
+var f0=failWith(base);
+var out={};
+m.cats.forEach(function(c,idx){
+var mod=base.slice();
+mod[idx]=distOf(Math.max(0,c.pErr-0.05));
+out[c.id]=Math.max(0,(f0-failWith(mod))/0.05);   /* sensibilità dell'argomento */
+});
+return out;
+}catch(e){return {};}
+}
+window.qStartOptimal=function(n){
+try{
+buildQuiz();
+var m=studentModel();if(!m){qStartRisk(n||12);return;}
+var sens=sensitivity(m);
+var nPerCat={};m.cats.forEach(function(c){nPerCat[c.id]=QUIZ_ALL.filter(function(x){return x.cat===c.id;}).length||1;});
+var scored=QUIZ_ALL.map(function(it){
+var p=(function(){try{var e=qtStats.err[it.id];if(e&&typeof e==='object')return 0.34+0.15*(e.box||0);
+if((lg('chronSusp',{}))[it.id])return 0.3;
+if(!qtStats.seenIds[it.id])return 0.55;
+return ((qtStats.wrongN||{})[it.id]||0)>0?0.84:0.94;}catch(e2){return 0.8;}})();
+var gain=Math.max(0,0.92-p);                       /* quanto puoi guadagnare su questa */
+var v=gain*(sens[it.cat]||0)/nPerCat[it.cat];
+return [v+Math.random()*1e-6,it,gain];
+}).filter(function(x){return x[2]>0.02;});
+if(scored.length<5){qStartRisk(n||12);return;}
+scored.sort(function(a,b){return b[0]-a[0];});
+var deck=scored.slice(0,n||12).map(function(x){return x[1];});
+var before=m.fail;
+ls('optBefore',before);
+startQuiz(qShuffle(deck),{mode:'study',title:'Sessione ottimale',optimal:true});
+toast2('🎯 Le '+deck.length+' domande che valgono più punti d\u2019esame');
+}catch(e){qStartRisk(n||12);}
+};
+/* a fine sessione: quanto è calato davvero il rischio */
+try{
+var _qfO=qFinish;
+qFinish=function(t){
+_qfO(t);
+try{
+if(qCurView!=='result'||!lastQuiz||!lastQuiz.opts||!lastQuiz.opts.optimal)return;
+var before=lg('optBefore',null);if(before===null)return;
+var m=studentModel();if(!m)return;
+var d=before-m.fail;
+var box=document.querySelector('#qResult .qres-actions');if(!box)return;
+var old=document.getElementById('optDelta');if(old)old.remove();
+var el=document.createElement('div');el.id='optDelta';
+el.innerHTML=d>0?('📉 Rischio bocciatura: <b>'+before+'% → '+m.fail+'%</b> (−'+d+' punti)')
+:(d<0?('📈 Rischio salito a <b>'+m.fail+'%</b>: queste domande vanno riviste')
+:('Rischio invariato: <b>'+m.fail+'%</b>'));
+box.parentNode.insertBefore(el,box);
+ls('optBefore',null);
+}catch(e){}
+};
+}catch(e){}
+/* riquadro nel quiz */
+try{
+var _rdO=renderDash;
+renderDash=function(){
+_rdO();
+try{
+if(document.getElementById('optTile'))return;
+var anchor=document.getElementById('smartTile')||document.querySelector('#qDash [onclick="qStartNew()"]');
+if(!anchor)return;
+if(Object.keys(qtStats.seenIds||{}).length<40)return;
+var b=document.createElement('button');
+b.id='optTile';b.className='qtile';
+b.onclick=function(){qStartOptimal(12);};
+b.innerHTML='<div class="qtile-ic" style="background:rgba(14,159,110,.12)">🎯</div>'
++'<div class="qtile-tx"><strong>Sessione ottimale</strong><small>Le 12 domande che abbassano di più il rischio bocciatura</small></div>'
++'<div class="qtile-ar">›</div>';
+anchor.parentNode.insertBefore(b,anchor);
+}catch(e){}
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON HOME 2.0 — azione prima, statistiche a schede
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var TABS=[{k:'p',lab:'Prontezza',ids:['readyCard','examLight']},
+{k:'r',lab:'Rischio',ids:['modelCard']},
+{k:'f',lab:'Proiezione',ids:['projCard']}];/*[FIX 300] spiralCard resta fuori: è azione, non statistica*/
+var active=0,busy=false;
+
+function build(){
+try{
+var home=document.getElementById('homeScreen');if(!home)return null;
+var sc=document.getElementById('stateCard');
+if(sc)return sc;
+sc=document.createElement('div');sc.id='stateCard';
+var seg='<div class="st-seg">'+TABS.map(function(t,i){
+return '<button data-i="'+i+'" class="st-tab'+(i===0?' on':'')+'">'+t.lab+'</button>';
+}).join('')+'</div>';
+sc.innerHTML=seg+TABS.map(function(t,i){return '<div class="st-pane'+(i===0?' on':'')+'" data-p="'+i+'"></div>';}).join('');
+sc.querySelector('.st-seg').addEventListener('click',function(e){
+var b=e.target.closest('.st-tab');if(!b)return;
+active=+b.dataset.i;
+sc.querySelectorAll('.st-tab').forEach(function(x,i){x.classList.toggle('on',i===active);});
+sc.querySelectorAll('.st-pane').forEach(function(x,i){x.classList.toggle('on',i===active);});
+try{hap();}catch(err){}
+});
+return sc;
+}catch(e){return null;}
+}
+
+window.layoutHome=function(){
+if(busy)return;busy=true;
+try{
+var home=document.getElementById('homeScreen');
+if(!home||home.style.display==='none'){busy=false;return;}
+var sc=build();if(!sc){busy=false;return;}
+var coach=document.getElementById('coachCard');
+var btn=home.querySelector('.smart-btn');
+var week=document.getElementById('weekChart');
+var plan=document.getElementById('planCard');
+/* ordine: coach → azione → stato a schede → traguardo → settimana */
+if(coach&&btn&&coach.nextElementSibling!==btn)coach.after(btn);
+if(btn&&btn.nextElementSibling!==sc)btn.after(sc);
+else if(!btn&&!sc.parentNode)home.appendChild(sc);/*[FIX 300] senza il bottone restava orfano e se ne creava uno per render*/
+if(plan&&sc.nextElementSibling!==plan&&plan.parentNode===home)sc.after(plan);
+var sp=document.getElementById('spiralCard');
+if(sp&&plan&&plan.nextElementSibling!==sp&&sp.parentNode!==plan)plan.after(sp);
+/* ogni card statistica nella sua scheda */
+TABS.forEach(function(t,i){
+var pane=sc.querySelector('.st-pane[data-p="'+i+'"]');if(!pane)return;
+t.ids.forEach(function(id){
+var el=document.getElementById(id);
+if(el&&el.parentNode!==pane)pane.appendChild(el);
+});
+});
+/* la scheda vuota non si può selezionare */
+sc.querySelectorAll('.st-tab').forEach(function(b,i){
+var pane=sc.querySelector('.st-pane[data-p="'+i+'"]');
+var empty=!pane||!pane.children.length;
+b.classList.toggle('off',empty);
+if(empty&&i===active){active=0;
+sc.querySelectorAll('.st-tab').forEach(function(x,j){x.classList.toggle('on',j===0);});
+sc.querySelectorAll('.st-pane').forEach(function(x,j){x.classList.toggle('on',j===0);});}
+});
+/* settimana in fondo, prima delle card sezione */
+var firstSec=home.querySelector('.home-card');
+if(week&&firstSec&&week.nextElementSibling!==firstSec)firstSec.before(week);
+}catch(e){}
+busy=false;
+};
+var _lt=null;
+function relayout(){clearTimeout(_lt);_lt=setTimeout(function(){try{layoutHome();}catch(e){}},80);}
+['renderReadiness','renderExamLight','renderPlan','renderCoach','renderWeekly'].forEach(function(fn){
+try{
+if(typeof window[fn]!=='function')return;
+var _o=window[fn];
+window[fn]=function(){var r=_o.apply(this,arguments);relayout();return r;};
+}catch(e){}
+});
+try{var _gh9=goHome;goHome=function(){_gh9();relayout();};}catch(e){}
+setTimeout(relayout,1200);
+
+})();
