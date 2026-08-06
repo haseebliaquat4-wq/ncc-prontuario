@@ -1517,12 +1517,13 @@ norm_legge:'Normativa · legge',norm_aero:'Normativa · aeroporti',
 reg_com:'Regolamento · comunale',reg_dov:'Regolamento · doveri',lingua:'Inglese'};
 
 /* probabilità stimata di rispondere GIUSTO a una domanda, oggi */
+var _susp={};
 function pOk(it){
 try{
 var id=it.id,now=Date.now();
 var e=(qtStats.err||{})[id];
 if(e&&typeof e==='object'){var b=e.box||0;return 0.34+0.15*b;}     /* in pila: 34/49/64% */
-try{if((lg('chronSusp',{}))[id])return 0.3;}catch(e3){}             /*[FIX 300] cronica sospesa: non è sana*/
+if(_susp[id])return 0.3;                                            /* cronica sospesa: non è sana */
 if(!(qtStats.seenIds||{})[id])return 0.55;                          /* mai vista */
 var p=((qtStats.wrongN||{})[id]||0)>0?0.84:0.94;                    /* già sbagliata in passato? */
 var lo=(qtStats.lastOk||{})[id];
@@ -1539,6 +1540,7 @@ window.studentModel=function(){
 try{
 if(_mCache&&Date.now()-_mTs<4000)return _mCache;/*[FIX] niente doppio calcolo per render (scatti)*/
 buildQuiz();
+try{_susp=lg('chronSusp',{})||{};}catch(e0){_susp={};}/*[FIX 2000] letto UNA volta, non 919*/
 var cats=QARG.map(function(c){
 var qs=QUIZ_ALL.filter(function(x){return x.cat===c.id;});
 if(!qs.length)return null;
@@ -1972,11 +1974,12 @@ var m=_smB2();
 try{
 if(!m)return m;
 var b=lg('modelBias',0);
-m.expRaw=m.expScore;
+if(m._raw===undefined)m._raw=m.expScore;/*[FIX 2000] baseline fissa: la cache veniva ri-tarata a ogni lettura*/
+m.expRaw=m._raw;
 if(Math.abs(b)>0.2&&lg('modelN',0)>=2){
-m.expScore=Math.max(0,Math.min(16,m.expScore+b));
+m.expScore=Math.max(0,Math.min(16,m._raw+b));
 m.tuned=b;
-}
+}else m.expScore=m._raw;
 }catch(e){}
 return m;
 };
@@ -2015,10 +2018,11 @@ try{
 buildQuiz();
 var m=studentModel();if(!m){qStartRisk(n||12);return;}
 var sens=sensitivity(m);
+var _sp={};try{_sp=lg('chronSusp',{})||{};}catch(e0){}/*[FIX 2000] una lettura sola*/
 var nPerCat={};m.cats.forEach(function(c){nPerCat[c.id]=QUIZ_ALL.filter(function(x){return x.cat===c.id;}).length||1;});
 var scored=QUIZ_ALL.map(function(it){
 var p=(function(){try{var e=qtStats.err[it.id];if(e&&typeof e==='object')return 0.34+0.15*(e.box||0);
-if((lg('chronSusp',{}))[it.id])return 0.3;
+if(_sp[it.id])return 0.3;
 if(!qtStats.seenIds[it.id])return 0.55;
 return ((qtStats.wrongN||{})[it.id]||0)>0?0.84:0.94;}catch(e2){return 0.8;}})();
 var gain=Math.max(0,0.92-p);                       /* quanto puoi guadagnare su questa */
@@ -2160,5 +2164,206 @@ window[fn]=function(){var r=_o.apply(this,arguments);relayout();return r;};
 });
 try{var _gh9=goHome;goHome=function(){_gh9();relayout();};}catch(e){}
 setTimeout(relayout,1200);
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   ADDON MODELLO TOPOGRAFIA — rischio per percorso e vie che ti bocciano
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var DAY=86400000;
+
+/* probabilità di azzeccare UNA via, oggi */
+function pVia(r,i){
+try{
+var w=((qStats[r.id]||{}).wrong||{})[i]||0;
+var p=0.94-Math.min(0.5,w*0.13);                 /* ogni errore su quella via pesa */
+var sr=rSR[r.id];
+if(!done[r.id])p-=0.25;                          /* mai completato */
+else if(sr&&sr.due){
+var over=(Date.now()-sr.due)/DAY;
+if(over>0)p-=Math.min(0.22,over*0.02);         /* scaduto da giorni = sbiadito */
+p+=Math.min(0.06,(sr.box||0)*0.03);            /* più volte ripassato = più solido */
+}
+return Math.max(0.35,Math.min(0.98,p));
+}catch(e){return 0.8;}
+}
+var _tCache=null,_tTs=0;
+window.topoModel=function(){
+try{
+if(_tCache&&Date.now()-_tTs<4000)return _tCache;/*[FIX 2000] cache come gli altri modelli*/
+if(!routes.length)return null;
+var rows=routes.map(function(r){
+if(!r.steps||!r.steps.length)return null;
+var p=1,worst=null,wp=1;
+r.steps.forEach(function(_,i){
+var q=pVia(r,i);p*=q;
+if(q<wp){wp=q;worst=i;}
+});
+return {r:r,clean:p,worst:worst,wp:wp,n:r.steps.length};
+}).filter(Boolean);
+if(!rows.length)return null;
+rows.sort(function(a,b){return a.clean-b.clean;});
+var avg=rows.reduce(function(s,x){return s+x.clean;},0)/rows.length;
+/* vie problematiche su PIÙ percorsi: quelle valgono doppio */
+var byName={};
+routes.forEach(function(r){
+var wm=(qStats[r.id]||{}).wrong||{};
+Object.keys(wm).forEach(function(k){
+var nm=r.steps[+k];if(!nm||!wm[k])return;
+byName[nm]=byName[nm]||{n:0,rt:0};
+byName[nm].n+=wm[k];byName[nm].rt++;
+});
+});
+var nere=Object.keys(byName).sort(function(a,b){
+return (byName[b].rt*10+byName[b].n)-(byName[a].rt*10+byName[a].n);
+}).slice(0,5).map(function(nm){return {nome:nm,err:byName[nm].n,perc:byName[nm].rt};});
+_tCache={avg:avg,rows:rows,nere:nere,rischio:rows.filter(function(x){return x.clean<0.5;}).length};
+_tTs=Date.now();return _tCache;
+}catch(e){return null;}
+};
+
+/* card nella scheda Rischio, sotto il modello quiz */
+function renderTopo(){
+try{
+var pane=document.querySelector('#stateCard .st-pane[data-p="1"]');
+var anchor=pane||document.getElementById('modelCard');
+if(!anchor)return;
+var old=document.getElementById('topoCard');if(old)old.remove();
+var m=topoModel();if(!m||m.rows.length<3)return;
+var top=m.rows.slice(0,3).map(function(x){
+var pc=Math.round(x.clean*100);
+var cls=pc>=60?'ok':(pc>=35?'mid':'no');
+var t=x.r.title.length>24?x.r.title.slice(0,22)+'…':x.r.title;
+return '<div class="mc-row tp-row" data-id="'+x.r.id+'"><span>'+esc(t)+'</span><div class="mc-bar '+cls+'"><i style="width:'+pc+'%"></i></div><b>'+pc+'%</b></div>';
+}).join('');
+var nere=m.nere.length?('<div class="tp-nere">🖤 Vie che ti bocciano: '+m.nere.slice(0,3).map(function(v){
+return '<b>'+esc(v.nome.length>20?v.nome.slice(0,18)+'…':v.nome)+'</b>'+(v.perc>1?(' ('+v.perc+' percorsi)'):'');
+}).join(' · ')+'</div>'):'';
+var el=document.createElement('div');el.id='topoCard';
+el.innerHTML='<div class="mc-hd"><div><small>TOPOGRAFIA · PERCORSO PULITO</small><b>'+Math.round(m.avg*100)+'<span>%</span></b></div>'
++'<div class="mc-risk"><small>A RISCHIO</small><b>'+m.rischio+'</b></div></div>'
++'<div class="mc-sub">Probabilità di completare un percorso in Cieco senza errori · i tre più deboli:</div>'
++top+nere;
+el.addEventListener('click',function(e){
+var row=e.target.closest('.tp-row');if(!row)return;
+var r=routes.find(function(x){return x.id===row.dataset.id;});if(!r)return;
+goTopografia();
+setTimeout(function(){selectRoute(r);setTimeout(function(){setMode('c');},250);},300);
+});
+if(pane)pane.appendChild(el);else anchor.after(el);
+}catch(e){}
+}
+try{
+var _relT=renderExamLight;
+renderExamLight=function(){_relT();setTimeout(renderTopo,90);};
+}catch(e){}
+
+/* coach: il percorso più a rischio, non quello a caso */
+try{
+var _ctT=coachTasks;
+coachTasks=function(){
+var t=_ctT();
+try{
+var m=topoModel();if(!m||!m.rows.length)return t;
+var w=m.rows[0];
+if(w.clean>0.45)return t;
+if(t.some(function(x){return x.ic==='🗺️';}))return t;   /* già c'è un task percorsi */
+t.push({ic:'🧭',tx:'Il percorso più a rischio',sub:w.r.title+' — '+Math.round(w.clean*100)+'% di farlo pulito'+(w.worst!==null?(' · la via critica è la '+(w.worst+1)):''),fn:function(){
+goTopografia();
+setTimeout(function(){selectRoute(w.r);setTimeout(function(){setMode('c');},250);},300);
+},p:1.35});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   REDESIGN v3 — regia delle animazioni (leggera, senza scatti)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+
+/* ── ingresso corale: i blocchi entrano quando entrano in vista, sfalsati ── */
+var io=null;
+function observer(){
+if(io)return io;
+try{
+io=new IntersectionObserver(function(entries){
+entries.forEach(function(en){
+if(!en.isIntersecting)return;
+en.target.classList.add('rv-in');
+io.unobserve(en.target);
+});
+},{rootMargin:'0px 0px -8% 0px',threshold:0.06});
+}catch(e){io=null;}
+return io;
+}
+function choreograph(root,sel){
+try{
+var o=observer();if(!o)return;
+var els=(root||document).querySelectorAll(sel);
+var i=0;
+els.forEach(function(el){
+if(el.classList.contains('rv'))return;
+el.classList.add('rv');
+el.style.setProperty('--i',(i++)%6);
+/* già in vista? entra subito, senza aspettare lo scroll */
+var r=el.getBoundingClientRect();
+if(r.top<window.innerHeight&&r.bottom>0)el.classList.add('rv-in');
+else o.observe(el);
+});
+}catch(e){}
+}
+function revealAll(){try{document.querySelectorAll('.rv:not(.rv-in)').forEach(function(el){
+var r=el.getBoundingClientRect();if(r.width||r.height)el.classList.add('rv-in');});}catch(e){}}
+var _rvN=0,_rvT=setInterval(function(){revealAll();
+if(++_rvN>20)clearInterval(_rvT);},3000);/*[FIX 2000] rete di sicurezza per 1 minuto, poi si spegne: non serve a vita*/
+function homeIn(){choreograph(document.getElementById('homeScreen'),'#coachCard,.smart-btn,#stateCard,#planCard,#spiralCard,#weekChart,.home-card');setTimeout(revealAll,1500);}
+function quizIn(){choreograph(document.getElementById('qDash'),'.qtile,.qcard-hero,.qerr-box');}
+
+try{
+var _gh10=goHome;goHome=function(){_gh10();setTimeout(homeIn,60);};
+var _oq3=openQuiz;openQuiz=function(){_oq3();setTimeout(quizIn,60);};
+var _rd10=renderDash;renderDash=function(){_rd10();setTimeout(quizIn,40);};
+}catch(e){}
+setTimeout(homeIn,1400);
+
+/* ── scheletri mentre i numeri non sono pronti ── */
+try{
+var first=!lg('seenOnce',false);
+if(first){
+ls('seenOnce',true);
+['readyCard','planCard'].forEach(function(id){
+var el=document.getElementById(id);
+if(el&&!el.children.length){el.classList.add('skl');el.style.minHeight='84px';
+setTimeout(function(){el.classList.remove('skl');el.style.minHeight='';},900);}
+});
+}
+}catch(e){}
+
+/* ── cambio scheda nello stato: il contenuto scorre nella direzione giusta ── */
+try{
+setTimeout(function(){
+var sc=document.getElementById('stateCard');if(!sc)return;
+var last=0;
+sc.addEventListener('click',function(e){
+var b=e.target.closest('.st-tab');if(!b)return;
+var i=+b.dataset.i;
+var pane=sc.querySelector('.st-pane[data-p="'+i+'"]');
+if(pane){
+pane.style.animation='none';void pane.offsetWidth;
+pane.style.animation='rvIn var(--d2) var(--e-soft) both';
+}
+last=i;
+});
+},1600);
+}catch(e){}
 
 })();
