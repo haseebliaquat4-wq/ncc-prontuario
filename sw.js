@@ -3,7 +3,7 @@
    - TILE mappa: cache-first (i posti già visti si ricaricano all'istante, anche offline)
    - resto: stale-while-revalidate (risposta subito dalla cache, aggiornamento in background) */
 
-const CACHE_NAME = 'ncc-v31';
+const CACHE_NAME = 'ncc-v33';
 const TILE_CACHE = 'ncc-tiles-v1';
 const TILE_LIMIT = 600; /* massimo tile salvati (≈30-40 MB) */
 
@@ -12,7 +12,7 @@ const PRECACHE = [
   './index.html',
   './styles.css?v=21',
   './addon.css?v=21',
-  './addon.js?v=25',
+  './addon.js?v=27',
   './icon-512.png',
   './favicon.svg',
   './app.js?v=3',
@@ -38,6 +38,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => Promise.all(
       keys.filter(k => k !== CACHE_NAME && k !== TILE_CACHE).map(k => caches.delete(k))
     )).then(() => self.clients.claim())
+    .then(() => self.clients.matchAll({type:'window'}).then(cs => cs.forEach(c => c.postMessage({t:'sw-updated', v:CACHE_NAME}))))
   );
 });
 
