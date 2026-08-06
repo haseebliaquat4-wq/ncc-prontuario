@@ -1,498 +1,5 @@
-/* ═══════════════════════════════════════════════════
-   CSS INCORPORATO — tutto lo stile dell'addon vive qui dentro.
-   Non serve più caricare addon.css: se sul sito è vecchio o manca,
-   questi stili arrivano comunque e vincono (iniettati per ultimi).
-   ═══════════════════════════════════════════════════ */
-(function(){
-try{
-var s=document.getElementById('addonInline');
-if(!s){s=document.createElement('style');s.id='addonInline';document.head.appendChild(s);}
-s.textContent=`/* ═══════════════════════════════════════════════════
-   ADDON DESIGN v1 — sopra il core congelato
-   Rollback: commenta le 2 righe nell'index
-   ═══════════════════════════════════════════════════ */
-
-/* ── 1+2+3 · TIPOGRAFIA: scala a 6 livelli + numeri display + gerarchia ── */
-.rd{--t1:12px;--t2:14px;--t3:17px;--t4:21px;--t5:26px;--t6:34px;}
-.rd .home-title{font-size:var(--t6);}
-.rd .qcard-hero h2,.rd .sd-hero h2{font-size:var(--t5);}
-.rd .ptrow h2,.rd .qana-title{font-size:var(--t4);}
-.rd .qtile-tx strong,.rd .home-card .hc-tx strong{font-size:var(--t3);}
-.rd .coach-tx b,.rd .plan-tx strong,.rd .ready-tx strong{font-size:var(--t2);font-weight:800;color:var(--tx);}
-.rd .coach-tx small,.rd .plan-tx small,.rd .qtile-tx small,.rd .home-card .hc-tx small{font-size:var(--t1);color:var(--lbl2);}
-/* numeri protagonisti: peso display, tracking stretto */
-.rd .tg-hd>b,.rd .qres-stat b,.rd .qerr-num,.rd .ready-ring span,.rd .plan-card b{
-font-weight:860;letter-spacing:-.04em;font-variant-numeric:tabular-nums;
-}
-
-/* ── 4 · COLORE SEMANTICO DEGLI ARGOMENTI ── */
-.rd{--cat0:#0D9488;--cat1:#4F46E5;--cat2:#D97706;--cat3:#DB2777;}
-.catc0 .qtile-ic{background:rgba(13,148,136,.13)!important;}
-.catc1 .qtile-ic{background:rgba(79,70,229,.13)!important;}
-.catc2 .qtile-ic{background:rgba(217,119,6,.13)!important;}
-.catc3 .qtile-ic{background:rgba(219,39,119,.13)!important;}
-.qarg-box.catc0{border-left:4px solid var(--cat0);}
-.qarg-box.catc1{border-left:4px solid var(--cat1);}
-.qarg-box.catc2{border-left:4px solid var(--cat2);}
-.qarg-box.catc3{border-left:4px solid var(--cat3);}
-.qtop-group.catc0{color:var(--cat0);}.qtop-group.catc1{color:var(--cat1);}
-.qtop-group.catc2{color:var(--cat2);}.qtop-group.catc3{color:var(--cat3);}
-
-/* ── 5 · DARK: terzo livello di superficie ── */
-.rd.dark{--card2:#1B2130;}
-.rd.dark .coach-ic,.rd.dark .qerr-box,.rd.dark .qrun-meta,.rd.dark .ord-slot,.rd.dark .qtop-emoji{background:var(--card2);}
-.rd.dark .coach-row:active{background:var(--card2);}
-
-/* ── 6+12 · DIETA DEL ROSSO + pesi giusti nel quiz run ── */
-.rd .qrun-x{border-color:var(--bd);color:var(--mu);} /* la ✕ è solo "indietro": non deve urlare */
-.rd .qrun-end{box-shadow:0 6px 18px rgba(36,71,214,.38);font-weight:800;}
-/* "le più sbagliate": ambra, non rosso (il rosso resta a errori veri e semaforo) */
-#qDash [onclick="qStartHard()"] .qtile-ic{background:rgba(217,119,6,.13)!important;color:var(--warn)!important;}
-
-/* ── 7 · micro-lucido sulle pastiglie icona ── */
-.qtile-ic,.coach-ic,.sd-tile-ic,.home-card .hc-ic{position:relative;overflow:hidden;}
-.qtile-ic::after,.coach-ic::after,.sd-tile-ic::after,.home-card .hc-ic::after{
-content:'';position:absolute;inset:0;pointer-events:none;
-background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 55%);
-}
-.rd.dark .qtile-ic::after,.rd.dark .coach-ic::after,.rd.dark .sd-tile-ic::after,.rd.dark .home-card .hc-ic::after{
-background:linear-gradient(160deg,rgba(255,255,255,.08),transparent 55%);
-}
-
-/* ── 8 · griglia 4px sui contenitori chiave ── */
-.rd .coach{padding:8px;}
-.rd .coach-row{padding:12px;gap:12px;}
-.rd .qtile,.rd .sd-tile{padding:16px;gap:16px;}
-.rd .tg-card{padding:16px;}
-.rd .plan-card,.rd .ready-card{padding:16px;}
-.rd .brow{gap:8px;}
-
-/* ── 9 · ritmo della home: stato compatto, azioni staccate ── */
-#examLight{margin-top:8px;}
-#coachCard{margin-top:20px;}
-.smart-btn{margin-top:20px;}
-#weekChart{margin-top:12px;}
-#planCard{margin-top:8px;}
-
-/* ── 10 · allineamento ottico icone ── */
-.coach-ic svg,.qtile-ic svg{transform:translateY(.5px);}
-
-/* ── 11 · pillole quiz → barra segmentata ── */
-.qrun-pills{padding:7px 8px;gap:3px;align-items:center;border-radius:16px;}
-.qpill{flex:1;min-width:8px;height:10px;border-radius:5px;font-size:0;padding:0;background:var(--fill2);transition:height .2s,background .2s,flex .2s;}
-.qpill.ans{background:var(--a);}
-.qpill.good{background:var(--ok);}
-.qpill.bad{background:var(--err);}
-.qpill.cur{flex:1.6;height:22px;min-width:26px;font-size:12px;font-weight:800;background:var(--card);border:2px solid var(--a);color:var(--a);border-radius:8px;}
-.qpill.ans.cur{background:var(--card);color:var(--a);}
-
-/* ── 13 · ricerca e chip alla stessa altezza esatta ── */
-#sb{height:46px;padding-top:0;padding-bottom:0;}
-
-/* ── 14 · ingresso morbido dei blocchi di stato ── */
-#readyCard,#examLight,#planCard{animation:fadeUp .4s ease both;}
-
-/* ── 15 · Ordina le vie: allineato al design attuale ── */
-.ord-slot{background:var(--fill3);border:1.5px dashed var(--bd);border-radius:14px;min-height:44px;font-size:13.5px;display:flex;align-items:center;}
-.ord-slot.done{background:rgba(14,159,110,.09);border:1.5px solid rgba(14,159,110,.45);color:var(--tx);font-weight:650;}
-.ord-btn{border-radius:16px;padding:13px 15px;font-size:14px;box-shadow:var(--sh-sm);}
-.ord-btn.ok{opacity:.3;}
-
-/* ── 16 · texture firma: la curva del logo, quasi invisibile ── */
-.rd .qcard-hero::before,.rd .sd-hero::before{
-content:'';position:absolute;inset:-10%;pointer-events:none;opacity:.06;
-background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M17 50C17 38 27 41 32 32c3.5-6.3.5-11-4-11' stroke='%23fff' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
-background-size:120px 120px;background-repeat:repeat;transform:rotate(-8deg);
-}
-
-/* ── 17 · scia dorata (classe usata dall'addon.js) ── */
-.gold-run{filter:drop-shadow(0 0 8px rgba(255,214,10,.85));}
-
-/* ── 18 · momento "verde per la prima volta" ── */
-#greenMoment{position:fixed;inset:0;z-index:8500;background:rgba(7,10,20,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.gm-card{background:var(--card);border:1.5px solid rgba(14,159,110,.5);border-radius:28px;padding:30px 24px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(14,159,110,.25);animation:popIn .4s cubic-bezier(.34,1.3,.5,1);}
-.gm-card .gm-e{font-size:56px;}
-.gm-card h2{font-size:26px;font-weight:850;color:var(--ok);margin:10px 0 8px;letter-spacing:-.02em;}
-.gm-card p{font-size:14px;color:var(--mu);line-height:1.5;font-weight:550;}
-.gm-card button{width:100%;margin-top:18px;padding:15px;border:none;border-radius:16px;background:var(--ok);color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
-
-@media (prefers-reduced-motion:reduce){
-#readyCard,#examLight,#planCard{animation:none;}
-.gm-card{animation:none;}
-}
-
-/* [FIX 500] le pillole-segmento sono alte 10px: l'area di TOCCO si espande
-in verticale (invisibile) così saltare a una domanda resta facile col dito */
-.qpill{position:relative;}
-.qpill::before{content:'';position:absolute;left:0;right:0;top:-10px;bottom:-10px;}
-
-/* ══════ Coach 2.0 ══════ */
-.srmul-line{margin-top:6px;text-align:center;font-size:11px;font-weight:700;color:var(--mu);}
-#bailSheet{position:fixed;inset:0;z-index:8600;background:rgba(7,10,20,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.bail-card{background:var(--card);border:1.5px solid var(--bd);border-radius:26px;padding:26px 22px;max-width:360px;width:100%;text-align:center;box-shadow:var(--sh-xl);animation:popIn .35s cubic-bezier(.34,1.2,.5,1);}
-.bail-card .bail-e{font-size:44px;}
-.bail-card b{display:block;font-size:19px;font-weight:820;color:var(--tx);margin:10px 0 8px;letter-spacing:-.02em;}
-.bail-card p{font-size:13.5px;color:var(--mu);line-height:1.5;font-weight:550;}
-.bail-row{display:flex;gap:10px;margin-top:18px;}
-.bail-row button{flex:1;padding:14px 10px;border:none;border-radius:16px;font-size:14.5px;font-weight:800;cursor:pointer;}
-.bail-stop{background:var(--fill2);color:var(--tx);}
-.bail-go{background:var(--a);color:#fff;box-shadow:0 4px 14px rgba(36,71,214,.3);}
-@media (prefers-reduced-motion:reduce){.bail-card{animation:none;}}
-
-/* ══════ Final polish ══════ */
-
-/* 1 · anello risultato */
-#resRing{position:relative;width:150px;height:150px;margin:4px auto 10px;}
-.rr-txt{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;flex-direction:row;align-content:center;flex-wrap:wrap;}
-.rr-txt b{font-size:44px;font-weight:860;letter-spacing:-.04em;color:var(--tx);font-variant-numeric:tabular-nums;line-height:150px;}
-.rr-txt span{font-size:18px;font-weight:750;color:var(--mu);line-height:150px;margin-left:2px;}
-.qres-emoji{display:none;} /* il verdetto ora lo dà l'anello */
-.qres-title{margin-top:0;font-size:28px;}
-/* statistiche compatte sotto l'anello */
-.qres-stats{display:flex;gap:8px;max-width:420px;margin:14px auto 22px;}
-.qres-stat{flex:1;padding:10px 6px;border-radius:16px;}
-.qres-stat b{font-size:22px;}
-.qres-stat span{font-size:11px;margin-top:3px;}
-
-/* 2 · pillola scorrevole nel dock */
-#tabPill{
-position:absolute;z-index:0;opacity:0;
-background:var(--sab);border-radius:17px;
-transition:left .32s cubic-bezier(.3,1.1,.4,1),width .32s cubic-bezier(.3,1.1,.4,1),top .2s,height .2s,opacity .3s;
-pointer-events:none;
-}
-#tabbar .tab{position:relative;z-index:1;}
-/* [FIX 1000] finché la pillola non è pronta (~700ms), evidenziazione di riserva:
-la tab attiva non resta mai "spenta" all'avvio */
-body:not(.pill-on) #tabbar .tab.on{background:var(--sab);}
-body.pill-on #tabbar .tab.on{background:transparent;} /* poi lo sfondo lo fa la pillola */
-.rd.berlina #tabPill{background:rgba(139,107,33,.12);}
-.rd.berlina.dark #tabPill{background:rgba(214,180,94,.14);}
-
-/* 3 · stati vuoti: illustrazione firma al posto dell'emoji gigante */
-.emp .e,.sd-empty .e{
-font-size:0;line-height:0;
-width:76px;height:76px;margin:0 auto;display:block;
-background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96' fill='none' stroke='%232447D6' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M26 74C26 56 42 60 50 46c5.5-9.6 1-17-6-17' opacity='.9'/%3E%3Ccircle cx='26' cy='74' r='7' fill='%23FFD60A' stroke='none'/%3E%3Ccircle cx='26' cy='74' r='3' fill='%23111A4E' stroke='none'/%3E%3Cpath d='M66 18a14 14 0 0 1 14 14c0 10-14 24-14 24S52 42 52 32a14 14 0 0 1 14-14z' fill='%23FFD60A' stroke='none' opacity='.95'/%3E%3Ccircle cx='66' cy='32' r='5' fill='%23111A4E' stroke='none'/%3E%3C/svg%3E");
-opacity:.9;
-}
-.rd.dark .emp .e,.rd.dark .sd-empty .e{filter:brightness(1.35);}
-
-@media (prefers-reduced-motion:reduce){#tabPill{transition:none;}}
-
-/* [FIX mappa-sotto] quirk WebKit: i layer 3D di Leaflet possono restare
-compositati anche con visibility:hidden sull'antenato. Spegnendo i PANNELLI
-interni (display:none) la GPU li scarica davvero; il contenitore #map resta
-misurabile, quindi al ritorno niente tile grigi. */
-body:not(.on-topo) #map .leaflet-pane,
-body:not(.on-topo) #map .leaflet-control-container,
-body:not(.on-topo) #recenterBtn,
-body:not(.on-topo) #satBtn{display:none !important;}
-body:not(.on-topo) .main{opacity:0;}
-
-/* ══════ Coach Interattivo ══════ */
-
-/* (6) parole-trappola: la causa n.1 degli errori "letta male" */
-.trap{color:var(--err);font-weight:850;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
-
-/* (11) la domanda si legge: più grande, più aria */
-#qRunQ{font-size:23px;line-height:1.5;}
-
-/* (8) puntino colore-argomento */
-.qdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:8px;vertical-align:middle;}
-.qdot.catd0{background:var(--cat0);}.qdot.catd1{background:var(--cat1);}
-.qdot.catd2{background:var(--cat2);}.qdot.catd3{background:var(--cat3);}
-
-/* (7) dopo l'errore: la risposta giusta DOMINA, le altre si spengono
-[FIX] la transition UNISCE quella del core (molla di pressione, sfondo, bordo)
-invece di sostituirla: i bottoni restano scattanti al tocco */
-.qans{transition:transform .14s cubic-bezier(.34,1.3,.64,1),border-color .2s,background .15s,opacity .3s,box-shadow .3s;}
-#qRunAns:has(.qans.good) .qans:not(.good):not(.bad){opacity:.4;}
-.qans.good{transform:scale(1.02);box-shadow:0 0 0 2.5px var(--ok),0 8px 22px rgba(14,159,110,.25);}
-
-/* (2) overlay rileggi */
-#rereadOv{position:fixed;inset:0;z-index:8700;background:rgba(7,10,20,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:26px;}
-#rereadOv .rr-card{background:var(--card);border-radius:24px;padding:24px 22px;max-width:420px;box-shadow:var(--sh-xl);animation:popIn .3s cubic-bezier(.34,1.2,.5,1);}
-#rereadOv small{display:block;font-size:12px;font-weight:750;color:var(--mu);margin-bottom:10px;}
-#rereadOv p{font-size:21px;line-height:1.55;font-weight:650;color:var(--tx);}
-
-/* (1) copertina pre-scheda */
-#errCover{position:fixed;inset:0;z-index:8650;background:rgba(7,10,20,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;}
-.ec-card{background:var(--card);border-radius:26px;padding:24px;max-width:380px;width:100%;box-shadow:var(--sh-xl);animation:popIn .32s cubic-bezier(.34,1.2,.5,1);}
-.ec-card small{font-size:11.5px;font-weight:800;color:var(--a);text-transform:uppercase;letter-spacing:.04em;}
-.ec-card h3{font-size:19px;font-weight:820;color:var(--tx);margin:6px 0 14px;letter-spacing:-.01em;}
-.ec-row{padding:10px 12px;background:var(--fill3);border-radius:14px;margin-bottom:8px;font-size:14.5px;font-weight:650;color:var(--tx);}
-.ec-row b{font-weight:850;color:var(--a);margin-right:4px;}
-.ec-go{width:100%;margin-top:10px;padding:15px;border:none;border-radius:16px;background:var(--a);color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
-
-/* (4) riscaldamento sotto il bottone simulazione */
-.warm-btn{display:block;width:100%;margin-top:9px;padding:12px;border:1.5px dashed rgba(255,255,255,.5);border-radius:15px;background:rgba(255,255,255,.12);color:#fff;font-size:13.5px;font-weight:750;cursor:pointer;}
-
-/* (C) diagnosi post-simulazione */
-#simDiag{margin:4px 16px 14px;padding:14px 16px;background:var(--sab);border:1.5px solid rgba(36,71,214,.3);border-radius:18px;}
-#simDiag p{font-size:13.5px;line-height:1.5;color:var(--tx);font-weight:600;}
-#simDiag b{font-weight:820;}
-#simDiag button{width:100%;margin-top:10px;}
-
-/* (A)(10) debrief percorso */
-#routeDebrief{position:fixed;left:12px;right:12px;bottom:calc(var(--tabh,64px) + 26px + env(safe-area-inset-bottom));z-index:3400;display:flex;justify-content:center;pointer-events:none;}
-#routeDebrief .rdb{pointer-events:auto;position:relative;max-width:460px;width:100%;background:var(--card);border-radius:20px;padding:14px 40px 12px 16px;box-shadow:var(--sh-xl);animation:popIn .35s cubic-bezier(.34,1.2,.5,1);}
-.rdb.ok{border:1.5px solid rgba(14,159,110,.5);}
-.rdb.warn{border:1.5px solid rgba(229,72,77,.45);}
-.rdb b{display:block;font-size:15px;font-weight:820;color:var(--tx);}
-.rdb.ok b{color:var(--ok);}
-.rdb small{display:block;font-size:11.5px;color:var(--mu);font-weight:650;margin-top:6px;}
-.rdb-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-.rdb-via{padding:6px 10px;background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.35);border-radius:10px;font-size:12px;font-weight:700;color:var(--err);cursor:pointer;}
-.rdb-x{position:absolute;top:8px;right:8px;width:28px;height:28px;border:none;border-radius:50%;background:var(--fill2);color:var(--mu);font-size:13px;cursor:pointer;}
-
-/* (9) Cieco: numeri delle vie GRANDI — sono l'aggancio della memoria */
-body.mode-c .row .sn{font-size:19px;font-weight:850;min-width:30px;}
-
-/* (3) analisi errori: tua risposta e giusta AFFIANCATE */
-@media (min-width:380px){
-.qac{display:flex;flex-wrap:wrap;gap:8px;}
-.qac .qac-q{width:100%;}
-.qac .qac-row{flex:1;min-width:calc(50% - 8px);align-items:flex-start;}
-}
-
-@media (prefers-reduced-motion:reduce){
-#rereadOv .rr-card,.ec-card,#routeDebrief .rdb{animation:none;}
-}
-
-/* ══════ Home: countdown esame grande ══════ */
-.plan-exam-big{display:flex !important;align-items:center;gap:16px;text-align:left;
-background:var(--card) !important;border:1.5px solid rgba(217,119,6,.4) !important;border-style:solid !important;
-border-radius:22px !important;padding:14px 18px !important;box-shadow:var(--sh-sm);}
-.plan-exam-big .ex-n{font-size:38px;font-weight:860;letter-spacing:-.04em;color:var(--warn);font-variant-numeric:tabular-nums;line-height:1;min-width:64px;}
-.plan-exam-big .ex-tx strong{display:block;font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.01em;}
-.plan-exam-big .ex-tx small{display:block;font-size:11.5px;color:var(--mu);font-weight:650;margin-top:3px;}
-.rd.berlina .plan-exam-big{border-color:rgba(139,107,33,.45) !important;}
-.rd.berlina .plan-exam-big .ex-n{color:#B8860B;}
-.rd.berlina.dark .plan-exam-big .ex-n{color:#D6B45E;}
-
-/* ══════ Home: suggerimenti animati + card esame grande ══════ */
-#tipLine.tip-in{animation:tipIn .5s cubic-bezier(.3,1.1,.4,1) both;}
-@keyframes tipIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-
-.plan-exam.ex-big{
-display:flex;align-items:center;gap:14px;text-align:left;
-border:1.5px solid rgba(217,119,6,.4)!important;border-style:solid!important;
-background:linear-gradient(135deg,rgba(217,119,6,.07),rgba(255,214,10,.05))!important;
-border-radius:22px!important;padding:16px!important;
-animation:exBreathe 4s ease-in-out infinite;
-}
-.plan-exam.ex-big b{
-font-size:40px;font-weight:860;letter-spacing:-.04em;color:var(--warn);
-font-variant-numeric:tabular-nums;line-height:1;min-width:64px;text-align:center;
-}
-.plan-exam.ex-big .ex-tx{flex:1;}
-.plan-exam.ex-big .ex-tx strong{display:block;font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.01em;}
-.plan-exam.ex-big .ex-tx small{display:block;font-size:11.5px;color:var(--mu);font-weight:600;margin-top:3px;}
-.plan-exam.ex-big .ex-ic{font-size:26px;}
-@keyframes exBreathe{0%,100%{box-shadow:0 4px 16px rgba(217,119,6,.12)}50%{box-shadow:0 8px 28px rgba(217,119,6,.28)}}
-.rd.dark .plan-exam.ex-big{background:linear-gradient(135deg,rgba(217,119,6,.12),rgba(255,214,10,.06))!important;}
-@media (prefers-reduced-motion:reduce){
-.plan-exam.ex-big{animation:none;}
-#tipLine.tip-in{animation:none;}
-}
-
-/* i suggerimenti personali (dai tuoi errori) sono più lunghi: a capo con grazia */
-#tipLine{white-space:normal;line-height:1.45;text-align:center;}
-
-/* ══════ "il coach ti ha visto" ══════ */
-.gm-card.lap{border-color:rgba(217,119,6,.55);box-shadow:0 20px 60px rgba(217,119,6,.25);}
-.gm-card.lap h2{color:var(--warn);}
-.tg-card.defense{border-color:rgba(14,159,110,.45);background:linear-gradient(135deg,rgba(14,159,110,.06),rgba(255,214,10,.04));}
-.tg-card.defense .tg-hd b{color:var(--ok);}
-
-/* ══════ Spirale visibile ══════ */
-#spiralCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:12px 16px;box-shadow:var(--sh-sm);}
-@media (min-width:1100px){#spiralCard{max-width:520px;}}
-.sp-hd{font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
-.sp-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--sep2);cursor:pointer;font-size:14px;font-weight:600;color:var(--tx);}
-.sp-row:last-child{border-bottom:none;}
-.sp-row b{font-weight:800;color:var(--mu);font-size:12.5px;white-space:nowrap;}
-.sp-row .sp-now{color:var(--warn);}
-.sp-row:active{opacity:.6;}
-.rdb-next{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:14px;background:var(--a);color:#fff;font-size:13.5px;font-weight:800;cursor:pointer;}
-
-/* ══════ Modalità recupero ══════ */
-.tg-bar.debt i{background:linear-gradient(90deg,var(--warn),var(--err));}
-.tg-debt b{color:var(--err);}
-.coach-why.why-alert{color:var(--err);font-weight:750;background:rgba(229,72,77,.06);border-radius:12px;padding:8px 10px;margin:0 8px 8px;border-bottom:none;}
-.sp-hd .sp-cnt{color:var(--warn);font-weight:850;}
-
-/* ══════ Imparare ══════ */
-.twin-btn{display:block;width:100%;margin:10px 0 2px;padding:13px;border:1.5px solid var(--a);border-radius:15px;background:var(--sab);color:var(--a);font-size:14px;font-weight:800;cursor:pointer;}
-.twin-btn:active{transform:scale(.97);}
-.coach-why .bal{font-weight:800;}
-.coach-why .bal.good{color:var(--ok);}
-.coach-why .bal.bad{color:var(--err);}
-
-/* ══════ Modello studente ══════ */
-#modelCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:14px 16px;box-shadow:var(--sh-sm);}
-@media (min-width:1100px){#modelCard{max-width:520px;}}
-#modelCard.ok{border-color:rgba(14,159,110,.4);}
-#modelCard.mid{border-color:rgba(217,119,6,.4);}
-#modelCard.no{border-color:rgba(229,72,77,.4);}
-.mc-hd{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:10px;border-bottom:1px solid var(--sep2);}
-.mc-hd small{display:block;font-size:9.5px;font-weight:800;color:var(--mu);letter-spacing:.06em;}
-.mc-hd b{font-size:34px;font-weight:860;letter-spacing:-.04em;color:var(--tx);font-variant-numeric:tabular-nums;line-height:1.05;}
-.mc-hd b span{font-size:15px;font-weight:750;color:var(--mu);}
-.mc-risk{text-align:right;}
-#modelCard.ok .mc-risk b{color:var(--ok);}
-#modelCard.mid .mc-risk b{color:var(--warn);}
-#modelCard.no .mc-risk b{color:var(--err);}
-.mc-sub{font-size:10.5px;color:var(--mu);font-weight:600;line-height:1.35;margin:8px 0 6px;}
-.mc-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;font-weight:650;color:var(--tx);}
-.mc-row span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mc-row b{min-width:34px;text-align:right;font-weight:800;font-size:12px;font-variant-numeric:tabular-nums;}
-.mc-bar{width:74px;height:7px;border-radius:4px;background:var(--fill2);overflow:hidden;flex-shrink:0;}
-.mc-bar i{display:block;height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
-.mc-bar.ok i{background:var(--ok);}
-.mc-bar.mid i{background:var(--warn);}
-.mc-bar.no i{background:var(--err);}
-.mc-tip{margin-top:10px;padding:10px 12px;background:var(--sab);border-radius:14px;font-size:12px;font-weight:700;color:var(--tx);line-height:1.4;cursor:pointer;}
-.mc-tip:active{opacity:.6;}
-
-/* ══════ Proiezione ══════ */
-#projCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:13px 16px;box-shadow:var(--sh-sm);}
-@media (min-width:1100px){#projCard{max-width:520px;}}
-.pj-hd{font-size:9.5px;font-weight:800;color:var(--mu);letter-spacing:.06em;}
-.pj-main{font-size:15px;font-weight:650;color:var(--tx);margin-top:5px;line-height:1.35;}
-.pj-main b{font-weight:850;color:var(--a);}
-.pj-sub{font-size:11.5px;color:var(--mu);font-weight:600;line-height:1.4;margin-top:5px;}
-
-/* ══════ Ottimizzatore ══════ */
-#optDelta{margin:4px 16px 12px;padding:12px 14px;background:var(--sab);border-radius:16px;font-size:13px;font-weight:650;color:var(--tx);text-align:center;}
-#optDelta b{font-weight:850;color:var(--ok);}
-
-/* ══════ Home 2.0: stato a schede ══════ */
-#stateCard{width:100%;max-width:460px;margin:14px auto 0;}
-@media (min-width:1100px){#stateCard{max-width:520px;}}
-.st-seg{display:flex;gap:4px;padding:4px;background:var(--fill3);border-radius:16px;margin-bottom:8px;}
-.st-tab{flex:1;padding:9px 6px;border:none;border-radius:12px;background:transparent;color:var(--mu);font-size:12.5px;font-weight:750;cursor:pointer;transition:background .22s,color .22s;}
-.st-tab.on{background:var(--card);color:var(--tx);font-weight:820;box-shadow:var(--sh-sm);}
-.st-tab.off{opacity:.35;pointer-events:none;}
-.st-pane{display:none;animation:fadeUp .28s ease both;}
-.st-pane.on{display:block;}
-/* le card dentro le schede: stesso ritmo, niente margini doppi */
-.st-pane>div{margin-top:0!important;margin-bottom:8px;}
-.st-pane>div:last-child{margin-bottom:0;}
-/* intestazioni armonizzate tra modello, proiezione e spirale */
-.mc-hd small,.pj-hd,.sp-hd{font-size:9.5px!important;font-weight:800!important;letter-spacing:.06em!important;color:var(--mu)!important;text-transform:uppercase;}
-#modelCard,#projCard,#spiralCard,#examLight .xl{border-radius:22px;}
-/* l'azione sale: più aria sopra il bottone, meno sotto */
-.smart-btn{margin-top:16px!important;}
-@media (prefers-reduced-motion:reduce){.st-pane{animation:none;}}
-
-/* ══════ Modello topografia ══════ */
-#topoCard{width:100%;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:14px 16px;box-shadow:var(--sh-sm);margin-top:8px;}
-.tp-row{cursor:pointer;}
-.tp-row:active{opacity:.6;}
-.tp-nere{margin-top:9px;padding-top:9px;border-top:1px solid var(--sep2);font-size:11.5px;color:var(--mu);font-weight:600;line-height:1.45;}
-.tp-nere b{color:var(--tx);font-weight:800;}
-
-/* ═══════════════════════════════════════════════════
-   REDESIGN v3 — sistema di movimento unico per tutta l'app
-   ═══════════════════════════════════════════════════ */
-
-/* ── grammatica del movimento: 3 curve, 3 durate, usate ovunque ── */
-.rd{
---e-soft:cubic-bezier(.22,1,.36,1);      /* uscite morbide */
---e-spring:cubic-bezier(.34,1.5,.64,1);  /* tocchi elastici */
---e-smooth:cubic-bezier(.4,0,.2,1);      /* transizioni neutre */
---d1:140ms;--d2:240ms;--d3:380ms;
-}
-
-/* ── 1 · TOCCO UNIFICATO: tutto risponde con la stessa molla ── */
-.rd :where(button,.sr,.coach-row,.qtile,.sd-tile,.home-card,.tg-card,.qans,.st-tab,.sp-row,.tp-row,.mc-tip,.rdb-via,.qpill){
-transition:transform var(--d1) var(--e-spring),opacity var(--d2) var(--e-smooth),
-background var(--d2) var(--e-smooth),border-color var(--d2) var(--e-smooth),
-box-shadow var(--d3) var(--e-soft),filter var(--d2) var(--e-smooth);
-}
-.rd :where(button,.sr,.coach-row,.qtile,.sd-tile,.home-card,.tg-card,.qans):active{transform:scale(.975);}
-.rd :where(.st-tab,.sp-row,.tp-row,.mc-tip,.rdb-via):active{transform:scale(.985);}
-/* le card grandi si sollevano appena, invece di schiacciarsi */
-.rd :where(.home-card,.qtile,.sd-tile):active{transform:scale(.985) translateY(1px);}
-
-/* ── 2 · INGRESSO CORALE: i blocchi entrano a cascata, non tutti insieme ── */
-@keyframes rvIn{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
-.rv{opacity:0;animation:rvFail 0s linear 2.5s forwards;}/*[FIX 1000] rete di sicurezza: mai contenuto invisibile*/
-@keyframes rvFail{to{opacity:1;}}
-.rv.rv-in{animation:rvIn var(--d3) var(--e-soft) both;animation-delay:calc(var(--i,0) * 45ms);}
-
-/* ── 3 · SUPERFICI: ombre a due livelli, più morbide e più vere ── */
-.rd{
---sh-sm:0 1px 2px rgba(16,20,35,.04),0 2px 6px rgba(16,20,35,.05);
---sh-md:0 2px 6px rgba(16,20,35,.05),0 8px 20px rgba(16,20,35,.06);
---sh-xl:0 6px 18px rgba(16,20,35,.08),0 24px 56px rgba(16,20,35,.12);
-}
-.rd.dark{
---sh-sm:0 1px 2px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.25);
---sh-md:0 3px 10px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.3);
---sh-xl:0 8px 24px rgba(0,0,0,.45),0 28px 64px rgba(0,0,0,.5);
-}
-@media (hover:hover){
-.rd :where(.home-card,.qtile,.sd-tile,#modelCard,#projCard,#topoCard,#spiralCard):hover{
-transform:translateY(-2px);box-shadow:var(--sh-md);
-}
-}
-
-/* ── 4 · BARRE E ANELLI: crescono, non appaiono ── */
-.tg-bar i,.mc-bar i,.qarg-box::after,.prog-bar i,.ready-fill{
-transition:width var(--d3) var(--e-soft),background var(--d2) var(--e-smooth) !important;
-}
-
-/* ── 5 · SEGMENTI E PILLOLE: scorrono ── */
-.st-tab.on{transition:background var(--d2) var(--e-soft),color var(--d1) linear;}
-.seg-btn{transition:color var(--d2) var(--e-smooth),background var(--d2) var(--e-soft);}
-#tabPill{transition:left var(--d3) var(--e-spring),width var(--d3) var(--e-spring),top var(--d2) var(--e-soft),height var(--d2) var(--e-soft),opacity var(--d2);}
-
-/* ── 6 · QUIZ: le risposte entrano sfalsate, la domanda respira ── */
-@keyframes ansIn{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
-#qRunAns .qans{animation:ansIn var(--d2) var(--e-soft) both;}
-#qRunAns .qans:nth-child(2){animation-delay:40ms}
-#qRunAns .qans:nth-child(3){animation-delay:80ms}
-#qRunAns .qans:nth-child(4){animation-delay:120ms}
-@keyframes qIn{from{opacity:0;transform:translate3d(0,-6px,0)}to{opacity:1;transform:none}}
-#qRunQ{animation:qIn var(--d2) var(--e-soft) both;}
-
-/* ── 7 · MODALI E FOGLI: salgono invece di apparire ── */
-@keyframes sheetUp{from{opacity:0;transform:translate3d(0,26px,0) scale(.98)}to{opacity:1;transform:none}}
-.mbox,.gm-card,.ec-card,.bail-card,.rr-card,#routeDebrief .rdb{animation:sheetUp var(--d3) var(--e-soft) both !important;}
-.modal,#greenMoment,#errCover,#bailSheet,#rereadOv{animation:fadeIn var(--d2) var(--e-smooth) both;}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-/* ── 8 · SCHELETRI: niente più salti di numeri al caricamento ── */
-@keyframes shimmer{0%{background-position:-380px 0}100%{background-position:380px 0}}
-.skl{background:linear-gradient(90deg,var(--fill3) 25%,var(--fill2) 50%,var(--fill3) 75%);
-background-size:760px 100%;animation:shimmer 1.3s linear infinite;border-radius:14px;color:transparent!important;}
-
-/* ── 9 · RITMO: spaziature su una scala unica ── */
-.rd #homeScreen>*+*{margin-top:14px;}
-.rd #homeScreen>.home-card{margin-top:10px;}
-.rd #coachCard{margin-top:18px;}
-
-/* ── 10 · la mappa non partecipa mai alle animazioni (resta fluida) ── */
-body:not(.on-topo) .leaflet-container *{animation:none!important;}/*[FIX 1000] in mappa il pin deve pulsare: si spegne solo fuori scena*/
-
-@media (prefers-reduced-motion:reduce){
-.rv,.rv.rv-in,#qRunAns .qans,#qRunQ,.mbox,.gm-card,.ec-card,.bail-card,.rr-card,#routeDebrief .rdb,.modal,.skl{animation:none!important;opacity:1!important;}
-}
-.coach-why .cons{color:var(--a);font-weight:750;}
-`;
-}catch(e){}
-})();
-
-/* ═══════════════════════════════════════════════════
-   ADDON DESIGN v1 — solo agganci esterni, core intatto
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 4 · colori semantici degli argomenti (dash + analisi risultato) ── */
 function paintCats(){
 try{
 if(typeof QARG==='undefined')return;
@@ -509,8 +16,6 @@ if(QARG[i]&&map[QARG[i].id])el.classList.add(map[QARG[i].id]);
 try{var _rd=renderDash;renderDash=function(){_rd();paintCats();};}catch(e){}
 try{var _rr=renderResult;renderResult=function(a,b,c,d){_rr(a,b,c,d);paintCats();};}catch(e){}
 try{var _rt=renderTopics;renderTopics=function(){_rt();paintCats();};}catch(e){}
-
-/* ── 17 · SCIA DORATA: al completamento, il percorso si ridisegna in oro ── */
 try{
 var _rc=routeCelebrate;
 routeCelebrate=function(){
@@ -538,14 +43,11 @@ setTimeout(function(){try{map.removeLayer(poly);}catch(e){}},650);
 },2100);
 }catch(e){try{map.removeLayer(poly);}catch(e2){}}
 });
-/* se cambi percorso durante lo spettacolo, si pulisce subito */
 var _guard=selectRoute;
 selectRoute=function(r){try{if(poly&&map)map.removeLayer(poly);}catch(e){}selectRoute=_guard;_guard(r);};
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 18 · momento "PRONTO" — una sola volta, quando il semaforo diventa verde ── */
 window.showGreenMoment=function(){
 try{
 if(document.getElementById('greenMoment'))return;
@@ -571,19 +73,9 @@ setTimeout(window.showGreenMoment,600);
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON COACH 2.0 — curva personale, coda a rischio, saper mollare
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 1 · CURVA DELL'OBLIO PERSONALE ──
-Gli intervalli di ripasso (1/3/7 giorni per gli errori, 2/4/9/21/45 per i percorsi)
-si TARANO su di te: ritenzione alta → intervalli più lunghi (meno ripassi inutili);
-ritenzione bassa → più corti (ripassi prima di dimenticare). */
 function _mul(){return lg('srMul',1);}
 try{
 var _qfM=qFinish;
@@ -604,7 +96,6 @@ if(Math.abs(m-1)>0.08)setTimeout(function(){toast2('🧠 Intervalli di ripasso t
 }catch(e){}
 };
 }catch(e){}
-/* applica il moltiplicatore agli intervalli di errori e percorsi */
 try{
 var _sm=srMark;
 srMark=function(id,correct){
@@ -625,7 +116,6 @@ if(e&&e.due>Date.now()&&m!==1){e.due=Date.now()+Math.round((e.due-Date.now())*m)
 }catch(e2){}
 };
 }catch(e){}
-/* riga informativa sotto il semaforo quando la taratura è attiva */
 try{
 var _relM=renderExamLight;
 renderExamLight=function(){
@@ -641,11 +131,6 @@ el.appendChild(d);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 3 · CODA UNICA A RISCHIO ──
-Ogni domanda ha un punteggio: errori storici, scadenze superate, età dell'ultima
-risposta giusta, argomento debole, mai vista, confusioni. La sessione pesca
-le più a rischio — una coda sola, sempre quella giusta. */
 window.qRisk=function(it){
 try{
 var id=it.id,now=Date.now(),r=0;
@@ -669,14 +154,12 @@ var items=QUIZ_ALL.map(function(it){return [qRisk(it)+Math.random()*0.6,it];})
 if(!items.length){toast2('Nessuna domanda');return;}
 startQuiz(qShuffle(items),opts||{mode:'study',title:'Sessione intelligente'});
 };
-/* il bottone "5 minuti" ora usa la coda a rischio (stessa durata, scelta migliore) */
 try{
 startMicro=function(){
 openQuiz();
 qStartRisk(8,{mode:'study',title:'Sessione 5 minuti',micro:true});
 };
 }catch(e){}
-/* riquadro "Sessione intelligente" in cima alle modalità del quiz */
 function injectSmartTile(){
 try{
 if(document.getElementById('smartTile'))return;
@@ -694,14 +177,8 @@ anchor.parentNode.insertBefore(b,anchor);
 try{
 var _rdS=renderDash;renderDash=function(){_rdS();injectSmartTile();};
 }catch(e){}
-
-/* ── 9 · SAPER MOLLARE ──
-4 errori di fila in una sessione di studio: il coach propone di fermarsi,
-senza drammi. Insistere nei giorni storti brucia motivazione, non fissa nulla. */
 var _wrongRun=0;
 try{
-/* [FIX errori] il trigger vive ora nel registro per-risposta (vedi Addon Errori):
-srMark scatta solo a fine sessione, quindi qui non deve fare nulla */
 }catch(e){}
 try{
 var _sq=startQuiz;
@@ -726,17 +203,10 @@ document.body.appendChild(s);
 hap('e');
 }catch(e){}
 }
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON FINAL POLISH — anello risultato, pillola dock, stati vuoti
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ── 1 · RISULTATO: grande anello centrale che si disegna ── */
 function ringify(ok,err,skip){
 try{
 var v=document.querySelector('#qResult .qres-verdict');if(!v)return;
@@ -769,8 +239,6 @@ try{
 var _rrP=renderResult;
 renderResult=function(ok,err,skip,timeout){_rrP(ok,err,skip,timeout);ringify(ok,err,skip);};
 }catch(e){}
-
-/* ── 2 · PILLOLA SCORREVOLE nel dock ── */
 function initPill(){
 try{
 var bar=document.getElementById('tabbar');if(!bar||document.getElementById('tabPill'))return;
@@ -795,13 +263,7 @@ window.addEventListener('orientationchange',function(){setTimeout(move,450);});
 }catch(e){}
 }
 setTimeout(initPill,700);
-
 })();
-
-
-/* [FIX 500-scene] il cambio tab passa da goHome per un istante: il report
-settimanale programmato lì poteva spuntare SOPRA la schermata Quiz.
-Ora esce solo se la home è davvero visibile. */
 (function(){
 'use strict';
 try{
@@ -815,17 +277,8 @@ _wr(force);
 };
 }catch(e){}
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON ERRORI — registrazione live, schede da 40, coach mirato
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── REGISTRO PER-RISPOSTA: il lavoro non si perde MAI più ──
-Ogni risposta finisce in un registro. Se termini normalmente, il conteggio
-ufficiale lo fa il core (registro scartato). Se ESCI a metà, il registro
-viene applicato: errori aggiornati, badge aggiornato, progresso salvato. */
 var _led=[],_ledDone=false;
 try{
 var _sqL=startQuiz;
@@ -847,7 +300,6 @@ for(var li=_led.length-1;li>=0;li--){if(_led[li].id===it.id){_led[li].ok=ok;brea
 return;
 }
 _led.push({id:it.id,cat:it.cat,ok:ok});
-/* saper mollare — ora LIVE, solo durante la sessione */
 if(Q.mode==='study'&&qCurView==='run'){
 if(ok)_wrongRunL=0;
 else{_wrongRunL++;if(_wrongRunL===4&&!Q._bail){Q._bail=true;showBail();}}
@@ -855,8 +307,6 @@ else{_wrongRunL++;if(_wrongRunL===4&&!Q._bail){Q._bail=true;showBail();}}
 }catch(e){}
 };
 }catch(e){}
-/* fine regolare: il core registra tutto, il registro si scarta.
-   E guardia anti doppio-conteggio: qFinish non può girare due volte sulla stessa sessione */
 try{
 var _qfL=qFinish;
 qFinish=function(t){
@@ -865,7 +315,6 @@ _qfL(t);
 if(qCurView==='result'){_ledDone=true;_led=[];}
 };
 }catch(e){}
-/* uscita a metà: applica il registro (stesse operazioni del conteggio ufficiale) */
 window.applyLedger=function(){
 try{
 if(_ledDone||!_led.length)return;
@@ -894,9 +343,6 @@ var _gtL=goTopografia;goTopografia=function(){applyLedger();_gtL();};
 var _osL=openStudy;openStudy=function(){applyLedger();_osL();};
 window.addEventListener('pagehide',function(){try{applyLedger();}catch(e){}});
 }catch(e){}
-
-/* ── SCHEDA ERRORI DA 40: mai più valanghe da 65 domande ──
-Ordine: prima gli scaduti (i più vecchi in cima), a parità le recidive. */
 try{
 var _qscE=qStartCat;
 qStartCat=function(cid){
@@ -917,7 +363,6 @@ var schede=Math.ceil(tot/40);
 startQuiz(deck,{mode:'study',title:schede>1?('Scheda errori · '+deck.length+' di '+tot):'Ripasso errori',scheda:true});
 };
 }catch(e){}
-/* a fine scheda: bottone "Prossima scheda" finché ci sono errori in scadenza */
 try{
 var _qfS=qFinish;
 qFinish=function(t){
@@ -938,10 +383,6 @@ box.insertBefore(b,box.firstChild);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── COACH MIRATO SUGLI ERRORI ──
-Non più "65 errori" e basta: quanti oggi, quanti arretrati,
-quale argomento li genera, e il piano a schede. */
 try{
 var _ctE=coachTasks;
 coachTasks=function(){
@@ -953,7 +394,6 @@ var now=Date.now(),ids=Object.keys(qtStats.err||{});
 var due=ids.filter(function(id){return srDue(id)<=now;});
 if(!due.length)return t;
 var old3=due.filter(function(id){return now-srDue(id)>3*86400000;}).length;
-/* argomento che genera più errori in scadenza */
 var byCat={};
 due.forEach(function(id){var it=QUIZ_ALL[id|0];if(it)byCat[it.cat]=(byCat[it.cat]||0)+1;});
 var topId=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];})[0];
@@ -968,22 +408,13 @@ task.sub=bits.length?bits.join(' · '):'La memoria li sta perdendo proprio oggi'
 return t;
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON COACH INTERATTIVO — 16 interventi quiz+topografia
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── (6) evidenziatore parole-trappola ── */
 var TRAP=/\b(NON|MAI|SEMPRE|SOLO|SOLTANTO|ESCLUSIVAMENTE|VIETATO|OBBLIGATORIO|TUTTI|NESSUN[OA]?)\b/gi;
 function trapify(txt){
 return esc(txt).replace(TRAP,function(m){return '<b class="trap">'+m+'</b>';});
 }
-
-/* ── (6)(8)(12) dentro il run: trappole evidenziate, puntino argomento, timer via in studio ── */
 try{
 var _qrr=qRenderRun;
 qRenderRun=function(){
@@ -992,7 +423,6 @@ try{
 var it=Q&&Q.items[Q.idx];if(!it)return;
 var q=document.getElementById('qRunQ');
 if(q)q.innerHTML=trapify(it.q);
-/* puntino colore-argomento accanto a "Domanda N" */
 var n=document.getElementById('qRunNum');
 if(n&&!n.querySelector('.qdot')){
 var i=QARG.findIndex(function(c){return c.id===it.cat;});
@@ -1001,14 +431,11 @@ if(i>=0){var d=document.createElement('span');d.className='qdot catd'+(i%4);n.ap
 var dd=n.querySelector('.qdot'),ii=QARG.findIndex(function(c){return c.id===it.cat;});
 if(dd&&ii>=0)dd.className='qdot catd'+(ii%4);
 }
-/* timer nascosto quando non c'è limite (studio): il tempo visibile mette fretta inutile */
 var clk=document.getElementById('qClock');
 if(clk){var cell=clk.closest('.cell');if(cell)cell.style.display=(Q.limit?'':'none');}
 }catch(e){}
 };
 }catch(e){}
-
-/* ── (2) "Rileggi": tocchi 👀 Letta male → la domanda si ri-mostra con le trappole accese ── */
 document.addEventListener('click',function(ev){
 try{
 var b=ev.target.closest('.why-chips button[data-w="l"]');
@@ -1022,8 +449,6 @@ document.body.appendChild(o);
 setTimeout(function(){try{o.remove();}catch(e){}},3400);
 }catch(e){}
 },true);
-
-/* ── (5) LE 3 DI IERI: il ripasso a 24h, l'intervallo più potente ── */
 try{
 var _ctY=coachTasks;
 coachTasks=function(){
@@ -1050,8 +475,6 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── (1) COPERTINA PRE-SCHEDA: 5 secondi di contesto prima del test ── */
 window.showErrCover=function(deck,title,launch){
 try{
 var byCat={};
@@ -1066,8 +489,6 @@ o.addEventListener('click',function(e){if(e.target===o){o.remove();launch();}});
 document.body.appendChild(o);
 }catch(e){launch();}
 };
-
-/* ── (4) RISCALDAMENTO PRE-SIMULAZIONE ── */
 function injectWarmup(){
 try{
 var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();});
@@ -1087,8 +508,6 @@ play.after(b);
 }catch(e){}
 }
 try{var _rdW=renderDash;renderDash=function(){_rdW();injectWarmup();};}catch(e){}
-
-/* ── (C) COACH POST-SIMULAZIONE: il perché del voto, con l'azione pronta ── */
 try{
 var _qfD=qFinish;
 qFinish=function(t){
@@ -1122,8 +541,6 @@ box.parentNode.insertBefore(d,box);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── (D) OBIETTIVO PER ARGOMENTO: tocca il punto debole → missione ── */
 document.addEventListener('click',function(ev){
 try{
 var el=ev.target.closest('#qSeen b');
@@ -1158,8 +575,6 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── (A)(10) DEBRIEF DEL PERCORSO + vie sbagliate ROSSE sulla mappa ── */
 var _wm0=null,_dbMarks=[];
 window.clearDbMarks=function(){try{_dbMarks.forEach(function(m){map.removeLayer(m);});}catch(e){}_dbMarks=[];};var clearDbMarks=window.clearDbMarks;
 try{
@@ -1189,11 +604,9 @@ var o=document.createElement('div');o.id='routeDebrief';
 if(!wrongs.length){
 o.innerHTML='<div class="rdb ok"><b>✨ Perfetto, nessuna via mancata</b><small>'+(nx?('Prossimo ripasso tra '+nx+' giorni'):'')+'</small></div>';
 }else{
-/* spirale accorciata: 3+ errori = lo rivedi tra 2 giorni, non tra 9 */
 if(wrongs.length>=3){try{rSR[cur.id]={box:1,due:Date.now()+2*86400000};ls('rSR',rSR);markDirty('prefs');nx=2;}catch(e){}}
 var names=wrongs.slice(0,6).map(function(i){return '<span class="rdb-via" data-i="'+i+'">'+(i+1)+'. '+esc(cur.steps[i])+'</span>';}).join('');
 o.innerHTML='<div class="rdb warn"><b>'+wrongs.length+' vie mancate</b><div class="rdb-list">'+names+'</div><small>Te le rimetto tra '+(nx||2)+' giorni · tocca una via per vederla</small></div>';
-/* pin ROSSI dove hai sbagliato: l\'errore va visto nel posto dove vive */
 clearDbMarks();
 wrongs.forEach(function(i){
 var c=coords[cur.id+'_'+i];
@@ -1212,8 +625,6 @@ setTimeout(function(){try{o.remove();clearDbMarks();}catch(e){}},wrongs.length?1
 }catch(e){}
 };
 }catch(e){}
-
-/* ── (B) VIE NERE TRASVERSALI: la via che sbagli in più percorsi ── */
 try{
 var _ctV=coachTasks;
 coachTasks=function(){
@@ -1244,8 +655,6 @@ t.sort(function(a,b){return a.p-b.p;});t=t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── (1) aggancio copertina alla scheda errori esistente ── */
 try{
 var _qscC=qStartCat;
 qStartCat=function(cid){
@@ -1266,12 +675,7 @@ var title=Math.ceil(tot/40)>1?('Scheda errori · '+deck.length+' di '+tot):'Ripa
 showErrCover(deck,title,function(){startQuiz(deck,{mode:'study',title:title,scheda:true});});
 };
 }catch(e){}
-
 })();
-
-/* [FIX 2000] gli overlay contestuali muoiono col cambio scena:
-il debrief appartiene alla mappa, la copertina al quiz — se navighi
-altrove spariscono invece di galleggiare sulla scena sbagliata. */
 (function(){
 'use strict';
 function _killTopoOv(){try{var d=document.getElementById('routeDebrief');if(d)d.remove();}catch(e){}try{if(typeof clearDbMarks==='function')clearDbMarks();}catch(e){}}
@@ -1283,10 +687,6 @@ var _osO=openStudy;openStudy=function(){_killTopoOv();_killQuizOv();_osO();};
 var _gtO=goTopografia;goTopografia=function(){_killQuizOv();_gtO();};
 }catch(e){}
 })();
-
-
-/* [FIX quiz] la ✕ del run diceva "i progressi andranno persi" — non è più vero:
-il registro per-risposta li salva. Testo onesto, stesso comportamento. */
 (function(){
 'use strict';
 try{
@@ -1300,23 +700,15 @@ renderDash();showQView('dash');
 };
 }catch(e){}
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON HOME — suggerimenti vivi + countdown esame grande
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── SUGGERIMENTI: pool triplo + personali, uno DIVERSO a ogni apertura ── */
 var TIPS2=[
-/* metro */
 'Centrale FS: interscambio M2 Verde ↔ M3 Gialla',
 'Loreto: interscambio M1 Rossa ↔ M2 Verde',
 'Porta Garibaldi: M2 ↔ M5 Lilla, più i treni regionali',
 'Lotto: interscambio M1 Rossa ↔ M5 Lilla',
 'Sant\u2019Ambrogio: interscambio M2 Verde ↔ M4 Blu',
 'Zara: interscambio M3 Gialla ↔ M5 Lilla',
-/* strade */
 'A4 Torino\u2013Venezia: l\u2019asse nord di Milano',
 'L\u2019A1 del Sole parte verso Bologna dall\u2019uscita di Melegnano',
 'A7 per Genova: esce da Milano a sud-ovest',
@@ -1325,17 +717,14 @@ var TIPS2=[
 'SS35 dei Giovi: la direttrice della Comasina verso Meda',
 'A8 dei Laghi: parte dalla barriera di Milano Nord verso Varese',
 'A50, A51, A52: Ovest, Est, Nord — le tre tangenziali in ordine',
-/* regole d\u2019esame */
 '16 domande in 30 minuti: 1 minuto e 52 secondi l\u2019una',
 'Rileggi sempre le domande con NON, MAI e SOLO: è lì che si cade',
 'Max 2 errori per argomento: un argomento debole boccia da solo',
-/* metodo */
 'Gli errori di ieri ripassati oggi si fissano il doppio',
 'Il Cieco è il vero test: lo Studio serve solo a costruire la mappa',
 'Sbagliare qui è gratis. Sbagliare all\u2019esame no: sbaglia adesso',
 'Meglio chiudere una scheda errori che aprire dieci argomenti',
 'Ripetere ad alta voce le vie in ordine: all\u2019orale conta la sequenza',
-/* app */
 'Long-press su una via: vedi in quanti percorsi compare',
 '\u26a1 Riscaldamento prima della simulazione: 5 errori in 2 minuti',
 'Tocca il punto debole nel Quiz per lanciare una missione',
@@ -1374,8 +763,6 @@ el.textContent='\ud83d\udca1 '+pick;
 }catch(e){}
 };
 }catch(e){}
-
-/* ── COUNTDOWN ESAME grande e animato, gemello del traguardo ── */
 try{
 var _rpE=renderPlan;
 renderPlan=function(){
@@ -1395,18 +782,10 @@ else b.textContent=d;
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON HOME — suggerimenti a rotazione + card esame grande
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── suggerimenti: pool triplicato, uno DIVERSO a ogni apertura ── */
 var TIPS2=[
-/* metro — nodi di interscambio */
 'Loreto è interscambio M1 Rossa ↔ M2 Verde',
 'Centrale FS: M2 Verde ↔ M3 Gialla sotto la stazione',
 'Garibaldi FS è interscambio M2 ↔ M5 Lilla',
@@ -1416,7 +795,6 @@ var TIPS2=[
 'M5 Lilla: da Bignami a San Siro Stadio',
 'M4 Blu: da Linate a San Cristoforo, passa per San Babila',
 'M3 Gialla: da Comasina a San Donato',
-/* strade e autostrade */
 'Tangenziali: Est = A51, Ovest = A50, Nord = A52, Est Esterna = A58',
 'A50 Tangenziale Ovest: da Assago (A7) fino alla A8 verso Rho',
 'A50 Ovest: incrocia la SS494 Vigevanese e la A1 a sud',
@@ -1430,12 +808,10 @@ var TIPS2=[
 'A8/A9 dei Laghi partono dalla barriera di Milano Nord',
 'SS35 dei Giovi: la Milano\u2013Meda verso Como',
 'Naviglio Grande e Naviglio Pavese partono dalla Darsena',
-/* trappole d'esame */
 'Occhio a NON, SOLO e SEMPRE: metà degli errori nasce lì',
 'Leggi TUTTE le risposte: la prima "quasi giusta" è una trappola',
 'Se due risposte sembrano uguali, la differenza è in UNA parola',
 '16 domande, 4 argomenti: un argomento debole boccia da solo',
-/* metodo */
 'Gli errori di ieri ripassati oggi si fissano il doppio',
 'Il Cieco vale il doppio dello Studio: prima copri, poi ricorda',
 'Tieni premuto su una via: scopri in quanti percorsi compare',
@@ -1445,7 +821,6 @@ var TIPS2=[
 'Sbagliare in allenamento è il modo più veloce di imparare',
 'Tocca il punto debole nel Quiz: parte una missione 🎯'
 ];
-/* suggerimenti dai TUOI errori: la domanda che sbagli spesso diventa ripasso-lampo */
 function personalTips(){
 try{
 buildQuiz();
@@ -1481,8 +856,6 @@ el.textContent=_tipTxt;
 }catch(e){}
 };
 }catch(e){}
-
-/* ── card ESAME: gemella del traguardo — numero grande, contachilometri, respiro ── */
 function bigExam(){
 try{
 var btn=document.querySelector('.plan-exam');if(!btn)return;
@@ -1502,16 +875,9 @@ var _rpX=renderPlan;
 renderPlan=function(){_rpX();bigExam();};
 }catch(e){}
 setTimeout(bigExam,900);
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON "IL COACH TI HA VISTO" — ricalibrato sul tuo ritmo reale
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 1 · PRONTEZZA ONESTA: solo Quiz + Mappa (Luoghi escluso, come da tua regola) ── */
 try{
 window.readinessScore=function(){
 var qok=0,qseen=0;try{var c=qtStats.cat||{};Object.keys(c).forEach(function(k){qok+=c[k].ok||0;qseen+=c[k].seen||0;});}catch(e){}
@@ -1521,7 +887,6 @@ var topo=rtot?Math.round(rdone/rtot*100):0;
 return {score:Math.round(quiz*0.6+topo*0.4),quiz:quiz,flash:0,topo:topo};
 };
 }catch(e){}
-/* la riga sotto l'anello non nomina più Luoghi */
 try{
 var _rrH=renderReadiness;
 renderReadiness=function(){
@@ -1533,8 +898,6 @@ if(sm)sm.textContent='Quiz '+r.quiz+'% · Mappa '+r.topo+'%';
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 2 · GIRO COMPLETO + 9 · MODALITÀ DIFESA ── */
 window.showLapDone=function(){
 try{
 if(document.getElementById('lapDone'))return;
@@ -1562,7 +925,6 @@ w.innerHTML='<div class="tg-card defense" onclick="setExamDate()">'
 +'<div class="tg-hd"><b>'+(days!==null?days:'—')+'</b>'
 +'<div><strong>giorni all\u2019esame · 🛡️ modalità difesa</strong>'
 +'<small>Copertura completa ✓ — ora: ritenzione, simulazioni, recidive</small></div></div></div>';
-/* contachilometri anche qui: il numero verde rolla come gli altri */
 try{
 if(days!==null&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
 var db=w.querySelector('.tg-hd b');
@@ -1573,8 +935,6 @@ if(db){if(lastD!==undefined&&lastD!==days){db.textContent=String(lastD);countUp(
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 3+7+8 · COACH RICALIBRATO ── */
 try{
 var _ctR=coachTasks;
 coachTasks=function(){
@@ -1582,12 +942,10 @@ var t=_ctR();
 try{
 var ti=targetInfo();
 var now=Date.now();
-/* 7 · task da 1-2 errori = rumore: li copre la sessione 5 minuti */
 var due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=now;}).length;
 if(due>0&&due<3){
 t=t.filter(function(x){return x.ic!=='🔁';});
 }
-/* 3 · copertura alta ma poche simulazioni: la vera incognita ora è quella */
 var cov=ti?ti.pctQ:Math.round(Object.keys(qtStats.seenIds||{}).length/(QUIZ_ALL.length||919)*100);
 var simsW=(qExamHist||[]).filter(function(x){return x.d&&(now-x.d)<7*86400000;}).length;
 if(cov>=80&&simsW<2){
@@ -1595,7 +953,6 @@ var ex=t.find(function(x){return x.ic==='🎓';});
 if(ex){ex.p=0.8;ex.sub='Copertura al '+cov+'%: ora contano le simulazioni ('+simsW+' questa settimana, servono 2-3)';}
 else t.push({ic:'🎓',tx:'Simulazione d\u2019esame',sub:'Copertura al '+cov+'%: ora contano le simulazioni ('+simsW+' su 2-3 settimanali)',fn:function(){openQuiz();setTimeout(qStartExam,250);},p:0.8});
 }
-/* 8 · sei più veloce del piano: il coach propone di accorciare il traguardo */
 if(ti&&!ti.doneAll&&ti.days>21&&lg('tgFastDay','')!==new Date().toDateString()){
 var dd=qtStats.daily||{},sum=0;
 for(var i=1;i<=7;i++){var dt=new Date();dt.setDate(dt.getDate()-i);sum+=dd[_dayKey(dt)]||0;}
@@ -1618,16 +975,9 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON SPIRALE VISIBILE — i percorsi tornano nei giorni giusti, e si vede
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── registro completamenti (per il "percorso di ieri") ── */
 try{
 var _rcS=routeCelebrate;
 routeCelebrate=function(){
@@ -1639,12 +989,10 @@ if(!cur)return;
 var log=lg('rDoneLog',{});log[cur.id]=Date.now();
 var ks=Object.keys(log);if(ks.length>150){ks.sort(function(a,b){return log[a]-log[b];});delete log[ks[0]];}
 ls('rDoneLog',log);
-/* PRIMO completamento → primo ripasso DOMANI (24h), poi la spirale normale */
 if(firstTime&&rSR[cur.id]){
 rSR[cur.id].due=Date.now()+86400000;
 ls('rSR',rSR);markDirty('prefs');
 }
-/* catena: se ci sono ALTRI percorsi in scadenza, il debrief propone il prossimo */
 setTimeout(function(){
 try{
 var now=Date.now();
@@ -1666,15 +1014,12 @@ card.appendChild(b);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── coach: "il percorso di ieri" + scadenze in blocco ── */
 try{
 var _ctS=coachTasks;
 coachTasks=function(){
 var t=_ctS();
 try{
 var now=Date.now(),today=new Date().toDateString();
-/* percorso completato IERI → ripasso a 24h (come gli errori di ieri) */
 if(lg('rY1day','')!==today){
 var log=lg('rDoneLog',{});
 var yid=Object.keys(log).find(function(id){
@@ -1690,7 +1035,6 @@ setTimeout(function(){selectRoute(yr);setTimeout(function(){setMode('c');},250);
 },p:0.5});
 }
 }
-/* 2+ percorsi in scadenza → un task unico "in blocco" */
 var dueR=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
 if(dueR.length>=2){
 t=t.filter(function(x){return x.ic!=='🗺️';});
@@ -1706,8 +1050,6 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── LA CODA VISIBILE: card "Prossimi ripassi percorsi" in home ── */
 function renderSpiral(){
 try{
 var w=document.getElementById('planCard');if(!w)return;
@@ -1737,17 +1079,9 @@ try{
 var _rpS=renderPlan;
 renderPlan=function(){_rpS();renderSpiral();};
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON RECUPERO — numeri onesti + il coach capisce il debito
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 1 · FIX 107%: si contano solo le domande che esistono davvero ──
-seenIds accumula anche id di vecchie versioni del set: la copertura sballava sopra il 100. */
 try{
 var _tiF=targetInfo;
 targetInfo=function(){
@@ -1764,8 +1098,6 @@ ti.doneAll=(ti.seen>=ti.qT*0.98&&ti.pctR>=98);/* 98% = copertura di fatto comple
 return ti;
 };
 }catch(e){}
-
-/* ── 2 · IL DEBITO: quanto lavoro arretrato hai davvero ── */
 window.debtInfo=function(){
 try{
 buildQuiz();
@@ -1780,8 +1112,6 @@ return {open:ids.length,due:due.length,old3:old3,dueR:dueR,topId:topId,topN:byCa
 heavy:(due.length>=100||old3>=60)};
 }catch(e){return {open:0,due:0,old3:0,dueR:0,heavy:false};}
 };
-
-/* ── 3 · PILLOLA ONESTA: "In anticipo" non vale se hai 193 errori arretrati ── */
 try{
 var _rpD=renderPlan;
 renderPlan=function(){
@@ -1793,7 +1123,6 @@ if(pill&&d.due>=50){
 pill.className='tg-pill late';
 pill.textContent='Indietro sugli errori · '+d.due;
 }
-/* barra del debito sotto le due copertura */
 var card=document.querySelector('.tg-card');
 if(card&&!card.querySelector('.tg-debt')&&d.due>0){
 var pct=Math.min(100,Math.round(d.due/Math.max(1,d.open)*100));
@@ -1805,8 +1134,6 @@ if(rows.length)rows[rows.length-1].after(el);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 4 · MODALITÀ RECUPERO: copertura fatta + debito pesante = si cambia strategia ── */
 try{
 var _rcW=renderCoach;
 renderCoach=function(){
@@ -1823,8 +1150,6 @@ why.classList.add('why-alert');
 }catch(e){}
 };
 }catch(e){}
-
-/* ── 5 · COACH: priorità ribaltate quando il debito è pesante ── */
 try{
 var _ctD=coachTasks;
 coachTasks=function(){
@@ -1832,13 +1157,10 @@ var t=_ctD();
 try{
 var d=debtInfo();
 if(!d.heavy)return t;
-/* le nuove domande NON servono: la copertura è fatta, il problema è tenerla */
 t=t.filter(function(x){return x.ic!=='🆕'&&x.ic!=='⏩';});
-/* la scheda errori diventa la prima cosa, con il conto delle schede */
 var sc=t.find(function(x){return x.ic==='🔁';});
 if(sc){sc.p=0.2;}
 else t.unshift({ic:'🔁',tx:'Scheda errori 1 di '+Math.ceil(d.due/40)+' (40 alla volta)',sub:d.old3+' arretrati da 3+ giorni',fn:function(){openQuiz();setTimeout(function(){qStartCat('errata');},250);},p:0.2});
-/* missione automatica sull'argomento che genera il debito */
 if(d.topId&&d.topN>=40&&!lg('mission',null)){
 var arg=QARG.find(function(c){return c.id===d.topId;});
 if(arg){
@@ -1851,8 +1173,6 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── 6 · CODA PERCORSI: dire quanti e da quanto, non cinque volte "oggi" ── */
 try{
 var _rpQ=renderPlan;
 renderPlan=function(){
@@ -1867,18 +1187,9 @@ if(due.length)hd.innerHTML='🌀 Ripassi percorsi — <b class="sp-cnt">'+due.le
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON IMPARARE — gemelle, risposte mescolate, quasi-promossi
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 2 · RISPOSTE MESCOLATE: niente più "è la terza" ──
-Se l'ordine è fisso, dopo 3 ripassi memorizzi la posizione invece della regola.
-Ogni domanda riceve una permutazione diversa a ogni sessione. */
 try{
 var _sqM=startQuiz;
 startQuiz=function(items,opts){
@@ -1899,10 +1210,6 @@ return cp;
 _sqM(items,opts);
 };
 }catch(e){}
-
-/* ── 1 · DOMANDE GEMELLE: la regola, non la risposta ──
-Sbagli una domanda → ti mostro subito le altre che testano lo STESSO sotto-argomento.
-Se le sbagli tutte, il buco è la regola: quella impari, e ne copri quindici. */
 window.qStartTwins=function(it){
 try{
 buildQuiz();
@@ -1912,7 +1219,6 @@ var twins=qShuffle(pool).slice(0,4);
 startQuiz([it].concat(twins),{mode:'study',title:'La stessa regola, 5 modi'});
 }catch(e){}
 };
-/* il bottone appare nel riquadro "perché l'hai sbagliata" */
 document.addEventListener('click',function(ev){
 try{
 var chip=ev.target.closest('.why-chips button');
@@ -1933,10 +1239,6 @@ box.after(b);
 },120);
 }catch(e){}
 },true);
-
-/* ── 3 · PRIORITÀ AI QUASI-PROMOSSI ──
-Box 2 = una sola risposta giusta e l'errore è archiviato. Box 0 = ne servono tre.
-Mettendo davanti i quasi-promossi, la pila si svuota 2-3 volte più in fretta. */
 try{
 var _qscP=qStartCat;
 qStartCat=function(cid){
@@ -1960,8 +1262,6 @@ startQuiz(deck,{mode:'study',title:title,scheda:true});
 });
 };
 }catch(e){}
-
-/* ── bilancio del giorno: entrati vs usciti ── */
 try{
 var _smL=srMark;
 srMark=function(id,correct){
@@ -1991,20 +1291,12 @@ why.appendChild(s);
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON MODELLO STUDENTE — voto atteso, rischio reale, padronanza per tema
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
 var SUBLAB={geo_terr:'Geografia · territorio',geo_vie:'Geografia · vie e strade',
 norm_legge:'Normativa · legge',norm_aero:'Normativa · aeroporti',
 reg_com:'Regolamento · comunale',reg_dov:'Regolamento · doveri',lingua:'Inglese'};
-
-/* probabilità stimata di rispondere GIUSTO a una domanda, oggi */
 var _susp={};
 function pOk(it){
 try{
@@ -2039,7 +1331,6 @@ var over=dist[3]+dist[4];                                   /* 3+ errori in ques
 return {id:c.id,label:c.label,emoji:c.emoji,pErr:pe,dist:dist,over:over,expErr:4*pe};
 }).filter(Boolean);
 if(!cats.length)return null;
-/* probabilità di passare: nessun argomento oltre 2 errori E totale entro 4 */
 var pass=0;
 (function walk(i,sum,prob){
 if(prob<1e-9)return;
@@ -2048,7 +1339,6 @@ for(var k=0;k<=2;k++)walk(i+1,sum+k,prob*cats[i].dist[k]);
 })(0,0,1);
 var expErr=cats.reduce(function(a,c){return a+c.expErr;},0);
 var worst=cats.slice().sort(function(a,b){return b.over-a.over;})[0];
-/* padronanza per sotto-argomento */
 var subs={};
 QUIZ_ALL.forEach(function(x){
 if(!x.sub)return;
@@ -2063,8 +1353,6 @@ _mTs=Date.now();
 return _mCache;
 }catch(e){return null;}
 };
-
-/* ── card in home: voto atteso + rischio + il colpevole ── */
 function renderModel(){
 try{
 var anchor=document.getElementById('examLight');if(!anchor)return;
@@ -2093,8 +1381,6 @@ try{
 var _relM2=renderExamLight;
 renderExamLight=function(){_relM2();renderModel();};
 }catch(e){}
-
-/* ── coach: il tema più debole, non l'argomento generico ── */
 try{
 var _ctS2=coachTasks;
 coachTasks=function(){
@@ -2116,22 +1402,11 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON ERRORI 2.0 — carico livellato, graduazione per tipo, croniche
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
 var DAY=86400000;
 function dayIdx(ts){return Math.floor(ts/DAY);}
-
-/* ── 1 · LIVELLAMENTO DEL CARICO ──
-La causa vera degli ingorghi: 200 domande sbagliate lo stesso giorno tornano
-tutte insieme 1, 3 e 7 giorni dopo. Ora ogni scadenza viene spostata (±2 giorni)
-verso la giornata meno carica: la pila arriva distribuita, non a valanga. */
 function loadMap(){
 try{
 var m={};
@@ -2142,14 +1417,7 @@ var k=dayIdx(d);m[k]=(m[k]||0)+1;
 return m;
 }catch(e){return {};}
 }
-/* [TESTATO E SCARTATO] il livellamento del carico (spostare le scadenze verso
-i giorni meno pieni) è stato simulato su 30 giorni: ritarda le promozioni e la
-pila CRESCE (121 → 158 aperti). Resta identità: le scadenze non si toccano. */
 function smooth(due){return due;}
-
-/* ── 2 · GRADUAZIONE PER TIPO DI ERRORE ──
-👀 "letta male" = distrazione: due conferme bastano.
-🤷 "non la sapevo" = buco vero: serve la terza. */
 try{
 var _sm2=srMark;
 srMark=function(id,correct){
@@ -2164,16 +1432,11 @@ var distratto=(w.l||0)>(w.k||0);
 if(distratto&&(e.box||0)>=2){delete qtStats.err[id];return;}/* archiviata prima */
 e.due=smooth(e.due);
 }else if(!correct&&e&&typeof e==='object'){
-/* recidiva: chi cade da box alto torna a 0 ma con scadenza livellata */
 e.due=smooth(e.due+(preBox>=2?DAY:0));
 }
 }catch(e2){}
 };
 }catch(e){}
-
-/* ── 3 · LE CRONICHE ──
-Sbagliata 5+ volte = i ripassi non funzionano: è la regola che manca.
-Esce dalla pila (non intasa più) e passa alle gemelle. */
 window.chronicList=function(){
 try{
 buildQuiz();
@@ -2184,8 +1447,6 @@ if(wn[id]>=5&&QUIZ_ALL[id|0])out.push(QUIZ_ALL[id|0]);
 return out.sort(function(a,b){return wn[b.id]-wn[a.id];});
 }catch(e){return [];}
 };
-/* sospensione: una domanda sbagliata 5+ volte esce dalla pila (non la intasa più)
-finché non la affronti con le gemelle. Riabilitata da 2 risposte giuste. */
 try{
 var _smC=srMark;
 srMark=function(id,correct){
@@ -2216,8 +1477,6 @@ if(ch.length<3)return t;
 t.push({ic:'🩹',tx:ch.length+' domande croniche',sub:'Sbagliate 5+ volte: i ripassi non bastano, serve capire la regola',fn:function(){
 buildQuiz();
 var it=ch[0];
-/*[FIX 300] la sessione deve contenere LE croniche + le gemelle della stessa regola:
-prima pescava solo dal sotto-argomento e poteva escludere proprio le domande malate */
 var mine=ch.filter(function(x){return x.sub===it.sub;}).slice(0,5);
 var ids={};mine.forEach(function(x){ids[x.id]=1;});
 var twins=qShuffle(QUIZ_ALL.filter(function(x){return x.sub===it.sub&&!ids[x.id];})).slice(0,6);
@@ -2232,16 +1491,10 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
-/* ── 4 · LE GIUSTE-PER-FORTUNA ──
-Risposta corretta ma dopo 40 secondi: non la sai, la stai ricostruendo.
-Entra in pila come mezzo errore (box 2: una conferma e se ne va). */
 var _tShow=0;
 try{
 var _qrr2=qRenderRun;
 qRenderRun=function(){_qrr2();_tShow=Date.now();};
-/*[FIX 300] il tempo in background NON conta: tornando dall'app in pausa
-il cronometro riparte, altrimenti ogni ripresa diventava "giusta ma lenta" */
 document.addEventListener('visibilitychange',function(){
 if(document.visibilityState==='visible')_tShow=Date.now();
 });
@@ -2265,8 +1518,6 @@ toast2('⏳ Giusta ma lenta: la rivedi tra 3 giorni');
 }catch(e){}
 };
 }catch(e){}
-
-/* ── il coach spiega il livellamento quando serve ── */
 try{
 var _rc9=renderCoach;
 renderCoach=function(){
@@ -2285,13 +1536,7 @@ why.appendChild(s);
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-
-/* ── FRENO SULLE NUOVE (simulazione: pila 107 → 97) ──
-Sopra i 150 errori aperti ogni nuova domanda è debito di domani:
-le sessioni intelligenti smettono di pescarne finché non rientri. */
 (function(){
 'use strict';
 try{
@@ -2320,14 +1565,9 @@ _qsr(n,opts);
 };
 }catch(e){}
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON PROIEZIONE — la simulazione gira sui TUOI dati veri
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var DAY=86400000;
-
 function myPace(){
 try{
 var dd=qtStats.daily||{},v=[];
@@ -2393,7 +1633,6 @@ _pTs=Date.now();
 return _pCache;
 }catch(e){return null;}
 };
-
 function renderProj(){
 try{
 var anchor=document.getElementById('modelCard')||document.getElementById('examLight');
@@ -2424,18 +1663,9 @@ try{
 var _relP=renderExamLight;
 renderExamLight=function(){_relP();setTimeout(renderProj,60);};
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON OTTIMIZZATORE — il modello si tara, la sessione massimizza i punti
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-
-/* ── 1 · AUTOTARATURA: il modello impara quanto sbaglia se stesso ──
-Ogni simulazione confronta voto previsto e voto reale. Se il modello è
-sistematicamente ottimista o pessimista, si corregge (media mobile). */
 try{
 var _qfC=qFinish;
 qFinish=function(t){
@@ -2456,7 +1686,6 @@ setTimeout(function(){toast2('🎛 Modello tarato sui tuoi esami: '+(bias>0?'+':
 }catch(e){}
 };
 }catch(e){}
-/* la taratura entra nella card del voto atteso */
 try{
 var _smB2=studentModel;
 studentModel=function(){
@@ -2474,14 +1703,8 @@ m.tuned=b;
 return m;
 };
 }catch(e){}
-
-/* ── 2 · SESSIONE OTTIMALE: le domande che valgono più punti d'esame ──
-Non "le più a rischio": quelle che, imparate, abbassano di più la probabilità
-di essere respinti. Un errore in un argomento già sicuro vale poco; uno
-nell'argomento che ti boccia vale moltissimo. */
 function sensitivity(m){
 try{
-/* quanto cala il rischio bocciatura se l'errore-per-domanda di un argomento cala dell'1% */
 function failWith(cats){
 var pass=0;
 (function walk(i,sum,prob){
@@ -2528,7 +1751,6 @@ startQuiz(qShuffle(deck),{mode:'study',title:'Sessione ottimale',optimal:true});
 toast2('🎯 Le '+deck.length+' domande che valgono più punti d\u2019esame');
 }catch(e){qStartRisk(n||12);}
 };
-/* a fine sessione: quanto è calato davvero il rischio */
 try{
 var _qfO=qFinish;
 qFinish=function(t){
@@ -2549,7 +1771,6 @@ ls('optBefore',null);
 }catch(e){}
 };
 }catch(e){}
-/* riquadro nel quiz */
 try{
 var _rdO=renderDash;
 renderDash=function(){
@@ -2569,19 +1790,13 @@ anchor.parentNode.insertBefore(b,anchor);
 }catch(e){}
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON HOME 2.0 — azione prima, statistiche a schede
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var TABS=[{k:'p',lab:'Prontezza',ids:['readyCard','examLight']},
 {k:'r',lab:'Rischio',ids:['modelCard']},
 {k:'f',lab:'Proiezione',ids:['projCard']}];/*[FIX 300] spiralCard resta fuori: è azione, non statistica*/
 var active=0,busy=false;
-
 function build(){
 try{
 var home=document.getElementById('homeScreen');if(!home)return null;
@@ -2602,7 +1817,6 @@ try{hap();}catch(err){}
 return sc;
 }catch(e){return null;}
 }
-
 window.layoutHome=function(){
 if(busy)return;busy=true;
 try{
@@ -2613,14 +1827,12 @@ var coach=document.getElementById('coachCard');
 var btn=home.querySelector('.smart-btn');
 var week=document.getElementById('weekChart');
 var plan=document.getElementById('planCard');
-/* ordine: coach → azione → stato a schede → traguardo → settimana */
 if(coach&&btn&&coach.nextElementSibling!==btn)coach.after(btn);
 if(btn&&btn.nextElementSibling!==sc)btn.after(sc);
 else if(!btn&&!sc.parentNode)home.appendChild(sc);/*[FIX 300] senza il bottone restava orfano e se ne creava uno per render*/
 if(plan&&sc.nextElementSibling!==plan&&plan.parentNode===home)sc.after(plan);
 var sp=document.getElementById('spiralCard');
 if(sp&&plan&&plan.nextElementSibling!==sp&&sp.parentNode!==plan)plan.after(sp);
-/* ogni card statistica nella sua scheda */
 TABS.forEach(function(t,i){
 var pane=sc.querySelector('.st-pane[data-p="'+i+'"]');if(!pane)return;
 t.ids.forEach(function(id){
@@ -2628,7 +1840,6 @@ var el=document.getElementById(id);
 if(el&&el.parentNode!==pane)pane.appendChild(el);
 });
 });
-/* la scheda vuota non si può selezionare */
 sc.querySelectorAll('.st-tab').forEach(function(b,i){
 var pane=sc.querySelector('.st-pane[data-p="'+i+'"]');
 var empty=!pane||!pane.children.length;
@@ -2637,7 +1848,6 @@ if(empty&&i===active){active=0;
 sc.querySelectorAll('.st-tab').forEach(function(x,j){x.classList.toggle('on',j===0);});
 sc.querySelectorAll('.st-pane').forEach(function(x,j){x.classList.toggle('on',j===0);});}
 });
-/* settimana in fondo, prima delle card sezione */
 var firstSec=home.querySelector('.home-card');
 if(week&&firstSec&&week.nextElementSibling!==firstSec)firstSec.before(week);
 }catch(e){}
@@ -2654,17 +1864,10 @@ window[fn]=function(){var r=_o.apply(this,arguments);relayout();return r;};
 });
 try{var _gh9=goHome;goHome=function(){_gh9();relayout();};}catch(e){}
 setTimeout(relayout,1200);
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   ADDON MODELLO TOPOGRAFIA — rischio per percorso e vie che ti bocciano
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var DAY=86400000;
-
-/* probabilità di azzeccare UNA via, oggi */
 function pVia(r,i){
 try{
 var w=((qStats[r.id]||{}).wrong||{})[i]||0;
@@ -2696,7 +1899,6 @@ return {r:r,clean:p,worst:worst,wp:wp,n:r.steps.length};
 if(!rows.length)return null;
 rows.sort(function(a,b){return a.clean-b.clean;});
 var avg=rows.reduce(function(s,x){return s+x.clean;},0)/rows.length;
-/* vie problematiche su PIÙ percorsi: quelle valgono doppio */
 var byName={};
 routes.forEach(function(r){
 var wm=(qStats[r.id]||{}).wrong||{};
@@ -2713,8 +1915,6 @@ _tCache={avg:avg,rows:rows,nere:nere,rischio:rows.filter(function(x){return x.cl
 _tTs=Date.now();return _tCache;
 }catch(e){return null;}
 };
-
-/* card nella scheda Rischio, sotto il modello quiz */
 function renderTopo(){
 try{
 var pane=document.querySelector('#stateCard .st-pane[data-p="1"]');
@@ -2749,8 +1949,6 @@ try{
 var _relT=renderExamLight;
 renderExamLight=function(){_relT();setTimeout(renderTopo,90);};
 }catch(e){}
-
-/* coach: il percorso più a rischio, non quello a caso */
 try{
 var _ctT=coachTasks;
 coachTasks=function(){
@@ -2770,17 +1968,10 @@ return t.slice(0,4);
 return t;
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   REDESIGN v3 — regia delle animazioni (leggera, senza scatti)
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-
-/* ── ingresso corale: i blocchi entrano quando entrano in vista, sfalsati ── */
 var io=null;
 function observer(){
 if(io)return io;
@@ -2804,7 +1995,6 @@ els.forEach(function(el){
 if(el.classList.contains('rv'))return;
 el.classList.add('rv');
 el.style.setProperty('--i',(i++)%6);
-/* già in vista? entra subito, senza aspettare lo scroll */
 var r=el.getBoundingClientRect();
 if(r.top<window.innerHeight&&r.bottom>0)el.classList.add('rv-in');
 else o.observe(el);
@@ -2817,15 +2007,12 @@ var _rvN=0,_rvT=setInterval(function(){revealAll();
 if(++_rvN>20)clearInterval(_rvT);},3000);/*[FIX 2000] rete di sicurezza per 1 minuto, poi si spegne: non serve a vita*/
 function homeIn(){choreograph(document.getElementById('homeScreen'),'#coachCard,.smart-btn,#stateCard,#planCard,#spiralCard,#weekChart,.home-card');setTimeout(revealAll,1500);}
 function quizIn(){choreograph(document.getElementById('qDash'),'.qtile,.qcard-hero,.qerr-box');}
-
 try{
 var _gh10=goHome;goHome=function(){_gh10();setTimeout(homeIn,60);};
 var _oq3=openQuiz;openQuiz=function(){_oq3();setTimeout(quizIn,60);};
 var _rd10=renderDash;renderDash=function(){_rd10();setTimeout(quizIn,40);};
 }catch(e){}
 setTimeout(homeIn,1400);
-
-/* ── scheletri mentre i numeri non sono pronti ── */
 try{
 var first=!lg('seenOnce',false);
 if(first){
@@ -2837,8 +2024,6 @@ setTimeout(function(){el.classList.remove('skl');el.style.minHeight='';},900);}
 });
 }
 }catch(e){}
-
-/* ── cambio scheda nello stato: il contenuto scorre nella direzione giusta ── */
 try{
 setTimeout(function(){
 var sc=document.getElementById('stateCard');if(!sc)return;
@@ -2855,20 +2040,10 @@ last=i;
 });
 },1600);
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   FASE CONSOLIDAMENTO — scoperta dalla simulazione a 60 giorni
-   Svuotare la pila NON basta: il rischio si ferma al 13%. Quando gli errori
-   sono pochi, il tempo va sulle domande più deboli dell'argomento più rischioso.
-   Simulazione: rischio 13% → 1%, voto 13.5 → 14.8 in 60 giorni.
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 function dueCount(){try{var n=0,now=Date.now();Object.keys(qtStats.err||{}).forEach(function(id){if(srDue(id)<=now)n++;});return n;}catch(e){return 99;}}
-
-/* il bottone "5 minuti" passa al consolidamento quando la pila è sotto controllo */
 try{
 var _smC2=startMicro;
 startMicro=function(){
@@ -2882,8 +2057,6 @@ return;
 _smC2();
 };
 }catch(e){}
-
-/* il coach dichiara la fase e spiega perché */
 try{
 var _ctK=coachTasks;
 coachTasks=function(){
@@ -2914,18 +2087,11 @@ why.appendChild(s);
 };
 }catch(e){}
 })();
-
-/* ═══════════════════════════════════════════════════
-   SCHEDE — mista da 30 bilanciata + errori da 30, in catena
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var SIZE=30;
-
-/* ── memoria della tornata: non ripesca le domande già uscite ── */
 function seenRound(){try{return lg('mixRound',{})||{};}catch(e){return {};}}
 function saveRound(r){try{ls('mixRound',r);}catch(e){}}
-
 window.qStartMix=function(){
 try{
 buildQuiz();
@@ -2933,13 +2099,11 @@ var round=seenRound();
 var pool=QUIZ_ALL.filter(function(it){return !round[it.id];});
 var reset=false;
 if(pool.length<SIZE){round={};pool=QUIZ_ALL.slice();reset=true;saveRound(round);}
-/* bilanciamento: quota per argomento, come all'esame */
 var perCat=Math.floor(SIZE/QARG.length),deck=[];
 QARG.forEach(function(c){
 var sub=qShuffle(pool.filter(function(it){return it.cat===c.id;}));
 deck=deck.concat(sub.slice(0,perCat));
 });
-/* completa fino a 30 con quello che resta */
 if(deck.length<SIZE){
 var ids={};deck.forEach(function(it){ids[it.id]=1;});
 deck=deck.concat(qShuffle(pool.filter(function(it){return !ids[it.id];})).slice(0,SIZE-deck.length));
@@ -2952,8 +2116,6 @@ startQuiz(qShuffle(deck),{mode:'study',title:'Scheda mista · '+n+' di '+tn,mix:
 if(reset)toast2('🔄 Giro completato: si riparte da capo');
 }catch(e){}
 };
-
-/* ── riquadri nella dashboard del quiz ── */
 try{
 var _rdM=renderDash;
 renderDash=function(){
@@ -2976,7 +2138,6 @@ b.innerHTML='<div class="qtile-ic" style="background:rgba(36,71,214,.12)">🎲</
 +'<div class="qtile-ar">›</div>';
 anchor.parentNode.insertBefore(b,anchor);
 }
-/* la scheda errori porta il conteggio in evidenza */
 var eb=document.querySelector('#qDash [onclick="qStartCat(\'errata\')"] .qtile-tx small');
 if(eb){
 var now=Date.now(),due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=now;}).length;
@@ -2985,8 +2146,6 @@ if(due>0)eb.textContent=due+' in scadenza · schede da 30, in catena';
 }catch(e){}
 };
 }catch(e){}
-
-/* ── catena: a fine scheda, la prossima ── */
 try{
 var _qfM=qFinish;
 qFinish=function(t){
@@ -3005,8 +2164,6 @@ box.insertBefore(b,box.firstChild);
 }catch(e){}
 };
 }catch(e){}
-
-/* ── schede errori: da 40 a 30, per uniformità ── */
 try{
 var _qscM=qStartCat;
 qStartCat=function(cid){
@@ -3029,12 +2186,7 @@ startQuiz(deck,{mode:'study',title:title,scheda:true});
 });
 };
 }catch(e){}
-
 })();
-
-/* ═══════════════════════════════════════════════════
-   AGGIORNAMENTO AUTOMATICO — basta ricaricare due volte
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 try{
@@ -3045,27 +2197,19 @@ if(reloading)return;reloading=true;
 try{toast2('⬆️ Nuova versione: aggiorno…');}catch(e){}
 setTimeout(function(){try{location.reload();}catch(e){}},700);
 }
-/* il service worker nuovo ha preso il controllo → si ricarica da solo, una volta sola */
 navigator.serviceWorker.addEventListener('controllerchange',function(){reloadOnce('ctrl');});
 navigator.serviceWorker.addEventListener('message',function(ev){
 try{if(ev.data&&ev.data.t==='sw-updated'&&sessionStorage.getItem('swv')!==ev.data.v){
 sessionStorage.setItem('swv',ev.data.v);reloadOnce('msg');}}catch(e){}
 });
-/* controlla se c'è una versione nuova a ogni apertura e al ritorno dall'app */
 function checkUpdate(){try{navigator.serviceWorker.getRegistration().then(function(r){if(r)r.update();});}catch(e){}}
 setTimeout(checkUpdate,2500);
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkUpdate();});
-/* versione visibile: utile per capire cosa è davvero caricato */
 try{var _sc=document.querySelector('script[src*="addon.js"]');
 window.NCC_VER='addon '+((_sc&&_sc.src.match(/v=(\d+)/))?('v'+_sc.src.match(/v=(\d+)/)[1]):'?');}catch(e){window.NCC_VER='addon ?';}
 try{console.log('%c'+window.NCC_VER,'background:#2447D6;color:#fff;padding:2px 8px;border-radius:4px');}catch(e){}
 }catch(e){}
 })();
-
-/* ═══════════════════════════════════════════════════
-   RETE DI SICUREZZA CSS — se addon.css manca o è vecchio,
-   le card nuove restano leggibili invece di sfaldarsi
-   ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 setTimeout(function(){
