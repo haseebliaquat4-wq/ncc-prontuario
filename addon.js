@@ -2543,3 +2543,75 @@ startQuiz(deck,{mode:'study',title:title,scheda:true});
 }catch(e){}
 
 })();
+
+/* ═══════════════════════════════════════════════════
+   AGGIORNAMENTO AUTOMATICO — basta ricaricare due volte
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+if(!('serviceWorker' in navigator))return;
+var reloading=false;
+function reloadOnce(tag){
+if(reloading)return;reloading=true;
+try{toast2('⬆️ Nuova versione: aggiorno…');}catch(e){}
+setTimeout(function(){try{location.reload();}catch(e){}},700);
+}
+/* il service worker nuovo ha preso il controllo → si ricarica da solo, una volta sola */
+navigator.serviceWorker.addEventListener('controllerchange',function(){reloadOnce('ctrl');});
+navigator.serviceWorker.addEventListener('message',function(ev){
+try{if(ev.data&&ev.data.t==='sw-updated'&&sessionStorage.getItem('swv')!==ev.data.v){
+sessionStorage.setItem('swv',ev.data.v);reloadOnce('msg');}}catch(e){}
+});
+/* controlla se c'è una versione nuova a ogni apertura e al ritorno dall'app */
+function checkUpdate(){try{navigator.serviceWorker.getRegistration().then(function(r){if(r)r.update();});}catch(e){}}
+setTimeout(checkUpdate,2500);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkUpdate();});
+/* versione visibile: utile per capire cosa è davvero caricato */
+window.NCC_VER='addon v26 · cache ncc-v32';
+try{console.log('%c'+window.NCC_VER,'background:#2447D6;color:#fff;padding:2px 8px;border-radius:4px');}catch(e){}
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   RETE DI SICUREZZA CSS — se addon.css manca o è vecchio,
+   le card nuove restano leggibili invece di sfaldarsi
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+setTimeout(function(){
+try{
+var t=document.createElement('div');t.className='st-seg';t.style.position='absolute';t.style.visibility='hidden';
+document.body.appendChild(t);
+var ok=getComputedStyle(t).display==='flex';
+t.remove();
+if(ok)return;                       /* addon.css aggiornato: niente da fare */
+var css=document.createElement('style');css.id='addonFallback';
+css.textContent=
+'#stateCard{max-width:460px;margin:14px auto 0}'
++'.st-seg{display:flex;gap:4px;padding:4px;background:rgba(127,127,127,.12);border-radius:16px;margin-bottom:8px}'
++'.st-tab{flex:1;padding:9px 6px;border:none;border-radius:12px;background:transparent;font-size:12.5px;font-weight:750;cursor:pointer;color:inherit;opacity:.6}'
++'.st-tab.on{background:#fff;opacity:1;box-shadow:0 1px 3px rgba(0,0,0,.12)}'
++'.st-pane{display:none}.st-pane.on{display:block}'
++'#modelCard,#projCard,#topoCard,#spiralCard{max-width:460px;margin:8px auto 0;padding:14px 16px;border:1.5px solid rgba(127,127,127,.25);border-radius:22px;background:rgba(127,127,127,.05)}'
++'.mc-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:8px;border-bottom:1px solid rgba(127,127,127,.2)}'
++'.mc-hd small,.pj-hd,.sp-hd{display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;opacity:.6}'
++'.mc-hd b{font-size:30px;font-weight:850;line-height:1.1}.mc-hd b span{font-size:14px;opacity:.6}'
++'.mc-risk{text-align:right}'
++'.mc-sub{font-size:10.5px;opacity:.6;margin:8px 0 6px;line-height:1.35}'
++'.mc-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;font-weight:650}'
++'.mc-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
++'.mc-row b{min-width:34px;text-align:right;font-size:12px}'
++'.mc-bar{width:74px;height:7px;border-radius:4px;background:rgba(127,127,127,.2);overflow:hidden;flex-shrink:0}'
++'.mc-bar i{display:block;height:100%;border-radius:4px;background:#2447D6}'
++'.mc-bar.ok i{background:#0E9F6E}.mc-bar.mid i{background:#D97706}.mc-bar.no i{background:#E5484D}'
++'.mc-tip,.tp-nere{margin-top:9px;padding-top:9px;border-top:1px solid rgba(127,127,127,.2);font-size:11.5px;line-height:1.4}'
++'.pj-main{font-size:15px;font-weight:650;margin-top:5px;line-height:1.35}.pj-sub{font-size:11.5px;opacity:.6;margin-top:5px;line-height:1.4}'
++'.sp-row{display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid rgba(127,127,127,.15);font-size:14px;font-weight:600;cursor:pointer}'
++'.rv{opacity:1!important}';
+document.head.appendChild(css);
+try{console.warn('addon.css non aggiornato: stili di riserva attivi');}catch(e){}
+try{toast2('⚠️ addon.css è vecchio sul sito: ricaricalo su GitHub');}catch(e){}
+}catch(e){}
+},2000);
+})();
