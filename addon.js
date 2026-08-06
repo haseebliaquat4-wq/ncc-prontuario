@@ -1706,7 +1706,8 @@ try{
 var wn=(qtStats.wrongN||{})[id]||0;
 var susp=lg('chronSusp',{});
 if(!correct&&wn>=5&&!susp[id]){
-susp[id]=Date.now();ls('chronSusp',susp);
+susp[id]=Date.now();delete susp[id+'_ok'];/*[FIX 10k] niente residui dai tentativi precedenti*/
+ls('chronSusp',susp);
 delete qtStats.err[id];
 try{qtSave();updateTabBadge();}catch(e){}
 }else if(correct&&susp[id]){
@@ -1767,7 +1768,8 @@ try{
 if(!it||prev!==-1||!_tShow)return;
 if(Q&&Q.mode==='exam')return;                       /* in esame il tempo è già la prova */
 var sec=(Date.now()-_tShow)/1000;
-if(i===it.correct&&sec>40&&!qtStats.err[it.id]){
+var _sps={};try{_sps=lg('chronSusp',{})||{};}catch(e9){}
+if(i===it.correct&&sec>40&&!qtStats.err[it.id]&&!_sps[it.id]){/*[FIX 10k] le sospese non rientrano di nascosto*/
 qtStats.err[it.id]={box:2,due:smooth(Date.now()+3*DAY)};
 try{qtSave();}catch(e){}
 toast2('⏳ Giusta ma lenta: la rivedi tra 3 giorni');
@@ -2364,6 +2366,180 @@ pane.style.animation='rvIn var(--d2) var(--e-soft) both';
 last=i;
 });
 },1600);
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   FASE CONSOLIDAMENTO — scoperta dalla simulazione a 60 giorni
+   Svuotare la pila NON basta: il rischio si ferma al 13%. Quando gli errori
+   sono pochi, il tempo va sulle domande più deboli dell'argomento più rischioso.
+   Simulazione: rischio 13% → 1%, voto 13.5 → 14.8 in 60 giorni.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function dueCount(){try{var n=0,now=Date.now();Object.keys(qtStats.err||{}).forEach(function(id){if(srDue(id)<=now)n++;});return n;}catch(e){return 99;}}
+
+/* il bottone "5 minuti" passa al consolidamento quando la pila è sotto controllo */
+try{
+var _smC2=startMicro;
+startMicro=function(){
+try{
+if(dueCount()<20&&Object.keys(qtStats.seenIds||{}).length>=40){
+openQuiz();
+setTimeout(function(){qStartOptimal(8);},250);
+return;
+}
+}catch(e){}
+_smC2();
+};
+}catch(e){}
+
+/* il coach dichiara la fase e spiega perché */
+try{
+var _ctK=coachTasks;
+coachTasks=function(){
+var t=_ctK();
+try{
+var due=dueCount();
+if(due>=20||Object.keys(qtStats.seenIds||{}).length<40)return t;
+var m=(typeof studentModel==='function')?studentModel():null;
+if(!m)return t;
+t.unshift({ic:'💎',tx:'Consolidamento — 12 domande mirate',sub:'Pila sotto controllo: ora si abbassa il rischio ('+m.fail+'%) dove pesa di più'+(m.worst?(' · '+m.worst.label):''),fn:function(){openQuiz();setTimeout(function(){qStartOptimal(12);},250);},p:0.3});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+try{
+var _rcK=renderCoach;
+renderCoach=function(){
+_rcK();
+try{
+if(dueCount()>=20)return;
+var why=document.querySelector('.coach-why');if(!why||why.querySelector('.cons'))return;
+var s=document.createElement('span');s.className='cons';
+s.textContent=' · 💎 Fase consolidamento: gli errori non bastano più, ora contano le domande deboli.';
+why.appendChild(s);
+}catch(e){}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   SCHEDE — mista da 30 bilanciata + errori da 30, in catena
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var SIZE=30;
+
+/* ── memoria della tornata: non ripesca le domande già uscite ── */
+function seenRound(){try{return lg('mixRound',{})||{};}catch(e){return {};}}
+function saveRound(r){try{ls('mixRound',r);}catch(e){}}
+
+window.qStartMix=function(){
+try{
+buildQuiz();
+var round=seenRound();
+var pool=QUIZ_ALL.filter(function(it){return !round[it.id];});
+var reset=false;
+if(pool.length<SIZE){round={};pool=QUIZ_ALL.slice();reset=true;saveRound(round);}
+/* bilanciamento: quota per argomento, come all'esame */
+var perCat=Math.floor(SIZE/QARG.length),deck=[];
+QARG.forEach(function(c){
+var sub=qShuffle(pool.filter(function(it){return it.cat===c.id;}));
+deck=deck.concat(sub.slice(0,perCat));
+});
+/* completa fino a 30 con quello che resta */
+if(deck.length<SIZE){
+var ids={};deck.forEach(function(it){ids[it.id]=1;});
+deck=deck.concat(qShuffle(pool.filter(function(it){return !ids[it.id];})).slice(0,SIZE-deck.length));
+}
+deck.forEach(function(it){round[it.id]=1;});
+saveRound(round);
+var fatte=Object.keys(round).length,tot=QUIZ_ALL.length;
+var n=Math.ceil(fatte/SIZE),tn=Math.ceil(tot/SIZE);
+startQuiz(qShuffle(deck),{mode:'study',title:'Scheda mista · '+n+' di '+tn,mix:true});
+if(reset)toast2('🔄 Giro completato: si riparte da capo');
+}catch(e){}
+};
+
+/* ── riquadri nella dashboard del quiz ── */
+try{
+var _rdM=renderDash;
+renderDash=function(){
+_rdM();
+try{
+var anchor=document.getElementById('optTile')||document.getElementById('smartTile')
+||document.querySelector('#qDash [onclick="qStartNew()"]');
+if(!anchor)return;
+if(!document.getElementById('mixTile')){
+var round=seenRound(),fatte=Object.keys(round).length,tot=QUIZ_ALL.length;
+var rest=Math.max(0,tot-fatte);
+var b=document.createElement('button');
+b.id='mixTile';b.className='qtile';
+b.onclick=function(){qStartMix();};
+var _now=Date.now(),_due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=_now;}).length;
+var _sub=_due>100?('⚠️ Hai '+_due+' errori in scadenza: ogni scheda ne aggiunge')
+:('A caso da tutti gli argomenti'+(fatte?(' · '+rest+' non ancora uscite nel giro'):''));
+b.innerHTML='<div class="qtile-ic" style="background:rgba(36,71,214,.12)">🎲</div>'
++'<div class="qtile-tx"><strong>Scheda mista · 30 domande</strong><small>'+_sub+'</small></div>'
++'<div class="qtile-ar">›</div>';
+anchor.parentNode.insertBefore(b,anchor);
+}
+/* la scheda errori porta il conteggio in evidenza */
+var eb=document.querySelector('#qDash [onclick="qStartCat(\'errata\')"] .qtile-tx small');
+if(eb){
+var now=Date.now(),due=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=now;}).length;
+if(due>0)eb.textContent=due+' in scadenza · schede da 30, in catena';
+}
+}catch(e){}
+};
+}catch(e){}
+
+/* ── catena: a fine scheda, la prossima ── */
+try{
+var _qfM=qFinish;
+qFinish=function(t){
+_qfM(t);
+try{
+if(qCurView!=='result')return;
+var old=document.getElementById('nextMix');if(old)old.remove();
+if(!(lastQuiz&&lastQuiz.opts&&lastQuiz.opts.mix))return;
+var round=seenRound(),rest=Math.max(0,QUIZ_ALL.length-Object.keys(round).length);
+var box=document.querySelector('#qResult .qres-actions');if(!box)return;
+var b=document.createElement('button');
+b.id='nextMix';b.className='btn bp';
+b.textContent=rest>0?('🎲 Prossima scheda ('+rest+' rimaste)'):'🔄 Nuovo giro da capo';
+b.onclick=function(){qStartMix();};
+box.insertBefore(b,box.firstChild);
+}catch(e){}
+};
+}catch(e){}
+
+/* ── schede errori: da 40 a 30, per uniformità ── */
+try{
+var _qscM=qStartCat;
+qStartCat=function(cid){
+if(cid!=='errata'){_qscM(cid);return;}
+buildQuiz();
+var now=Date.now();
+var all=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=now;});
+if(all.length<5){_qscM(cid);return;}
+all.sort(function(a,b){
+var ea=qtStats.err[a.id],eb2=qtStats.err[b.id];
+var ba=(ea&&ea.box)||0,bb=(eb2&&eb2.box)||0;
+if(ba!==bb)return bb-ba;
+return srDue(a.id)-srDue(b.id);
+});
+var tot=all.length,deck=all.slice(0,SIZE);
+var quasi=deck.filter(function(it){var e=qtStats.err[it.id];return e&&e.box>=2;}).length;
+var title=tot>SIZE?('Scheda errori · '+SIZE+' di '+tot):'Ripasso errori';
+showErrCover(deck,title+(quasi?(' · '+quasi+' a un passo dall\u2019uscita'):''),function(){
+startQuiz(deck,{mode:'study',title:title,scheda:true});
+});
+};
 }catch(e){}
 
 })();
