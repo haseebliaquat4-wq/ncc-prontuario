@@ -3056,7 +3056,8 @@ function checkUpdate(){try{navigator.serviceWorker.getRegistration().then(functi
 setTimeout(checkUpdate,2500);
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkUpdate();});
 /* versione visibile: utile per capire cosa è davvero caricato */
-window.NCC_VER='addon v26 · cache ncc-v32';
+try{var _sc=document.querySelector('script[src*="addon.js"]');
+window.NCC_VER='addon '+((_sc&&_sc.src.match(/v=(\d+)/))?('v'+_sc.src.match(/v=(\d+)/)[1]):'?');}catch(e){window.NCC_VER='addon ?';}
 try{console.log('%c'+window.NCC_VER,'background:#2447D6;color:#fff;padding:2px 8px;border-radius:4px');}catch(e){}
 }catch(e){}
 })();
