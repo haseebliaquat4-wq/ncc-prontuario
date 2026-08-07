@@ -1,3 +1,490 @@
+/* ═══════════════════════════════════════════════════
+   STILE INCORPORATO — addon.css non esiste più sul sito:
+   tutto lo stile vive qui e viene applicato al caricamento.
+   ═══════════════════════════════════════════════════ */
+(function(){
+try{
+var s=document.getElementById('addonInline');
+if(!s){s=document.createElement('style');s.id='addonInline';document.head.appendChild(s);}
+s.textContent=`/* ═══════════════════════════════════════════════════
+   ADDON DESIGN v1 — sopra il core congelato
+   Rollback: commenta le 2 righe nell'index
+   ═══════════════════════════════════════════════════ */
+
+/* ── 1+2+3 · TIPOGRAFIA: scala a 6 livelli + numeri display + gerarchia ── */
+.rd{--t1:12px;--t2:14px;--t3:17px;--t4:21px;--t5:26px;--t6:34px;}
+.rd .home-title{font-size:var(--t6);}
+.rd .qcard-hero h2,.rd .sd-hero h2{font-size:var(--t5);}
+.rd .ptrow h2,.rd .qana-title{font-size:var(--t4);}
+.rd .qtile-tx strong,.rd .home-card .hc-tx strong{font-size:var(--t3);}
+.rd .coach-tx b,.rd .plan-tx strong,.rd .ready-tx strong{font-size:var(--t2);font-weight:800;color:var(--tx);}
+.rd .coach-tx small,.rd .plan-tx small,.rd .qtile-tx small,.rd .home-card .hc-tx small{font-size:var(--t1);color:var(--lbl2);}
+/* numeri protagonisti: peso display, tracking stretto */
+.rd .tg-hd>b,.rd .qres-stat b,.rd .qerr-num,.rd .ready-ring span,.rd .plan-card b{
+font-weight:860;letter-spacing:-.04em;font-variant-numeric:tabular-nums;
+}
+
+/* ── 4 · COLORE SEMANTICO DEGLI ARGOMENTI ── */
+.rd{--cat0:#0D9488;--cat1:#4F46E5;--cat2:#D97706;--cat3:#DB2777;}
+.catc0 .qtile-ic{background:rgba(13,148,136,.13)!important;}
+.catc1 .qtile-ic{background:rgba(79,70,229,.13)!important;}
+.catc2 .qtile-ic{background:rgba(217,119,6,.13)!important;}
+.catc3 .qtile-ic{background:rgba(219,39,119,.13)!important;}
+.qarg-box.catc0{border-left:4px solid var(--cat0);}
+.qarg-box.catc1{border-left:4px solid var(--cat1);}
+.qarg-box.catc2{border-left:4px solid var(--cat2);}
+.qarg-box.catc3{border-left:4px solid var(--cat3);}
+.qtop-group.catc0{color:var(--cat0);}.qtop-group.catc1{color:var(--cat1);}
+.qtop-group.catc2{color:var(--cat2);}.qtop-group.catc3{color:var(--cat3);}
+
+/* ── 5 · DARK: terzo livello di superficie ── */
+.rd.dark{--card2:#1B2130;}
+.rd.dark .coach-ic,.rd.dark .qerr-box,.rd.dark .qrun-meta,.rd.dark .ord-slot,.rd.dark .qtop-emoji{background:var(--card2);}
+.rd.dark .coach-row:active{background:var(--card2);}
+
+/* ── 6+12 · DIETA DEL ROSSO + pesi giusti nel quiz run ── */
+.rd .qrun-x{border-color:var(--bd);color:var(--mu);} /* la ✕ è solo "indietro": non deve urlare */
+.rd .qrun-end{box-shadow:0 6px 18px rgba(36,71,214,.38);font-weight:800;}
+/* "le più sbagliate": ambra, non rosso (il rosso resta a errori veri e semaforo) */
+#qDash [onclick="qStartHard()"] .qtile-ic{background:rgba(217,119,6,.13)!important;color:var(--warn)!important;}
+
+/* ── 7 · micro-lucido sulle pastiglie icona ── */
+.qtile-ic,.coach-ic,.sd-tile-ic,.home-card .hc-ic{position:relative;overflow:hidden;}
+.qtile-ic::after,.coach-ic::after,.sd-tile-ic::after,.home-card .hc-ic::after{
+content:'';position:absolute;inset:0;pointer-events:none;
+background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 55%);
+}
+.rd.dark .qtile-ic::after,.rd.dark .coach-ic::after,.rd.dark .sd-tile-ic::after,.rd.dark .home-card .hc-ic::after{
+background:linear-gradient(160deg,rgba(255,255,255,.08),transparent 55%);
+}
+
+/* ── 8 · griglia 4px sui contenitori chiave ── */
+.rd .coach{padding:8px;}
+.rd .coach-row{padding:12px;gap:12px;}
+.rd .qtile,.rd .sd-tile{padding:16px;gap:16px;}
+.rd .tg-card{padding:16px;}
+.rd .plan-card,.rd .ready-card{padding:16px;}
+.rd .brow{gap:8px;}
+
+/* ── 9 · ritmo della home: stato compatto, azioni staccate ── */
+#examLight{margin-top:8px;}
+#coachCard{margin-top:20px;}
+.smart-btn{margin-top:20px;}
+#weekChart{margin-top:12px;}
+#planCard{margin-top:8px;}
+
+/* ── 10 · allineamento ottico icone ── */
+.coach-ic svg,.qtile-ic svg{transform:translateY(.5px);}
+
+/* ── 11 · pillole quiz → barra segmentata ── */
+.qrun-pills{padding:7px 8px;gap:3px;align-items:center;border-radius:16px;}
+.qpill{flex:1;min-width:8px;height:10px;border-radius:5px;font-size:0;padding:0;background:var(--fill2);transition:height .2s,background .2s,flex .2s;}
+.qpill.ans{background:var(--a);}
+.qpill.good{background:var(--ok);}
+.qpill.bad{background:var(--err);}
+.qpill.cur{flex:1.6;height:22px;min-width:26px;font-size:12px;font-weight:800;background:var(--card);border:2px solid var(--a);color:var(--a);border-radius:8px;}
+.qpill.ans.cur{background:var(--card);color:var(--a);}
+
+/* ── 13 · ricerca e chip alla stessa altezza esatta ── */
+#sb{height:46px;padding-top:0;padding-bottom:0;}
+
+/* ── 14 · ingresso morbido dei blocchi di stato ── */
+#readyCard,#examLight,#planCard{animation:fadeUp .4s ease both;}
+
+/* ── 15 · Ordina le vie: allineato al design attuale ── */
+.ord-slot{background:var(--fill3);border:1.5px dashed var(--bd);border-radius:14px;min-height:44px;font-size:13.5px;display:flex;align-items:center;}
+.ord-slot.done{background:rgba(14,159,110,.09);border:1.5px solid rgba(14,159,110,.45);color:var(--tx);font-weight:650;}
+.ord-btn{border-radius:16px;padding:13px 15px;font-size:14px;box-shadow:var(--sh-sm);}
+.ord-btn.ok{opacity:.3;}
+
+/* ── 16 · texture firma: la curva del logo, quasi invisibile ── */
+.rd .qcard-hero::before,.rd .sd-hero::before{
+content:'';position:absolute;inset:-10%;pointer-events:none;opacity:.06;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M17 50C17 38 27 41 32 32c3.5-6.3.5-11-4-11' stroke='%23fff' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+background-size:120px 120px;background-repeat:repeat;transform:rotate(-8deg);
+}
+
+/* ── 17 · scia dorata (classe usata dall'addon.js) ── */
+.gold-run{filter:drop-shadow(0 0 8px rgba(255,214,10,.85));}
+
+/* ── 18 · momento "verde per la prima volta" ── */
+#greenMoment{position:fixed;inset:0;z-index:8500;background:rgba(7,10,20,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.gm-card{background:var(--card);border:1.5px solid rgba(14,159,110,.5);border-radius:28px;padding:30px 24px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(14,159,110,.25);animation:popIn .4s cubic-bezier(.34,1.3,.5,1);}
+.gm-card .gm-e{font-size:56px;}
+.gm-card h2{font-size:26px;font-weight:850;color:var(--ok);margin:10px 0 8px;letter-spacing:-.02em;}
+.gm-card p{font-size:14px;color:var(--mu);line-height:1.5;font-weight:550;}
+.gm-card button{width:100%;margin-top:18px;padding:15px;border:none;border-radius:16px;background:var(--ok);color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+
+@media (prefers-reduced-motion:reduce){
+#readyCard,#examLight,#planCard{animation:none;}
+.gm-card{animation:none;}
+}
+
+/* [FIX 500] le pillole-segmento sono alte 10px: l'area di TOCCO si espande
+in verticale (invisibile) così saltare a una domanda resta facile col dito */
+.qpill{position:relative;}
+.qpill::before{content:'';position:absolute;left:0;right:0;top:-10px;bottom:-10px;}
+
+/* ══════ Coach 2.0 ══════ */
+.srmul-line{margin-top:6px;text-align:center;font-size:11px;font-weight:700;color:var(--mu);}
+#bailSheet{position:fixed;inset:0;z-index:8600;background:rgba(7,10,20,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.bail-card{background:var(--card);border:1.5px solid var(--bd);border-radius:26px;padding:26px 22px;max-width:360px;width:100%;text-align:center;box-shadow:var(--sh-xl);animation:popIn .35s cubic-bezier(.34,1.2,.5,1);}
+.bail-card .bail-e{font-size:44px;}
+.bail-card b{display:block;font-size:19px;font-weight:820;color:var(--tx);margin:10px 0 8px;letter-spacing:-.02em;}
+.bail-card p{font-size:13.5px;color:var(--mu);line-height:1.5;font-weight:550;}
+.bail-row{display:flex;gap:10px;margin-top:18px;}
+.bail-row button{flex:1;padding:14px 10px;border:none;border-radius:16px;font-size:14.5px;font-weight:800;cursor:pointer;}
+.bail-stop{background:var(--fill2);color:var(--tx);}
+.bail-go{background:var(--a);color:#fff;box-shadow:0 4px 14px rgba(36,71,214,.3);}
+@media (prefers-reduced-motion:reduce){.bail-card{animation:none;}}
+
+/* ══════ Final polish ══════ */
+
+/* 1 · anello risultato */
+#resRing{position:relative;width:150px;height:150px;margin:4px auto 10px;}
+.rr-txt{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;flex-direction:row;align-content:center;flex-wrap:wrap;}
+.rr-txt b{font-size:44px;font-weight:860;letter-spacing:-.04em;color:var(--tx);font-variant-numeric:tabular-nums;line-height:150px;}
+.rr-txt span{font-size:18px;font-weight:750;color:var(--mu);line-height:150px;margin-left:2px;}
+.qres-emoji{display:none;} /* il verdetto ora lo dà l'anello */
+.qres-title{margin-top:0;font-size:28px;}
+/* statistiche compatte sotto l'anello */
+.qres-stats{display:flex;gap:8px;max-width:420px;margin:14px auto 22px;}
+.qres-stat{flex:1;padding:10px 6px;border-radius:16px;}
+.qres-stat b{font-size:22px;}
+.qres-stat span{font-size:11px;margin-top:3px;}
+
+/* 2 · pillola scorrevole nel dock */
+#tabPill{
+position:absolute;z-index:0;opacity:0;
+background:var(--sab);border-radius:17px;
+transition:left .32s cubic-bezier(.3,1.1,.4,1),width .32s cubic-bezier(.3,1.1,.4,1),top .2s,height .2s,opacity .3s;
+pointer-events:none;
+}
+#tabbar .tab{position:relative;z-index:1;}
+/* [FIX 1000] finché la pillola non è pronta (~700ms), evidenziazione di riserva:
+la tab attiva non resta mai "spenta" all'avvio */
+body:not(.pill-on) #tabbar .tab.on{background:var(--sab);}
+body.pill-on #tabbar .tab.on{background:transparent;} /* poi lo sfondo lo fa la pillola */
+.rd.berlina #tabPill{background:rgba(139,107,33,.12);}
+.rd.berlina.dark #tabPill{background:rgba(214,180,94,.14);}
+
+/* 3 · stati vuoti: illustrazione firma al posto dell'emoji gigante */
+.emp .e,.sd-empty .e{
+font-size:0;line-height:0;
+width:76px;height:76px;margin:0 auto;display:block;
+background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96' fill='none' stroke='%232447D6' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M26 74C26 56 42 60 50 46c5.5-9.6 1-17-6-17' opacity='.9'/%3E%3Ccircle cx='26' cy='74' r='7' fill='%23FFD60A' stroke='none'/%3E%3Ccircle cx='26' cy='74' r='3' fill='%23111A4E' stroke='none'/%3E%3Cpath d='M66 18a14 14 0 0 1 14 14c0 10-14 24-14 24S52 42 52 32a14 14 0 0 1 14-14z' fill='%23FFD60A' stroke='none' opacity='.95'/%3E%3Ccircle cx='66' cy='32' r='5' fill='%23111A4E' stroke='none'/%3E%3C/svg%3E");
+opacity:.9;
+}
+.rd.dark .emp .e,.rd.dark .sd-empty .e{filter:brightness(1.35);}
+
+@media (prefers-reduced-motion:reduce){#tabPill{transition:none;}}
+
+/* [FIX mappa-sotto] quirk WebKit: i layer 3D di Leaflet possono restare
+compositati anche con visibility:hidden sull'antenato. Spegnendo i PANNELLI
+interni (display:none) la GPU li scarica davvero; il contenitore #map resta
+misurabile, quindi al ritorno niente tile grigi. */
+body:not(.on-topo) #map .leaflet-pane,
+body:not(.on-topo) #map .leaflet-control-container,
+body:not(.on-topo) #recenterBtn,
+body:not(.on-topo) #satBtn{display:none !important;}
+body:not(.on-topo) .main{opacity:0;}
+
+/* ══════ Coach Interattivo ══════ */
+
+/* (6) parole-trappola: la causa n.1 degli errori "letta male" */
+.trap{color:var(--err);font-weight:850;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;}
+
+/* (11) la domanda si legge: più grande, più aria */
+#qRunQ{font-size:23px;line-height:1.5;}
+
+/* (8) puntino colore-argomento */
+.qdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:8px;vertical-align:middle;}
+.qdot.catd0{background:var(--cat0);}.qdot.catd1{background:var(--cat1);}
+.qdot.catd2{background:var(--cat2);}.qdot.catd3{background:var(--cat3);}
+
+/* (7) dopo l'errore: la risposta giusta DOMINA, le altre si spengono
+[FIX] la transition UNISCE quella del core (molla di pressione, sfondo, bordo)
+invece di sostituirla: i bottoni restano scattanti al tocco */
+.qans{transition:transform .14s cubic-bezier(.34,1.3,.64,1),border-color .2s,background .15s,opacity .3s,box-shadow .3s;}
+#qRunAns:has(.qans.good) .qans:not(.good):not(.bad){opacity:.4;}
+.qans.good{transform:scale(1.02);box-shadow:0 0 0 2.5px var(--ok),0 8px 22px rgba(14,159,110,.25);}
+
+/* (2) overlay rileggi */
+#rereadOv{position:fixed;inset:0;z-index:8700;background:rgba(7,10,20,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:26px;}
+#rereadOv .rr-card{background:var(--card);border-radius:24px;padding:24px 22px;max-width:420px;box-shadow:var(--sh-xl);animation:popIn .3s cubic-bezier(.34,1.2,.5,1);}
+#rereadOv small{display:block;font-size:12px;font-weight:750;color:var(--mu);margin-bottom:10px;}
+#rereadOv p{font-size:21px;line-height:1.55;font-weight:650;color:var(--tx);}
+
+/* (1) copertina pre-scheda */
+#errCover{position:fixed;inset:0;z-index:8650;background:rgba(7,10,20,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.ec-card{background:var(--card);border-radius:26px;padding:24px;max-width:380px;width:100%;box-shadow:var(--sh-xl);animation:popIn .32s cubic-bezier(.34,1.2,.5,1);}
+.ec-card small{font-size:11.5px;font-weight:800;color:var(--a);text-transform:uppercase;letter-spacing:.04em;}
+.ec-card h3{font-size:19px;font-weight:820;color:var(--tx);margin:6px 0 14px;letter-spacing:-.01em;}
+.ec-row{padding:10px 12px;background:var(--fill3);border-radius:14px;margin-bottom:8px;font-size:14.5px;font-weight:650;color:var(--tx);}
+.ec-row b{font-weight:850;color:var(--a);margin-right:4px;}
+.ec-go{width:100%;margin-top:10px;padding:15px;border:none;border-radius:16px;background:var(--a);color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+
+/* (4) riscaldamento sotto il bottone simulazione */
+.warm-btn{display:block;width:100%;margin-top:9px;padding:12px;border:1.5px dashed rgba(255,255,255,.5);border-radius:15px;background:rgba(255,255,255,.12);color:#fff;font-size:13.5px;font-weight:750;cursor:pointer;}
+
+/* (C) diagnosi post-simulazione */
+#simDiag{margin:4px 16px 14px;padding:14px 16px;background:var(--sab);border:1.5px solid rgba(36,71,214,.3);border-radius:18px;}
+#simDiag p{font-size:13.5px;line-height:1.5;color:var(--tx);font-weight:600;}
+#simDiag b{font-weight:820;}
+#simDiag button{width:100%;margin-top:10px;}
+
+/* (A)(10) debrief percorso */
+#routeDebrief{position:fixed;left:12px;right:12px;bottom:calc(var(--tabh,64px) + 26px + env(safe-area-inset-bottom));z-index:3400;display:flex;justify-content:center;pointer-events:none;}
+#routeDebrief .rdb{pointer-events:auto;position:relative;max-width:460px;width:100%;background:var(--card);border-radius:20px;padding:14px 40px 12px 16px;box-shadow:var(--sh-xl);animation:popIn .35s cubic-bezier(.34,1.2,.5,1);}
+.rdb.ok{border:1.5px solid rgba(14,159,110,.5);}
+.rdb.warn{border:1.5px solid rgba(229,72,77,.45);}
+.rdb b{display:block;font-size:15px;font-weight:820;color:var(--tx);}
+.rdb.ok b{color:var(--ok);}
+.rdb small{display:block;font-size:11.5px;color:var(--mu);font-weight:650;margin-top:6px;}
+.rdb-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.rdb-via{padding:6px 10px;background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.35);border-radius:10px;font-size:12px;font-weight:700;color:var(--err);cursor:pointer;}
+.rdb-x{position:absolute;top:8px;right:8px;width:28px;height:28px;border:none;border-radius:50%;background:var(--fill2);color:var(--mu);font-size:13px;cursor:pointer;}
+
+/* (9) Cieco: numeri delle vie GRANDI — sono l'aggancio della memoria */
+body.mode-c .row .sn{font-size:19px;font-weight:850;min-width:30px;}
+
+/* (3) analisi errori: tua risposta e giusta AFFIANCATE */
+@media (min-width:380px){
+.qac{display:flex;flex-wrap:wrap;gap:8px;}
+.qac .qac-q{width:100%;}
+.qac .qac-row{flex:1;min-width:calc(50% - 8px);align-items:flex-start;}
+}
+
+@media (prefers-reduced-motion:reduce){
+#rereadOv .rr-card,.ec-card,#routeDebrief .rdb{animation:none;}
+}
+
+/* ══════ Home: countdown esame grande ══════ */
+.plan-exam-big{display:flex !important;align-items:center;gap:16px;text-align:left;
+background:var(--card) !important;border:1.5px solid rgba(217,119,6,.4) !important;border-style:solid !important;
+border-radius:22px !important;padding:14px 18px !important;box-shadow:var(--sh-sm);}
+.plan-exam-big .ex-n{font-size:38px;font-weight:860;letter-spacing:-.04em;color:var(--warn);font-variant-numeric:tabular-nums;line-height:1;min-width:64px;}
+.plan-exam-big .ex-tx strong{display:block;font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.01em;}
+.plan-exam-big .ex-tx small{display:block;font-size:11.5px;color:var(--mu);font-weight:650;margin-top:3px;}
+.rd.berlina .plan-exam-big{border-color:rgba(139,107,33,.45) !important;}
+.rd.berlina .plan-exam-big .ex-n{color:#B8860B;}
+.rd.berlina.dark .plan-exam-big .ex-n{color:#D6B45E;}
+
+/* ══════ Home: suggerimenti animati + card esame grande ══════ */
+#tipLine.tip-in{animation:tipIn .5s cubic-bezier(.3,1.1,.4,1) both;}
+@keyframes tipIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+.plan-exam.ex-big{
+display:flex;align-items:center;gap:14px;text-align:left;
+border:1.5px solid rgba(217,119,6,.4)!important;border-style:solid!important;
+background:linear-gradient(135deg,rgba(217,119,6,.07),rgba(255,214,10,.05))!important;
+border-radius:22px!important;padding:16px!important;
+animation:exBreathe 4s ease-in-out infinite;
+}
+.plan-exam.ex-big b{
+font-size:40px;font-weight:860;letter-spacing:-.04em;color:var(--warn);
+font-variant-numeric:tabular-nums;line-height:1;min-width:64px;text-align:center;
+}
+.plan-exam.ex-big .ex-tx{flex:1;}
+.plan-exam.ex-big .ex-tx strong{display:block;font-size:15px;font-weight:800;color:var(--tx);letter-spacing:-.01em;}
+.plan-exam.ex-big .ex-tx small{display:block;font-size:11.5px;color:var(--mu);font-weight:600;margin-top:3px;}
+.plan-exam.ex-big .ex-ic{font-size:26px;}
+@keyframes exBreathe{0%,100%{box-shadow:0 4px 16px rgba(217,119,6,.12)}50%{box-shadow:0 8px 28px rgba(217,119,6,.28)}}
+.rd.dark .plan-exam.ex-big{background:linear-gradient(135deg,rgba(217,119,6,.12),rgba(255,214,10,.06))!important;}
+@media (prefers-reduced-motion:reduce){
+.plan-exam.ex-big{animation:none;}
+#tipLine.tip-in{animation:none;}
+}
+
+/* i suggerimenti personali (dai tuoi errori) sono più lunghi: a capo con grazia */
+#tipLine{white-space:normal;line-height:1.45;text-align:center;}
+
+/* ══════ "il coach ti ha visto" ══════ */
+.gm-card.lap{border-color:rgba(217,119,6,.55);box-shadow:0 20px 60px rgba(217,119,6,.25);}
+.gm-card.lap h2{color:var(--warn);}
+.tg-card.defense{border-color:rgba(14,159,110,.45);background:linear-gradient(135deg,rgba(14,159,110,.06),rgba(255,214,10,.04));}
+.tg-card.defense .tg-hd b{color:var(--ok);}
+
+/* ══════ Spirale visibile ══════ */
+#spiralCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:12px 16px;box-shadow:var(--sh-sm);}
+@media (min-width:1100px){#spiralCard{max-width:520px;}}
+.sp-hd{font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.sp-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--sep2);cursor:pointer;font-size:14px;font-weight:600;color:var(--tx);}
+.sp-row:last-child{border-bottom:none;}
+.sp-row b{font-weight:800;color:var(--mu);font-size:12.5px;white-space:nowrap;}
+.sp-row .sp-now{color:var(--warn);}
+.sp-row:active{opacity:.6;}
+.rdb-next{display:block;width:100%;margin-top:10px;padding:12px;border:none;border-radius:14px;background:var(--a);color:#fff;font-size:13.5px;font-weight:800;cursor:pointer;}
+
+/* ══════ Modalità recupero ══════ */
+.tg-bar.debt i{background:linear-gradient(90deg,var(--warn),var(--err));}
+.tg-debt b{color:var(--err);}
+.coach-why.why-alert{color:var(--err);font-weight:750;background:rgba(229,72,77,.06);border-radius:12px;padding:8px 10px;margin:0 8px 8px;border-bottom:none;}
+.sp-hd .sp-cnt{color:var(--warn);font-weight:850;}
+
+/* ══════ Imparare ══════ */
+.twin-btn{display:block;width:100%;margin:10px 0 2px;padding:13px;border:1.5px solid var(--a);border-radius:15px;background:var(--sab);color:var(--a);font-size:14px;font-weight:800;cursor:pointer;}
+.twin-btn:active{transform:scale(.97);}
+.coach-why .bal{font-weight:800;}
+.coach-why .bal.good{color:var(--ok);}
+.coach-why .bal.bad{color:var(--err);}
+
+/* ══════ Modello studente ══════ */
+#modelCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:14px 16px;box-shadow:var(--sh-sm);}
+@media (min-width:1100px){#modelCard{max-width:520px;}}
+#modelCard.ok{border-color:rgba(14,159,110,.4);}
+#modelCard.mid{border-color:rgba(217,119,6,.4);}
+#modelCard.no{border-color:rgba(229,72,77,.4);}
+.mc-hd{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:10px;border-bottom:1px solid var(--sep2);}
+.mc-hd small{display:block;font-size:9.5px;font-weight:800;color:var(--mu);letter-spacing:.06em;}
+.mc-hd b{font-size:34px;font-weight:860;letter-spacing:-.04em;color:var(--tx);font-variant-numeric:tabular-nums;line-height:1.05;}
+.mc-hd b span{font-size:15px;font-weight:750;color:var(--mu);}
+.mc-risk{text-align:right;}
+#modelCard.ok .mc-risk b{color:var(--ok);}
+#modelCard.mid .mc-risk b{color:var(--warn);}
+#modelCard.no .mc-risk b{color:var(--err);}
+.mc-sub{font-size:10.5px;color:var(--mu);font-weight:600;line-height:1.35;margin:8px 0 6px;}
+.mc-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px;font-weight:650;color:var(--tx);}
+.mc-row span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mc-row b{min-width:34px;text-align:right;font-weight:800;font-size:12px;font-variant-numeric:tabular-nums;}
+.mc-bar{width:74px;height:7px;border-radius:4px;background:var(--fill2);overflow:hidden;flex-shrink:0;}
+.mc-bar i{display:block;height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.mc-bar.ok i{background:var(--ok);}
+.mc-bar.mid i{background:var(--warn);}
+.mc-bar.no i{background:var(--err);}
+.mc-tip{margin-top:10px;padding:10px 12px;background:var(--sab);border-radius:14px;font-size:12px;font-weight:700;color:var(--tx);line-height:1.4;cursor:pointer;}
+.mc-tip:active{opacity:.6;}
+
+/* ══════ Proiezione ══════ */
+#projCard{width:100%;max-width:460px;margin:10px auto 0;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:13px 16px;box-shadow:var(--sh-sm);}
+@media (min-width:1100px){#projCard{max-width:520px;}}
+.pj-hd{font-size:9.5px;font-weight:800;color:var(--mu);letter-spacing:.06em;}
+.pj-main{font-size:15px;font-weight:650;color:var(--tx);margin-top:5px;line-height:1.35;}
+.pj-main b{font-weight:850;color:var(--a);}
+.pj-sub{font-size:11.5px;color:var(--mu);font-weight:600;line-height:1.4;margin-top:5px;}
+
+/* ══════ Ottimizzatore ══════ */
+#optDelta{margin:4px 16px 12px;padding:12px 14px;background:var(--sab);border-radius:16px;font-size:13px;font-weight:650;color:var(--tx);text-align:center;}
+#optDelta b{font-weight:850;color:var(--ok);}
+
+/* ══════ Home 2.0: stato a schede ══════ */
+#stateCard{width:100%;max-width:460px;margin:14px auto 0;}
+@media (min-width:1100px){#stateCard{max-width:520px;}}
+.st-seg{display:flex;gap:4px;padding:4px;background:var(--fill3);border-radius:16px;margin-bottom:8px;}
+.st-tab{flex:1;padding:9px 6px;border:none;border-radius:12px;background:transparent;color:var(--mu);font-size:12.5px;font-weight:750;cursor:pointer;transition:background .22s,color .22s;}
+.st-tab.on{background:var(--card);color:var(--tx);font-weight:820;box-shadow:var(--sh-sm);}
+.st-tab.off{opacity:.35;pointer-events:none;}
+.st-pane{display:none;animation:fadeUp .28s ease both;}
+.st-pane.on{display:block;}
+/* le card dentro le schede: stesso ritmo, niente margini doppi */
+.st-pane>div{margin-top:0!important;margin-bottom:8px;}
+.st-pane>div:last-child{margin-bottom:0;}
+/* intestazioni armonizzate tra modello, proiezione e spirale */
+.mc-hd small,.pj-hd,.sp-hd{font-size:9.5px!important;font-weight:800!important;letter-spacing:.06em!important;color:var(--mu)!important;text-transform:uppercase;}
+#modelCard,#projCard,#spiralCard,#examLight .xl{border-radius:22px;}
+/* l'azione sale: più aria sopra il bottone, meno sotto */
+.smart-btn{margin-top:16px!important;}
+@media (prefers-reduced-motion:reduce){.st-pane{animation:none;}}
+
+/* ══════ Modello topografia ══════ */
+#topoCard{width:100%;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:14px 16px;box-shadow:var(--sh-sm);margin-top:8px;}
+.tp-row{cursor:pointer;}
+.tp-row:active{opacity:.6;}
+.tp-nere{margin-top:9px;padding-top:9px;border-top:1px solid var(--sep2);font-size:11.5px;color:var(--mu);font-weight:600;line-height:1.45;}
+.tp-nere b{color:var(--tx);font-weight:800;}
+
+/* ═══════════════════════════════════════════════════
+   REDESIGN v3 — sistema di movimento unico per tutta l'app
+   ═══════════════════════════════════════════════════ */
+
+/* ── grammatica del movimento: 3 curve, 3 durate, usate ovunque ── */
+.rd{
+--e-soft:cubic-bezier(.22,1,.36,1);      /* uscite morbide */
+--e-spring:cubic-bezier(.34,1.5,.64,1);  /* tocchi elastici */
+--e-smooth:cubic-bezier(.4,0,.2,1);      /* transizioni neutre */
+--d1:140ms;--d2:240ms;--d3:380ms;
+}
+
+/* ── 1 · TOCCO UNIFICATO: tutto risponde con la stessa molla ── */
+.rd :where(button,.sr,.coach-row,.qtile,.sd-tile,.home-card,.tg-card,.qans,.st-tab,.sp-row,.tp-row,.mc-tip,.rdb-via,.qpill){
+transition:transform var(--d1) var(--e-spring),opacity var(--d2) var(--e-smooth),
+background var(--d2) var(--e-smooth),border-color var(--d2) var(--e-smooth),
+box-shadow var(--d3) var(--e-soft),filter var(--d2) var(--e-smooth);
+}
+.rd :where(button,.sr,.coach-row,.qtile,.sd-tile,.home-card,.tg-card,.qans):active{transform:scale(.975);}
+.rd :where(.st-tab,.sp-row,.tp-row,.mc-tip,.rdb-via):active{transform:scale(.985);}
+/* le card grandi si sollevano appena, invece di schiacciarsi */
+.rd :where(.home-card,.qtile,.sd-tile):active{transform:scale(.985) translateY(1px);}
+
+/* ── 2 · INGRESSO CORALE: i blocchi entrano a cascata, non tutti insieme ── */
+@keyframes rvIn{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+.rv{opacity:0;animation:rvFail 0s linear 2.5s forwards;}/*[FIX 1000] rete di sicurezza: mai contenuto invisibile*/
+@keyframes rvFail{to{opacity:1;}}
+.rv.rv-in{animation:rvIn var(--d3) var(--e-soft) both;animation-delay:calc(var(--i,0) * 45ms);}
+
+/* ── 3 · SUPERFICI: ombre a due livelli, più morbide e più vere ── */
+.rd{
+--sh-sm:0 1px 2px rgba(16,20,35,.04),0 2px 6px rgba(16,20,35,.05);
+--sh-md:0 2px 6px rgba(16,20,35,.05),0 8px 20px rgba(16,20,35,.06);
+--sh-xl:0 6px 18px rgba(16,20,35,.08),0 24px 56px rgba(16,20,35,.12);
+}
+.rd.dark{
+--sh-sm:0 1px 2px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.25);
+--sh-md:0 3px 10px rgba(0,0,0,.35),0 10px 28px rgba(0,0,0,.3);
+--sh-xl:0 8px 24px rgba(0,0,0,.45),0 28px 64px rgba(0,0,0,.5);
+}
+@media (hover:hover){
+.rd :where(.home-card,.qtile,.sd-tile,#modelCard,#projCard,#topoCard,#spiralCard):hover{
+transform:translateY(-2px);box-shadow:var(--sh-md);
+}
+}
+
+/* ── 4 · BARRE E ANELLI: crescono, non appaiono ── */
+.tg-bar i,.mc-bar i,.qarg-box::after,.prog-bar i,.ready-fill{
+transition:width var(--d3) var(--e-soft),background var(--d2) var(--e-smooth) !important;
+}
+
+/* ── 5 · SEGMENTI E PILLOLE: scorrono ── */
+.st-tab.on{transition:background var(--d2) var(--e-soft),color var(--d1) linear;}
+.seg-btn{transition:color var(--d2) var(--e-smooth),background var(--d2) var(--e-soft);}
+#tabPill{transition:left var(--d3) var(--e-spring),width var(--d3) var(--e-spring),top var(--d2) var(--e-soft),height var(--d2) var(--e-soft),opacity var(--d2);}
+
+/* ── 6 · QUIZ: le risposte entrano sfalsate, la domanda respira ── */
+@keyframes ansIn{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
+#qRunAns .qans{animation:ansIn var(--d2) var(--e-soft) both;}
+#qRunAns .qans:nth-child(2){animation-delay:40ms}
+#qRunAns .qans:nth-child(3){animation-delay:80ms}
+#qRunAns .qans:nth-child(4){animation-delay:120ms}
+@keyframes qIn{from{opacity:0;transform:translate3d(0,-6px,0)}to{opacity:1;transform:none}}
+#qRunQ{animation:qIn var(--d2) var(--e-soft) both;}
+
+/* ── 7 · MODALI E FOGLI: salgono invece di apparire ── */
+@keyframes sheetUp{from{opacity:0;transform:translate3d(0,26px,0) scale(.98)}to{opacity:1;transform:none}}
+.mbox,.gm-card,.ec-card,.bail-card,.rr-card,#routeDebrief .rdb{animation:sheetUp var(--d3) var(--e-soft) both !important;}
+.modal,#greenMoment,#errCover,#bailSheet,#rereadOv{animation:fadeIn var(--d2) var(--e-smooth) both;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── 8 · SCHELETRI: niente più salti di numeri al caricamento ── */
+@keyframes shimmer{0%{background-position:-380px 0}100%{background-position:380px 0}}
+.skl{background:linear-gradient(90deg,var(--fill3) 25%,var(--fill2) 50%,var(--fill3) 75%);
+background-size:760px 100%;animation:shimmer 1.3s linear infinite;border-radius:14px;color:transparent!important;}
+
+/* ── 9 · RITMO: spaziature su una scala unica ── */
+.rd #homeScreen>*+*{margin-top:14px;}
+.rd #homeScreen>.home-card{margin-top:10px;}
+.rd #coachCard{margin-top:18px;}
+
+/* ── 10 · la mappa non partecipa mai alle animazioni (resta fluida) ── */
+body:not(.on-topo) .leaflet-container *{animation:none!important;}/*[FIX 1000] in mappa il pin deve pulsare: si spegne solo fuori scena*/
+
+@media (prefers-reduced-motion:reduce){
+.rv,.rv.rv-in,#qRunAns .qans,#qRunQ,.mbox,.gm-card,.ec-card,.bail-card,.rr-card,#routeDebrief .rdb,.modal,.skl{animation:none!important;opacity:1!important;}
+}
+.coach-why .cons{color:var(--a);font-weight:750;}
+`;
+}catch(e){}
+})();
+
 (function(){
 'use strict';
 function paintCats(){
