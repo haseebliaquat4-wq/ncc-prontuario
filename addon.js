@@ -481,6 +481,124 @@ body:not(.on-topo) .leaflet-container *{animation:none!important;}/*[FIX 1000] i
 .rv,.rv.rv-in,#qRunAns .qans,#qRunQ,.mbox,.gm-card,.ec-card,.bail-card,.rr-card,#routeDebrief .rdb,.modal,.skl{animation:none!important;opacity:1!important;}
 }
 .coach-why .cons{color:var(--a);font-weight:750;}
+
+
+/* ═══════════════════════════════════════════════════
+   TOPOGRAFIA FLUIDA — solo movimento, il posizionamento resta manuale
+   ═══════════════════════════════════════════════════ */
+
+/* 1 · le vie entrano a cascata quando apri un percorso */
+@keyframes srIn{from{opacity:0;transform:translate3d(-10px,0,0)}to{opacity:1;transform:none}}
+#sList.rows-in .sr{animation:srIn .3s var(--e-soft) both;}
+#sList.rows-in .sr:nth-child(1){animation-delay:0ms}
+#sList.rows-in .sr:nth-child(2){animation-delay:25ms}
+#sList.rows-in .sr:nth-child(3){animation-delay:50ms}
+#sList.rows-in .sr:nth-child(4){animation-delay:75ms}
+#sList.rows-in .sr:nth-child(5){animation-delay:100ms}
+#sList.rows-in .sr:nth-child(6){animation-delay:125ms}
+#sList.rows-in .sr:nth-child(7){animation-delay:150ms}
+#sList.rows-in .sr:nth-child(n+8){animation-delay:170ms}
+
+/* 2 · la via attiva si accende con una barra laterale che cresce */
+.sr{position:relative;transition:background .22s var(--e-smooth),padding-left .25s var(--e-soft);}
+.sr::after{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;
+background:var(--a);transform:scaleY(0);transform-origin:center;transition:transform .3s var(--e-spring);}
+.sr.act::after{transform:scaleY(1);}
+.sr.act{padding-left:11px;}
+
+/* 3 · il numero della via pulsa quando diventa attivo */
+@keyframes snPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1.08)}}
+.sr.act .sn{animation:snPop .34s var(--e-spring);}
+
+/* 4 · "Rivela" in Cieco: il nome appare in dissolvenza dal basso */
+@keyframes revealName{from{opacity:0;transform:translate3d(0,7px,0);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.sr.act .sname:not(.hid){animation:revealName .34s var(--e-soft) both;}
+
+/* 5 · pin: atterraggio elastico invece di apparizione secca */
+@keyframes pinDrop{0%{opacity:0;transform:translate3d(0,-16px,0) scale(.7)}
+60%{opacity:1;transform:translate3d(0,2px,0) scale(1.06)}100%{transform:none;scale:1}}
+.leaflet-marker-icon.pin-wrap{animation:pinDrop .42s var(--e-soft) both;}
+body:not(.on-topo) .leaflet-marker-icon.pin-wrap{animation:none;}
+
+/* 6 · il tracciato si disegna quando cambi percorso */
+.route-line{transition:stroke-width .25s var(--e-soft),opacity .25s;}
+.route-flow{stroke-dasharray:8 14;animation:flowRun 1.6s linear infinite;}
+@keyframes flowRun{to{stroke-dashoffset:-44}}
+
+/* 7 · pannello: intestazione che si stacca allo scorrimento */
+.phead{transition:box-shadow .28s var(--e-soft),background .22s;}
+.panel.scrolled .phead{box-shadow:0 6px 18px rgba(16,20,35,.10);}
+.rd.dark .panel.scrolled .phead{box-shadow:0 6px 18px rgba(0,0,0,.4);}
+
+/* 8 · segmenti Studio/Cieco/Quiz: pillola scorrevole */
+.seg-wrap{position:relative;}
+#segPill{position:absolute;z-index:0;border-radius:12px;background:var(--card);
+box-shadow:var(--sh-sm);opacity:0;pointer-events:none;
+transition:left .3s var(--e-spring),width .3s var(--e-spring),top .2s,height .2s,opacity .25s;}
+.seg-btn{position:relative;z-index:1;}
+body.seg-on .seg-btn.on{background:transparent!important;}
+
+/* 9 · bottoni avanti/indietro con molla piena */
+#bNext,#bPrev,#bRev{transition:transform .16s var(--e-spring),background .2s,opacity .2s;}
+#bNext:active,#bPrev:active,#bRev:active{transform:scale(.9);}
+
+/* 10 · barra di avanzamento del percorso, fluida */
+.pbf,.prog-bar i{transition:width .45s var(--e-soft);}
+
+/* 11 · lo stato "completato" della via scivola dentro */
+@keyframes okIn{from{opacity:0;transform:scale(.5) rotate(-25deg)}to{opacity:1;transform:none}}
+.sr .cb.s{animation:okIn .3s var(--e-spring) both;}
+
+/* 12 · mappa: transizione morbida dei tile al cambio zoom */
+.leaflet-fade-anim .leaflet-tile{transition:opacity .3s var(--e-smooth);}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .28s var(--e-soft);}
+
+@media (prefers-reduced-motion:reduce){
+#sList.rows-in .sr,.sr.act .sn,.sr.act .sname:not(.hid),.leaflet-marker-icon.pin-wrap,.sr .cb.s{animation:none!important;}
+.route-flow{animation:none;}
+#segPill{transition:none;}
+}
+
+
+/* ══════ Richiamo a memoria · zone · gemelli ══════ */
+#recallOv{position:fixed;inset:0;z-index:8800;background:rgba(7,10,20,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:22px;}
+.rc-card{background:var(--card);border-radius:26px;padding:24px 22px;max-width:420px;width:100%;box-shadow:var(--sh-xl);animation:sheetUp .34s var(--e-soft) both;}
+.rc-hd small{display:block;font-size:10px;font-weight:800;color:var(--a);letter-spacing:.06em;}
+.rc-hd b{display:block;font-size:17px;font-weight:820;color:var(--tx);margin:4px 0 2px;line-height:1.25;}
+.rc-cnt{font-size:12px;font-weight:750;color:var(--mu);font-variant-numeric:tabular-nums;}
+.rc-prev{margin:12px 0 4px;padding:9px 12px;background:var(--fill3);border-radius:12px;font-size:12.5px;color:var(--mu);font-weight:600;}
+.rc-prev b{color:var(--tx);font-weight:800;}
+.rc-q{font-size:19px;font-weight:700;color:var(--tx);margin:14px 0 10px;line-height:1.35;}
+.rc-q b{font-weight:860;color:var(--a);}
+.rc-ans{min-height:56px;display:flex;align-items:center;justify-content:center;}
+.rc-name{font-size:22px;font-weight:850;color:var(--tx);text-align:center;line-height:1.3;animation:revealName .34s var(--e-soft) both;}
+.rc-row{display:flex;gap:10px;margin-top:14px;}
+.rc-row button{flex:1;padding:15px 10px;border:none;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s var(--e-spring);}
+.rc-row button:active{transform:scale(.95);}
+.rc-show{background:var(--a);color:#fff;}
+.rc-yes{background:rgba(14,159,110,.14);color:var(--ok);}
+.rc-no{background:rgba(229,72,77,.12);color:var(--err);}
+.rc-close{background:var(--fill2);color:var(--tx);}
+.rc-again{background:var(--a);color:#fff;}
+.rc-fw{background:var(--a);color:#fff;}
+.rc-bw{background:var(--fill2);color:var(--tx);}
+.rc-end{text-align:center;}
+.rc-pick b{display:block;font-size:19px;font-weight:820;color:var(--tx);}
+.rc-pick small{display:block;font-size:12.5px;color:var(--mu);margin-top:6px;font-weight:600;}
+.rc-score{font-size:52px;font-weight:860;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums;}
+.rc-score span{font-size:22px;font-weight:750;color:var(--mu);}
+.rc-score.ok{color:var(--ok);}.rc-score.mid{color:var(--warn);}.rc-score.no{color:var(--err);}
+.rc-end b{display:block;font-size:15px;font-weight:750;color:var(--tx);margin-top:4px;}
+.rc-end small{display:block;font-size:11.5px;color:var(--mu);margin-top:8px;font-weight:600;}
+.rc-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
+.rc-miss{padding:6px 10px;background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.32);border-radius:10px;font-size:11.5px;font-weight:700;color:var(--err);}
+#zoneBar{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 2px;}
+.zn{padding:7px 12px;border:1.5px solid var(--bd);border-radius:14px;background:var(--card);color:var(--mu);font-size:12.5px;font-weight:750;cursor:pointer;transition:all .2s var(--e-smooth);}
+.zn b{font-weight:850;color:var(--tx);}
+.zn.on{border-color:var(--a);background:var(--sab);color:var(--a);}
+.zn.on b{color:var(--a);}
+.rcb2{background:var(--sab);color:var(--a);}
+@media (prefers-reduced-motion:reduce){.rc-card,.rc-name{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -2376,16 +2494,19 @@ if(_tCache&&Date.now()-_tTs<4000)return _tCache;/*[FIX 2000] cache come gli altr
 if(!routes.length)return null;
 var rows=routes.map(function(r){
 if(!r.steps||!r.steps.length)return null;
-var p=1,worst=null,wp=1;
-r.steps.forEach(function(_,i){
-var q=pVia(r,i);p*=q;
-if(q<wp){wp=q;worst=i;}
-});
-return {r:r,clean:p,worst:worst,wp:wp,n:r.steps.length};
+/* [FIX] il prodotto di tutte le vie collassa a zero sui percorsi lunghi:
+misurava la lunghezza, non la preparazione. Ora: media delle vie che sai +
+probabilità di completare con AL MASSIMO 1 errore. */
+var ps=[],worst=null,wp=1;
+r.steps.forEach(function(_,i){var q=pVia(r,i);ps.push(q);if(q<wp){wp=q;worst=i;}});
+var p0=1;ps.forEach(function(q){p0*=q;});
+var p1=0;ps.forEach(function(q){if(q>0.0001)p1+=p0/q*(1-q);});
+var media=ps.reduce(function(a,b){return a+b;},0)/ps.length;
+return {r:r,clean:Math.min(1,p0+p1),media:media,worst:worst,wp:wp,n:r.steps.length};
 }).filter(Boolean);
 if(!rows.length)return null;
 rows.sort(function(a,b){return a.clean-b.clean;});
-var avg=rows.reduce(function(s,x){return s+x.clean;},0)/rows.length;
+var avg=rows.reduce(function(s,x){return s+x.media;},0)/rows.length;
 var byName={};
 routes.forEach(function(r){
 var wm=(qStats[r.id]||{}).wrong||{};
@@ -2410,18 +2531,18 @@ if(!anchor)return;
 var old=document.getElementById('topoCard');if(old)old.remove();
 var m=topoModel();if(!m||m.rows.length<3)return;
 var top=m.rows.slice(0,3).map(function(x){
-var pc=Math.round(x.clean*100);
+var pc=Math.round(x.clean*100),pm=Math.round((x.media||x.clean)*100);
 var cls=pc>=60?'ok':(pc>=35?'mid':'no');
 var t=x.r.title.length>24?x.r.title.slice(0,22)+'…':x.r.title;
-return '<div class="mc-row tp-row" data-id="'+x.r.id+'"><span>'+esc(t)+'</span><div class="mc-bar '+cls+'"><i style="width:'+pc+'%"></i></div><b>'+pc+'%</b></div>';
+return '<div class="mc-row tp-row" data-id="'+x.r.id+'"><span>'+esc(t)+'</span><div class="mc-bar '+cls+'"><i style="width:'+pm+'%"></i></div><b>'+pc+'%</b></div>';
 }).join('');
 var nere=m.nere.length?('<div class="tp-nere">🖤 Vie che ti bocciano: '+m.nere.slice(0,3).map(function(v){
 return '<b>'+esc(v.nome.length>20?v.nome.slice(0,18)+'…':v.nome)+'</b>'+(v.perc>1?(' ('+v.perc+' percorsi)'):'');
 }).join(' · ')+'</div>'):'';
 var el=document.createElement('div');el.id='topoCard';
-el.innerHTML='<div class="mc-hd"><div><small>TOPOGRAFIA · PERCORSO PULITO</small><b>'+Math.round(m.avg*100)+'<span>%</span></b></div>'
+el.innerHTML='<div class="mc-hd"><div><small>TOPOGRAFIA · VIE CHE SAI</small><b>'+Math.round(m.avg*100)+'<span>%</span></b></div>'
 +'<div class="mc-risk"><small>A RISCHIO</small><b>'+m.rischio+'</b></div></div>'
-+'<div class="mc-sub">Probabilità di completare un percorso in Cieco senza errori · i tre più deboli:</div>'
++'<div class="mc-sub">Vie che ricordi · accanto, probabilità di completare il percorso con max 1 errore:</div>'
 +top+nere;
 el.addEventListener('click',function(e){
 var row=e.target.closest('.tp-row');if(!row)return;
@@ -2789,4 +2910,306 @@ try{console.warn('addon.css non disponibile: stili di riserva attivi');}catch(e)
 }
 setTimeout(check,2600);
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   TOPOGRAFIA FLUIDA — regia (nessuna modifica al posizionamento pin)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* cascata delle vie all'apertura di un percorso */
+try{
+var _srF=selectRoute;
+selectRoute=function(r){
+_srF(r);
+if(RM)return;
+try{
+var sl=document.getElementById('sList');if(!sl)return;
+sl.classList.remove('rows-in');void sl.offsetWidth;
+sl.classList.add('rows-in');
+setTimeout(function(){try{sl.classList.remove('rows-in');}catch(e){}},900);
+}catch(e){}
+};
+}catch(e){}
+
+/* pillola scorrevole sui segmenti Studio · Cieco · Quiz vie */
+setTimeout(function(){
+try{
+var wrap=document.querySelector('.seg-wrap');if(!wrap||document.getElementById('segPill'))return;
+var pill=document.createElement('div');pill.id='segPill';
+wrap.insertBefore(pill,wrap.firstChild);
+document.body.classList.add('seg-on');
+function move(){
+try{
+var on=wrap.querySelector('.seg-btn.on');if(!on)return;
+pill.style.left=on.offsetLeft+'px';pill.style.top=on.offsetTop+'px';
+pill.style.width=on.offsetWidth+'px';pill.style.height=on.offsetHeight+'px';
+pill.style.opacity='1';
+}catch(e){}
+}
+move();setTimeout(move,500);setTimeout(move,1600);
+var mo=new MutationObserver(move);
+wrap.querySelectorAll('.seg-btn').forEach(function(b){mo.observe(b,{attributes:true,attributeFilter:['class']});});
+window.addEventListener('resize',function(){setTimeout(move,120);});
+window.addEventListener('orientationchange',function(){setTimeout(move,400);});
+}catch(e){}
+},900);
+
+/* intestazione del pannello che si stacca allo scorrimento della lista */
+setTimeout(function(){
+try{
+var sl=document.getElementById('sList'),pn=document.getElementById('panel');
+if(!sl||!pn)return;
+var on=false;
+sl.addEventListener('scroll',function(){
+var s=sl.scrollTop>6;
+if(s!==on){on=s;pn.classList.toggle('scrolled',s);}
+},{passive:true});
+}catch(e){}
+},1000);
+
+/* la via attiva si porta al centro della lista, con scorrimento morbido */
+try{
+var _gs=goStep;
+goStep=function(){
+_gs();
+try{
+if(RM)return;
+var sl=document.getElementById('sList');if(!sl)return;
+var act=sl.querySelector('.sr.act');if(!act)return;
+var top=act.offsetTop-sl.clientHeight/2+act.offsetHeight/2;
+sl.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+}catch(e){}
+};
+}catch(e){}
+
+/* passaggio di modalità: la lista fa un micro-fade invece di cambiare di scatto */
+try{
+var _sm3=setMode;
+setMode=function(m){
+try{
+var sl=document.getElementById('sList');
+if(sl&&!RM){sl.style.transition='opacity .16s';sl.style.opacity='0.35';
+setTimeout(function(){sl.style.opacity='1';setTimeout(function(){sl.style.transition='';},200);},130);}
+}catch(e){}
+_sm3(m);
+};
+}catch(e){}
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   TOPOGRAFIA INTELLIGENTE — richiamo a memoria, zone, percorsi gemelli
+   (il posizionamento dei pin resta manuale e intatto)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var DUOMO={lat:45.4642,lon:9.1900};
+
+/* ── A · RICHIAMO A MEMORIA (avanti e al contrario) ──
+Riconoscere è facile, ricordare è difficile: qui la via non si vede finché
+non l'hai pensata. E ogni "non la sapevo" finisce nelle statistiche vere del
+percorso, quindi alimenta il modello e la spirale. */
+var RC=null;
+window.startRecall=function(rid,rev){
+try{
+var r=routes.find(function(x){return x.id===rid;});if(!r||!r.steps.length)return;
+RC={r:r,rev:!!rev,i:0,ok:0,miss:[],start:Date.now()};
+drawRecall();
+}catch(e){}
+};
+function rcIdx(){return RC.rev?(RC.r.steps.length-1-RC.i):RC.i;}
+function drawRecall(){
+try{
+var old=document.getElementById('recallOv');if(old)old.remove();
+if(!RC)return;
+var tot=RC.r.steps.length,i=rcIdx();
+var prev=RC.i>0?RC.r.steps[RC.rev?(tot-RC.i):(RC.i-1)]:null;
+var o=document.createElement('div');o.id='recallOv';
+o.innerHTML='<div class="rc-card">'
++'<div class="rc-hd"><small>'+(RC.rev?'AL CONTRARIO · da arrivo a partenza':'RICHIAMO A MEMORIA')+'</small>'
++'<b>'+esc(RC.r.title)+'</b><span class="rc-cnt">'+(RC.i+1)+' / '+tot+'</span></div>'
++'<div class="rc-prev">'+(prev?('precedente: <b>'+esc(prev)+'</b>'):'<i>prima via del percorso</i>')+'</div>'
++'<div class="rc-q">Qual è la <b>'+(i+1)+'ª</b> via?</div>'
++'<div class="rc-ans" id="rcAns"></div>'
++'<div class="rc-row"><button class="rc-show" id="rcShow">👁 Mostra</button></div>'
++'</div>';
+document.body.appendChild(o);
+document.getElementById('rcShow').onclick=function(){
+try{
+var a=document.getElementById('rcAns');
+a.innerHTML='<div class="rc-name">'+esc(RC.r.steps[i])+'</div>';
+var row=o.querySelector('.rc-row');
+row.innerHTML='<button class="rc-no">✗ Non la sapevo</button><button class="rc-yes">✓ La sapevo</button>';
+row.querySelector('.rc-yes').onclick=function(){rcMark(true);};
+row.querySelector('.rc-no').onclick=function(){rcMark(false);};
+try{hap();}catch(e){}
+}catch(e){}
+};
+}catch(e){}
+}
+function rcMark(ok){
+try{
+var i=rcIdx();
+if(ok)RC.ok++;
+else{
+RC.miss.push(i);
+/* registra l'errore nelle statistiche vere del percorso */
+if(!qStats[RC.r.id])qStats[RC.r.id]={correct:0,total:0,wrong:{}};
+if(!qStats[RC.r.id].wrong)qStats[RC.r.id].wrong={};
+qStats[RC.r.id].wrong[i]=(qStats[RC.r.id].wrong[i]||0)+1;
+}
+qStats[RC.r.id].total=(qStats[RC.r.id].total||0)+1;
+if(ok)qStats[RC.r.id].correct=(qStats[RC.r.id].correct||0)+1;
+RC.i++;
+if(RC.i>=RC.r.steps.length){rcFinish();return;}
+drawRecall();
+}catch(e){}
+}
+function rcFinish(){
+try{
+var tot=RC.r.steps.length,ok=RC.ok,miss=RC.miss.slice();
+try{save();autoSave();}catch(e){}
+/* la spirale reagisce: bene → avanza, male → torna presto */
+try{
+if(miss.length===0){if(typeof rsrMark==='function')rsrMark(RC.r.id);}
+else if(miss.length>=3){rSR[RC.r.id]={box:1,due:Date.now()+2*86400000};ls('rSR',rSR);markDirty('prefs');}
+}catch(e){}
+var pct=Math.round(ok/tot*100);
+var names=miss.slice(0,8).map(function(i){return '<span class="rc-miss">'+(i+1)+'. '+esc(RC.r.steps[i])+'</span>';}).join('');
+var o=document.getElementById('recallOv');if(o)o.remove();
+var d=document.createElement('div');d.id='recallOv';
+d.innerHTML='<div class="rc-card rc-end">'
++'<div class="rc-score '+(pct>=80?'ok':(pct>=50?'mid':'no'))+'">'+pct+'<span>%</span></div>'
++'<b>'+ok+' su '+tot+' a memoria</b>'
++(miss.length?('<div class="rc-list">'+names+'</div><small>Le mancate tornano nel ripasso'+(miss.length>=3?' tra 2 giorni':'')+'</small>'):'<small>Percorso solido: prossimo ripasso più lontano ✨</small>')
++'<div class="rc-row"><button class="rc-close">Chiudi</button>'+(miss.length?'<button class="rc-again">Riprova le mancate</button>':'')+'</div></div>';
+document.body.appendChild(d);
+d.querySelector('.rc-close').onclick=function(){d.remove();RC=null;try{renderMgr();}catch(e){}};
+var ag=d.querySelector('.rc-again');
+if(ag)ag.onclick=function(){
+var r=RC.r;d.remove();
+RC={r:r,rev:false,i:0,ok:0,miss:[],start:Date.now(),only:miss};
+/* riprova solo le mancate: percorso ridotto */
+RC.r={id:r.id,title:r.title+' · le mancate',steps:miss.map(function(i){return r.steps[i];})};
+drawRecall();
+};
+}catch(e){}
+}
+
+/* ── B · ZONE: i percorsi si raggruppano da soli ── */
+window.routeZone=function(r){
+try{
+var la=0,lo=0,n=0;
+r.steps.forEach(function(_,i){var c=coords[r.id+'_'+i];if(c){la+=c.lat;lo+=c.lon;n++;}});
+if(!n)return null;
+la/=n;lo/=n;
+var dLa=la-DUOMO.lat,dLo=lo-DUOMO.lon;
+if(Math.abs(dLa)<0.012&&Math.abs(dLo)<0.016)return 'Centro';
+if(Math.abs(dLa)*1.4>=Math.abs(dLo))return dLa>0?'Nord':'Sud';
+return dLo>0?'Est':'Ovest';
+}catch(e){return null;}
+};
+var zoneSel=null;
+try{
+var _rm2=renderMgr;
+renderMgr=function(){
+_rm2();
+try{
+var cnt=document.getElementById('mgrCnt');if(!cnt)return;
+var box=document.getElementById('zoneBar');
+if(!box){
+box=document.createElement('div');box.id='zoneBar';
+cnt.after(box);
+box.addEventListener('click',function(e){
+var b=e.target.closest('.zn');if(!b)return;
+zoneSel=(zoneSel===b.dataset.z)?null:b.dataset.z;
+renderMgr();
+});
+}
+var counts={};
+routes.forEach(function(r){var z=routeZone(r);if(z)counts[z]=(counts[z]||0)+1;});
+var order=['Centro','Nord','Sud','Est','Ovest'];
+box.innerHTML=order.filter(function(z){return counts[z];}).map(function(z){
+return '<button class="zn'+(zoneSel===z?' on':'')+'" data-z="'+z+'">'+z+' <b>'+counts[z]+'</b></button>';
+}).join('');
+/* applica il filtro alle righe già disegnate */
+if(zoneSel){
+var shown=0;
+document.querySelectorAll('#mgrList .ri').forEach(function(row){
+var id=(row.getAttribute('data-id'))||'';
+var r=routes.find(function(x){return row.textContent.indexOf(x.title)===0||x.id===id;});
+var keep=r?routeZone(r)===zoneSel:true;
+row.style.display=keep?'':'none';
+if(keep)shown++;
+});
+cnt.textContent=shown+' in zona '+zoneSel;
+}
+}catch(e){}
+};
+}catch(e){}
+
+/* ── C · PERCORSI GEMELLI: il tratto in comune si impara una volta sola ── */
+window.twinRoutes=function(){
+try{
+var out=[];
+for(var i=0;i<routes.length;i++)for(var j=i+1;j<routes.length;j++){
+var a=routes[i],b=routes[j];
+var setB={};b.steps.forEach(function(s){setB[s]=1;});
+var common=a.steps.filter(function(s){return setB[s];});
+if(common.length>=5)out.push({a:a,b:b,n:common.length,vie:common});
+}
+return out.sort(function(x,y){return y.n-x.n;}).slice(0,6);
+}catch(e){return [];}
+};
+try{
+var _ctG=coachTasks;
+coachTasks=function(){
+var t=_ctG();
+try{
+var tw=twinRoutes();
+if(!tw.length)return t;
+var top=tw[0];
+t.push({ic:'🧬',tx:'Percorsi gemelli: '+top.n+' vie in comune',sub:top.a.title+' e '+top.b.title+' — impara il tratto comune una volta sola',fn:function(){
+alert('🧬 PERCORSI GEMELLI\n\n'+top.a.title+'\n'+top.b.title+'\n\nVie in comune ('+top.n+'):\n'+top.vie.slice(0,12).map(function(v,i){return (i+1)+'. '+v;}).join('\n')+(top.vie.length>12?'\n…':'')+'\n\nImpararle vale per entrambi i percorsi.');
+},p:2.6});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+/* ── i due esercizi entrano nel menu lungo del percorso e nel manager ── */
+try{
+var _rm3=renderMgr;
+renderMgr=function(){
+_rm3();
+try{
+document.querySelectorAll('#mgrList .rab.reb').forEach(function(btn){
+var row=btn.closest('.ri');if(!row||row.querySelector('.rcb2'))return;
+var m=(btn.getAttribute('onclick')||'').match(/'([^']+)'/);
+if(!m)return;
+var id=m[1];
+var b=document.createElement('button');
+b.className='rab rcb2';b.textContent='🧠';b.title='Richiamo a memoria';
+b.onclick=function(ev){
+ev.stopPropagation();
+var d=document.createElement('div');d.id='recallOv';
+d.innerHTML='<div class="rc-card rc-pick"><b>Richiamo a memoria</b>'
++'<small>La via non si vede finché non l\u2019hai pensata</small>'
++'<div class="rc-row"><button class="rc-fw">▶ Avanti</button><button class="rc-bw">◀ Al contrario</button></div></div>';
+document.body.appendChild(d);
+d.querySelector('.rc-fw').onclick=function(){d.remove();startRecall(id,false);};
+d.querySelector('.rc-bw').onclick=function(){d.remove();startRecall(id,true);};
+d.addEventListener('click',function(e){if(e.target===d)d.remove();});
+};
+btn.parentNode.insertBefore(b,btn);
+});
+}catch(e){}
+};
+}catch(e){}
+
 })();
