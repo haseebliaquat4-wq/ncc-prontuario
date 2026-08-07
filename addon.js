@@ -514,11 +514,11 @@ background:var(--a);transform:scaleY(0);transform-origin:center;transition:trans
 @keyframes revealName{from{opacity:0;transform:translate3d(0,7px,0);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
 .sr.act .sname:not(.hid){animation:revealName .34s var(--e-soft) both;}
 
-/* 5 · pin: atterraggio elastico invece di apparizione secca */
-@keyframes pinDrop{0%{opacity:0;transform:translate3d(0,-16px,0) scale(.7)}
-60%{opacity:1;transform:translate3d(0,2px,0) scale(1.06)}100%{transform:none;scale:1}}
-.leaflet-marker-icon.pin-wrap{animation:pinDrop .42s var(--e-soft) both;}
-body:not(.on-topo) .leaflet-marker-icon.pin-wrap{animation:none;}
+/* 5 · pin: l'animazione vive SOLO sull'icona interna.
+[FIX] Mai animare transform sull'elemento marker: Leaflet lo usa per
+posizionarlo sulla mappa, e un'animazione con fill-mode lo cancellava
+(pin nell'angolo o invisibile). Il core ha già la sua pinDrop: non la tocco. */
+.pin-wrap .pin-emoji{will-change:transform;}
 
 /* 6 · il tracciato si disegna quando cambi percorso */
 .route-line{transition:stroke-width .25s var(--e-soft),opacity .25s;}
@@ -554,7 +554,7 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 .leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .28s var(--e-soft);}
 
 @media (prefers-reduced-motion:reduce){
-#sList.rows-in .sr,.sr.act .sn,.sr.act .sname:not(.hid),.leaflet-marker-icon.pin-wrap,.sr .cb.s{animation:none!important;}
+#sList.rows-in .sr,.sr.act .sn,.sr.act .sname:not(.hid),.sr .cb.s{animation:none!important;}
 .route-flow{animation:none;}
 #segPill{transition:none;}
 }
@@ -599,6 +599,13 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 .zn.on b{color:var(--a);}
 .rcb2{background:var(--sab);color:var(--a);}
 @media (prefers-reduced-motion:reduce){.rc-card,.rc-name{animation:none;}}
+
+
+/* salto dell'icona quando il pin arriva alla via successiva
+   (agisce SOLO sull'emoji interna: il marker non va mai animato) */
+@keyframes pinHop{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-7px) scale(1.14)}100%{transform:translateY(0) scale(1)}}
+.route-trail{animation:trailFade .7s ease forwards;}
+@keyframes trailFade{0%{opacity:.8;stroke-width:8}100%{opacity:0;stroke-width:2}}
 `;
 }catch(e){}
 })();
@@ -3212,4 +3219,51 @@ btn.parentNode.insertBefore(b,btn);
 };
 }catch(e){}
 
+})();
+
+/* ═══════════════════════════════════════════════════
+   PIN CHE SCORRE ALLA VIA SUCCESSIVA
+   Solo setLatLng animato (mai transform CSS: quello lo usa Leaflet
+   per posizionare il marker, ed è ciò che lo faceva sparire).
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var tok=0;
+try{
+if(typeof slideMarker!=='function')return;
+slideMarker=function(m,to){
+try{
+if(!m)return;
+if(typeof map==='undefined'||!map){m.setLatLng(to);return;}
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){m.setLatLng(to);return;}
+var from=m.getLatLng();
+var dist=0;
+try{
+var p1=map.latLngToContainerPoint(from),p2=map.latLngToContainerPoint(L.latLng(to[0],to[1]));
+dist=Math.hypot(p2.x-p1.x,p2.y-p1.y);
+}catch(e){m.setLatLng(to);return;}
+if(dist<2){m.setLatLng(to);return;}
+/* scia luminosa tra la via lasciata e quella nuova */
+try{if(typeof trailFx==='function')trailFx([from.lat,from.lng],to);}catch(e){}
+/* piccolo salto dell'icona: si anima l'elemento INTERNO, mai il marker */
+try{
+var el=m.getElement&&m.getElement();
+var pe=el&&el.querySelector('.pin-emoji');
+if(pe){pe.style.animation='none';void pe.offsetWidth;pe.style.animation='pinHop .5s cubic-bezier(.34,1.4,.5,1)';}
+}catch(e){}
+/* durata proporzionale alla distanza: vicino = svelto, lontano = si segue con l'occhio */
+var dur=Math.max(340,Math.min(900,260+dist*1.1));
+var t0=performance.now(),k0=++tok;
+var a=from.lat,b=from.lng,c=to[0],d=to[1];
+function ease(x){return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;}   /* parte piano, arriva piano */
+function step(now){
+if(k0!==tok)return;
+var k=Math.min(1,(now-t0)/dur),e=ease(k);
+try{m.setLatLng([a+(c-a)*e,b+(d-b)*e]);}catch(err){return;}
+if(k<1)requestAnimationFrame(step);
+}
+requestAnimationFrame(step);
+}catch(e){try{m.setLatLng(to);}catch(e2){}}
+};
+}catch(e){}
 })();
