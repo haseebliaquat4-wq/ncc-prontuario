@@ -1756,7 +1756,7 @@ var why=document.querySelector('.coach-why');
 if(!why)return;
 if(d.heavy){
 var giorni=Math.ceil(d.due/40);
-why.textContent='🚑 Modalità recupero: '+d.due+' errori scaduti'+(d.old3?(' ('+d.old3+' da 3+ giorni)'):'')+'. Stop alle nuove: '+giorni+' giorni a 40 al giorno e sei in pari.';
+why.textContent='🚑 Modalità recupero: '+d.due+' scaduti su '+d.open+' totali'+(d.old3?(' · '+d.old3+' da 3+ giorni'):'')+'. Stop alle nuove: '+giorni+' giorni a 40 al giorno e sei in pari.';
 why.classList.add('why-alert');
 }else why.classList.remove('why-alert');
 }catch(e){}
@@ -2142,7 +2142,7 @@ if(!why||why.querySelector('.lvl'))return;
 var dom=(m[k+1]||0),dopo=(m[k+2]||0);
 if(oggi>0&&(dom||dopo)){
 var s=document.createElement('span');s.className='lvl';
-s.textContent=' · In arrivo: '+dom+' domani, '+dopo+' dopodomani (carico livellato)';
+s.textContent=' · In arrivo dalla coda: '+dom+' domani, '+dopo+' dopodomani';
 why.appendChild(s);
 }
 }catch(e){}
@@ -3265,5 +3265,78 @@ if(k<1)requestAnimationFrame(step);
 requestAnimationFrame(step);
 }catch(e){try{m.setLatLng(to);}catch(e2){}}
 };
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   1 · SINCRONIZZAZIONE AL RITORNO
+   Il core tira i dati dal cloud SOLO all'avvio: una scheda lasciata
+   aperta sul PC resta ferma per ore mentre studi dal telefono.
+   Ora ricontrolla quando torni sull'app (con freno di 20 secondi).
+   syncFromCloud confronta i timestamp, quindi non sovrascrive mai
+   dati locali più recenti.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+var last=Date.now();
+function pull(){
+try{
+if(typeof syncFromCloud!=='function')return;
+if(Date.now()-last<20000)return;
+last=Date.now();
+syncFromCloud();
+setTimeout(function(){
+try{goHome&&document.getElementById('homeScreen')&&
+ (renderPlan(),renderCoach(),renderReadiness(),renderExamLight(),updateTabBadge());}catch(e){}
+},1400);
+}catch(e){}
+}
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState==='visible')pull();
+});
+window.addEventListener('focus',pull);
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   2 · VIBRAZIONE SU iPHONE
+   navigator.vibrate NON esiste su Safari iOS: la vibrazione non ha
+   mai funzionato sul telefono. Su iOS 17.4+ si ottiene il feedback
+   aptico di sistema attivando un interruttore nascosto.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+var iOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+ (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+if(!iOS)return;
+if(navigator.vibrate)return;              /* se il browser vibra già, non serve */
+
+var sw=document.createElement('input');
+sw.type='checkbox';sw.id='hapSwitch';
+sw.setAttribute('switch','');
+var lb=document.createElement('label');
+lb.setAttribute('for','hapSwitch');lb.id='hapLabel';
+var box=document.createElement('div');
+box.style.cssText='position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;';
+box.appendChild(sw);box.appendChild(lb);
+document.body.appendChild(box);
+
+function buzz(n){
+try{
+if(typeof vibOn!=='undefined'&&!vibOn)return;
+lb.click();
+if(n>1)setTimeout(function(){lb.click();},70);
+if(n>2)setTimeout(function(){lb.click();},140);
+}catch(e){}
+}
+/* si aggancia a hap() del core senza toccarne il resto (suoni compresi) */
+var _hap=window.hap;
+window.hap=function(t){
+try{if(typeof _hap==='function')_hap(t);}catch(e){}
+buzz(t==='e'?3:(t==='m'?2:1));
+};
+window.NCC_HAPTIC='switch-ios';
 }catch(e){}
 })();
