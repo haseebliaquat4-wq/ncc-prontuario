@@ -606,6 +606,25 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 @keyframes pinHop{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-7px) scale(1.14)}100%{transform:translateY(0) scale(1)}}
 .route-trail{animation:trailFade .7s ease forwards;}
 @keyframes trailFade{0%{opacity:.8;stroke-width:8}100%{opacity:0;stroke-width:2}}
+
+
+/* ══════ Salvagente dati ══════ */
+#saveInfo{width:100%;max-width:460px;margin:10px auto 0;padding:11px 14px;background:var(--fill3);border-radius:16px;font-size:11.5px;font-weight:600;color:var(--mu);text-align:center;cursor:pointer;line-height:1.45;transition:background .2s;}
+@media (min-width:1100px){#saveInfo{max-width:520px;}}
+#saveInfo b{color:var(--tx);font-weight:800;}
+#saveInfo:active{background:var(--fill2);}
+#bkOv{position:fixed;inset:0;z-index:8900;background:rgba(7,10,20,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.bk-card{background:var(--card);border-radius:26px;padding:22px 20px;max-width:430px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--sh-xl);animation:sheetUp .34s var(--e-soft) both;}
+.bk-hd b{display:block;font-size:18px;font-weight:820;color:var(--tx);}
+.bk-hd small{display:block;font-size:12px;color:var(--mu);margin-top:5px;font-weight:600;line-height:1.4;}
+.bk-list{margin:14px 0;overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:13px;color:var(--mu);}
+.bk-row{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border:1.5px solid var(--bd);border-radius:16px;background:var(--card);cursor:pointer;transition:border-color .2s,transform .15s var(--e-spring);}
+.bk-row:active{transform:scale(.98);border-color:var(--a);}
+.bk-when{font-size:14px;font-weight:800;color:var(--tx);}
+.bk-when em{font-style:normal;font-size:10px;font-weight:800;color:var(--ok);background:rgba(14,159,110,.12);padding:2px 7px;border-radius:8px;margin-left:6px;}
+.bk-meta{font-size:11.5px;color:var(--mu);font-weight:650;margin-top:3px;}
+.bk-close{padding:14px;border:none;border-radius:16px;background:var(--fill2);color:var(--tx);font-size:15px;font-weight:800;cursor:pointer;}
+@media (prefers-reduced-motion:reduce){.bk-card{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -1882,6 +1901,11 @@ _smL(id,correct);
 try{
 var after=qtStats.err[id]!==undefined;
 var k=_dayKey(),bal=lg('errBal',{});
+/* [IGIENE] tiene solo gli ultimi 40 giorni: cresceva all'infinito */
+try{
+var kk=Object.keys(bal);
+if(kk.length>40){kk.sort();kk.slice(0,kk.length-40).forEach(function(x){delete bal[x];});}
+}catch(e){}
 bal[k]=bal[k]||{in:0,out:0};
 if(!before&&after)bal[k].in++;
 if(before&&!after)bal[k].out++;
@@ -2659,11 +2683,22 @@ last=i;
 (function(){
 'use strict';
 function dueCount(){try{var n=0,now=Date.now();Object.keys(qtStats.err||{}).forEach(function(id){if(srDue(id)<=now)n++;});return n;}catch(e){return 99;}}
+/* [FIX] il consolidamento vale solo quando la copertura è quasi finita:
+   senza questo controllo compariva anche su un'installazione nuova,
+   contraddicendo il messaggio "si comincia". */
+function consolidabile(){
+try{
+buildQuiz();
+var viste=Object.keys(qtStats.seenIds||{}).length;
+var tot=(QUIZ_ALL&&QUIZ_ALL.length)||919;
+return viste>=40&&viste>=tot*0.8&&dueCount()<20;
+}catch(e){return false;}
+}
 try{
 var _smC2=startMicro;
 startMicro=function(){
 try{
-if(dueCount()<20&&Object.keys(qtStats.seenIds||{}).length>=40){
+if(consolidabile()){
 openQuiz();
 setTimeout(function(){qStartOptimal(8);},250);
 return;
@@ -2677,8 +2712,7 @@ var _ctK=coachTasks;
 coachTasks=function(){
 var t=_ctK();
 try{
-var due=dueCount();
-if(due>=20||Object.keys(qtStats.seenIds||{}).length<40)return t;
+if(!consolidabile())return t;
 var m=(typeof studentModel==='function')?studentModel():null;
 if(!m)return t;
 t.unshift({ic:'💎',tx:'Consolidamento — 12 domande mirate',sub:'Pila sotto controllo: ora si abbassa il rischio ('+m.fail+'%) dove pesa di più'+(m.worst?(' · '+m.worst.label):''),fn:function(){openQuiz();setTimeout(function(){qStartOptimal(12);},250);},p:0.3});
@@ -2693,7 +2727,7 @@ var _rcK=renderCoach;
 renderCoach=function(){
 _rcK();
 try{
-if(dueCount()>=20)return;
+if(!consolidabile())return;
 var why=document.querySelector('.coach-why');if(!why||why.querySelector('.cons'))return;
 var s=document.createElement('span');s.className='cons';
 s.textContent=' · 💎 Fase consolidamento: gli errori non bastano più, ora contano le domande deboli.';
@@ -3060,16 +3094,22 @@ try{hap();}catch(e){}
 function rcMark(ok){
 try{
 var i=rcIdx();
+/* [FIX] l'archivio va creato SEMPRE: stava solo nel ramo "sbagliato",
+   quindi su un percorso senza statistiche il tasto "La sapevo" andava
+   in eccezione e l'esercizio si bloccava al primo tocco. */
+var id=RC.r.id;
+if(!qStats[id])qStats[id]={correct:0,total:0,wrong:{}};
+if(!qStats[id].wrong)qStats[id].wrong={};
+/* [FIX] nella riprova gli indici sono quelli del percorso ridotto:
+   senza traduzione venivano penalizzate le vie sbagliate. */
+var reale=RC.map?RC.map[i]:i;
 if(ok)RC.ok++;
 else{
-RC.miss.push(i);
-/* registra l'errore nelle statistiche vere del percorso */
-if(!qStats[RC.r.id])qStats[RC.r.id]={correct:0,total:0,wrong:{}};
-if(!qStats[RC.r.id].wrong)qStats[RC.r.id].wrong={};
-qStats[RC.r.id].wrong[i]=(qStats[RC.r.id].wrong[i]||0)+1;
+RC.miss.push(reale);
+qStats[id].wrong[reale]=(qStats[id].wrong[reale]||0)+1;
 }
-qStats[RC.r.id].total=(qStats[RC.r.id].total||0)+1;
-if(ok)qStats[RC.r.id].correct=(qStats[RC.r.id].correct||0)+1;
+qStats[id].total=(qStats[id].total||0)+1;
+if(ok)qStats[id].correct=(qStats[id].correct||0)+1;
 RC.i++;
 if(RC.i>=RC.r.steps.length){rcFinish();return;}
 drawRecall();
@@ -3079,10 +3119,13 @@ function rcFinish(){
 try{
 var tot=RC.r.steps.length,ok=RC.ok,miss=RC.miss.slice();
 try{save();autoSave();}catch(e){}
-/* la spirale reagisce: bene → avanza, male → torna presto */
+/* la spirale reagisce solo al giro completo: una riprova parziale
+   non deve né promuovere né retrocedere l'intero percorso */
 try{
+if(!RC.retry){
 if(miss.length===0){if(typeof rsrMark==='function')rsrMark(RC.r.id);}
 else if(miss.length>=3){rSR[RC.r.id]={box:1,due:Date.now()+2*86400000};ls('rSR',rSR);markDirty('prefs');}
+}
 }catch(e){}
 var pct=Math.round(ok/tot*100);
 var names=miss.slice(0,8).map(function(i){return '<span class="rc-miss">'+(i+1)+'. '+esc(RC.r.steps[i])+'</span>';}).join('');
@@ -3098,9 +3141,8 @@ d.querySelector('.rc-close').onclick=function(){d.remove();RC=null;try{renderMgr
 var ag=d.querySelector('.rc-again');
 if(ag)ag.onclick=function(){
 var r=RC.r;d.remove();
-RC={r:r,rev:false,i:0,ok:0,miss:[],start:Date.now(),only:miss};
-/* riprova solo le mancate: percorso ridotto */
-RC.r={id:r.id,title:r.title+' · le mancate',steps:miss.map(function(i){return r.steps[i];})};
+RC={r:{id:r.id,title:r.title+' \u00b7 le mancate',steps:miss.map(function(i){return r.steps[i];})},
+rev:false,i:0,ok:0,miss:[],start:Date.now(),map:miss.slice(),retry:true};
 drawRecall();
 };
 }catch(e){}
@@ -3304,9 +3346,15 @@ return n;
 function scrivi(){
 try{
 var ts=Date.now();
+var dev=(typeof nccDev==='function')?nccDev():'Dispositivo';
+var ans=risposte(qtStats);
 fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
-studyProg:studyProg,qExamHist:qExamHist,ts:ts})
-.then(function(){ls('syncTs',ts);try{showInd();}catch(e){}})
+studyProg:studyProg,qExamHist:qExamHist,ts:ts,dev:dev,ans:ans})
+.then(function(){
+ls('syncTs',ts);ls('lastDev',dev);ls('lastAns',ans);
+try{showInd();}catch(e){}
+try{if(typeof nccSnapshot==='function')nccSnapshot();}catch(e){}
+})
 .catch(function(){});
 }catch(e){}
 }
@@ -3350,6 +3398,15 @@ var _sfc=window.syncFromCloud;
 window.syncFromCloud=function(){
 try{_sfc.apply(this,arguments);}catch(e){}
 cloudTs(function(ct){if(ct!==null)ls('syncTs',ct);});
+try{
+fbRef&&fbRef.once('value',function(sn){
+try{
+var d=sn.val()||{};
+if(d.dev)ls('lastDev',d.dev);
+if(d.ans!==undefined)ls('lastAns',d.ans);
+}catch(e){}
+},function(){});
+}catch(e){}
 };
 }catch(e){}
 setTimeout(function(){cloudTs(function(ct){if(ct!==null&&!lg('syncTs',0))ls('syncTs',ct);});},2600);
@@ -3430,5 +3487,205 @@ try{if(typeof _hap==='function')_hap(t);}catch(e){}
 buzz(t==='e'?3:(t==='m'?2:1));
 };
 window.NCC_HAPTIC='switch-ios';
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   SALVAGENTE DATI — storico copie + chi ha salvato per ultimo
+   Il core tiene UNA sola copia settimanale: se i dati si rovinano
+   e il backup parte dopo, non c'è più nulla da recuperare.
+   Qui: 6 copie a rotazione (una al giorno) e un pannello per sceglierle.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var SLOTS=6;
+
+function devName(){
+try{
+var n=lg('devName','');
+if(n)return n;
+var u=navigator.userAgent||'';
+n=/iPhone/.test(u)?'iPhone':/iPad/.test(u)?'iPad':/Android/.test(u)?'Android':
+  /Macintosh/.test(u)?'Mac':/Windows/.test(u)?'PC':'Dispositivo';
+ls('devName',n);
+return n;
+}catch(e){return 'Dispositivo';}
+}
+window.nccDev=devName;
+
+function risposte(qt){
+try{var n=0,c=(qt||{}).cat||{};Object.keys(c).forEach(function(k){n+=c[k].seen||0;});return n;}catch(e){return 0;}
+}
+function nErr(qt){try{return Object.keys((qt||{}).err||{}).length;}catch(e){return 0;}}
+
+/* ── una copia al giorno, a rotazione su 6 posti ── */
+window.nccSnapshot=function(force){
+try{
+if(typeof fbOk==='undefined'||!fbOk||typeof firebase==='undefined')return;
+var oggi=new Date().toDateString();
+if(!force&&lg('snapDay','')===oggi)return;
+ls('snapDay',oggi);
+var slot=(lg('snapSlot',0)+1)%SLOTS;
+ls('snapSlot',slot);
+firebase.database().ref('prontuario_snaps/s'+slot).set({
+routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
+studyProg:studyProg,qExamHist:qExamHist,
+ts:Date.now(),dev:devName(),ans:risposte(qtStats),errs:nErr(qtStats)
+}).then(function(){}).catch(function(){});
+}catch(e){}
+};
+
+/* ── pannello: scegli quale copia ripristinare ── */
+window.openRestore=function(){
+try{
+if(document.getElementById('bkOv'))return;
+if(typeof fbOk==='undefined'||!fbOk||typeof firebase==='undefined'){toast2('\u26a0\ufe0f Cloud non disponibile');return;}
+var o=document.createElement('div');o.id='bkOv';
+o.innerHTML='<div class="bk-card"><div class="bk-hd"><b>\ud83d\udee0 Copie di sicurezza</b>'
++'<small>Scegli da quale giorno ripartire. I dati attuali verranno sostituiti.</small></div>'
++'<div class="bk-list" id="bkList">Cerco le copie\u2026</div>'
++'<button class="bk-close">Chiudi</button></div>';
+o.addEventListener('click',function(e){if(e.target===o)o.remove();});
+document.body.appendChild(o);
+o.querySelector('.bk-close').onclick=function(){o.remove();};
+
+firebase.database().ref('prontuario_snaps').once('value',function(sn){
+try{
+var d=sn.val()||{},list=[];
+Object.keys(d).forEach(function(k){if(d[k]&&d[k].ts)list.push({k:k,v:d[k]});});
+/* aggiunge anche la copia settimanale del core, se c'è */
+firebase.database().ref('prontuario_backup').once('value',function(sb){
+try{
+var b=sb.val();
+if(b&&b.ts)list.push({k:'weekly',v:b});
+list.sort(function(a,b2){return b2.v.ts-a.v.ts;});
+var el=document.getElementById('bkList');if(!el)return;
+if(!list.length){el.textContent='Nessuna copia disponibile. La prima verr\u00e0 creata al prossimo salvataggio.';return;}
+el.innerHTML=list.map(function(x,i){
+var dt=new Date(x.v.ts);
+var quando=dt.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' \u00b7 '+
+ dt.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+var ans=x.v.ans!==undefined?x.v.ans:risposte(x.v.qtStats);
+var er=x.v.errs!==undefined?x.v.errs:nErr(x.v.qtStats);
+return '<button class="bk-row" data-k="'+x.k+'">'
++'<div class="bk-when">'+quando+(i===0?' <em>pi\u00f9 recente</em>':'')+'</div>'
++'<div class="bk-meta">'+ans+' risposte \u00b7 '+er+' errori'+(x.v.dev?(' \u00b7 '+esc(x.v.dev)):'')+'</div></button>';
+}).join('');
+el.addEventListener('click',function(ev){
+var b2=ev.target.closest('.bk-row');if(!b2)return;
+var item=list.find(function(z){return z.k===b2.dataset.k;});if(!item)return;
+var dt=new Date(item.v.ts).toLocaleString('it-IT');
+if(!confirm('Ripristinare la copia del '+dt+'?\n\n'+
+ (item.v.ans||0)+' risposte \u00b7 '+(item.v.errs||0)+' errori\n\n'+
+ 'I dati attuali di questo dispositivo verranno sostituiti.'))return;
+applicaCopia(item.v);
+});
+}catch(e){}
+},function(){});
+}catch(e){}
+},function(){var el=document.getElementById('bkList');if(el)el.textContent='Impossibile leggere le copie.';});
+}catch(e){}
+};
+
+function applicaCopia(d){
+try{
+if(d.routes)routes=vR(d.routes);
+if(d.coords)coords=vC(d.coords);
+if(d.qStats&&typeof d.qStats==='object')qStats=d.qStats;
+if(d.done&&typeof d.done==='object')done=d.done;
+if(d.qtStats&&typeof d.qtStats==='object'){qtStats=d.qtStats;
+if(!qtStats.cat)qtStats.cat={};if(!qtStats.err)qtStats.err={};if(!qtStats.seenIds)qtStats.seenIds={};
+ls('qtStats',qtStats);}
+if(d.studyProg&&typeof d.studyProg==='object'){studyProg=d.studyProg;ls('studyProg',studyProg);}
+if(d.qExamHist&&Array.isArray(d.qExamHist)){qExamHist=d.qExamHist;ls('qExamHist',qExamHist);}
+save();
+ls('localTs',Date.now());
+ls('syncTs',0);              /* la copia ripristinata è la nuova verità: potrà essere scritta */
+try{qtSave();}catch(e){}
+toast2('\ud83d\udee0 Copia ripristinata');
+setTimeout(function(){location.reload();},900);
+}catch(e){toast2('\u26a0\ufe0f Ripristino non riuscito');}
+}
+
+/* ── riga in home: chi ha salvato per ultimo ── */
+function renderSaveInfo(){
+try{
+var home=document.getElementById('homeScreen');if(!home)return;
+var old=document.getElementById('saveInfo');
+if(old&&old.parentNode!==home)old.remove();
+var el=document.getElementById('saveInfo');
+if(!el){
+el=document.createElement('div');el.id='saveInfo';
+el.onclick=function(){openRestore();};
+var wk=document.getElementById('weekChart');
+if(wk&&wk.parentNode)wk.after(el);else home.appendChild(el);
+}
+/* [FIX] layoutHome sposta il grafico DOPO la prima creazione e lasciava
+   la riga orfana a metà pagina: la si riaggancia a ogni disegno */
+try{
+var wk2=document.getElementById('weekChart');
+if(wk2&&wk2.parentNode&&wk2.nextElementSibling!==el)wk2.after(el);
+}catch(e){}
+var ts=lg('syncTs',0),dev=lg('lastDev',devName()),ans=lg('lastAns',0);
+if(!ts){el.innerHTML='\u2601\ufe0f Nessun salvataggio ancora \u00b7 <b>copie di sicurezza</b>';return;}
+var d=new Date(ts),oggi=new Date().toDateString()===d.toDateString();
+var q=(oggi?'oggi ':d.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' ')
+ +d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+el.innerHTML='\u2601\ufe0f Ultimo salvataggio: <b>'+esc(dev)+'</b> \u00b7 '+q
+ +(ans?(' \u00b7 '+ans+' risposte'):'')+' \u00b7 <b>copie</b>';
+}catch(e){}
+}
+try{
+var _rw=renderWeekly;
+renderWeekly=function(){_rw.apply(this,arguments);setTimeout(renderSaveInfo,40);};
+}catch(e){}
+/* [FIX] corsa: renderSaveInfo posizionava la riga a 40ms, ma layoutHome
+   riordina la home a 80ms e spostava il grafico lasciandola indietro.
+   Si riaggancia come ultimo passo del riordino. */
+try{
+var _lh=window.layoutHome;
+if(typeof _lh==='function'){
+window.layoutHome=function(){
+var r=_lh.apply(this,arguments);
+try{renderSaveInfo();}catch(e){}
+return r;
+};
+}
+}catch(e){}
+setTimeout(renderSaveInfo,2000);
+
+/* la copia giornaliera parte dopo il primo salvataggio riuscito */
+setTimeout(function(){try{nccSnapshot();}catch(e){}},9000);
+
+})();
+
+/* ═══════════════════════════════════════════════════
+   FASE CORRETTA SENZA TRAGUARDO
+   Se non è impostata la data-traguardo, targetInfo() torna nullo e il
+   coach ripiegava su "Fase mantenimento" — proprio all'inizio, quando
+   non hai ancora studiato nulla. Ora la fase si legge dalla copertura.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+var _rcF=renderCoach;
+renderCoach=function(){
+_rcF.apply(this,arguments);
+try{
+var why=document.querySelector('.coach-why');if(!why)return;
+var t=why.firstChild;
+if(!t||t.nodeType!==3)return;                       /* solo il testo iniziale */
+if(t.nodeValue.indexOf('Fase mantenimento')!==0)return;
+var ti=targetInfo();
+if(ti)return;                                        /* con traguardo il core decide bene */
+buildQuiz();
+var viste=Object.keys(qtStats.seenIds||{}).length;
+var tot=(QUIZ_ALL&&QUIZ_ALL.length)||919;
+if(viste>=tot*0.98)return;                           /* copertura completa: mantenimento è giusto */
+t.nodeValue=viste<20
+? 'Si comincia: rispondi senza fretta, gli errori diventano ripassi programmati.'
+: ('Fase copertura: '+Math.round(viste/tot*100)+'% delle domande viste. Prima gli errori in scadenza, poi le nuove.');
+}catch(e){}
+};
 }catch(e){}
 })();
