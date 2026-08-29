@@ -3269,27 +3269,115 @@ requestAnimationFrame(step);
 })();
 
 /* ═══════════════════════════════════════════════════
-   1 · SINCRONIZZAZIONE AL RITORNO
-   Il core tira i dati dal cloud SOLO all'avvio: una scheda lasciata
-   aperta sul PC resta ferma per ore mentre studi dal telefono.
-   Ora ricontrolla quando torni sull'app (con freno di 20 secondi).
-   syncFromCloud confronta i timestamp, quindi non sovrascrive mai
-   dati locali più recenti.
+   SINCRONIZZAZIONE PROTETTA
+   [BUG 1 - PERDITA DATI] Una scheda rimasta aperta con dati vecchi
+   spingeva comunque al cloud e SOVRASCRIVEVA il lavoro fatto altrove:
+   gli errori "tornavano su" da soli. Ora prima di scrivere si controlla
+   il timestamp del cloud: se un altro dispositivo ha scritto dopo la
+   nostra ultima sincronizzazione, si scarica invece di sovrascrivere.
+   [BUG 2] Niente sincronizzazione durante una sessione in corso:
+   sostituiva le statistiche mentre stavi rispondendo.
+   [BUG 3] Si scarica solo se il cloud è davvero più recente: niente
+   avviso "dati locali più recenti" a ogni ritorno sull'app.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 try{
+function cloudTs(cb){
+try{
+if(typeof fbOk==='undefined'||!fbOk||!fbRef){cb(null);return;}
+fbRef.child('ts').once('value',function(s){cb(s.val()||0);},function(){cb(null);});
+}catch(e){cb(null);}
+}
+function inSessione(){
+try{return typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&Q&&Q.items&&Q.items.length;}catch(e){return false;}
+}
+
+/* quante risposte ha dato questo archivio: numero che può solo crescere */
+function risposte(qt){
+try{
+var n=0,c=(qt||{}).cat||{};
+Object.keys(c).forEach(function(k){n+=c[k].seen||0;});
+return n;
+}catch(e){return 0;}
+}
+function scrivi(){
+try{
+var ts=Date.now();
+fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
+studyProg:studyProg,qExamHist:qExamHist,ts:ts})
+.then(function(){ls('syncTs',ts);try{showInd();}catch(e){}})
+.catch(function(){});
+}catch(e){}
+}
+/* ── scrittura protetta: mai sovrascrivere il lavoro di chi è più avanti ── */
+function push(){
+try{
+if(typeof fbOk==='undefined'||!fbOk||!fbRef)return;
+cloudTs(function(ct){
+try{
+if(ct===null)return;
+var visto=lg('syncTs',0);
+if(visto&&ct>visto+1500){
+/* un altro dispositivo ha scritto dopo di noi. Chi è davvero avanti?
+   Le risposte date possono solo aumentare: chi ne ha di più ha lavorato di più. */
+fbRef.once('value',function(sn){
+try{
+var d=sn.val()||{};
+if(risposte(d.qtStats)>risposte(qtStats)){
+try{toast2('\u2601\ufe0f Un altro dispositivo \u00e8 pi\u00f9 avanti: aggiorno');}catch(e){}
+ls('localTs',0);
+try{syncFromCloud();}catch(e){}
+ls('syncTs',ct);
+}else{
+scrivi();   /* siamo noi i più avanti: la nostra copia vince */
+}
+}catch(e){}
+},function(){});
+return;
+}
+scrivi();
+}catch(e){}
+});
+}catch(e){}
+}
+var asT=null;
+window.autoSave=function(){try{clearTimeout(asT);asT=setTimeout(push,4000);}catch(e){}};
+
+/* ── registra il punto di sincronizzazione a ogni scarico ── */
+try{
+var _sfc=window.syncFromCloud;
+window.syncFromCloud=function(){
+try{_sfc.apply(this,arguments);}catch(e){}
+cloudTs(function(ct){if(ct!==null)ls('syncTs',ct);});
+};
+}catch(e){}
+setTimeout(function(){cloudTs(function(ct){if(ct!==null&&!lg('syncTs',0))ls('syncTs',ct);});},2600);
+
+/* ── al ritorno sull'app: scarica solo se serve davvero ── */
 var last=Date.now();
 function pull(){
 try{
-if(typeof syncFromCloud!=='function')return;
 if(Date.now()-last<20000)return;
+if(inSessione())return;
 last=Date.now();
+cloudTs(function(ct){
+try{
+if(ct===null)return;
+var visto=lg('syncTs',0);
+if(!visto||ct<=visto+1500)return;   /* niente di nuovo: non disturbare */
 syncFromCloud();
 setTimeout(function(){
-try{goHome&&document.getElementById('homeScreen')&&
- (renderPlan(),renderCoach(),renderReadiness(),renderExamLight(),updateTabBadge());}catch(e){}
-},1400);
+try{
+var h=document.getElementById('homeScreen');
+if(h&&h.style.display!=='none'){
+renderPlan();renderCoach();renderReadiness();renderExamLight();
+}
+updateTabBadge();
+}catch(e){}
+},1500);
+}catch(e){}
+});
 }catch(e){}
 }
 document.addEventListener('visibilitychange',function(){
@@ -3319,7 +3407,11 @@ sw.setAttribute('switch','');
 var lb=document.createElement('label');
 lb.setAttribute('for','hapSwitch');lb.id='hapLabel';
 var box=document.createElement('div');
-box.style.cssText='position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;';
+/* [BUG 4] dentro il viewport ma invisibile: fuori schermo iOS non produce
+   il feedback aptico. [BUG 5] il click sintetico non deve raggiungere
+   i listener della pagina. */
+box.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;z-index:-1;';
+box.addEventListener('click',function(e){e.stopPropagation();},true);
 box.appendChild(sw);box.appendChild(lb);
 document.body.appendChild(box);
 
