@@ -625,6 +625,44 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 .bk-meta{font-size:11.5px;color:var(--mu);font-weight:650;margin-top:3px;}
 .bk-close{padding:14px;border:none;border-radius:16px;background:var(--fill2);color:var(--tx);font-size:15px;font-weight:800;cursor:pointer;}
 @media (prefers-reduced-motion:reduce){.bk-card{animation:none;}}
+
+
+/* ══════ Richiamo a memoria sui quiz ══════ */
+#rqOv{position:fixed;inset:0;z-index:8800;background:rgba(7,10,20,.74);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.rq-card{background:var(--card);border-radius:26px;padding:24px 22px;max-width:440px;width:100%;box-shadow:var(--sh-xl);animation:sheetUp .34s var(--e-soft) both;}
+.rq-hd{display:flex;justify-content:space-between;align-items:center;}
+.rq-hd small{font-size:10px;font-weight:800;color:#8B5CF6;letter-spacing:.06em;}
+.rq-cnt{font-size:12px;font-weight:750;color:var(--mu);font-variant-numeric:tabular-nums;}
+.rq-q{font-size:19px;font-weight:700;color:var(--tx);margin:14px 0 8px;line-height:1.4;}
+.rq-hint{font-size:11.5px;color:var(--mu);font-weight:600;}
+.rq-ans{min-height:60px;display:flex;align-items:center;justify-content:center;margin-top:8px;}
+.rq-name{font-size:19px;font-weight:850;color:var(--ok);text-align:center;line-height:1.35;animation:revealName .34s var(--e-soft) both;}
+.rq-row{display:flex;gap:10px;margin-top:14px;}
+.rq-row button{flex:1;padding:15px 10px;border:none;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s var(--e-spring);}
+.rq-row button:active{transform:scale(.95);}
+.rq-show{background:#8B5CF6;color:#fff;}
+.rq-yes{background:rgba(14,159,110,.14);color:var(--ok);}
+.rq-no{background:rgba(229,72,77,.12);color:var(--err);}
+.rq-close{background:var(--fill2);color:var(--tx);}
+.rq-again{background:var(--a);color:#fff;}
+.rq-end{text-align:center;}
+.rq-score{font-size:52px;font-weight:860;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums;}
+.rq-score span{font-size:22px;font-weight:750;color:var(--mu);}
+.rq-score.ok{color:var(--ok);}.rq-score.mid{color:var(--warn);}.rq-score.no{color:var(--err);}
+.rq-end b{display:block;font-size:15px;font-weight:750;color:var(--tx);margin-top:4px;}
+.rq-end small{display:block;font-size:11.5px;color:var(--mu);margin-top:8px;font-weight:600;}
+/* ══════ La regola con parole tue ══════ */
+.qnote{margin:10px 16px 0;}
+.qnote.shown{display:flex;gap:8px;align-items:flex-start;padding:11px 13px;background:rgba(139,92,246,.09);border:1px solid rgba(139,92,246,.28);border-radius:14px;font-size:12.5px;font-weight:650;color:var(--tx);line-height:1.4;}
+.qn-ic{color:#8B5CF6;font-weight:800;}
+.qn-add{width:100%;padding:11px 13px;border:1px dashed var(--bd);border-radius:14px;background:transparent;color:var(--mu);font-size:12.5px;font-weight:700;cursor:pointer;text-align:left;line-height:1.4;}
+.qn-add:active{background:var(--fill3);}
+@media (prefers-reduced-motion:reduce){.rq-card,.rq-name{animation:none;}}
+
+.rq-x{border:none;background:var(--fill3);color:var(--mu);width:30px;height:30px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;margin-left:8px;}
+.rq-x:active{transform:scale(.9);}
+.rq-hd{gap:6px;}
+
 `;
 }catch(e){}
 })();
@@ -3687,5 +3725,262 @@ t.nodeValue=viste<20
 : ('Fase copertura: '+Math.round(viste/tot*100)+'% delle domande viste. Prima gli errori in scadenza, poi le nuove.');
 }catch(e){}
 };
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   1 · CONTATORE ONESTO — il 108% contava id di vecchie versioni del set
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+var _rsc=renderSeenCount;
+renderSeenCount=function(){
+try{
+var el=document.getElementById('qSeen');if(!el){_rsc();return;}
+buildQuiz();
+var valide=0;
+Object.keys(qtStats.seenIds||{}).forEach(function(id){if(QUIZ_ALL[id|0])valide++;});
+var tot=QUIZ_ALL.length||919;
+valide=Math.min(valide,tot);
+var pct=tot?Math.round(valide/tot*100):0;
+el.innerHTML='\ud83d\udcd6 <b>'+valide+'</b> / '+tot+' domande viste \u00b7 '+pct+'%';
+}catch(e){_rsc();}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   2 · RICHIAMO A MEMORIA SUI QUIZ
+   La domanda senza risposte: devi PRODURLA, non riconoscerla.
+   Sulla topografia questo metodo ha battuto il Cieco 2 a 1.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var RQ=null;
+
+window.qStartRecall=function(n){
+try{
+buildQuiz();
+var now=Date.now();
+var pool=QUIZ_ALL.filter(function(it){return qtStats.err[it.id]&&srDue(it.id)<=now;});
+if(pool.length<5)pool=QUIZ_ALL.filter(function(it){return qtStats.seenIds[it.id];});
+if(pool.length<5){toast2('Servono pi\u00f9 domande viste');return;}
+RQ={items:qShuffle(pool).slice(0,n||10),i:0,ok:0,miss:[]};
+openQuiz();
+setTimeout(drawRQ,150);
+}catch(e){}
+};
+function drawRQ(){
+try{
+var old=document.getElementById('rqOv');if(old)old.remove();
+if(!RQ)return;
+var it=RQ.items[RQ.i];
+var o=document.createElement('div');o.id='rqOv';
+o.innerHTML='<div class="rq-card">'
++'<div class="rq-hd"><small>RICHIAMO A MEMORIA</small><span class="rq-cnt">'+(RQ.i+1)+' / '+RQ.items.length+'</span>'
++'<button class="rq-x" title="Chiudi">\u2715</button></div>'
++'<div class="rq-q">'+esc(it.q)+'</div>'
++'<div class="rq-hint">Pensa la risposta, poi verifica</div>'
++'<div class="rq-ans" id="rqAns"></div>'
++'<div class="rq-row"><button class="rq-show" id="rqShow">\ud83d\udc41 Mostra la risposta</button></div></div>';
+document.body.appendChild(o);
+/* [BUG B] mancava l'uscita: si restava bloccati per tutte le domande */
+o.querySelector('.rq-x').onclick=function(){o.remove();RQ=null;try{renderDash();updateTabBadge();}catch(e){}};
+document.getElementById('rqShow').onclick=function(){
+try{
+var a=document.getElementById('rqAns');
+a.innerHTML='<div class="rq-name">'+esc(it.choices[it.correct])+'</div>';
+var row=o.querySelector('.rq-row');
+row.innerHTML='<button class="rq-no">\u2717 Non la sapevo</button><button class="rq-yes">\u2713 La sapevo</button>';
+row.querySelector('.rq-yes').onclick=function(){rqMark(true);};
+row.querySelector('.rq-no').onclick=function(){rqMark(false);};
+try{hap();}catch(e){}
+}catch(e){}
+};
+}catch(e){}
+}
+function rqMark(ok){
+try{
+var it=RQ.items[RQ.i];
+/* stesso peso di una risposta vera: alimenta pila, statistiche e curva */
+if(!qtStats.cat[it.cat])qtStats.cat[it.cat]={seen:0,ok:0};
+qtStats.seenIds[it.id]=1;
+qtStats.cat[it.cat].seen=(qtStats.cat[it.cat].seen||0)+1;
+if(ok){qtStats.cat[it.cat].ok=(qtStats.cat[it.cat].ok||0)+1;RQ.ok++;srMark(it.id,true);}
+else{RQ.miss.push(it);srMark(it.id,false);}
+try{qtSave();bumpDaily&&bumpDaily(1);}catch(e){}
+RQ.i++;
+if(RQ.i>=RQ.items.length){rqFinish();return;}
+drawRQ();
+}catch(e){}
+}
+function rqFinish(){
+try{
+var tot=RQ.items.length,ok=RQ.ok,miss=RQ.miss.slice();
+var pct=Math.round(ok/tot*100);
+var o=document.getElementById('rqOv');if(o)o.remove();
+var d=document.createElement('div');d.id='rqOv';
+d.innerHTML='<div class="rq-card rq-end">'
++'<div class="rq-score '+(pct>=80?'ok':(pct>=50?'mid':'no'))+'">'+pct+'<span>%</span></div>'
++'<b>'+ok+' su '+tot+' a memoria</b>'
++(miss.length?'<small>Le mancate sono tornate nella pila degli errori</small>':'<small>Ottimo: queste le sai davvero \u2728</small>')
++'<div class="rq-row"><button class="rq-close">Chiudi</button>'
++(miss.length?'<button class="rq-again">Rivedi le mancate</button>':'')+'</div></div>';
+document.body.appendChild(d);
+d.querySelector('.rq-close').onclick=function(){d.remove();RQ=null;try{renderDash();}catch(e){}};
+var ag=d.querySelector('.rq-again');
+if(ag)ag.onclick=function(){d.remove();startQuiz(miss,{mode:'study',title:'Le mancate'});RQ=null;};
+try{updateTabBadge();}catch(e){}
+}catch(e){}
+}
+/* riquadro nel quiz */
+try{
+var _rdR=renderDash;
+renderDash=function(){
+_rdR.apply(this,arguments);
+try{
+if(document.getElementById('rqTile'))return;
+var anchor=document.getElementById('mixTile')||document.getElementById('optTile');
+if(!anchor)return;
+if(Object.keys(qtStats.seenIds||{}).length<20)return;
+var b=document.createElement('button');
+b.id='rqTile';b.className='qtile';
+b.onclick=function(){qStartRecall(10);};
+b.innerHTML='<div class="qtile-ic" style="background:rgba(139,92,246,.14)">\ud83e\udde0</div>'
++'<div class="qtile-tx"><strong>Richiamo a memoria \u00b7 10</strong><small>Senza risposte: le pensi tu. Fissa il doppio del riconoscere</small></div>'
++'<div class="qtile-ar">\u203a</div>';
+anchor.parentNode.insertBefore(b,anchor);
+}catch(e){}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   3 · FRENO ANTI-FRETTA
+   Sotto i 3 secondi non stai leggendo, stai riconoscendo la forma
+   della domanda: all'esame, con le parole cambiate, crolli.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var t0=0,avvisi=0;
+try{
+/* [BUG C] gli avvisi non si azzeravano mai: in una app che resta aperta
+   per giorni il freno funzionava solo le prime tre volte in assoluto. */
+var _sqF=startQuiz;
+startQuiz=function(){avvisi=0;return _sqF.apply(this,arguments);};
+var _qrrF=qRenderRun;
+qRenderRun=function(){_qrrF.apply(this,arguments);t0=Date.now();};
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState==='visible')t0=Date.now();
+});
+}catch(e){}
+try{
+var _qpF=qPick;
+qPick=function(i){
+try{
+var gia=(typeof Q!=='undefined'&&Q)?Q.ans[Q.idx]:-1;
+var esame=(typeof Q!=='undefined'&&Q&&Q.mode==='exam');
+if(!esame&&gia===-1&&t0&&(Date.now()-t0)<3000&&lg('antiFretta',true)!==false){
+if(avvisi<3){
+avvisi++;
+toast2('\ud83d\udc0c Rallenta: rileggi la domanda prima di rispondere',2600);
+try{hap('m');}catch(e){}
+t0=Date.now();
+return;                       /* il primo tocco non conta: rileggi */
+}
+}
+}catch(e){}
+_qpF(i);
+};
+}catch(e){}
+/* interruttore nelle impostazioni */
+window.togAntiFretta=function(){
+var v=lg('antiFretta',true)!==false;
+ls('antiFretta',!v);
+toast2(!v?'\ud83d\udc0c Freno anti-fretta attivo':'Freno anti-fretta disattivato');
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   4 · LA REGOLA CON PAROLE TUE
+   Scriverla è studiare, rileggerla è ripassare. È la cura per le
+   domande croniche: quelle non si risolvono con altri ripassi.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* [BUG A] getPrefs() non includeva le note: restavano solo su questo
+   dispositivo e sparivano da backup e sincronizzazione. */
+try{
+var _gp=getPrefs;
+getPrefs=function(){
+var p=_gp.apply(this,arguments)||{};
+try{p.qNotes=lg('qNotes',{});}catch(e){}
+return p;
+};
+}catch(e){}
+/* e all'arrivo dal cloud le note si fondono, senza perdere le locali */
+try{
+var _sfN=window.syncFromCloud;
+window.syncFromCloud=function(){
+var r=_sfN.apply(this,arguments);
+try{
+if(typeof fbRef!=='undefined'&&fbRef)fbRef.once('value',function(sn){
+try{
+var d=(sn.val()||{}).prefs;
+if(!d||!d.qNotes)return;
+var loc=lg('qNotes',{})||{},cam=false;
+Object.keys(d.qNotes).forEach(function(k){if(!loc[k]){loc[k]=d.qNotes[k];cam=true;}});
+if(cam)ls('qNotes',loc);
+}catch(e){}
+},function(){});
+}catch(e){}
+return r;
+};
+}catch(e){}
+function note(){try{return lg('qNotes',{})||{};}catch(e){return {};}}
+function setNote(id,v){
+try{
+var n=note();
+if(v)n[id]=v.slice(0,240);else delete n[id];
+ls('qNotes',n);markDirty&&markDirty('prefs');
+}catch(e){}
+}
+window.qNoteFor=function(id){return note()[id]||'';};
+
+function inject(){
+try{
+if(typeof Q==='undefined'||!Q||!Q.items)return;
+var it=Q.items[Q.idx];if(!it)return;
+var host=document.getElementById('qRunAns');if(!host)return;
+var old=document.getElementById('qNoteBox');if(old)old.remove();
+var risposto=Q.ans[Q.idx]!==-1;
+var testo=qNoteFor(it.id);
+/* la nota si vede PRIMA della domanda se esiste, altrimenti si scrive dopo */
+if(!risposto&&!testo)return;
+var box=document.createElement('div');box.id='qNoteBox';
+if(!risposto&&testo){
+box.className='qnote shown';
+box.innerHTML='<span class="qn-ic">\u270e</span><span>'+esc(testo)+'</span>';
+host.parentNode.insertBefore(box,host);
+return;
+}
+box.className='qnote edit';
+box.innerHTML='<button class="qn-add">'+(testo?'\u270e '+esc(testo):'\u270e Scrivi la regola con parole tue')+'</button>';
+box.querySelector('.qn-add').onclick=function(){
+var v=prompt('La regola, con parole tue:\n(riapparir\u00e0 ogni volta che incontri questa domanda)',testo||'');
+if(v===null)return;
+setNote(it.id,v.trim());
+toast2(v.trim()?'\u270e Regola salvata':'Nota rimossa');
+inject();
+};
+host.parentNode.appendChild(box);
+}catch(e){}
+}
+try{
+var _qrrN=qRenderRun;
+qRenderRun=function(){_qrrN.apply(this,arguments);setTimeout(inject,30);};
+var _qpN=qPick;
+qPick=function(i){_qpN.apply(this,arguments);setTimeout(inject,60);};
 }catch(e){}
 })();
