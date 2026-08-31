@@ -663,6 +663,56 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 .rq-x:active{transform:scale(.9);}
 .rq-hd{gap:6px;}
 
+
+
+/* ══════ Verdetti dei test di verifica ══════ */
+#coldVerdict,#chkVerdict{margin:4px 16px 12px;padding:13px 15px;background:var(--sab);border-radius:16px;text-align:center;}
+#coldVerdict b,#chkVerdict b{display:block;font-size:16px;font-weight:850;color:var(--tx);}
+#coldVerdict span,#chkVerdict span{display:block;font-size:12px;color:var(--mu);font-weight:650;margin-top:5px;line-height:1.4;}
+
+
+/* ══════ Sotto-argomenti ══════ */
+#subCard{width:100%;background:var(--card);border:1.5px solid var(--bd);border-radius:22px;padding:14px 16px;box-shadow:var(--sh-sm);margin-top:8px;}
+.sub-row{cursor:pointer;}
+.sub-row:active{opacity:.6;}
+/* ══════ Vista linea metro ══════ */
+#lineaOv{position:fixed;inset:0;z-index:8850;background:rgba(7,10,20,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:18px;}
+.ln-card{background:var(--card);border-radius:24px;max-width:420px;width:100%;max-height:84vh;display:flex;flex-direction:column;box-shadow:var(--sh-xl);animation:sheetUp .32s var(--e-soft) both;}
+.ln-hd{padding:18px 20px 12px;border-bottom:1px solid var(--sep2);position:relative;}
+.ln-hd b{display:block;font-size:17px;font-weight:820;color:var(--tx);padding-right:34px;line-height:1.25;}
+.ln-hd small{display:block;font-size:11.5px;color:var(--mu);font-weight:600;margin-top:3px;}
+.ln-x{position:absolute;right:16px;top:16px;width:28px;height:28px;border:none;border-radius:50%;background:var(--fill2);color:var(--tx);font-size:14px;cursor:pointer;}
+.ln-body{position:relative;padding:16px 20px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.ln-line{position:absolute;left:33px;top:22px;bottom:22px;width:3px;background:var(--a);border-radius:2px;opacity:.28;}
+.ln-stop{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative;}
+.ln-dot{width:27px;height:27px;border-radius:50%;background:var(--card);border:3px solid var(--a);color:var(--tx);font-size:11px;font-weight:850;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;}
+.ln-stop.mid .ln-dot{border-color:var(--warn);}
+.ln-stop.no .ln-dot{border-color:var(--err);}
+.ln-name{font-size:14px;font-weight:700;color:var(--tx);line-height:1.3;}
+.ln-name em{font-style:normal;font-size:10.5px;font-weight:800;color:var(--err);margin-left:7px;}
+.ln-btn{margin-left:auto;padding:7px 12px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font-size:12px;font-weight:750;cursor:pointer;}
+.ln-btn:active{transform:scale(.95);}
+/* ══════ Quale viene prima ══════ */
+#ordOv{position:fixed;inset:0;z-index:8860;background:rgba(7,10,20,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.or-card{background:var(--card);border-radius:26px;padding:22px 20px;max-width:420px;width:100%;box-shadow:var(--sh-xl);animation:sheetUp .32s var(--e-soft) both;text-align:center;}
+.or-hd small{display:block;font-size:10px;font-weight:800;color:var(--a);letter-spacing:.06em;}
+.or-hd b{display:block;font-size:16px;font-weight:820;color:var(--tx);margin:5px 0 2px;}
+.or-cnt{font-size:12px;font-weight:750;color:var(--mu);}
+.or-row{display:flex;flex-direction:column;gap:10px;margin:18px 0 14px;}
+.or-opt{padding:17px 14px;border:1.5px solid var(--bd);border-radius:18px;background:var(--card);color:var(--tx);font-size:15px;font-weight:750;cursor:pointer;transition:all .2s var(--e-smooth);}
+.or-opt:active{transform:scale(.97);}
+.or-opt.good{border-color:var(--ok);background:rgba(14,159,110,.12);color:var(--ok);}
+.or-opt.bad{border-color:var(--err);background:rgba(229,72,77,.1);color:var(--err);}
+.or-x{width:100%;padding:13px;border:none;border-radius:15px;background:var(--fill2);color:var(--tx);font-size:14px;font-weight:800;cursor:pointer;}
+.or-end b{display:block;font-size:15px;font-weight:750;color:var(--tx);margin:4px 0 14px;}
+#topoEx{display:flex;gap:8px;padding:8px 0 2px;}
+.tx-b{padding:8px 13px;border:1.5px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);font-size:12.5px;font-weight:750;cursor:pointer;}
+.tx-b:active{transform:scale(.96);}
+/* ══════ Punti di riferimento ══════ */
+.rif{margin-top:8px;padding:9px 12px;border-radius:12px;font-size:12px;font-weight:650;cursor:pointer;background:var(--fill3);color:var(--mu);border:1px dashed var(--bd);}
+.rif.has{background:rgba(14,159,110,.10);border:none;border-left:3px solid var(--ok);border-radius:0 12px 12px 0;color:var(--tx);font-weight:700;}
+.rif:active{opacity:.6;}
+@media (prefers-reduced-motion:reduce){.ln-card,.or-card{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -3982,5 +4032,468 @@ var _qrrN=qRenderRun;
 qRenderRun=function(){_qrrN.apply(this,arguments);setTimeout(inject,30);};
 var _qpN=qPick;
 qPick=function(i){_qpN.apply(this,arguments);setTimeout(inject,60);};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   1 · TEST A FREDDO SETTIMANALE
+   Tutte le altre misure sono "calde": rispondi a domande appena
+   ripassate. Qui 20 domande a caso da TUTTO il set, senza selezione
+   intelligente e senza preavviso. È l'unico numero che non mente.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var N=20;
+
+window.qStartCold=function(){
+try{
+buildQuiz();
+var viste=QUIZ_ALL.filter(function(it){return qtStats.seenIds[it.id];});
+if(viste.length<40){toast2('Servono almeno 40 domande viste');return;}
+var deck=qShuffle(viste).slice(0,N);
+ls('coldRun',Date.now());
+openQuiz();
+setTimeout(function(){
+startQuiz(deck,{mode:'study',title:'Test a freddo \u00b7 '+N+' domande',cold:true});
+},200);
+}catch(e){}
+};
+
+/* registra l'esito: è la misura onesta del livello */
+try{
+var _qfC2=qFinish;
+qFinish=function(t){
+var era=null;
+try{if(lastQuiz&&lastQuiz.opts&&lastQuiz.opts.cold)era=true;
+else if(typeof Q!=='undefined'&&Q&&Q.items)era=null;}catch(e){}
+_qfC2(t);
+try{
+if(!lastQuiz||!lastQuiz.opts||!lastQuiz.opts.cold)return;
+var ok=0,tot=0;
+lastQuiz.items.forEach(function(it,i){
+var a=(Q&&Q.ans)?Q.ans[i]:-1;
+if(a<0)return;tot++;if(a===it.correct)ok++;
+});
+if(!tot)return;
+var pct=Math.round(ok/tot*100);
+var st=lg('coldHist',[]);
+if(!Array.isArray(st))st=[];
+st.push({d:Date.now(),pct:pct,ok:ok,tot:tot});
+if(st.length>26)st=st.slice(-26);
+ls('coldHist',st);ls('coldDone',Date.now());markDirty('prefs');
+/* confronto con la stima del modello: chi dei due dice la verità? */
+setTimeout(function(){
+try{
+var m=studentModel();
+var atteso=m?Math.round((m.expScore/16)*100):null;
+var box=document.querySelector('#qResult .qres-actions');if(!box)return;
+pulisciVerdetti();
+var el=document.createElement('div');el.id='coldVerdict';
+var diff=(atteso!==null)?(pct-atteso):null;
+el.innerHTML='<b>\u2744\ufe0f Livello a freddo: '+pct+'%</b>'
++(atteso!==null?('<span>Il modello stimava '+atteso+'%'
++(Math.abs(diff)<=5?' \u2014 stima affidabile \u2713'
+:(diff>0?' \u2014 sai pi\u00f9 di quanto il modello creda (+'+diff+')'
+:' \u2014 il modello \u00e8 ottimista di '+(-diff)+' punti'))+'</span>'):'');
+box.parentNode.insertBefore(el,box);
+}catch(e){}
+},420);
+}catch(e){}
+};
+}catch(e){}
+
+/* il coach lo propone una volta a settimana */
+try{
+var _ctC=coachTasks;
+coachTasks=function(){
+var t=_ctC();
+try{
+buildQuiz();
+if(Object.keys(qtStats.seenIds||{}).length<40)return t;
+var last=lg('coldDone',0);
+if(last&&Date.now()-last<6.5*86400000)return t;
+t.push({ic:'🔬',tx:'Test a freddo ('+N+' domande)',
+sub:'A caso da tutto il set, senza aiuti: il tuo livello vero',
+fn:function(){qStartCold();},p:1.45});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   2 · CHECK-UP POST-PROMOZIONE
+   Una domanda che esce dalla pila non viene più testata: le promozioni
+   sono vere o stai perdendo pezzi dietro le spalle? Un campione
+   mensile lo dice — e taratura sui risultati veri.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var N=10;
+
+/* si annota quando una domanda esce davvero dalla pila */
+try{
+var _smP=srMark;
+srMark=function(id,correct){
+var prima=qtStats.err[id]!==undefined;
+_smP(id,correct);
+try{
+if(!prima||qtStats.err[id]!==undefined)return;
+var pr=lg('promosse',{});
+pr[id]=Date.now();
+var k=Object.keys(pr);
+if(k.length>600){k.sort(function(a,b){return pr[a]-pr[b];});
+k.slice(0,k.length-600).forEach(function(x){delete pr[x];});}
+ls('promosse',pr);
+}catch(e){}
+};
+}catch(e){}
+
+window.qStartCheckup=function(){
+try{
+buildQuiz();
+var pr=lg('promosse',{}),now=Date.now();
+var pool=Object.keys(pr).filter(function(id){
+return QUIZ_ALL[id|0]&&(now-pr[id])>20*86400000&&!qtStats.err[id];
+}).map(function(id){return QUIZ_ALL[id|0];});
+if(pool.length<5){toast2('Poche domande promosse da abbastanza tempo');return;}
+var deck=qShuffle(pool).slice(0,N);
+openQuiz();
+setTimeout(function(){
+startQuiz(deck,{mode:'study',title:'Check-up promozioni',checkup:true});
+},200);
+}catch(e){}
+};
+
+try{
+var _qfP=qFinish;
+qFinish=function(t){
+_qfP(t);
+try{
+if(!lastQuiz||!lastQuiz.opts||!lastQuiz.opts.checkup)return;
+var ok=0,tot=0;
+lastQuiz.items.forEach(function(it,i){
+var a=(Q&&Q.ans)?Q.ans[i]:-1;
+if(a<0)return;tot++;if(a===it.correct)ok++;
+});
+if(!tot)return;
+var pct=Math.round(ok/tot*100);
+ls('checkupDone',Date.now());
+var h=lg('checkupHist',[]);if(!Array.isArray(h))h=[];
+h.push({d:Date.now(),pct:pct,ok:ok,tot:tot});
+if(h.length>12)h=h.slice(-12);
+ls('checkupHist',h);markDirty('prefs');
+setTimeout(function(){
+try{
+var box=document.querySelector('#qResult .qres-actions');if(!box)return;
+pulisciVerdetti();
+var el=document.createElement('div');el.id='chkVerdict';
+el.innerHTML='<b>\ud83e\ude7a Tenuta delle promozioni: '+pct+'%</b><span>'
++(pct>=85?'Le promozioni reggono: la spirale funziona.'
+:(pct>=65?'Qualche pezzo si perde: i ripassi lunghi vanno accorciati.'
+:'Le promozioni non tengono: stai archiviando troppo presto.'))+'</span>';
+box.parentNode.insertBefore(el,box);
+}catch(e){}
+},420);
+}catch(e){}
+};
+}catch(e){}
+
+try{
+var _ctP=coachTasks;
+coachTasks=function(){
+var t=_ctP();
+try{
+var pr=lg('promosse',{}),now=Date.now();
+var pronti=Object.keys(pr).filter(function(id){return (now-pr[id])>20*86400000;}).length;
+if(pronti<10)return t;
+var last=lg('checkupDone',0);
+if(last&&now-last<28*86400000)return t;
+t.push({ic:'🩺',tx:'Check-up promozioni ('+N+' domande)',
+sub:pronti+' domande uscite dalla pila da oltre 20 giorni: reggono ancora?',
+fn:function(){qStartCheckup();},p:1.9});
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+})();
+
+
+/* ═══════════════════════════════════════════════════
+   [BUG] i verdetti restavano appesi: chiudendo un test a freddo e
+   aprendo un check-up si vedevano entrambi, con numeri di sessioni
+   diverse. Ora si azzerano a ogni fine sessione.
+   ═══════════════════════════════════════════════════ */
+window.pulisciVerdetti=function(){
+try{['coldVerdict','chkVerdict'].forEach(function(id){
+var e=document.getElementById(id);if(e)e.remove();});}catch(e){}
+};
+(function(){
+'use strict';
+try{
+var _qfV=qFinish;
+qFinish=function(t){
+try{pulisciVerdetti();}catch(e){}
+return _qfV.apply(this,arguments);
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   3 · SOTTO-ARGOMENTI VISIBILI
+   Il modello li calcola già, ma vedevi solo "Geografia 75%".
+   Sapere QUALE pezzo ti affonda cambia cosa studi domani.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.qStartSub=function(sub,label){
+try{
+buildQuiz();
+var pool=QUIZ_ALL.filter(function(x){return x.sub===sub;});
+if(pool.length<5){toast2('Poche domande su questo tema');return;}
+pool.sort(function(a,b){
+var ea=qtStats.err[a.id],eb=qtStats.err[b.id];
+var pa=ea?(0.34+0.15*(ea.box||0)):(qtStats.seenIds[a.id]?0.9:0.55);
+var pb=eb?(0.34+0.15*(eb.box||0)):(qtStats.seenIds[b.id]?0.9:0.55);
+return pa-pb;
+});
+openQuiz();
+setTimeout(function(){
+startQuiz(qShuffle(pool.slice(0,14)),{mode:'study',title:label||'Tema mirato'});
+},220);
+}catch(e){}
+};
+function renderSubs(){
+try{
+var pane=document.querySelector('#stateCard .st-pane[data-p="1"]');
+var anchor=pane||document.getElementById('modelCard');
+if(!anchor)return;
+var old=document.getElementById('subCard');if(old)old.remove();
+var m=studentModel();if(!m||!m.subs||m.subs.length<2)return;
+if(Object.keys(qtStats.seenIds||{}).length<40)return;
+var righe=m.subs.slice(0,7).map(function(s){
+var cls=s.m>=80?'ok':(s.m>=60?'mid':'no');
+return '<div class="mc-row sub-row" data-s="'+s.sub+'" data-l="'+esc(s.label)+'">'
++'<span>'+esc(s.label)+'</span>'
++'<div class="mc-bar '+cls+'"><i style="width:'+s.m+'%"></i></div><b>'+s.m+'%</b></div>';
+}).join('');
+var el=document.createElement('div');el.id='subCard';
+el.innerHTML='<div class="mc-hd"><div><small>PADRONANZA PER TEMA</small>'
++'<b>'+m.subs[0].m+'<span>% il pi\u00f9 debole</span></b></div></div>'
++'<div class="mc-sub">Dal pi\u00f9 debole al pi\u00f9 solido \u00b7 tocca una riga per 14 domande mirate</div>'+righe;
+el.addEventListener('click',function(e){
+var r=e.target.closest('.sub-row');if(!r)return;
+qStartSub(r.dataset.s,r.dataset.l);
+});
+if(pane)pane.appendChild(el);else anchor.after(el);
+}catch(e){}
+}
+try{
+var _relS=renderExamLight;
+renderExamLight=function(){_relS.apply(this,arguments);setTimeout(renderSubs,120);};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   4 · VISTA "FERMATE METRO"
+   Il percorso come linea verticale con le vie come tappe: si memorizza
+   la sequenza senza la distrazione della mappa.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.openLinea=function(rid){
+try{
+var r=routes.find(function(x){return x.id===(rid||(cur&&cur.id));});
+if(!r||!r.steps.length){toast2('Apri prima un percorso');return;}
+var old=document.getElementById('lineaOv');if(old)old.remove();
+var wm=((qStats[r.id]||{}).wrong)||{};
+var tappe=r.steps.map(function(s,i){
+var err=wm[i]||0;
+var cls=err>=3?'no':(err>0?'mid':'ok');
+return '<div class="ln-stop '+cls+'"><div class="ln-dot">'+(i+1)+'</div>'
++'<div class="ln-name">'+esc(s)+(err?('<em>'+err+' err</em>'):'')+'</div></div>';
+}).join('');
+var o=document.createElement('div');o.id='lineaOv';
+o.innerHTML='<div class="ln-card"><div class="ln-hd"><b>'+esc(r.title)+'</b>'
++'<small>'+r.steps.length+' vie \u00b7 come le fermate di una linea</small>'
++'<button class="ln-x">\u2715</button></div>'
++'<div class="ln-body"><div class="ln-line"></div>'+tappe+'</div></div>';
+o.addEventListener('click',function(e){if(e.target===o)o.remove();});
+document.body.appendChild(o);
+o.querySelector('.ln-x').onclick=function(){o.remove();};
+}catch(e){}
+};
+/* bottone nella barra del percorso */
+try{
+var _srL=selectRoute;
+selectRoute=function(r){
+_srL.apply(this,arguments);
+try{
+setTimeout(function(){
+var head=document.querySelector('.phead');if(!head||document.getElementById('lineaBtn'))return;
+var b=document.createElement('button');
+b.id='lineaBtn';b.className='ln-btn';b.textContent='\ud83d\ude87 Linea';
+b.title='Vedi il percorso come una linea di metro';
+b.onclick=function(){openLinea();};
+head.appendChild(b);
+},120);
+}catch(e){}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   5 · QUIZ "QUALE VIENE PRIMA?"
+   Due vie dello stesso percorso: quale si incontra per prima.
+   Allena l'ordine, che è ciò che conta all'esame.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var OP=null;
+window.qStartOrdine=function(rid){
+try{
+var pool=routes.filter(function(r){return r.steps&&r.steps.length>=6&&(!rid||r.id===rid);});
+if(!pool.length){toast2('Servono percorsi con almeno 6 vie');return;}
+var dom=[];
+for(var k=0;k<10;k++){
+var r=pool[Math.floor(Math.random()*pool.length)];
+var a=Math.floor(Math.random()*r.steps.length),bIdx;
+do{bIdx=Math.floor(Math.random()*r.steps.length);}while(bIdx===a);
+dom.push({r:r,a:Math.min(a,bIdx),b:Math.max(a,bIdx)});
+}
+OP={items:dom,i:0,ok:0};
+drawOrd();
+}catch(e){}
+};
+function drawOrd(){
+try{
+var old=document.getElementById('ordOv');if(old)old.remove();
+if(!OP)return;
+if(OP.i>=OP.items.length){finOrd();return;}
+var it=OP.items[OP.i];
+var primo=it.r.steps[it.a],secondo=it.r.steps[it.b];
+var inverti=Math.random()<0.5;
+var s1=inverti?secondo:primo,s2=inverti?primo:secondo;
+var o=document.createElement('div');o.id='ordOv';
+o.innerHTML='<div class="or-card"><div class="or-hd"><small>QUALE VIENE PRIMA?</small>'
++'<b>'+esc(it.r.title)+'</b><span class="or-cnt">'+(OP.i+1)+' / '+OP.items.length+'</span></div>'
++'<div class="or-row"><button class="or-opt" data-v="'+(inverti?'b':'a')+'">'+esc(s1)+'</button>'
++'<button class="or-opt" data-v="'+(inverti?'a':'b')+'">'+esc(s2)+'</button></div>'
++'<button class="or-x">Chiudi</button></div>';
+document.body.appendChild(o);
+o.querySelector('.or-x').onclick=function(){o.remove();OP=null;};
+o.querySelectorAll('.or-opt').forEach(function(btn){
+btn.onclick=function(){
+var giusto=btn.dataset.v==='a';
+if(giusto)OP.ok++;
+btn.classList.add(giusto?'good':'bad');
+if(!giusto)o.querySelector('.or-opt[data-v="a"]').classList.add('good');
+try{hap(giusto?'':'m');}catch(e){}
+/* un errore d'ordine è un errore sulla via successiva */
+if(!giusto){try{
+if(!qStats[it.r.id])qStats[it.r.id]={correct:0,total:0,wrong:{}};
+if(!qStats[it.r.id].wrong)qStats[it.r.id].wrong={};
+qStats[it.r.id].wrong[it.b]=(qStats[it.r.id].wrong[it.b]||0)+1;
+save();
+}catch(e){}}
+setTimeout(function(){OP.i++;drawOrd();},750);
+};
+});
+}catch(e){}
+}
+function finOrd(){
+try{
+var pct=Math.round(OP.ok/OP.items.length*100);
+var o=document.createElement('div');o.id='ordOv';
+o.innerHTML='<div class="or-card or-end"><div class="rc-score '+(pct>=80?'ok':(pct>=50?'mid':'no'))+'">'
++pct+'<span>%</span></div><b>'+OP.ok+' su '+OP.items.length+' nell\u2019ordine giusto</b>'
++'<button class="or-x">Chiudi</button></div>';
+document.body.appendChild(o);
+o.querySelector('.or-x').onclick=function(){o.remove();OP=null;try{renderMgr();}catch(e){}};
+OP=null;
+}catch(e){}
+}
+})();
+
+/* ═══════════════════════════════════════════════════
+   6 · PUNTI DI RIFERIMENTO SULLA VIA
+   "Qui c'è l'Esselunga" — la memoria spaziale si aggancia alle cose,
+   non ai nomi. Riappare ogni volta che incontri quella via.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function rif(){try{return lg('rifVie',{});}catch(e){return {};}}
+window.rifPer=function(nome){return rif()[nome]||'';};
+window.setRif=function(nome,v){
+try{
+var r=rif();
+if(v)r[nome]=v.slice(0,90);else delete r[nome];
+var k=Object.keys(r);
+if(k.length>500)delete r[k[0]];
+ls('rifVie',r);markDirty('prefs');
+}catch(e){}
+};
+/* le note dei riferimenti viaggiano con le preferenze */
+try{
+var _gpR=getPrefs;
+getPrefs=function(){
+var p=_gpR.apply(this,arguments)||{};
+try{p.rifVie=lg('rifVie',{});}catch(e){}
+return p;
+};
+}catch(e){}
+/* riga toccabile sotto il nome della via attiva */
+function inject(){
+try{
+if(typeof cur==='undefined'||!cur)return;
+var host=document.querySelector('.phead');if(!host)return;
+var nome=cur.steps[step];if(!nome)return;
+var old=document.getElementById('rifBox');if(old)old.remove();
+var t=rifPer(nome);
+var d=document.createElement('div');d.id='rifBox';
+d.className=t?'rif has':'rif';
+d.innerHTML=t?('\ud83d\udccd '+esc(t)):'\ud83d\udccd Aggiungi un punto di riferimento';
+d.onclick=function(){
+var v=prompt('Cosa c\u2019\u00e8 su '+nome+'?\n(un negozio, una piazza, un incrocio\u2026)',t||'');
+if(v===null)return;
+setRif(nome,v.trim());
+toast2(v.trim()?'\ud83d\udccd Riferimento salvato':'Riferimento rimosso');
+inject();
+};
+host.appendChild(d);
+}catch(e){}
+}
+try{
+var _gsR=goStep;goStep=function(){_gsR.apply(this,arguments);setTimeout(inject,60);};
+var _smR=setMode;setMode=function(m){_smR.apply(this,arguments);setTimeout(inject,60);};
+var _srR=selectRoute;selectRoute=function(r){_srR.apply(this,arguments);setTimeout(inject,140);};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   AVVII per i nuovi esercizi di topografia
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+try{
+var _rmO=renderMgr;
+renderMgr=function(){
+_rmO.apply(this,arguments);
+try{
+var cnt=document.getElementById('mgrCnt');if(!cnt)return;
+if(document.getElementById('topoEx'))return;
+var d=document.createElement('div');d.id='topoEx';
+d.innerHTML='<button class="tx-b" data-a="ord">\u2b06\ufe0f Quale viene prima?</button>';
+d.addEventListener('click',function(e){
+var b=e.target.closest('.tx-b');if(!b)return;
+if(b.dataset.a==='ord')qStartOrdine();
+});
+cnt.after(d);
+}catch(e){}
+};
 }catch(e){}
 })();
