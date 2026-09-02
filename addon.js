@@ -713,6 +713,56 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 .rif.has{background:rgba(14,159,110,.10);border:none;border-left:3px solid var(--ok);border-radius:0 12px 12px 0;color:var(--tx);font-weight:700;}
 .rif:active{opacity:.6;}
 @media (prefers-reduced-motion:reduce){.ln-card,.or-card{animation:none;}}
+
+
+/* ══════ Schermo intero della mappa ══════ */
+#fullBtn{margin-left:8px;width:38px;height:38px;flex:0 0 38px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s var(--e-spring),background .2s;}
+#fullBtn:active{transform:scale(.92);}
+.seg-wrap{display:flex;align-items:center;}
+.seg-wrap .seg{flex:1;}
+
+/* [FIX] la barra inferiore è #tabbar (identificativo, non classe) e il
+   contenitore della mappa è .main senza involucro: i selettori
+   sbagliati lasciavano la barra visibile e la mappa non a pieno schermo */
+body.topo-full #tabbar,
+body.topo-full #homeBtn,
+body.topo-full .srow{display:none!important;}
+body.topo-full .main{position:fixed;inset:0;z-index:6000;display:block;height:100%;max-height:none;padding:0;margin:0;}
+body.topo-full #map{position:absolute;inset:0;width:100%;height:100%;border-radius:0;}
+body.topo-full header{position:fixed;top:0;left:0;right:0;z-index:6200;padding:8px 12px;
+background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+body.topo-full .seg-wrap{max-width:520px;margin:0 auto;}
+
+/* elenco vie: colonna laterale a destra */
+body.topo-full #panel{position:absolute;top:66px;right:12px;bottom:12px;left:auto;width:340px;max-width:42vw;
+border-radius:22px;z-index:6100;box-shadow:var(--sh-xl);max-height:none;display:flex;flex-direction:column;
+background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
+body.topo-full #panel .pdrag{display:none;}
+body.topo-full #sList{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+body.topo-full .pfoot{padding-bottom:12px;}
+
+/* su schermi stretti la colonna diventa una fascia in basso */
+@media (max-width:760px){
+body.topo-full #panel{left:8px;right:8px;width:auto;max-width:none;top:auto;bottom:8px;height:52vh;}
+body.topo-full #sList{max-height:none;}
+}
+/* [FIX] su telefoni piccoli si vedevano solo 2 vie: intestazione e piede
+   più compatti, e la lista può davvero restringersi (min-height:0) */
+body.topo-full #sList{min-height:0;}
+@media (max-width:430px){
+body.topo-full #panel{height:56vh;}
+body.topo-full #panel .phead{padding-top:10px;padding-bottom:6px;}
+body.topo-full #panel .phead h2{font-size:15px;}
+body.topo-full #panel .pfoot{padding-top:8px;padding-bottom:10px;}
+body.topo-full #panel .sr{padding-top:9px;padding-bottom:9px;}
+}
+/* su schermi molto bassi in orizzontale si stringe ancora */
+@media (max-height:460px) and (orientation:landscape){
+body.topo-full #panel{width:290px;max-width:38vw;top:60px;bottom:8px;left:auto;right:8px;height:auto;}
+}
+body.topo-full #plBanner{z-index:6300;}
+body.topo-full .leaflet-control-container{z-index:6050;}
+body.topo-full #satBtn{z-index:6150;}
 `;
 }catch(e){}
 })();
@@ -4557,4 +4607,78 @@ var _gt=goTopografia;
 goTopografia=function(){_gt.apply(this,arguments);
 setTimeout(function(){try{setTileMode(modoCorrente());}catch(e){applica(modoCorrente());}},400);};
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   MODALITÀ SCHERMO INTERO
+   La mappa occupa tutto lo schermo, l'elenco delle vie resta di lato
+   e si scorre avanti/indietro. Non tocca nulla del posizionamento
+   dei marker: cambia solo la disposizione.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var ATTIVO=false;
+
+function ridisegna(){
+try{
+if(typeof map!=='undefined'&&map&&map.invalidateSize){
+map.invalidateSize();
+setTimeout(function(){try{map.invalidateSize();}catch(e){}},260);
+}
+}catch(e){}
+}
+
+window.topoFull=function(on){
+try{
+ATTIVO=(on===undefined)?!ATTIVO:!!on;
+document.body.classList.toggle('topo-full',ATTIVO);
+var b=document.getElementById('fullBtn');
+if(b){b.textContent=ATTIVO?'\u2715':'\u26f6';b.title=ATTIVO?'Esci da schermo intero':'Schermo intero';}
+ridisegna();
+try{hap();}catch(e){}
+if(ATTIVO)toast2('\u26f6 Schermo intero \u00b7 tocca \u2715 per uscire',2200);
+}catch(e){}
+};
+
+/* bottone nella barra dei segmenti */
+function innesta(){
+try{
+if(document.getElementById('fullBtn'))return;
+var host=document.querySelector('.seg-wrap');if(!host)return;
+var b=document.createElement('button');
+b.id='fullBtn';b.type='button';b.textContent='\u26f6';
+b.title='Schermo intero';
+b.onclick=function(ev){try{ev.stopPropagation();}catch(e){}topoFull();};
+host.appendChild(b);
+}catch(e){}
+}
+setTimeout(innesta,1200);
+try{
+var _gtF=goTopografia;
+goTopografia=function(){_gtF.apply(this,arguments);setTimeout(innesta,200);};
+}catch(e){}
+
+/* uscendo dalla topografia lo schermo intero si spegne da solo */
+try{
+var _ghF=goHome;
+goHome=function(){if(ATTIVO)topoFull(false);_ghF.apply(this,arguments);};
+}catch(e){}
+try{
+var _oqF=openQuiz;openQuiz=function(){if(ATTIVO)topoFull(false);_oqF.apply(this,arguments);};
+var _osF=openStudy;openStudy=function(){if(ATTIVO)topoFull(false);_osF.apply(this,arguments);};
+}catch(e){}
+
+/* il tasto Esc esce (utile da PC) */
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&ATTIVO)topoFull(false);
+});
+
+/* cambiando via la mappa si ridisegna correttamente */
+try{
+var _gsF=goStep;
+goStep=function(){_gsF.apply(this,arguments);if(ATTIVO)ridisegna();};
+}catch(e){}
+/* rotazione dello schermo */
+window.addEventListener('orientationchange',function(){if(ATTIVO)setTimeout(ridisegna,420);});
+window.addEventListener('resize',function(){if(ATTIVO)ridisegna();});
 })();
