@@ -3,15 +3,15 @@
    - TILE mappa: cache-first (i posti già visti si ricaricano all'istante, anche offline)
    - resto: stale-while-revalidate (risposta subito dalla cache, aggiornamento in background) */
 
-const CACHE_NAME = 'ncc-v53';
-const TILE_CACHE = 'ncc-tiles-v1';
+const CACHE_NAME = 'ncc-v55';
+const TILE_CACHE = 'ncc-tiles-v2';/* v2: cambiato fornitore mappe, i vecchi riquadri avevano la filigrana */
 const TILE_LIMIT = 600; /* massimo tile salvati (≈30-40 MB) */
 
 const PRECACHE = [
   './',
   './index.html',
   './styles.css?v=21',
-  './addon.js?v=47',
+  './addon.js?v=49',
   './icon-512.png',
   './favicon.svg',
   './app.js?v=3',
@@ -62,7 +62,10 @@ self.addEventListener('fetch', event => {
   if (url.hostname.includes('firebase') || url.hostname.includes('gstatic') || url.hostname.includes('firebaseio')) return;
 
   /* TILE mappa: cache-first — velocissimi e disponibili offline */
-  if (url.hostname.endsWith('basemaps.cartocdn.com')) {
+  if (url.hostname.endsWith('basemaps.cartocdn.com')
+      || url.hostname.endsWith('tile.openstreetmap.org')
+      || url.hostname.endsWith('tiles.wmflabs.org')
+      || url.hostname.endsWith('server.arcgisonline.com')) {
     event.respondWith(
       caches.open(TILE_CACHE).then(cache =>
         cache.match(req).then(hit => {

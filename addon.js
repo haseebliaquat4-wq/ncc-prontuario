@@ -4497,3 +4497,60 @@ cnt.after(d);
 };
 }catch(e){}
 })();
+
+/* ═══════════════════════════════════════════════════
+   MAPPA SENZA FILIGRANA
+   CARTO ha iniziato a richiedere una chiave API: ogni riquadro
+   arrivava stampato con "API KEY REQUIRED". Si passa a OpenStreetMap,
+   che non richiede chiavi, con Esri come riserva.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var OSM='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+var OSM_NL='https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png';
+var ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var ATTR='&copy; OpenStreetMap';
+
+function scambia(){
+try{
+/* [FIX] basta il livello dei riquadri: dipendere anche da "map"
+   rendeva lo scambio fragile e la filigrana restava */
+if(!window._tileLayer||typeof window._tileLayer.setUrl!=='function')return false;
+window._tileLayer.setUrl(OSM);
+window._tileLayer.options.attribution=ATTR;
+window._tileLayer.options.maxZoom=19;
+try{if(typeof map!=='undefined'&&map&&map.attributionControl)map.attributionControl.setPrefix('');}catch(e){}
+/* se anche OpenStreetMap non risponde, si ripiega su Esri */
+var falliti=0;
+window._tileLayer.on('tileerror',function(){
+falliti++;
+if(falliti===8&&window._tileLayer.getContainer&&!window._NCC_ESRI){
+window._NCC_ESRI=true;
+window._tileLayer.setUrl(ESRI);
+}
+});
+return true;
+}catch(e){return false;}
+}
+/* la mappa nasce quando apri la topografia: si prova finché non c'è */
+var n=0,t=setInterval(function(){
+if(scambia()||++n>40)clearInterval(t);
+},600);
+try{
+var _gt=goTopografia;
+goTopografia=function(){_gt.apply(this,arguments);setTimeout(scambia,400);};
+}catch(e){}
+
+/* il pulsante "senza nomi" (usato in Cieco) deve seguire lo stesso fornitore */
+try{
+var _sm4=setMode;
+setMode=function(m){
+_sm4.apply(this,arguments);
+try{
+if(!window._tileLayer)return;
+var senzaNomi=(m==='c');
+window._tileLayer.setUrl(window._NCC_ESRI?ESRI:(senzaNomi?OSM_NL:OSM));
+}catch(e){}
+};
+}catch(e){}
+})();
