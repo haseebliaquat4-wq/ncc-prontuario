@@ -832,6 +832,12 @@ border-color var(--d3) var(--e-smooth);}
 @media (prefers-reduced-motion:reduce){
 *,*::before,*::after{transition-duration:1ms!important;animation-duration:1ms!important;}
 }
+
+
+/* i riquadri della mappa si dissolvono invece di scattare */
+.leaflet-layer{transition:opacity .3s var(--e-smooth);}
+.leaflet-tile{transition:opacity .22s var(--e-smooth);}
+@media (prefers-reduced-motion:reduce){.leaflet-layer,.leaflet-tile{transition:none;}}
 `;
 }catch(e){}
 })();
@@ -4796,4 +4802,94 @@ goStep=function(){_gsF.apply(this,arguments);if(ATTIVO)ridisegna();};
 /* rotazione dello schermo */
 window.addEventListener('orientationchange',function(){if(ATTIVO)setTimeout(ridisegna,420);});
 window.addEventListener('resize',function(){if(ATTIVO)ridisegna();});
+})();
+
+/* ═══════════════════════════════════════════════════
+   TUTTE LE MAPPE, NON SOLO LA PRINCIPALE
+   [BUG] l'app crea 5 mappe (principale, editor PC, editor telefono,
+   metro, strade): la correzione precedente copriva solo la prima, le
+   altre restavano con la filigrana "API KEY REQUIRED".
+   Si intercetta la creazione di QUALSIASI livello mappa.
+
+   [BUG] cambiando modalità la mappa "scattava": sostituire l'indirizzo
+   svuota e ricarica tutti i riquadri. Ora i due stili convivono e si
+   passa dall'uno all'altro in dissolvenza, senza ricaricare nulla.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var CON='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+var SENZA='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var SAT='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+/* 1 · ogni livello creato con CARTO nasce già col fornitore giusto */
+try{
+if(typeof L!=='undefined'&&L.tileLayer){
+var _tl=L.tileLayer;
+L.tileLayer=function(url,opt){
+try{
+if(typeof url==='string'&&url.indexOf('cartocdn')>=0){
+url=CON;
+opt=opt||{};
+opt.attribution='&copy; OpenStreetMap';
+if(opt.maxNativeZoom===undefined)opt.maxNativeZoom=19;
+if(opt.keepBuffer===undefined)opt.keepBuffer=4;
+}
+}catch(e){}
+return _tl.call(this,url,opt);
+};
+for(var k in _tl)if(Object.prototype.hasOwnProperty.call(_tl,k))L.tileLayer[k]=_tl[k];
+}
+}catch(e){}
+
+/* 2 · sulla mappa principale i due stili convivono: si dissolve, non si ricarica */
+var LIV={con:null,senza:null,sat:null},pronto=false;
+function creaLivelli(){
+try{
+if(pronto)return true;
+if(typeof map==='undefined'||!map||typeof L==='undefined')return false;
+function mk(u,mz){
+var l=L.tileLayer(u,{maxNativeZoom:mz,maxZoom:20,keepBuffer:4,
+attribution:(u===CON?'&copy; OpenStreetMap':'&copy; Esri'),opacity:0});
+l.addTo(map);return l;
+}
+LIV.con=mk(CON,19);LIV.senza=mk(SENZA,16);
+/* il vecchio livello del core viene rimosso: lo sostituiscono i due nuovi */
+try{if(window._tileLayer&&map.hasLayer(window._tileLayer))map.removeLayer(window._tileLayer);}catch(e){}
+pronto=true;return true;
+}catch(e){return false;}
+}
+function mostra(quale){
+try{
+if(!creaLivelli())return false;
+var sat=false;try{sat=!!lg('mapSat',false);}catch(e){}
+if(sat&&!LIV.sat){
+LIV.sat=L.tileLayer(SAT,{maxNativeZoom:19,maxZoom:20,keepBuffer:4,attribution:'&copy; Esri',opacity:0});
+LIV.sat.addTo(map);
+}
+var attivo=sat?LIV.sat:(quale==='senza'?LIV.senza:LIV.con);
+[LIV.con,LIV.senza,LIV.sat].forEach(function(l){
+if(!l)return;
+try{l.setOpacity(l===attivo?1:0);}catch(e){}
+});
+try{attivo.bringToFront();}catch(e){}
+window._tileLayer=attivo;      /* il core continua a trovare il livello attivo */
+return true;
+}catch(e){return false;}
+}
+window.nccMappaFade=mostra;
+
+/* si aggancia al punto unico da cui il core cambia stile */
+try{
+var _stm2=setTileMode;
+setTileMode=function(noLabels){
+if(!mostra(noLabels?'senza':'con'))
+{try{_stm2(noLabels);}catch(e){}}
+};
+}catch(e){}
+/* primo scambio appena la mappa esiste */
+var n=0,t=setInterval(function(){
+var m=false;
+try{m=(typeof mode!=='undefined')&&(mode==='c'||mode==='q');}catch(e){}
+if(mostra(m?'senza':'con')||++n>40)clearInterval(t);
+},600);
 })();
