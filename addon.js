@@ -724,14 +724,40 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 /* [FIX] la barra inferiore è #tabbar (identificativo, non classe) e il
    contenitore della mappa è .main senza involucro: i selettori
    sbagliati lasciavano la barra visibile e la mappa non a pieno schermo */
+/* [FIX] restava una riga .hrow da 46px dentro l'intestazione: la pillola
+   era alta 90px e il pannello ci finiva sotto */
 body.topo-full #tabbar,
 body.topo-full #homeBtn,
-body.topo-full .srow{display:none!important;}
+body.topo-full .srow,
+body.topo-full header .hrow{display:none!important;}
 body.topo-full .main{position:fixed;inset:0;z-index:6000;display:block;height:100%;max-height:none;padding:0;margin:0;}
 body.topo-full #map{position:absolute;inset:0;width:100%;height:100%;border-radius:0;}
-body.topo-full header{position:fixed;top:0;left:0;right:0;z-index:6200;padding:8px 12px;
-background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
-body.topo-full .seg-wrap{max-width:520px;margin:0 auto;}
+/* l'intestazione diventa una pillola che galleggia sulla mappa,
+   non una barra piena che ruba spazio */
+body.topo-full header{position:fixed;top:10px;left:50%;transform:translateX(-50%);
+right:auto;width:auto;z-index:6200;padding:0;background:transparent;border:none;box-shadow:none;}
+body.topo-full .seg-wrap{margin:0;padding:5px;border-radius:16px;
+background:color-mix(in srgb,var(--card) 90%,transparent);
+backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+box-shadow:var(--sh-md);}
+body.topo-full .seg{background:transparent;}
+body.topo-full #fullBtn{margin-left:5px;width:34px;height:34px;flex:0 0 34px;font-size:14px;}
+/* su schermi bassi la pillola si stringe */
+@media (max-height:520px){
+body.topo-full header{top:6px;}
+body.topo-full .seg-btn{padding-top:7px;padding-bottom:7px;font-size:12.5px;}
+}
+/* [FIX] la pillola era alta 102px e il pannello ci finiva sotto:
+   si compattano i segmenti e il pannello parte sotto davvero */
+body.topo-full .seg{padding:0;margin:0;border:none;box-shadow:none;height:auto;}
+body.topo-full .seg-btn{padding:8px 15px;font-size:13px;line-height:1.15;min-height:0;height:auto;}
+body.topo-full .seg-thumb{top:0;bottom:0;height:auto;}
+body.topo-full header .seg-wrap{align-items:center;}
+/* [FIX] il pannello partiva sotto il bordo della pillola: su iPad
+   verticale le due si sovrapponevano */
+body.topo-full #panel{top:76px;}
+@media (max-height:520px){body.topo-full #panel{top:64px;}}
+@media (max-width:760px){body.topo-full #panel{top:auto;}}
 
 /* elenco vie: colonna laterale a destra */
 body.topo-full #panel{position:absolute;top:66px;right:12px;bottom:12px;left:auto;width:340px;max-width:42vw;
@@ -4671,17 +4697,63 @@ setTimeout(function(){try{map.invalidateSize();}catch(e){}},260);
 }catch(e){}
 }
 
+/* schermo intero VERO del browser: fa sparire anche barra indirizzi e schede */
+function chiediPieno(){
+try{
+var el=document.documentElement;
+var f=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;
+if(!f)return false;
+var p=f.call(el,{navigationUI:'hide'});
+if(p&&p.catch)p.catch(function(){});
+return true;
+}catch(e){return false;}
+}
+function lasciaPieno(){
+try{
+if(!document.fullscreenElement&&!document.webkitFullscreenElement)return;
+var x=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
+if(x){var p=x.call(document);if(p&&p.catch)p.catch(function(){});}
+}catch(e){}
+}
+function inPieno(){
+try{return !!(document.fullscreenElement||document.webkitFullscreenElement);}catch(e){return false;}
+}
+
 window.topoFull=function(on){
 try{
 ATTIVO=(on===undefined)?!ATTIVO:!!on;
 document.body.classList.toggle('topo-full',ATTIVO);
 var b=document.getElementById('fullBtn');
 if(b){b.textContent=ATTIVO?'\u2715':'\u26f6';b.title=ATTIVO?'Esci da schermo intero':'Schermo intero';}
+if(ATTIVO){
+var ok=chiediPieno();
+/* iPhone non lo permette dal browser: l'app installata sulla schermata
+   home non ha barre, quindi il suggerimento è quello */
+if(!ok&&!window.matchMedia('(display-mode: standalone)').matches){
+toast2('\u26f6 Per togliere anche le barre: installa l\u2019app sulla schermata Home',3200);
+}else if(ok){
+toast2('\u26f6 Modalit\u00e0 mappa \u00b7 tocca \u2715 per uscire',2000);
+}
+}else lasciaPieno();
 ridisegna();
 try{hap();}catch(e){}
-if(ATTIVO)toast2('\u26f6 Schermo intero \u00b7 tocca \u2715 per uscire',2200);
 }catch(e){}
 };
+
+/* se esci con Esc o con il gesto del browser, l'app si allinea */
+['fullscreenchange','webkitfullscreenchange'].forEach(function(ev){
+document.addEventListener(ev,function(){
+try{
+if(!inPieno()&&ATTIVO){
+ATTIVO=false;
+document.body.classList.remove('topo-full');
+var b=document.getElementById('fullBtn');
+if(b){b.textContent='\u26f6';b.title='Schermo intero';}
+ridisegna();
+}else if(inPieno()&&ATTIVO)setTimeout(ridisegna,320);
+}catch(e){}
+});
+});
 
 /* bottone nella barra dei segmenti */
 function innesta(){
