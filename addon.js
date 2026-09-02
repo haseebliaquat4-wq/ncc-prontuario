@@ -4499,58 +4499,62 @@ cnt.after(d);
 })();
 
 /* ═══════════════════════════════════════════════════
-   MAPPA SENZA FILIGRANA
-   CARTO ha iniziato a richiedere una chiave API: ogni riquadro
-   arrivava stampato con "API KEY REQUIRED". Si passa a OpenStreetMap,
-   che non richiede chiavi, con Esri come riserva.
+   MAPPA — fornitori senza chiave API
+   [BUG 1] CARTO ora richiede una chiave: stampava "API KEY REQUIRED".
+   [BUG 2] tiles.wmflabs.org (mappa senza nomi) non esiste più da anni:
+           in Cieco la mappa restava vuota.
+   [BUG 3] Esri copre fino allo zoom 16: oltre mostrava "Map data not
+           yet available". Ora i riquadri vengono ingranditi invece
+           di essere richiesti al server.
+   Studio → OpenStreetMap (con i nomi delle vie)
+   Cieco  → Esri Light Gray (senza nomi, è il suo scopo)
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var OSM='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-var OSM_NL='https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png';
-var ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
-var ATTR='&copy; OpenStreetMap';
+var CON='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+var SENZA='https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var SAT='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
-function scambia(){
+function applica(senzaNomi){
 try{
-/* [FIX] basta il livello dei riquadri: dipendere anche da "map"
-   rendeva lo scambio fragile e la filigrana restava */
-if(!window._tileLayer||typeof window._tileLayer.setUrl!=='function')return false;
-window._tileLayer.setUrl(OSM);
-window._tileLayer.options.attribution=ATTR;
-window._tileLayer.options.maxZoom=19;
-try{if(typeof map!=='undefined'&&map&&map.attributionControl)map.attributionControl.setPrefix('');}catch(e){}
-/* se anche OpenStreetMap non risponde, si ripiega su Esri */
-var falliti=0;
-window._tileLayer.on('tileerror',function(){
-falliti++;
-if(falliti===8&&window._tileLayer.getContainer&&!window._NCC_ESRI){
-window._NCC_ESRI=true;
-window._tileLayer.setUrl(ESRI);
-}
-});
+var L2=window._tileLayer;
+if(!L2||typeof L2.setUrl!=='function')return false;
+/* [FIX] il satellite si gestisce qui: delegarlo al core lo legava alla
+   variabile "map", e bastava un momento in cui non era pronta perché
+   la vista satellite non partisse. */
+var sat=false;try{sat=!!lg('mapSat',false);}catch(e){}
+/* lo zoom nativo massimo evita di chiedere riquadri che non esistono */
+L2.options.maxNativeZoom=(sat||!senzaNomi)?19:16;
+L2.options.attribution=(sat||senzaNomi)?'&copy; Esri':'&copy; OpenStreetMap';
+L2.setUrl(sat?SAT:(senzaNomi?SENZA:CON));
+try{L2.redraw&&L2.redraw();}catch(e){}
 return true;
 }catch(e){return false;}
 }
-/* la mappa nasce quando apri la topografia: si prova finché non c'è */
+window.nccMappa=applica;
+
+/* [BUG 4] il core chiama setTileMode da CINQUE punti (cambio modalità,
+   tema scuro, avvio, satellite, ridisegni) e ognuno rimetteva CARTO.
+   Agganciarsi al solo setMode ne copriva uno: si sostituisce la
+   funzione stessa, così tutti i punti passano di qui.
+   [BUG 5] anche "Quiz vie" vuole la mappa senza nomi: il core lo sa
+   già e passa il valore giusto — prima lo perdevo. */
+try{
+var _stmPrev=setTileMode;
+setTileMode=function(noLabels){applica(!!noLabels);};
+}catch(e){}
+
+/* il primo livello lo crea initMap con l'indirizzo CARTO scritto dentro:
+   va sostituito appena esiste */
+function modoCorrente(){
+try{return (typeof mode!=='undefined')&&(mode==='c'||mode==='q');}catch(e){return false;}
+}
 var n=0,t=setInterval(function(){
-if(scambia()||++n>40)clearInterval(t);
+if(applica(modoCorrente())||++n>40)clearInterval(t);
 },600);
 try{
 var _gt=goTopografia;
-goTopografia=function(){_gt.apply(this,arguments);setTimeout(scambia,400);};
-}catch(e){}
-
-/* il pulsante "senza nomi" (usato in Cieco) deve seguire lo stesso fornitore */
-try{
-var _sm4=setMode;
-setMode=function(m){
-_sm4.apply(this,arguments);
-try{
-if(!window._tileLayer)return;
-var senzaNomi=(m==='c');
-window._tileLayer.setUrl(window._NCC_ESRI?ESRI:(senzaNomi?OSM_NL:OSM));
-}catch(e){}
-};
+goTopografia=function(){_gt.apply(this,arguments);
+setTimeout(function(){try{setTileMode(modoCorrente());}catch(e){applica(modoCorrente());}},400);};
 }catch(e){}
 })();
