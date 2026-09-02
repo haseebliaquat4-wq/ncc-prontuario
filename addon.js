@@ -25,11 +25,11 @@ font-weight:860;letter-spacing:-.04em;font-variant-numeric:tabular-nums;
 }
 
 /* ── 4 · COLORE SEMANTICO DEGLI ARGOMENTI ── */
-.rd{--cat0:#0D9488;--cat1:#4F46E5;--cat2:#D97706;--cat3:#DB2777;}
-.catc0 .qtile-ic{background:rgba(13,148,136,.13)!important;}
-.catc1 .qtile-ic{background:rgba(79,70,229,.13)!important;}
+.rd{--cat0:#2447D6;--cat1:#6D5AE0;--cat2:#D97706;--cat3:#0E9F6E;}
+.catc0 .qtile-ic{background:rgba(36,71,214,.13)!important;}
+.catc1 .qtile-ic{background:rgba(109,90,224,.13)!important;}
 .catc2 .qtile-ic{background:rgba(217,119,6,.13)!important;}
-.catc3 .qtile-ic{background:rgba(219,39,119,.13)!important;}
+.catc3 .qtile-ic{background:rgba(14,159,110,.13)!important;}
 .qarg-box.catc0{border-left:4px solid var(--cat0);}
 .qarg-box.catc1{border-left:4px solid var(--cat1);}
 .qarg-box.catc2{border-left:4px solid var(--cat2);}
@@ -609,7 +609,7 @@ body.seg-on .seg-btn.on{background:transparent!important;}
 
 
 /* ══════ Salvagente dati ══════ */
-#saveInfo{width:100%;max-width:460px;margin:10px auto 0;padding:11px 14px;background:var(--fill3);border-radius:16px;font-size:11.5px;font-weight:600;color:var(--mu);text-align:center;cursor:pointer;line-height:1.45;transition:background .2s;}
+#saveInfo{width:100%;max-width:460px;margin:10px auto 0;padding:11px 14px;background:var(--fill3);border-radius:16px;font-size:11.5px;font-weight:600;color:var(--mu);text-align:center;cursor:pointer;line-height:1.45;transition:background var(--d2) var(--e-smooth);}
 @media (min-width:1100px){#saveInfo{max-width:520px;}}
 #saveInfo b{color:var(--tx);font-weight:800;}
 #saveInfo:active{background:var(--fill2);}
@@ -763,6 +763,49 @@ body.topo-full #panel{width:290px;max-width:38vw;top:60px;bottom:8px;left:auto;r
 body.topo-full #plBanner{z-index:6300;}
 body.topo-full .leaflet-control-container{z-index:6050;}
 body.topo-full #satBtn{z-index:6150;}
+
+
+/* ═══════════════════════════════════════════════════
+   SISTEMA UNICO DI MOVIMENTO — una mano sola per tutta l'app
+   Tre curve, tre durate, applicate a ogni elemento interattivo.
+   Non cambia posizione né dimensione di nulla: solo il modo in cui
+   le cose passano da uno stato all'altro.
+   ═══════════════════════════════════════════════════ */
+:root{
+--e-soft:cubic-bezier(.22,1,.36,1);
+--e-spring:cubic-bezier(.34,1.5,.64,1);
+--e-smooth:cubic-bezier(.4,0,.2,1);
+--d1:140ms;--d2:240ms;--d3:380ms;
+}
+/* tocco: stessa molla ovunque */
+:where(button,.sr,.coach-row,.qtile,.sd-tile,.home-card,.tg-card,.qans,.st-tab,
+.sp-row,.tp-row,.sub-row,.mc-tip,.bk-row,.or-opt,.zn,.tx-b,.rif,.qn-add,.mt-row,
+.rcb2,.rab,.pib,.seg-btn,.tab,.btn){
+transition:transform var(--d1) var(--e-spring),
+opacity var(--d2) var(--e-smooth),
+background var(--d2) var(--e-smooth),
+border-color var(--d2) var(--e-smooth),
+color var(--d2) var(--e-smooth),
+box-shadow var(--d3) var(--e-soft);
+}
+/* le superfici grandi si sollevano appena invece di schiacciarsi */
+:where(.home-card,.qtile,.sd-tile,.bk-row,#modelCard,#projCard,#topoCard,
+#spiralCard,#subCard,#saveInfo):active{transform:scale(.985) translateY(1px);}
+/* barre e indicatori: crescono, non appaiono */
+:where(.tg-bar i,.mc-bar i,.pbf,.prog-bar i,.ready-fill,.qarg-box::after,.sp-row b){
+transition:width var(--d3) var(--e-soft),
+background var(--d2) var(--e-smooth),
+transform var(--d3) var(--e-soft)!important;}
+/* pannelli e schede: comparse morbide */
+:where(.st-pane,.panel,.mbox,.qcard-hero){transition:opacity var(--d2) var(--e-smooth);}
+/* i colori del tema cambiano insieme, non a scatti */
+body,#homeScreen,.card,.home-card,.qtile,.sd-tile,.panel{
+transition:background-color var(--d3) var(--e-smooth),
+color var(--d2) var(--e-smooth),
+border-color var(--d3) var(--e-smooth);}
+@media (prefers-reduced-motion:reduce){
+*,*::before,*::after{transition-duration:1ms!important;animation-duration:1ms!important;}
+}
 `;
 }catch(e){}
 })();

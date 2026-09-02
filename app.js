@@ -504,7 +504,7 @@ function openSV(){if(mkr){const p=mkr.getLatLng();window.open(`https://www.googl
 
 /* ── CONFETTI ── */
 function confetti(){
-const c=['#007AFF','#5856D6','#AF52DE','#34C759','#FF9500','#5AC8FA','#FF3B30'];
+const c=['#2447D6','#6D5AE0','#6D5AE0','#0E9F6E','#D97706','#2447D6','#E5484D'];
 for(let i=0;i<28;i++){
 const e=document.createElement('div');e.className='cp';
 const sz=5+Math.random()*8;const isCircle=Math.random()>.5;
@@ -814,9 +814,9 @@ function qtSave(){ls('qtStats',qtStats);ls('localTs',Date.now());try{autoSave();
 /* 4 argomenti ufficiali — per gli errori d'esame (max 2 per argomento) */
 const QARG=[
 {id:'geo', label:'Geografia', emoji:'🗺️',bg:'rgba(43,89,195,.12)'},
-{id:'norm', label:'Normativa', emoji:'⚖️',bg:'rgba(88,86,214,.12)'},
-{id:'reg', label:'Regolamento', emoji:'📋',bg:'rgba(175,82,222,.12)'},
-{id:'lingua',label:'Lingua Straniera', emoji:'🌍',bg:'rgba(52,199,89,.14)'}
+{id:'norm', label:'Normativa', emoji:'⚖️',bg:'rgba(109,90,224,.12)'},
+{id:'reg', label:'Regolamento', emoji:'📋',bg:'rgba(109,90,224,.12)'},
+{id:'lingua',label:'Lingua Straniera', emoji:'🌍',bg:'rgba(14,159,110,.14)'}
 ];
 /* sotto-argomenti raggruppati (schermata "Scegli gli argomenti") */
 const QGROUPS=[
@@ -937,13 +937,13 @@ return {ok:s.ok||0,seen:s.seen||0,tot:tot,pct:Math.min(100,Math.round(((s.ok||0)
 function renderDash(){
 const wrap=document.getElementById('qTilesArg');let h='';
 h+=`<button class="qtile" onclick="showTopics()">
-<div class="qtile-ic" style="background:rgba(52,199,89,.14)">🧭</div>
+<div class="qtile-ic" style="background:rgba(14,159,110,.14)">🧭</div>
 <div class="qtile-tx"><strong>Scegli gli argomenti</strong><small>Esercitati su argomenti specifici</small></div>
 <div class="qtile-ar">›</div></button>`;
 /* [v8] riquadro "Domande mai viste": fai proprio quelle che non ti sono mai uscite */
 var _nv=QUIZ_ALL.filter(function(it){return !qtStats.seenIds[it.id];}).length;
 h+=`<button class="qtile" onclick="qStartNew()">
-<div class="qtile-ic" style="background:rgba(255,149,0,.14)">🆕</div>
+<div class="qtile-ic" style="background:rgba(217,119,6,.14)">🆕</div>
 <div class="qtile-tx"><strong>Domande mai viste</strong><small>${_nv?_nv+' ancora da scoprire':'Le hai viste tutte 🎉'}</small></div>
 <div class="qtile-ar">›</div></button>`;
 /* [v10] classifica delle più sbagliate */
@@ -1330,8 +1330,8 @@ function sdShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.rand
 const SD_MASTER=4;
 const SD_CATS=[
 {key:'Monumenti & Musei',emoji:'🏛️',bg:'rgba(43,89,195,.12)'},
-{key:'Ospedali & Stazioni',emoji:'🏥',bg:'rgba(88,86,214,.12)'},
-{key:'Altro',emoji:'🏢',bg:'rgba(175,82,222,.12)'}
+{key:'Ospedali & Stazioni',emoji:'🏥',bg:'rgba(109,90,224,.12)'},
+{key:'Altro',emoji:'🏢',bg:'rgba(109,90,224,.12)'}
 ];
 
 /* ---- dati METRO (5 linee, ordine reale, interscambi) ---- */
@@ -2053,7 +2053,7 @@ w.innerHTML='<div class="ready-card"><div class="ready-ring"><svg width="84" hei
 function qBmRender(){if(typeof Q==='undefined'||!Q)return;qtStats.bm=qtStats.bm||{};var it=Q.items[Q.idx];var bm=document.getElementById('qBm');if(bm){var on=!!qtStats.bm[it.id];bm.textContent=on?'★':'☆';bm.classList.toggle('on',on);}}
 function qToggleBm(){if(typeof Q==='undefined'||!Q)return;qtStats.bm=qtStats.bm||{};var id=Q.items[Q.idx].id;if(qtStats.bm[id])delete qtStats.bm[id];else qtStats.bm[id]=1;try{qtSave();}catch(e){}qBmRender();hap();toast2(qtStats.bm[id]?'★ Aggiunta ai segnalibri':'Rimossa dai segnalibri');}
 function qReportQ(){if(typeof Q==='undefined'||!Q)return;qtStats.report=qtStats.report||{};var id=Q.items[Q.idx].id;qtStats.report[id]=1;try{qtSave();}catch(e){}hap();toast2('⚐ Domanda segnalata, grazie');}
-function qDashExtra(){try{qtStats.bm=qtStats.bm||{};var n=Object.keys(qtStats.bm).length;var wrap=document.getElementById('qTilesArg');if(!wrap||!n)return;var b=document.createElement('button');b.className='qtile';b.onclick=function(){qStartCat('bm');};b.innerHTML='<div class="qtile-ic" style="background:rgba(255,149,0,.14)">★</div><div class="qtile-tx"><strong>Segnalibri</strong><small>'+n+' domande salvate</small></div><div class="qtile-ar">›</div>';wrap.appendChild(b);}catch(e){}}
+function qDashExtra(){try{qtStats.bm=qtStats.bm||{};var n=Object.keys(qtStats.bm).length;var wrap=document.getElementById('qTilesArg');if(!wrap||!n)return;var b=document.createElement('button');b.className='qtile';b.onclick=function(){qStartCat('bm');};b.innerHTML='<div class="qtile-ic" style="background:rgba(217,119,6,.14)">★</div><div class="qtile-tx"><strong>Segnalibri</strong><small>'+n+' domande salvate</small></div><div class="qtile-ar">›</div>';wrap.appendChild(b);}catch(e){}}
 
 let _autoTimer=null;
 function toggleAutoplay(){
