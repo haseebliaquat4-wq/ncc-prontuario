@@ -4,7 +4,7 @@ function sceneAnim(el){if(!el)return;try{el.classList.remove('scene-in');void el
 function setAccent(s){try{var b=document.body;b.classList.remove('acc-topo','acc-quiz','acc-study');if(s)b.classList.add('acc-'+s);}catch(e){}}
 function bumpStreak(){try{var t=new Date();t.setHours(0,0,0,0);var today=t.getTime();var s=lg('streak',{n:0,last:0});var oneDay=86400000;if(s.last===today){}else if(s.last===today-oneDay){s.n=(s.n||0)+1;s.last=today;}else{s.n=1;s.last=today;}ls('streak',s);return s.n;}catch(e){return 0;}}
 function showStreak(){try{var s=lg('streak',{n:0});var el=document.getElementById('streakBadge');if(el){if(s.n>0){el.textContent='\ud83d\udd25 '+s.n+(s.n===1?' giorno di studio':' giorni di fila');el.classList.add('show');}else{el.classList.remove('show');}}}catch(e){}}
-function undoToast(msg,fn){try{var old=document.getElementById('_undoBar');if(old)old.remove();var bar=document.createElement('div');bar.id='_undoBar';bar.style.cssText='position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:4500;background:rgba(30,30,34,.95);color:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.3);font-weight:600;font-size:14px;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);animation:sceneIn .25s ease;';var sp=document.createElement('span');sp.style.flex='1';sp.textContent=msg;var btn=document.createElement('button');btn.textContent='Annulla';btn.style.cssText='border:none;background:rgba(255,255,255,.18);color:#0a84ff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:12px;cursor:pointer;';var done=false;btn.onclick=function(){if(done)return;done=true;bar.remove();try{fn();}catch(e){}};bar.appendChild(sp);bar.appendChild(btn);document.body.appendChild(bar);setTimeout(function(){if(!done&&bar.parentNode)bar.remove();},5000);}catch(e){}}
+function undoToast(msg,fn){try{var old=document.getElementById('_undoBar');if(old)old.remove();var bar=document.createElement('div');bar.id='_undoBar';bar.style.cssText='position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:4500;background:rgba(30,30,34,.95);color:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.3);font-weight:600;font-size:14px;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);animation:sceneIn .25s ease;';var sp=document.createElement('span');sp.style.flex='1';sp.textContent=msg;var btn=document.createElement('button');btn.textContent='Annulla';btn.style.cssText='border:none;background:rgba(255,255,255,.18);color:#0a84ff;font-weight:750;font-size:14px;padding:8px 14px;border-radius:12px;cursor:pointer;';var done=false;btn.onclick=function(){if(done)return;done=true;bar.remove();try{fn();}catch(e){}};bar.appendChild(sp);bar.appendChild(btn);document.body.appendChild(bar);setTimeout(function(){if(!done&&bar.parentNode)bar.remove();},5000);}catch(e){}}
 
 (function(){
 function hide(){var s=document.getElementById('splash');if(s)s.classList.add('hide');}
@@ -752,7 +752,7 @@ const items=routes.map(r=>({r,qs:qStats[r.id]})).filter(x=>x.qs&&x.qs.total>0).s
 if(!items.length){b.innerHTML='<div class="emp"><div class="e">📊</div><p>Nessuna sessione quiz vie.</p></div>';return;}
 let tc=0,tt=0;const f=document.createDocumentFragment();
 items.forEach(({r,qs})=>{tc+=qs.correct;tt+=qs.total;const pct=Math.round(qs.correct/qs.total*100);const col=pct>=80?'var(--ok)':pct>=50?'var(--warn)':'var(--err)';const row=document.createElement('div');row.className='strow';row.innerHTML=`<span class="stlbl">${esc(r.title)}</span><span class="stval" style="color:${col}">${pct}% <small style="font-size:12px;color:var(--mu)">(${qs.correct}/${qs.total})</small></span>`;f.appendChild(row);});
-if(tt>0){const pct=Math.round(tc/tt*100);const tot=document.createElement('div');tot.className='strow';tot.style.cssText='border-bottom:2px solid var(--bd);margin-bottom:4px';tot.innerHTML=`<span class="stlbl" style="font-weight:800;color:var(--tx)">📊 Totale</span><span class="stval">${pct}% (${tc}/${tt})</span>`;b.appendChild(tot);}
+if(tt>0){const pct=Math.round(tc/tt*100);const tot=document.createElement('div');tot.className='strow';tot.style.cssText='border-bottom:2px solid var(--bd);margin-bottom:4px';tot.innerHTML=`<span class="stlbl" style="font-weight:750;color:var(--tx)">📊 Totale</span><span class="stval">${pct}% (${tc}/${tt})</span>`;b.appendChild(tot);}
 b.appendChild(f);
 }
 function closeSt(){document.getElementById('stModal').classList.remove('open');}
@@ -1994,7 +1994,7 @@ var n=qExamHist.length,pass=qExamHist.filter(function(x){return x&&x.pass;}).len
 var rate=Math.round(pass/n*100);
 var last=qExamHist.slice(-8);
 var chips=last.map(function(x){var d=new Date(x.d);var lbl=d.getDate()+'/'+(d.getMonth()+1);return '<div style="flex:1;min-width:0;text-align:center"><div style="height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;background:'+(x.pass?'var(--ok)':'var(--err)')+'">'+(x.pass?'✓':'✕')+'</div><small style="font-size:10px;color:var(--mu);display:block;margin-top:3px">'+lbl+'</small></div>';}).join('');
-w.innerHTML='<div class="qerr-card"><div class="qerr-head" style="margin-bottom:12px"><h3>Promosso '+pass+' su '+n+'</h3><span style="font-weight:800;font-size:20px;color:'+(rate>=60?'var(--ok)':'var(--err)')+'">'+rate+'%</span></div><div style="display:flex;gap:6px">'+chips+'</div></div>';
+w.innerHTML='<div class="qerr-card"><div class="qerr-head" style="margin-bottom:12px"><h3>Promosso '+pass+' su '+n+'</h3><span style="font-weight:750;font-size:20px;color:'+(rate>=60?'var(--ok)':'var(--err)')+'">'+rate+'%</span></div><div style="display:flex;gap:6px">'+chips+'</div></div>';
 }
 
 /* ===== v3: marker che cammina + count-up ===== */
@@ -2567,7 +2567,7 @@ var w=document.getElementById('qHistWrap');if(!w||!w.firstChild)return;
 var okAvg=(qExamHist.reduce(function(s,x){return s+(x.ok||0);},0)/qExamHist.length).toFixed(1);
 var tAvg=Math.round(qExamHist.reduce(function(s,x){return s+(x.t||0);},0)/qExamHist.length);
 var line=document.createElement('div');
-line.style.cssText='margin-top:10px;font-size:12.5px;font-weight:650;color:var(--mu);text-align:center;font-variant-numeric:tabular-nums';
+line.style.cssText='margin-top:10px;font-size:12.5px;font-weight:600;color:var(--mu);text-align:center;font-variant-numeric:tabular-nums';
 line.textContent='Media: '+okAvg+'/16 corrette · '+fmtT(tAvg)+' a simulazione';
 w.firstChild.appendChild(line);
 }catch(e){}
