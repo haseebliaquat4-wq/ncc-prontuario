@@ -5221,6 +5221,7 @@ var OGGETTI=['qNotes','rifVie','promosse','chronSusp','rDoneLog','mixRound','err
 var STORICI=['coldHist','checkupHist'];
 /* valori singoli: vince il più informato */
 var NUMERI=['modelBias','modelN','coldDone','checkupDone','lapDone'];
+var BANDIERE=['azzerato2026'];
 
 try{
 var _gpS=getPrefs;
@@ -5233,6 +5234,7 @@ var v=lg(k,null);
 if(v!==null&&v!==undefined&&(typeof v!=='object'||Object.keys(v).length))p[k]=v;
 });
 NUMERI.forEach(function(k){var v=lg(k,null);if(v!==null&&v!==undefined&&v!==0)p[k]=v;});
+BANDIERE.forEach(function(k){if(lg(k,false))p[k]=true;});
 }catch(e){}
 return p;
 };
@@ -5277,6 +5279,7 @@ var l=lg(k,0);
 if(!l||(typeof pr[k]==='number'&&pr[k]>l)){ls(k,pr[k]);n++;}
 }catch(e){}
 });
+BANDIERE.forEach(function(k){try{if(pr[k]&&!lg(k,false)){ls(k,true);n++;}}catch(e){}});
 return n;
 }catch(e){return 0;}
 };
@@ -5410,21 +5413,40 @@ b.id='azzeraBtn';
 b.innerHTML='<span class="mi">\u2728</span>Azzera errori e schede';
 b.onclick=function(){
 if(!confirm('Azzerare tutti gli errori e le schede?\n\nPercorsi, vie posizionate e copertura restano intatti.\nRiparti con la pila pulita.'))return;
-nccAzzeraErrori();try{cm();}catch(e){}
+ls('azzerato2026',Date.now());nccAzzeraErrori();try{markDirty('prefs');}catch(e){}try{cm();}catch(e){}
 };
 var reset=menu.querySelector('[onclick*="doReset"]');
 if(reset)reset.parentNode.insertBefore(b,reset);else menu.appendChild(b);
 }catch(e){}
 },2000);
 /* azzeramento richiesto: una volta sola, poi mai più */
+/* [RISCHIO EVITATO] l'azzeramento gira una volta sola IN ASSOLUTO, non
+   una per dispositivo: il segnale viaggia nelle preferenze. Si aspetta
+   la prima sincronizzazione, così il secondo dispositivo non cancella
+   il lavoro fatto dopo il reset. */
 setTimeout(function(){
 try{
 if(lg('azzerato2026',false))return;
+var procedi=function(){
+try{
+if(lg('azzerato2026',false))return;
 ls('azzerato2026',true);
+try{markDirty('prefs');}catch(e){}
 var n=nccAzzeraErrori(true);
 if(n>0)toast2('\u2728 Pila azzerata: '+n+' errori \u00b7 percorsi e vie intatti',3600);
 }catch(e){}
-},4000);
+};
+if(typeof fbOk!=='undefined'&&fbOk&&typeof fbRef!=='undefined'&&fbRef){
+fbRef.child('prefs').once('value',function(sn){
+try{
+var pr=sn.val()||{};
+if(pr.azzerato2026){ls('azzerato2026',true);return;}   /* già fatto altrove */
+}catch(e){}
+procedi();
+},function(){procedi();});
+}else procedi();
+}catch(e){}
+},9000);
 })();
 
 /* ═══════════════════════════════════════════════════
