@@ -1021,6 +1021,33 @@ body:not(.topo-full) .ln-btn{min-height:34px;}
 .rd .mt-train, .rd button.btn, .rd .qv-btn,
 .rd .btn.br, .rd .btn.bp, .rd .btn.bs,
 .rd #nf .btn, .rd #qf .btn{border-radius:var(--r-row);}
+
+
+/* ══════ Suggerimento mirato (riquadro grande) ══════ */
+.rd #tipLine.tip-card{display:flex;align-items:center;gap:12px;width:100%;max-width:var(--card-w);
+margin:12px auto 0;padding:14px 16px;background:var(--card);border:1.5px solid var(--bd);
+border-radius:var(--r-card);box-shadow:var(--sh-sm);cursor:pointer;text-align:left;
+font-size:14px;font-weight:600;color:var(--tx);line-height:1.4;}
+.rd #tipLine.tip-card b{font-weight:850;}
+.tip-ic{font-size:21px;flex-shrink:0;}
+.tip-tx{flex:1;}
+.tip-n{font-size:10px;font-weight:750;color:var(--mu);flex-shrink:0;
+background:var(--fill3);padding:3px 7px;border-radius:var(--r-pill);}
+.rd #tipLine.tip-card:active{transform:scale(.985);}
+
+/* ══════ Piano di oggi: verde fatto, rosso da fare ══════ */
+.rd .coach-row.fatto{background:rgba(14,159,110,.07);}
+.rd .coach-row.fatto .coach-ar{color:var(--ok);font-weight:850;}
+.rd .coach-row.damorire{border-left:3px solid var(--err);}
+.rd .coach-row.fatto{border-left:3px solid var(--ok);}
+.stato-oggi{display:inline-block;margin-top:5px;font-size:10px;font-weight:850;
+letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r-pill);}
+.stato-oggi.si{background:rgba(14,159,110,.14);color:var(--ok);}
+.stato-oggi.no{background:rgba(229,72,77,.12);color:var(--err);}
+.rd .coach-hd strong{font-size:17px;font-weight:850;}
+.giorno-bar{height:6px;margin:10px 14px 12px;border-radius:3px;background:var(--fill2);overflow:hidden;}
+.giorno-bar i{display:block;height:100%;border-radius:3px;background:var(--ok);
+transition:width var(--d3) var(--e-soft);}
 `;
 }catch(e){}
 })();
@@ -3276,7 +3303,7 @@ css.textContent=
 +'.st-pane{display:none}.st-pane.on{display:block}'
 +'#modelCard,#projCard,#topoCard,#spiralCard{max-width:460px;margin:8px auto 0;padding:14px 16px;border:1.5px solid rgba(127,127,127,.25);border-radius:22px;background:rgba(127,127,127,.05)}'
 +'.mc-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-bottom:8px;border-bottom:1px solid rgba(127,127,127,.2)}'
-+'.mc-hd small,.pj-hd,.sp-hd{display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;opacity:.6}'
++'.mc-hd small,.pj-hd,.sp-hd{display:block;font-size:9.5px;font-weight:750;letter-spacing:.06em;opacity:.6}'
 +'.mc-hd b{font-size:30px;font-weight:850;line-height:1.1}.mc-hd b span{font-size:14px;opacity:.6}'
 +'.mc-risk{text-align:right}'
 +'.mc-sub{font-size:10.5px;opacity:.6;margin:8px 0 6px;line-height:1.35}'
@@ -5337,4 +5364,267 @@ if(h&&h.style.display!=='none'){renderCoach();renderPlan();renderExamLight();}
 
 /* pulizia anche all'avvio: se un dispositivo aveva già ricaricato i vecchi */
 setTimeout(function(){try{nccPulisciPromossi();}catch(e){}},6000);
+})();
+
+/* ═══════════════════════════════════════════════════
+   1 · AZZERAMENTO DEGLI ERRORI — si riparte puliti
+   I percorsi, le vie posizionate, la spirale e la copertura restano.
+   Ogni errore azzerato lascia la sua lapide, così non può tornare
+   dall'altro dispositivo.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.nccAzzeraErrori=function(silenzioso){
+try{
+buildQuiz();
+var ids=Object.keys(qtStats.err||{});
+var pr=lg('promosse',{});var ora=Date.now();
+ids.forEach(function(id){pr[id]=ora;});
+/* tetto al registro */
+var k=Object.keys(pr);
+if(k.length>1200){k.sort(function(a,b){return pr[a]-pr[b];});
+k.slice(0,k.length-1200).forEach(function(x){delete pr[x];});}
+ls('promosse',pr);
+qtStats.err={};
+qtStats.wrongN={};
+ls('chronSusp',{});
+ls('mixRound',{});
+ls('errBal',{});
+try{qtSave();updateTabBadge();}catch(e){}
+try{markDirty('prefs');autoSave();}catch(e){}
+try{
+var h=document.getElementById('homeScreen');
+if(h)setTimeout(function(){try{renderCoach();renderPlan();renderExamLight();renderReadiness();}catch(e){}},300);
+}catch(e){}
+if(!silenzioso)toast2('\u2728 Ripartiamo puliti: '+ids.length+' errori azzerati \u00b7 percorsi e vie intatti',3400);
+return ids.length;
+}catch(e){return 0;}
+};
+/* voce nel menu, per rifarlo quando vuoi */
+setTimeout(function(){
+try{
+var menu=document.querySelector('#menuSheet .msheet')||document.querySelector('#menuSheet');
+if(!menu||document.getElementById('azzeraBtn'))return;
+var b=document.createElement('button');
+b.id='azzeraBtn';
+b.innerHTML='<span class="mi">\u2728</span>Azzera errori e schede';
+b.onclick=function(){
+if(!confirm('Azzerare tutti gli errori e le schede?\n\nPercorsi, vie posizionate e copertura restano intatti.\nRiparti con la pila pulita.'))return;
+nccAzzeraErrori();try{cm();}catch(e){}
+};
+var reset=menu.querySelector('[onclick*="doReset"]');
+if(reset)reset.parentNode.insertBefore(b,reset);else menu.appendChild(b);
+}catch(e){}
+},2000);
+/* azzeramento richiesto: una volta sola, poi mai più */
+setTimeout(function(){
+try{
+if(lg('azzerato2026',false))return;
+ls('azzerato2026',true);
+var n=nccAzzeraErrori(true);
+if(n>0)toast2('\u2728 Pila azzerata: '+n+' errori \u00b7 percorsi e vie intatti',3600);
+}catch(e){}
+},4000);
+})();
+
+/* ═══════════════════════════════════════════════════
+   2 · SUGGERIMENTI MIRATI — su quello che sbagli davvero
+   Prima mostravano curiosità a caso. Ora pescano dai tuoi punti deboli
+   e cambiano a ogni apertura (e a ogni tocco).
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var SUBLAB2={geo_terr:'Geografia · territorio',geo_vie:'Geografia · vie e strade',
+norm_legge:'Normativa · legge',norm_aero:'Normativa · aeroporti',
+reg_com:'Regolamento · comunale',reg_dov:'Regolamento · doveri',lingua:'Inglese'};
+
+function raccogli(){
+var out=[];
+try{
+buildQuiz();
+/* tema più debole */
+var m=(typeof studentModel==='function')?studentModel():null;
+if(m&&m.subs&&m.subs.length){
+var w=m.subs[0];
+if(w.m<75)out.push({ic:'\ud83d\udd2c',t:'Il tuo tema più debole è <b>'+esc(w.label)+'</b> — lo sai al '+w.m+'%',
+az:function(){if(typeof qStartSub==='function')qStartSub(w.sub,w.label);}});
+if(m.worst&&m.worst.over>0.10)out.push({ic:'\u26a0\ufe0f',t:'All\u2019esame <b>'+esc(m.worst.label)+'</b> ti boccia nel '+Math.round(m.worst.over*100)+'% dei casi',
+az:function(){openQuiz();setTimeout(function(){qStartCat(m.worst.id);},250);}});
+}
+/* domande croniche */
+var ch=(typeof chronicList==='function')?chronicList():[];
+if(ch.length>=3){
+var c=ch[Math.floor(Math.random()*Math.min(5,ch.length))];
+out.push({ic:'\ud83e\ude79',t:'<b>'+ch.length+' domande</b> le sbagli da sempre: non serve ripassarle, serve capire la regola',
+az:function(){if(typeof qStartTwins==='function')qStartTwins(c);}});
+}
+/* vie nere */
+var tm=(typeof topoModel==='function')?topoModel():null;
+if(tm&&tm.nere&&tm.nere.length){
+var v=tm.nere[0];
+out.push({ic:'\ud83d\uddfa',t:'<b>'+esc(v.nome)+'</b> \u00e8 la via che sbagli di pi\u00f9'+(v.perc>1?(' \u00b7 compare in '+v.perc+' percorsi'):''),
+az:function(){goTopografia();}});
+if(tm.rows&&tm.rows.length&&tm.rows[0].clean<0.5){
+var r=tm.rows[0];
+out.push({ic:'\ud83e\udded',t:'Il percorso pi\u00f9 fragile: <b>'+esc(r.r.title)+'</b> \u00b7 '+Math.round(r.clean*100)+'% di farlo pulito',
+az:function(){goTopografia();setTimeout(function(){selectRoute(r.r);setTimeout(function(){setMode('c');},250);},300);}});
+}
+}
+/* errori in scadenza */
+var d=(typeof debtInfo==='function')?debtInfo():null;
+if(d&&d.due>0){
+out.push({ic:'\ud83d\udd01',t:'<b>'+d.due+' errori</b> ti aspettano oggi'+(d.topId&&d.topN>=10?(' \u00b7 '+d.topN+' sono di '+((QARG.find(function(x){return x.id===d.topId;})||{}).label||'')):''),
+az:function(){openQuiz();setTimeout(function(){qStartCat('errata');},250);}});
+}
+/* proiezione */
+var pj=(typeof projectPile==='function')?projectPile():null;
+if(pj&&pj.acc)out.push({ic:'\ud83c\udfaf',t:'Rispondi giusto al <b>'+pj.acc+'%</b> \u00b7 sopra il 68% la pila scende, sotto sale',az:null});
+}catch(e){}
+return out;
+}
+
+var LISTA=[],idx=0;
+function disegna(){
+try{
+var hd=document.querySelector('#homeScreen .home-hd');if(!hd)return;
+var el=document.getElementById('tipLine');
+if(!el){el=document.createElement('div');el.id='tipLine';hd.appendChild(el);}
+if(!LISTA.length)LISTA=raccogli();
+if(!LISTA.length){
+el.className='tip-card';
+el.innerHTML='<span class="tip-ic">\u2728</span><span class="tip-tx">Tutto sotto controllo: nessun punto debole da segnalare</span>';
+return;
+}
+if(idx>=LISTA.length)idx=0;
+var t=LISTA[idx];
+el.className='tip-card';
+el.innerHTML='<span class="tip-ic">'+t.ic+'</span><span class="tip-tx">'+t.t+'</span>'
++(LISTA.length>1?('<span class="tip-n">'+(idx+1)+'/'+LISTA.length+'</span>'):'');
+el.onclick=function(){
+if(t.az){try{t.az();return;}catch(e){}}
+idx++;LISTA=raccogli();disegna();
+};
+/* rotazione automatica: il tocco serve per AGIRE, non per cambiare */
+try{
+clearInterval(window.__tipT);
+window.__tipT=setInterval(function(){
+try{
+var h=document.getElementById('homeScreen');
+if(!h||h.style.display==='none')return;
+if(document.hidden)return;
+idx++;if(idx>=LISTA.length){idx=0;LISTA=raccogli();}
+var e2=document.getElementById('tipLine');
+if(e2){e2.style.transition='opacity .25s';e2.style.opacity='0';
+setTimeout(function(){disegna();var e3=document.getElementById('tipLine');
+if(e3){e3.style.opacity='0';requestAnimationFrame(function(){e3.style.transition='opacity .3s';e3.style.opacity='1';});}},260);}
+}catch(e){}
+},9000);
+}catch(e){}
+}catch(e){}
+}
+try{
+var _rt=renderTip;
+renderTip=function(){LISTA=[];idx=Math.floor(Math.random()*4);disegna();};
+}catch(e){}
+setTimeout(function(){try{renderTip();}catch(e){}},2600);
+})();
+
+/* ═══════════════════════════════════════════════════
+   3 · IL PIANO DI OGGI, DETTO SEMPLICE
+   Prima: un elenco di cose con sottotitoli tecnici.
+   Ora: "Oggi devi fare questo", una riga per cosa, verde se fatta,
+   rosso se manca. Si capisce in un colpo d'occhio cosa resta.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function oggi(){try{return _dayKey();}catch(e){return new Date().toDateString();}}
+
+/* cosa risulta fatto oggi */
+function fatto(ic){
+try{
+var k=oggi();
+var risposteOggi=((qtStats.daily||{})[k])||0;
+var bal=(lg('errBal',{})||{})[k]||{in:0,out:0};
+switch(ic){
+case '\ud83d\udd01': return bal.out>=20||risposteOggi>=40;      /* scheda errori */
+case '\ud83c\udfaf': return risposteOggi>=25;                    /* sessione mirata */
+case '\ud83d\udd2c': return (lg('coldDone',0)&&new Date(lg('coldDone',0)).toDateString()===new Date().toDateString());
+case '\ud83e\ude7a': return (lg('checkupDone',0)&&new Date(lg('checkupDone',0)).toDateString()===new Date().toDateString());
+case '\ud83d\uddfa': case '\ud83e\udded': {
+var log=lg('rDoneLog',{}),n=0,ora=Date.now();
+Object.keys(log).forEach(function(id){if(ora-log[id]<20*3600000)n++;});
+return n>0;
+}
+case '\ud83c\udf05': case '\ud83c\udf04': return risposteOggi>=15;   /* errori di ieri (alba) */
+case '\ud83c\udf93': return (qExamHist||[]).some(function(x){return x.d&&new Date(x.d).toDateString()===new Date().toDateString();});
+case '\ud83d\udc8e': return risposteOggi>=20;
+default: return risposteOggi>=30;
+}
+}catch(e){return false;}
+}
+
+/* testo diretto: cosa devi fare, non come si chiama la funzione */
+function semplifica(x){
+try{
+var t=x.tx||'';
+var m;
+if(x.ic==='\ud83d\udd01'){m=t.match(/(\d+)/);return 'Ripassa '+(m?'40':'')+' errori in scadenza';}
+if(x.ic==='\ud83c\udfaf')return 'Allena il tuo punto debole';
+if(x.ic==='\ud83d\uddfa'){m=t.match(/(\d+)/);return 'Ripassa '+(m?m[1]:'i')+' percorsi in scadenza';}
+if(x.ic==='\ud83e\udded')return 'Ripassa il percorso più fragile';
+if(x.ic==='\ud83d\udd2c'&&/freddo/i.test(t))return 'Fai il test a freddo (20 domande)';
+if(x.ic==='\ud83d\udd2c')return 'Allena il tema più debole';
+if(x.ic==='\ud83e\ude7a')return 'Controlla se le promozioni reggono';
+if(x.ic==='\ud83e\ude79')return 'Affronta le domande croniche';
+if(x.ic==='\ud83c\udf93')return 'Fai una simulazione d\u2019esame';
+if(x.ic==='\ud83d\udc8e')return 'Sessione mirata: 12 domande';
+if(x.ic==='\ud83c\udf05'||x.ic==='\ud83c\udf04')return 'Ripassa gli errori di ieri';
+if(x.ic==='\ud83e\uddec')return 'Impara il tratto in comune fra due percorsi';
+if(x.ic==='\ud83d\udda4')return 'Studia le vie che sbagli di più';
+return t;
+}catch(e){return x.tx;}
+}
+
+try{
+var _rcS2=renderCoach;
+renderCoach=function(){
+_rcS2.apply(this,arguments);
+try{
+var w=document.getElementById('coachCard');if(!w)return;
+var righe=w.querySelectorAll('.coach-row');
+if(!righe.length)return;
+var lista=(typeof COACH!=='undefined'&&COACH)?COACH:[];
+var nFatti=0;
+righe.forEach(function(r,i){
+var x=lista[i];if(!x)return;
+var ok=x.done||fatto(x.ic);
+if(ok)nFatti++;
+r.classList.toggle('fatto',!!ok);
+r.classList.toggle('damorire',!ok);
+var b=r.querySelector('.coach-tx b');
+if(b)b.textContent=semplifica(x);
+var ar=r.querySelector('.coach-ar');
+if(ar)ar.innerHTML=ok?'\u2713':'\u203a';
+var st=r.querySelector('.stato-oggi');
+if(!st){st=document.createElement('span');st.className='stato-oggi';
+var tx=r.querySelector('.coach-tx');if(tx)tx.appendChild(st);}
+st.textContent=ok?'fatto oggi':'da fare';
+st.className='stato-oggi '+(ok?'si':'no');
+});
+/* intestazione parlante */
+var hd=w.querySelector('.coach-hd strong');
+if(hd){
+var tot=righe.length;
+hd.textContent=(nFatti>=tot)?'\ud83c\udfc1 Fatto tutto per oggi'
+:(nFatti>0?('Oggi ti manca ancora: '+(tot-nFatti)+' su '+tot)
+:'Oggi devi fare questo');
+}
+/* barra di avanzamento della giornata */
+var old=w.querySelector('.giorno-bar');if(old)old.remove();
+var bar=document.createElement('div');bar.className='giorno-bar';
+bar.innerHTML='<i style="width:'+Math.round(nFatti/righe.length*100)+'%"></i>';
+var coach=w.querySelector('.coach');if(coach)coach.appendChild(bar);
+}catch(e){}
+};
+}catch(e){}
 })();
