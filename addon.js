@@ -3747,8 +3747,14 @@ try{
 var ts=Date.now();
 var dev=(typeof nccDev==='function')?nccDev():'Dispositivo';
 var ans=risposte(qtStats);
+/* [BUG CRITICO] mancava "prefs" e set() sostituisce l'intero nodo:
+   ogni salvataggio CANCELLAVA dal cloud striscia, data esame, traguardo,
+   spirale dei percorsi, percorsi cancellati, note e riferimenti.
+   flushNow le riscriveva con update(), il set successivo le ricancellava:
+   una corsa infinita. Ecco perché i dispositivi divergevano. */
+var pr={};try{pr=getPrefs()||{};}catch(e){}
 fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
-studyProg:studyProg,qExamHist:qExamHist,ts:ts,dev:dev,ans:ans})
+studyProg:studyProg,qExamHist:qExamHist,prefs:pr,ts:ts,dev:dev,ans:ans})
 .then(function(){
 ls('syncTs',ts);ls('lastDev',dev);ls('lastAns',ans);
 try{showInd();}catch(e){}
@@ -5078,4 +5084,257 @@ var m=false;
 try{m=(typeof mode!=='undefined')&&(mode==='c'||mode==='q');}catch(e){}
 if(mostra(m?'senza':'con')||++n>40)clearInterval(t);
 },600);
+})();
+
+/* ═══════════════════════════════════════════════════
+   SINCRONIZZAZIONE COMPLETA
+   [BUG GRAVE 1] ogni salvataggio usa set(), che SOSTITUISCE l'intero
+   nodo, ma non includeva le preferenze: ogni salvataggio CANCELLAVA
+   dal cloud striscia, data esame e obiettivi. Ecco perché su un
+   dispositivo la striscia era 11 e sull'altro 1.
+   [BUG GRAVE 2] 41 chiavi non venivano MAI sincronizzate: la spirale
+   dei percorsi, le note personali, le croniche, le promozioni, i
+   riferimenti, lo storico dei test. Cambiando dispositivo si perdevano.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+/* tutto ciò che deve viaggiare fra i dispositivi */
+var EXTRA=['rSR','qNotes','rifVie','chronSusp','promosse','errBal','rDoneLog',
+'coldHist','coldDone','checkupHist','checkupDone','modelBias','modelN','mission',
+'retScore','srMul','mixRound','tipHist','wkSnap','goalHit','lapDone','qRecall',
+'antiFretta','sndOn','vibOn','dark','mapSat','lMode','berlina','tgFastDay','lastRet','wkRepTs'];
+
+/* ── 1 · le preferenze includono TUTTO ── */
+try{
+var _gpX=getPrefs;
+getPrefs=function(){
+var p={};
+try{p=_gpX.apply(this,arguments)||{};}catch(e){}
+EXTRA.forEach(function(k){
+try{var v=lg(k,undefined);if(v!==undefined&&v!==null)p[k]=v;}catch(e){}
+});
+return p;
+};
+}catch(e){}
+
+/* ── 2 · applicare quello che arriva dal cloud ── */
+window.nccApplicaPrefs=function(prefs,cloudPiuRecente){
+try{
+if(!prefs||typeof prefs!=='object')return 0;
+var n=0;
+EXTRA.forEach(function(k){
+try{
+var v=prefs[k];
+if(v===undefined||v===null)return;
+/* i dati di studio arrivano sempre; le impostazioni solo se il cloud è più recente */
+var impostazione=(k==='dark'||k==='sndOn'||k==='vibOn'||k==='antiFretta'||k==='mapSat'||k==='lMode'||k==='berlina'||k==='qRecall');
+if(impostazione&&!cloudPiuRecente)return;
+ls(k,v);n++;
+}catch(e){}
+});
+/* la spirale dei percorsi vive anche in memoria: va aggiornata lì */
+try{if(prefs.rSR&&typeof prefs.rSR==='object'&&typeof rSR!=='undefined')rSR=prefs.rSR;}catch(e){}
+return n;
+}catch(e){return 0;}
+};
+
+/* ── 3 · la scrittura include le preferenze (era il buco principale) ── */
+try{
+var _cs=cloudSave;
+cloudSave=function(){
+try{
+if(typeof fbOk==='undefined'||!fbOk||!fbRef){_cs();return;}
+toast2('\ud83d\udcbe Salvataggio\u2026');
+fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
+studyProg:studyProg,qExamHist:qExamHist,prefs:getPrefs(),ts:Date.now(),
+dev:(typeof nccDev==='function'?nccDev():'')})
+.then(function(){toast2('\u2705 Salvato su cloud');})
+.catch(function(){toast2('\u26a0\ufe0f Errore cloud');});
+}catch(e){_cs();}
+};
+}catch(e){}
+
+/* ── 4 · al ritorno dal cloud si applicano anche le chiavi nuove ── */
+try{
+var _sfcX=window.syncFromCloud;
+window.syncFromCloud=function(){
+try{_sfcX.apply(this,arguments);}catch(e){}
+try{
+if(typeof fbOk==='undefined'||!fbOk||!fbRef)return;
+fbRef.once('value',function(sn){
+try{
+var d=sn.val();if(!d)return;
+var cloudPiuRecente=(d.ts||0)>(lg('localTs',0)||0);
+var n=nccApplicaPrefs(d.prefs,cloudPiuRecente);
+if(n){
+try{renderPlan&&renderPlan();renderCoach&&renderCoach();
+updateTabBadge&&updateTabBadge();renderList&&renderList();}catch(e){}
+}
+}catch(e){}
+},function(){});
+}catch(e){}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   SINCRONIZZAZIONE COMPLETA
+   [BUG] gran parte dello stato dell'addon non viaggiava affatto fra
+   dispositivi: note, riferimenti, promozioni, croniche sospese, storico
+   dei test a freddo e dei check-up, taratura del modello, giro delle
+   schede miste, bilancio degli errori, registro dei percorsi completati.
+   Ora entra nelle preferenze e viene fuso senza perdere nulla.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* insiemi: si uniscono, non si sovrascrivono */
+var OGGETTI=['qNotes','rifVie','promosse','chronSusp','rDoneLog','mixRound','errBal'];
+/* elenchi cronologici: si fondono per data */
+var STORICI=['coldHist','checkupHist'];
+/* valori singoli: vince il più informato */
+var NUMERI=['modelBias','modelN','coldDone','checkupDone','lapDone'];
+
+try{
+var _gpS=getPrefs;
+getPrefs=function(){
+var p={};
+try{p=_gpS.apply(this,arguments)||{};}catch(e){}
+try{
+OGGETTI.concat(STORICI).forEach(function(k){
+var v=lg(k,null);
+if(v!==null&&v!==undefined&&(typeof v!=='object'||Object.keys(v).length))p[k]=v;
+});
+NUMERI.forEach(function(k){var v=lg(k,null);if(v!==null&&v!==undefined&&v!==0)p[k]=v;});
+}catch(e){}
+return p;
+};
+}catch(e){}
+
+/* fusione dal cloud: mai perdere dati, né locali né remoti */
+window.nccFondiPrefs=function(pr){
+try{
+if(!pr||typeof pr!=='object')return 0;
+var n=0;
+OGGETTI.forEach(function(k){
+try{
+var remoto=pr[k];if(!remoto||typeof remoto!=='object')return;
+var locale=lg(k,{})||{};
+Object.keys(remoto).forEach(function(id){
+if(locale[id]===undefined){locale[id]=remoto[id];n++;}
+else if(typeof locale[id]==='number'&&typeof remoto[id]==='number'&&remoto[id]>locale[id]){
+locale[id]=remoto[id];n++;}
+else if(k==='errBal'&&remoto[id]&&locale[id]){
+var a=locale[id],b=remoto[id];
+if(((b.in||0)+(b.out||0))>((a.in||0)+(a.out||0))){locale[id]=b;n++;}
+}
+});
+ls(k,locale);
+}catch(e){}
+});
+STORICI.forEach(function(k){
+try{
+var remoto=pr[k];if(!Array.isArray(remoto))return;
+var locale=lg(k,[]);if(!Array.isArray(locale))locale=[];
+var viste={};locale.forEach(function(x){if(x&&x.d)viste[x.d]=1;});
+remoto.forEach(function(x){if(x&&x.d&&!viste[x.d]){locale.push(x);n++;}});
+locale.sort(function(a,b){return (a.d||0)-(b.d||0);});
+if(locale.length>26)locale=locale.slice(-26);
+ls(k,locale);
+}catch(e){}
+});
+NUMERI.forEach(function(k){
+try{
+if(pr[k]===undefined)return;
+var l=lg(k,0);
+if(!l||(typeof pr[k]==='number'&&pr[k]>l)){ls(k,pr[k]);n++;}
+}catch(e){}
+});
+return n;
+}catch(e){return 0;}
+};
+
+/* si aggancia allo scarico dal cloud */
+try{
+var _sfcP=window.syncFromCloud;
+window.syncFromCloud=function(){
+try{_sfcP.apply(this,arguments);}catch(e){}
+try{
+if(typeof fbRef==='undefined'||!fbRef)return;
+fbRef.once('value',function(sn){
+try{
+var d=sn.val()||{};
+var n=nccFondiPrefs(d.prefs);
+if(n>0){
+try{markDirty('prefs');}catch(e){}
+setTimeout(function(){
+try{
+var h=document.getElementById('homeScreen');
+if(h&&h.style.display!=='none'){renderCoach();renderPlan();renderReadiness();renderExamLight();}
+updateTabBadge();
+}catch(e){}
+},600);
+}
+}catch(e){}
+},function(){});
+}catch(e){}
+};
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   GLI ERRORI SMALTITI NON DEVONO RINASCERE
+   [BUG CRITICO] la fusione dal cloud UNISCE gli errori: aggiunge quelli
+   remoti ma non toglie mai quelli promossi altrove. Risultato: smalti
+   30 errori sul telefono, il PC li rimanda su, e "tornano come prima".
+   Il registro delle promozioni (id → quando è uscito) fa da lapide:
+   un errore promosso non rientra, a meno che tu non lo sbagli di nuovo
+   DOPO la promozione (in quel caso la sua scadenza è più recente).
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.nccPulisciPromossi=function(){
+try{
+var pr=lg('promosse',{});
+if(!pr||!qtStats||!qtStats.err)return 0;
+var n=0;
+Object.keys(pr).forEach(function(id){
+var e=qtStats.err[id];
+if(!e||typeof e!=='object')return;
+var quando=pr[id]||0;
+var scadenza=e.due||0;
+/* scadenza più vecchia della promozione = è la vecchia voce risorta */
+if(quando&&scadenza<=quando){delete qtStats.err[id];n++;}
+});
+if(n){
+try{qtSave();updateTabBadge();}catch(e){}
+}
+return n;
+}catch(e){return 0;}
+};
+
+/* si applica dopo ogni scarico dal cloud, prima di risalvare */
+try{
+var _sfcT=window.syncFromCloud;
+window.syncFromCloud=function(){
+try{_sfcT.apply(this,arguments);}catch(e){}
+setTimeout(function(){
+try{
+var n=nccPulisciPromossi();
+if(n>0){
+try{markDirty('prefs');autoSave();}catch(e){}
+setTimeout(function(){
+try{
+var h=document.getElementById('homeScreen');
+if(h&&h.style.display!=='none'){renderCoach();renderPlan();renderExamLight();}
+}catch(e){}
+},500);
+}
+}catch(e){}
+},900);
+};
+}catch(e){}
+
+/* pulizia anche all'avvio: se un dispositivo aveva già ricaricato i vecchi */
+setTimeout(function(){try{nccPulisciPromossi();}catch(e){}},6000);
 })();
