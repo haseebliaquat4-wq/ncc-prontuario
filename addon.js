@@ -1048,6 +1048,140 @@ letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:var(
 .giorno-bar{height:6px;margin:10px 14px 12px;border-radius:3px;background:var(--fill2);overflow:hidden;}
 .giorno-bar i{display:block;height:100%;border-radius:3px;background:var(--ok);
 transition:width var(--d3) var(--e-soft);}
+
+
+/* ══════ SEZIONE PIAZZE ══════ */
+#pzOv{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;}
+.pz-app{display:flex;flex-direction:column;height:100%;}
+.pz-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--sep2);
+background:var(--card);flex-shrink:0;}
+.pz-hd button{width:36px;height:36px;border:none;border-radius:var(--r-row);background:var(--fill2);
+color:var(--tx);font-size:17px;font-weight:750;cursor:pointer;flex-shrink:0;}
+.pz-ti{flex:1;min-width:0;}
+.pz-ti b{display:block;font-size:17px;font-weight:850;color:var(--tx);white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis;}
+.pz-ti small{display:block;font-size:12px;color:var(--mu);font-weight:600;}
+.pz-body{flex:1;display:flex;min-height:0;}
+#pzMap{flex:1;min-height:0;background:var(--fill3);}
+.pz-panel{width:340px;max-width:44vw;display:flex;flex-direction:column;background:var(--card);
+border-left:1px solid var(--sep2);min-height:0;}
+.pz-phd{padding:10px 12px;border-bottom:1px solid var(--sep2);flex-shrink:0;}
+.pz-seg{display:flex;gap:4px;padding:4px;background:var(--fill3);border-radius:var(--r-row);}
+.pz-sb{flex:1;padding:8px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--mu);
+font-size:13px;font-weight:750;cursor:pointer;transition:background .2s,color .2s;}
+.pz-sb.on{background:var(--card);color:var(--tx);box-shadow:var(--sh-sm);}
+.pz-cnt{font-size:11px;font-weight:800;color:var(--mu);text-align:center;margin-top:7px;
+text-transform:uppercase;letter-spacing:.04em;}
+.pz-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px;min-height:0;}
+.pz-cerca{width:100%;padding:11px 13px;border:1.5px solid var(--bd);border-radius:var(--r-row);
+background:var(--fill3);color:var(--tx);font-size:14px;margin-bottom:8px;}
+.pz-row{display:block;width:100%;text-align:left;padding:11px 13px;margin-bottom:6px;border:1.5px solid var(--bd);
+border-radius:var(--r-row);background:var(--card);cursor:pointer;transition:border-color .2s,transform .15s;}
+.pz-row:active{transform:scale(.98);}
+.pz-row.due{border-color:rgba(217,119,6,.5);background:rgba(217,119,6,.05);}
+.pz-n{display:block;font-size:14px;font-weight:800;color:var(--tx);}
+.pz-m{display:block;font-size:11px;color:var(--mu);font-weight:650;margin-top:2px;}
+.pz-vuoto{padding:24px;text-align:center;color:var(--mu);font-size:13px;}
+.pz-centro{display:block;width:100%;padding:10px;margin-bottom:8px;border:1.5px dashed var(--bd);
+border-radius:var(--r-row);background:transparent;color:var(--mu);font-size:12px;font-weight:700;cursor:pointer;}
+.pz-centro.ok{border-style:solid;border-color:var(--ok);color:var(--ok);background:rgba(14,159,110,.06);}
+.pz-via{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r-row);
+margin-bottom:4px;position:relative;cursor:pointer;transition:background .2s;}
+.pz-via.att{background:var(--sab);}
+.pz-via.att::after{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:2px;background:var(--a);}
+.pz-num{width:24px;height:24px;border-radius:50%;background:var(--fill2);color:var(--tx);font-size:11px;
+font-weight:850;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pz-via.att .pz-num{background:var(--a);color:#fff;}
+.pz-nome{flex:1;font-size:14px;font-weight:700;color:var(--tx);line-height:1.3;}
+.pz-nome.nas{color:var(--mu);letter-spacing:.14em;font-weight:600;}
+.pz-cb{width:30px;height:30px;border:none;border-radius:var(--r-pill);background:var(--fill2);
+color:var(--mu);font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0;}
+.pz-cb.s{background:rgba(14,159,110,.14);}
+.pz-foot{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--sep2);flex-shrink:0;}
+.pz-b{flex:1;padding:14px;border:none;border-radius:var(--r-row);background:var(--fill2);color:var(--tx);
+font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s var(--e-spring);}
+.pz-b:active{transform:scale(.95);}
+.pz-b.av{background:var(--a);color:#fff;flex:1.4;}
+.pz-b.riv{background:var(--warn);color:#fff;flex:1.6;}
+.pz-pin .pz-pb{width:28px;height:28px;border-radius:50%;background:var(--a);color:#fff;
+font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;
+border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.pz-pin.att .pz-pb{background:var(--warn);transform:scale(1.2);}
+.pz-pin.centro .pz-pb{width:34px;height:34px;background:var(--pu,#6D5AE0);font-size:15px;}
+body.pz-placing #pzMap{cursor:crosshair;box-shadow:inset 0 0 0 3px var(--a);}
+@media (max-width:760px){
+.pz-body{flex-direction:column;}
+#pzMap{flex:none;height:42vh;}
+.pz-panel{width:auto;max-width:none;flex:1;border-left:none;border-top:1px solid var(--sep2);}
+}
+
+/* ══════ QUIZ PIAZZE ══════ */
+#pzqOv,#rgqOv{position:fixed;inset:0;z-index:9100;background:rgba(7,10,20,.75);
+backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;
+justify-content:center;padding:20px;}
+.pzq-card{background:var(--card);border-radius:var(--r-card);padding:22px 20px;max-width:440px;width:100%;
+max-height:86vh;display:flex;flex-direction:column;box-shadow:var(--sh-xl);animation:sheetUp .32s var(--e-soft) both;}
+.pzq-hd small{display:block;font-size:10px;font-weight:800;color:var(--a);letter-spacing:.06em;}
+.pzq-hd b{display:block;font-size:19px;font-weight:850;color:var(--tx);margin:5px 0 3px;line-height:1.25;}
+.pzq-c{font-size:12px;font-weight:750;color:var(--mu);}
+.pzq-vie{flex:1;overflow-y:auto;margin:14px 0;display:flex;flex-direction:column;gap:5px;}
+.pzq-v{padding:9px 12px;border-radius:var(--r-row);background:var(--fill3);font-size:13.5px;
+font-weight:700;color:var(--mu);letter-spacing:.1em;}
+.pzq-v.vis{background:rgba(14,159,110,.10);color:var(--tx);letter-spacing:0;}
+.pzq-opz{display:flex;flex-direction:column;gap:9px;margin:16px 0 12px;}
+.pzq-o{padding:15px 13px;border:1.5px solid var(--bd);border-radius:var(--r-row);background:var(--card);
+color:var(--tx);font-size:14.5px;font-weight:750;cursor:pointer;text-align:left;transition:all .2s;}
+.pzq-o:active{transform:scale(.97);}
+.pzq-o.good{border-color:var(--ok);background:rgba(14,159,110,.12);color:var(--ok);}
+.pzq-o.bad{border-color:var(--err);background:rgba(229,72,77,.1);color:var(--err);}
+.pzq-row{display:flex;gap:9px;margin-bottom:10px;}
+.pzq-b{flex:1;padding:14px;border:none;border-radius:var(--r-row);background:var(--fill2);color:var(--tx);
+font-size:14.5px;font-weight:800;cursor:pointer;}
+.pzq-b.sap{background:rgba(14,159,110,.14);color:var(--ok);}
+.pzq-b.no{background:rgba(229,72,77,.12);color:var(--err);}
+.pzq-x{width:100%;padding:12px;border:none;border-radius:var(--r-row);background:transparent;
+color:var(--mu);font-size:13.5px;font-weight:750;cursor:pointer;}
+.pzq-card.fine{text-align:center;}
+.pzq-card.fine b{display:block;font-size:15px;font-weight:750;color:var(--tx);margin:6px 0 2px;}
+.pzq-card.fine small{display:block;font-size:12px;color:var(--mu);margin-bottom:14px;}
+
+/* ══════ PRONTUARIO TARIFFE ══════ */
+#rgOv{position:fixed;inset:0;z-index:9050;background:rgba(7,10,20,.72);
+backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;
+justify-content:center;padding:18px;}
+.rg-card{background:var(--card);border-radius:var(--r-card);max-width:480px;width:100%;max-height:88vh;
+display:flex;flex-direction:column;box-shadow:var(--sh-xl);animation:sheetUp .32s var(--e-soft) both;}
+.rg-hd{padding:18px 20px 12px;border-bottom:1px solid var(--sep2);position:relative;flex-shrink:0;}
+.rg-hd b{display:block;font-size:19px;font-weight:850;color:var(--tx);padding-right:36px;}
+.rg-hd small{display:block;font-size:11.5px;color:var(--mu);font-weight:650;margin-top:3px;}
+.rg-x{position:absolute;right:16px;top:16px;width:30px;height:30px;border:none;border-radius:50%;
+background:var(--fill2);color:var(--tx);font-size:14px;cursor:pointer;}
+.rg-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px;min-height:0;}
+.rg-sez{margin-bottom:20px;}
+.rg-st{font-size:10px;font-weight:800;color:var(--a);letter-spacing:.06em;text-transform:uppercase;
+margin-bottom:7px;}
+.rg-d{font-size:11.5px;color:var(--mu);font-weight:650;margin-bottom:9px;line-height:1.4;}
+.rg-g{display:flex;gap:7px;margin-bottom:9px;}
+.rg-cell{flex:1;padding:9px;background:var(--fill3);border-radius:var(--r-row);text-align:center;}
+.rg-cell small{display:block;font-size:9.5px;color:var(--mu);font-weight:750;line-height:1.25;}
+.rg-cell b{display:block;font-size:17px;font-weight:850;color:var(--tx);margin-top:3px;
+font-variant-numeric:tabular-nums;}
+.rg-r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;
+border-bottom:1px solid var(--sep2);font-size:13px;font-weight:650;color:var(--tx);}
+.rg-r:last-child{border-bottom:none;}
+.rg-r span{flex:1;}
+.rg-r b{font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.rg-r.ev{background:var(--fill3);margin:0 -8px;padding:8px;border-radius:var(--r-pill);border-bottom:none;}
+.rg-r.fo b{color:var(--warn);}
+.rg-n{font-size:11px;color:var(--mu);font-weight:650;line-height:1.45;margin-top:7px;
+padding-left:10px;border-left:2px solid var(--bd);}
+.rg-norma{padding:9px 0;border-bottom:1px solid var(--sep2);}
+.rg-norma b{display:block;font-size:13px;font-weight:850;color:var(--tx);}
+.rg-norma span{display:block;font-size:12px;color:var(--mu);font-weight:650;margin-top:2px;line-height:1.4;}
+.rg-quiz{margin:0 18px 18px;padding:15px;border:none;border-radius:var(--r-act);background:var(--a);
+color:#fff;font-size:15px;font-weight:850;cursor:pointer;flex-shrink:0;}
+.rg-quiz:active{transform:scale(.97);}
+@media (prefers-reduced-motion:reduce){.pzq-card,.rg-card{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -5648,5 +5782,636 @@ bar.innerHTML='<i style="width:'+Math.round(nFatti/righe.length*100)+'%"></i>';
 var coach=w.querySelector('.coach');if(coach)coach.appendChild(bar);
 }catch(e){}
 };
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   SEZIONE PIAZZE — 90 piazze di Milano con le vie che vi sboccano
+   Funziona come i percorsi: elenco, freccia avanti, modalità cieco,
+   marker che posizioni tu a mano. Mappa propria e isolata: non tocca
+   nulla della topografia esistente.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var PZ=null;                  /* stato: {p, i, modo, mappa, mk[], centro} */
+var mappaPz=null, livPz=null, gruppo=[];
+var posizionando=-1;
+
+function elenco(){try{return (window.__PIAZZE__||[]).slice();}catch(e){return [];}}
+function chiave(p,i){return p.id+'_'+i;}
+function chiaveC(p){return p.id+'_c';}
+
+/* ── spirale delle piazze, salvata nelle preferenze ── */
+function pzSR(){try{return lg('pzSR',{});}catch(e){return {};}}
+function pzSRset(o){try{ls('pzSR',o);markDirty('prefs');}catch(e){}}
+window.pzScaduti=function(){
+try{
+var sr=pzSR(),ora=Date.now(),n=0;
+elenco().forEach(function(p){var s=sr[p.id];if(s&&s.due&&s.due<=ora)n++;});
+return n;
+}catch(e){return 0;}
+};
+function avanza(id,pulito){
+try{
+var sr=pzSR(),s=sr[id]||{box:0};
+if(pulito){s.box=Math.min(4,(s.box||0)+1);
+s.due=Date.now()+[1,2,4,9,21][s.box]*86400000;}
+else{s.box=1;s.due=Date.now()+2*86400000;}
+s.last=Date.now();sr[id]=s;pzSRset(sr);
+}catch(e){}
+}
+
+/* ── apertura ── */
+window.openPiazze=function(){
+try{
+if(document.getElementById('pzOv'))return;
+var o=document.createElement('div');o.id='pzOv';
+o.innerHTML='<div class="pz-app">'
++'<div class="pz-hd"><button class="pz-back">\u2039</button>'
++'<div class="pz-ti"><b id="pzTit">Piazze di Milano</b><small id="pzSub"></small></div>'
++'<button class="pz-x">\u2715</button></div>'
++'<div class="pz-body">'
++'<div id="pzMap"></div>'
++'<div class="pz-panel">'
++'<div class="pz-phd"><div class="pz-seg" id="pzSeg">'
++'<button class="pz-sb on" data-m="s">Studio</button>'
++'<button class="pz-sb" data-m="c">Cieco</button></div>'
++'<div id="pzCnt" class="pz-cnt"></div></div>'
++'<div class="pz-list" id="pzList"></div>'
++'<div class="pz-foot" id="pzFoot"></div>'
++'</div></div></div>';
+document.body.appendChild(o);
+o.querySelector('.pz-x').onclick=chiudi;
+o.querySelector('.pz-back').onclick=function(){if(PZ)lista();else chiudi();};
+o.querySelector('#pzSeg').addEventListener('click',function(e){
+var b=e.target.closest('.pz-sb');if(!b||!PZ)return;
+PZ.modo=b.dataset.m;
+o.querySelectorAll('.pz-sb').forEach(function(x){x.classList.toggle('on',x===b);});
+disegnaVie();
+});
+setTimeout(creaMappa,120);
+lista();
+try{hap();}catch(e){}
+}catch(e){}
+};
+function chiudi(){
+try{
+var o=document.getElementById('pzOv');if(o)o.remove();
+PZ=null;mappaPz=null;gruppo=[];posizionando=-1;
+}catch(e){}
+}
+window.chiudiPiazze=chiudi;
+
+/* ── mappa dedicata ── */
+function creaMappa(){
+try{
+if(typeof L==='undefined')return;
+var d=document.getElementById('pzMap');if(!d||mappaPz)return;
+mappaPz=L.map('pzMap',{zoomControl:true,attributionControl:true}).setView([45.4642,9.19],13);
+livPz=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+{maxNativeZoom:19,maxZoom:20,keepBuffer:3,attribution:'&copy; OpenStreetMap'}).addTo(mappaPz);
+mappaPz.on('click',function(ev){
+if(posizionando<0||!PZ)return;
+try{
+var k=(posizionando===999)?chiaveC(PZ.p):chiave(PZ.p,posizionando);
+coords[k]={lat:ev.latlng.lat,lon:ev.latlng.lng};
+save();autoSave();
+posizionando=-1;
+document.body.classList.remove('pz-placing');
+disegnaVie();pin();
+toast2('\ud83d\udccd Posizionata');
+try{hap('m');}catch(e){}
+}catch(e){}
+});
+setTimeout(function(){try{mappaPz.invalidateSize();}catch(e){}},200);
+}catch(e){}
+}
+function pulisciPin(){try{gruppo.forEach(function(m){try{mappaPz.removeLayer(m);}catch(e){}});gruppo=[];}catch(e){}}
+function pin(){
+try{
+if(!mappaPz||!PZ)return;
+pulisciPin();
+var punti=[];
+var c=coords[chiaveC(PZ.p)];
+if(c){
+var mc=L.marker([c.lat,c.lon],{icon:L.divIcon({className:'pz-pin centro',
+html:'<div class="pz-pb">\u2b50</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(mappaPz);
+mc.bindPopup(esc(PZ.p.n));gruppo.push(mc);punti.push([c.lat,c.lon]);
+}
+PZ.p.v.forEach(function(v,i){
+var k=coords[chiave(PZ.p,i)];if(!k)return;
+var att=(i===PZ.i);
+var m=L.marker([k.lat,k.lon],{icon:L.divIcon({className:'pz-pin'+(att?' att':''),
+html:'<div class="pz-pb">'+(i+1)+'</div>',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(mappaPz);
+m.bindPopup((i+1)+'. '+esc(v));gruppo.push(m);punti.push([k.lat,k.lon]);
+if(att&&PZ.modo!=='c')setTimeout(function(){try{m.openPopup();}catch(e){}},200);
+});
+if(punti.length){
+try{
+if(punti.length===1)mappaPz.setView(punti[0],16);
+else mappaPz.fitBounds(punti,{padding:[40,40],maxZoom:16});
+}catch(e){}
+}
+}catch(e){}
+}
+
+/* ── elenco delle 90 piazze ── */
+function lista(){
+try{
+PZ=null;posizionando=-1;
+var L2=elenco(),sr=pzSR(),ora=Date.now();
+document.getElementById('pzTit').textContent='Piazze di Milano';
+document.getElementById('pzSub').textContent=L2.length+' piazze \u00b7 tocca per studiarle';
+document.getElementById('pzSeg').style.visibility='hidden';
+document.getElementById('pzFoot').innerHTML='';
+var mappati=function(p){var n=0;p.v.forEach(function(_,i){if(coords[chiave(p,i)])n++;});return n;};
+var scad=L2.filter(function(p){var s=sr[p.id];return s&&s.due&&s.due<=ora;}).length;
+document.getElementById('pzCnt').textContent=scad?(scad+' da ripassare'):'';
+document.getElementById('pzList').innerHTML=
+'<input id="pzCerca" class="pz-cerca" placeholder="Cerca piazza o via\u2026" autocomplete="off">'
++'<div id="pzRows"></div>';
+function righe(filtro){
+var f=(filtro||'').toLowerCase().trim();
+var sel=L2.filter(function(p){
+if(!f)return true;
+if(p.n.toLowerCase().indexOf(f)>=0)return true;
+return p.v.some(function(v){return v.toLowerCase().indexOf(f)>=0;});
+});
+document.getElementById('pzRows').innerHTML=sel.map(function(p){
+var s=sr[p.id],due=s&&s.due&&s.due<=ora;
+var m=mappati(p);
+return '<button class="pz-row'+(due?' due':'')+'" data-id="'+p.id+'">'
++'<span class="pz-n">'+esc(p.n)+'</span>'
++'<span class="pz-m">'+p.v.length+' vie'+(m?(' \u00b7 '+m+' \ud83d\udccd'):'')+(due?' \u00b7 da ripassare':'')+'</span></button>';
+}).join('')||'<div class="pz-vuoto">Nessun risultato</div>';
+}
+righe('');
+document.getElementById('pzCerca').oninput=function(){righe(this.value);};
+document.getElementById('pzRows').addEventListener('click',function(e){
+var b=e.target.closest('.pz-row');if(!b)return;
+var p=L2.find(function(x){return x.id===b.dataset.id;});
+if(p)apri(p);
+});
+}catch(e){}
+}
+
+/* ── apertura di una piazza ── */
+function apri(p){
+try{
+PZ={p:p,i:0,modo:'s',ok:0,err:0};
+document.getElementById('pzTit').textContent=p.n;
+document.getElementById('pzSub').textContent=p.v.length+' vie';
+document.getElementById('pzSeg').style.visibility='visible';
+document.querySelectorAll('.pz-sb').forEach(function(x){x.classList.toggle('on',x.dataset.m==='s');});
+disegnaVie();pin();
+try{hap();}catch(e){}
+}catch(e){}
+}
+
+function disegnaVie(){
+try{
+if(!PZ)return;
+var p=PZ.p,cieco=(PZ.modo==='c');
+document.getElementById('pzCnt').textContent='Via '+(PZ.i+1)+' di '+p.v.length;
+var c=coords[chiaveC(p)];
+document.getElementById('pzList').innerHTML=
+'<button class="pz-centro'+(c?' ok':'')+'" id="pzCentro">'
++(c?'\u2b50 Centro piazza posizionato \u00b7 tocca per rifarlo':'\u2b50 Posiziona il centro della piazza')+'</button>'
++p.v.map(function(v,i){
+var att=(i===PZ.i),mk=!!coords[chiave(p,i)];
+var nome=(cieco&&!att)?'\u2022\u2022\u2022\u2022\u2022':((cieco&&att&&!PZ.rivelata)?'\ud83d\udc41 tocca Rivela':esc(v));
+return '<div class="pz-via'+(att?' att':'')+'" data-i="'+i+'">'
++'<span class="pz-num">'+(i+1)+'</span>'
++'<span class="pz-nome'+((cieco&&!att)?' nas':'')+'">'+nome+'</span>'
++'<button class="pz-cb'+(mk?' s':'')+'" data-p="'+i+'">'+(mk?'\ud83d\udccd':'+')+'</button></div>';
+}).join('');
+var f=document.getElementById('pzFoot');
+f.innerHTML='<button class="pz-b" id="pzPrev">\u25c0</button>'
++(cieco?'<button class="pz-b riv" id="pzRiv">\ud83d\udc41 Rivela</button>':'')
++'<button class="pz-b av" id="pzNext">\u25b6</button>';
+document.getElementById('pzPrev').onclick=function(){vai(-1);};
+document.getElementById('pzNext').onclick=function(){vai(1);};
+var rv=document.getElementById('pzRiv');
+if(rv)rv.onclick=function(){PZ.rivelata=true;disegnaVie();try{hap();}catch(e){}};
+document.getElementById('pzCentro').onclick=function(){
+posizionando=999;document.body.classList.add('pz-placing');
+toast2('\u2b50 Tocca la mappa dove si trova la piazza',2600);
+};
+document.getElementById('pzList').addEventListener('click',function(e){
+var cb=e.target.closest('.pz-cb');
+if(cb){
+var i=+cb.dataset.p;
+var k=chiave(PZ.p,i);
+if(coords[k]){delete coords[k];save();autoSave();}
+posizionando=i;PZ.i=i;document.body.classList.add('pz-placing');
+disegnaVie();pin();
+toast2('\ud83d\udccd Tocca la mappa dove si trova '+PZ.p.v[i],2800);
+return;
+}
+var r=e.target.closest('.pz-via');
+if(r){PZ.i=+r.dataset.i;PZ.rivelata=false;disegnaVie();pin();}
+});
+var att=document.querySelector('.pz-via.att');
+if(att)try{att.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}
+}catch(e){}
+}
+
+function vai(d){
+try{
+if(!PZ)return;
+var n=PZ.p.v.length;
+var nuovo=PZ.i+d;
+if(nuovo<0)nuovo=0;
+if(nuovo>=n){
+/* fine giro: la spirale avanza */
+avanza(PZ.p.id,true);
+toast2('\u2705 '+PZ.p.n+' completata \u00b7 torna nel ripasso');
+try{confetti();}catch(e){}
+lista();return;
+}
+PZ.i=nuovo;PZ.rivelata=false;
+disegnaVie();pin();
+try{hap();}catch(e){}
+}catch(e){}
+}
+})();
+
+/* ═══════════════════════════════════════════════════
+   QUIZ SULLE PIAZZE — nei due versi in cui te lo chiedono all'esame
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var Q2=null;
+function elenco(){try{return (window.__PIAZZE__||[]);}catch(e){return [];}}
+function mescola(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* registro degli errori sulle piazze, per il coach */
+function segna(id,ok){
+try{
+var st=lg('pzStat',{});
+st[id]=st[id]||{ok:0,no:0};
+if(ok)st[id].ok++;else st[id].no++;
+ls('pzStat',st);markDirty('prefs');
+}catch(e){}
+}
+window.pzDeboli=function(){
+try{
+var st=lg('pzStat',{}),out=[];
+elenco().forEach(function(p){
+var s=st[p.id];if(!s)return;
+var tot=s.ok+s.no;if(tot<2)return;
+out.push({p:p,perc:Math.round(s.ok/tot*100),tot:tot});
+});
+return out.sort(function(a,b){return a.perc-b.perc;});
+}catch(e){return [];}
+};
+
+/* A · quali vie sboccano in questa piazza (richiamo a memoria) */
+window.pzQuizVie=function(soloId){
+try{
+var L2=elenco();if(!L2.length)return;
+var p=soloId?L2.find(function(x){return x.id===soloId;}):L2[Math.floor(Math.random()*L2.length)];
+if(!p)return;
+Q2={tipo:'vie',p:p,mostrate:[],i:0,ok:0};
+disegnaVie();
+}catch(e){}
+};
+function disegnaVie(){
+try{
+var o=document.getElementById('pzqOv');if(o)o.remove();
+if(!Q2)return;
+var p=Q2.p;
+var d=document.createElement('div');d.id='pzqOv';
+d.innerHTML='<div class="pzq-card">'
++'<div class="pzq-hd"><small>QUALI VIE SBOCCANO IN</small><b>'+esc(p.n)+'</b>'
++'<span class="pzq-c">'+Q2.i+' / '+p.v.length+'</span></div>'
++'<div class="pzq-vie">'+p.v.map(function(v,i){
+return '<div class="pzq-v'+(i<Q2.i?' vis':'')+'">'+(i<Q2.i?esc(v):'\u2022\u2022\u2022\u2022\u2022\u2022')+'</div>';}).join('')+'</div>'
++'<div class="pzq-row">'
++(Q2.i<p.v.length?'<button class="pzq-b sap">\u2713 La so</button><button class="pzq-b no">\u2717 Non la so</button>':'')
++'</div><button class="pzq-x">Chiudi</button></div>';
+document.body.appendChild(d);
+d.querySelector('.pzq-x').onclick=function(){d.remove();Q2=null;};
+var s=d.querySelector('.sap'),n=d.querySelector('.no');
+if(s)s.onclick=function(){Q2.ok++;Q2.i++;passo();};
+if(n)n.onclick=function(){Q2.i++;passo();};
+}catch(e){}
+}
+function passo(){
+try{
+var p=Q2.p;
+if(Q2.i>=p.v.length){
+var pct=Math.round(Q2.ok/p.v.length*100);
+segna(p.id,pct>=70);
+var o=document.getElementById('pzqOv');if(o)o.remove();
+var d=document.createElement('div');d.id='pzqOv';
+d.innerHTML='<div class="pzq-card fine"><div class="rc-score '+(pct>=80?'ok':(pct>=50?'mid':'no'))+'">'
++pct+'<span>%</span></div><b>'+Q2.ok+' vie su '+p.v.length+'</b>'
++'<small>'+esc(p.n)+'</small>'
++'<div class="pzq-row"><button class="pzq-b sap" id="pzqAltra">Un\u2019altra piazza</button>'
++'<button class="pzq-b" id="pzqFine">Chiudi</button></div></div>';
+document.body.appendChild(d);
+document.getElementById('pzqFine').onclick=function(){d.remove();Q2=null;};
+document.getElementById('pzqAltra').onclick=function(){d.remove();pzQuizVie();};
+Q2=null;return;
+}
+disegnaVie();
+}catch(e){}
+}
+
+/* B · in quale piazza sbocca questa via (il verso dell'esaminatore) */
+window.pzQuizInv=function(){
+try{
+var L2=elenco();if(L2.length<4)return;
+var p=L2[Math.floor(Math.random()*L2.length)];
+var via=p.v[Math.floor(Math.random()*p.v.length)];
+/* la via deve appartenere a UNA sola piazza, altrimenti la domanda è ambigua */
+var quante=L2.filter(function(x){return x.v.indexOf(via)>=0;});
+if(quante.length>1){pzQuizInv();return;}
+var altre=mescola(L2.filter(function(x){return x.id!==p.id;})).slice(0,3);
+var opz=mescola([p].concat(altre));
+var o=document.getElementById('pzqOv');if(o)o.remove();
+var d=document.createElement('div');d.id='pzqOv';
+d.innerHTML='<div class="pzq-card"><div class="pzq-hd"><small>IN QUALE PIAZZA SBOCCA</small>'
++'<b>'+esc(via)+'</b></div>'
++'<div class="pzq-opz">'+opz.map(function(x){
+return '<button class="pzq-o" data-id="'+x.id+'">'+esc(x.n)+'</button>';}).join('')+'</div>'
++'<button class="pzq-x">Chiudi</button></div>';
+document.body.appendChild(d);
+d.querySelector('.pzq-x').onclick=function(){d.remove();};
+d.querySelectorAll('.pzq-o').forEach(function(b){
+b.onclick=function(){
+var giusto=(b.dataset.id===p.id);
+b.classList.add(giusto?'good':'bad');
+if(!giusto)d.querySelector('.pzq-o[data-id="'+p.id+'"]').classList.add('good');
+segna(p.id,giusto);
+try{hap(giusto?'':'m');}catch(e){}
+d.querySelectorAll('.pzq-o').forEach(function(x){x.disabled=true;});
+setTimeout(function(){d.remove();pzQuizInv();},1100);
+};
+});
+}catch(e){}
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   REGOLAMENTI E TARIFFE — prontuario consultabile + quiz
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function R(){try{return window.__REGOLE__||null;}catch(e){return null;}}
+function eur(v){return '\u20ac\u00a0'+Number(v).toFixed(2).replace('.',',');}
+
+window.openRegole=function(){
+try{
+var r=R();if(!r){toast2('Dati tariffe non caricati');return;}
+if(document.getElementById('rgOv'))return;
+function tar(t){
+return '<div class="rg-sez"><div class="rg-st">'+esc(t.nome)+'</div>'
++'<div class="rg-d">'+esc(t.desc)+'</div>'
++'<div class="rg-g">'+t.iniziale.map(function(x){
+return '<div class="rg-cell"><small>'+esc(x.lab)+'</small><b>'+eur(x.v)+'</b></div>';}).join('')+'</div>'
++'<div class="rg-r"><span>Scatto</span><b>'+eur(t.scatto)+'</b></div>'
++'<div class="rg-r"><span>Base \u00b7 al km</span><b>'+eur(t.base.km)+'</b></div>'
++'<div class="rg-r"><span>Base \u00b7 orario</span><b>'+eur(t.base.ora)+'</b></div>'
++'<div class="rg-r ev"><span>1\u00aa progressiva (da '+eur(t.prog1.soglia)+')</span><b>'+eur(t.prog1.km)+'/km</b></div>'
++'<div class="rg-r"><span>1\u00aa progressiva \u00b7 orario</span><b>'+eur(t.prog1.ora)+'</b></div>'
++'<div class="rg-r ev"><span>2\u00aa progressiva</span><b>'+eur(t.prog2.km)+'/km</b></div>'
++(t.prog2.note?('<div class="rg-n">'+esc(t.prog2.note)+'</div>'):'')
++'<div class="rg-r fo"><span>Minimo aeroporti</span><b>'+eur(t.minAero)+'</b></div></div>';
+}
+var o=document.createElement('div');o.id='rgOv';
+o.innerHTML='<div class="rg-card"><div class="rg-hd"><b>\ud83d\udcd0 Tariffe e regolamenti</b>'
++'<small>Comune di Milano \u00b7 '+esc(r.agg)+'</small><button class="rg-x">\u2715</button></div>'
++'<div class="rg-body">'
++tar(r.t1)+tar(r.tc)
++'<div class="rg-sez"><div class="rg-st">Tariffe fisse (predeterminate)</div>'
++r.fisse.map(function(f){
+return '<div class="rg-r"><span>'+esc(f.da)+' \u2194 '+esc(f.a)+'</span><b>\u20ac\u00a0'+f.v+'</b></div>';}).join('')
++r.fisseNote.map(function(n){return '<div class="rg-n">'+esc(n)+'</div>';}).join('')+'</div>'
++'<div class="rg-sez"><div class="rg-st">Norme generali</div>'
++r.norme.map(function(n){
+return '<div class="rg-norma"><b>'+esc(n.t)+'</b><span>'+esc(n.d)+'</span></div>';}).join('')+'</div>'
++'<div class="rg-sez"><div class="rg-st">Uffici</div>'
++'<div class="rg-n">'+esc(r.uffici.sede)+'<br>'+r.uffici.tel.join(' \u00b7 ')+'</div></div>'
++'</div>'
++'<button class="rg-quiz" id="rgQuizBtn">\ud83c\udfaf Mettimi alla prova sulle tariffe</button></div>';
+o.addEventListener('click',function(e){if(e.target===o)o.remove();});
+document.body.appendChild(o);
+o.querySelector('.rg-x').onclick=function(){o.remove();};
+document.getElementById('rgQuizBtn').onclick=function(){o.remove();regQuiz();};
+}catch(e){}
+};
+
+/* domande generate dai dati, così restano sempre allineate */
+function domande(){
+var r=R();if(!r)return [];
+var D=[],e=function(v){return '\u20ac '+Number(v).toFixed(2).replace('.',',');};
+r.t1.iniziale.forEach(function(x){
+D.push({q:'Tariffa 1 \u2014 costo iniziale '+x.lab.toLowerCase()+'?',a:e(x.v),
+d:[e(x.v+2),e(x.v-1.5),e(x.v+0.9)]});});
+D.push({q:'Tariffa 1 \u2014 costo al km di base?',a:e(r.t1.base.km),d:[e(1.98),e(2.25),e(0.53)]});
+D.push({q:'Tariffa 1 \u2014 costo orario di base?',a:e(r.t1.base.ora),d:[e(51.72),e(13.79),e(20.69)]});
+D.push({q:'A quale importo scatta la 1\u00aa progressiva della Tariffa 1?',a:e(r.t1.prog1.soglia),
+d:[e(6.94),e(16.00),e(34.48)]});
+D.push({q:'Tariffa 1 \u2014 costo al km nella 1\u00aa progressiva?',a:e(r.t1.prog1.km),d:[e(1.32),e(2.25),e(0.79)]});
+D.push({q:'Tariffa 1 \u2014 costo al km nella 2\u00aa progressiva?',a:e(r.t1.prog2.km),d:[e(1.98),e(1.32),e(0.90)]});
+D.push({q:'Tariffa minima per Malpensa, Linate e Orio al Serio?',a:e(r.t1.minAero),d:[e(6.40),e(4.10),e(34.48)]});
+D.push({q:'Quante persone servono minimo per la Tariffa C (uso collettivo)?',a:'3 persone',
+d:['2 persone','4 persone','5 persone']});
+D.push({q:'Tariffa C \u2014 costo iniziale feriale?',a:e(r.tc.iniziale[0].v),d:[e(4.10),e(2.64),e(3.16)]});
+r.fisse.forEach(function(f){
+D.push({q:f.da+' \u2194 '+f.a+': tariffa fissa?',a:'\u20ac '+f.v,
+d:['\u20ac '+(f.v+14),'\u20ac '+(f.v-20),'\u20ac '+(f.v+34)]});});
+D.push({q:'Quanti minuti di attesa gratuita su prenotazione o chiamata?',a:'5 minuti',
+d:['3 minuti','10 minuti','15 minuti']});
+D.push({q:'Superati i 5 minuti di attesa, di quanto si decurta il costo aggiuntivo?',a:e(4.10),
+d:[e(6.60),e(7.90),e(16.00)]});
+D.push({q:'Sosta di attesa su richiesta: quanto anticipa l\u2019utente come deposito?',a:e(34.48),
+d:[e(17.35),e(51.72),e(16.00)]});
+D.push({q:'Sosta di attesa su richiesta: durata massima?',a:'1 ora',d:['30 minuti','2 ore','3 ore']});
+D.push({q:'Il trasporto dei cani guida per non vedenti \u00e8\u2026',a:'obbligatorio',
+d:['facoltativo','a pagamento','vietato']});
+D.push({q:'Oltre all\u2019importo del tassametro, cosa paga l\u2019utente?',a:'solo i pedaggi autostradali',
+d:['nulla','un supplemento bagagli','il 10% di servizio']});
+D.push({q:'Con tariffa fissa, se il cliente chiede una variazione di percorso?',
+a:'si paga a tassametro',d:['si mantiene la fissa','si aggiunge il 20%','la corsa si annulla']});
+return D;
+}
+window.regQuiz=function(){
+try{
+var D=domande();if(!D.length)return;
+var deck=D.slice();
+for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=deck[i];deck[i]=deck[j];deck[j]=t;}
+deck=deck.slice(0,12);
+var st={i:0,ok:0};
+function dis(){
+var o=document.getElementById('rgqOv');if(o)o.remove();
+if(st.i>=deck.length){
+var pct=Math.round(st.ok/deck.length*100);
+try{var h=lg('regHist',[]);if(!Array.isArray(h))h=[];h.push({d:Date.now(),pct:pct});
+if(h.length>20)h=h.slice(-20);ls('regHist',h);markDirty('prefs');}catch(e){}
+var f=document.createElement('div');f.id='rgqOv';
+f.innerHTML='<div class="pzq-card fine"><div class="rc-score '+(pct>=80?'ok':(pct>=50?'mid':'no'))+'">'
++pct+'<span>%</span></div><b>'+st.ok+' su '+deck.length+' sulle tariffe</b>'
++'<div class="pzq-row"><button class="pzq-b sap" id="rgAncora">Ancora</button>'
++'<button class="pzq-b" id="rgFine">Chiudi</button></div></div>';
+document.body.appendChild(f);
+document.getElementById('rgFine').onclick=function(){f.remove();};
+document.getElementById('rgAncora').onclick=function(){f.remove();regQuiz();};
+return;}
+var q=deck[st.i];
+var opz=[q.a].concat(q.d.slice(0,3));
+for(var k=opz.length-1;k>0;k--){var j2=Math.floor(Math.random()*(k+1));var t2=opz[k];opz[k]=opz[j2];opz[j2]=t2;}
+var d=document.createElement('div');d.id='rgqOv';
+d.innerHTML='<div class="pzq-card"><div class="pzq-hd"><small>TARIFFE E REGOLAMENTI</small>'
++'<b>'+esc(q.q)+'</b><span class="pzq-c">'+(st.i+1)+' / '+deck.length+'</span></div>'
++'<div class="pzq-opz">'+opz.map(function(x){
+return '<button class="pzq-o" data-v="'+esc(x)+'">'+esc(x)+'</button>';}).join('')+'</div>'
++'<button class="pzq-x">Chiudi</button></div>';
+document.body.appendChild(d);
+d.querySelector('.pzq-x').onclick=function(){d.remove();};
+d.querySelectorAll('.pzq-o').forEach(function(b){
+b.onclick=function(){
+var giusto=(b.dataset.v===q.a);
+b.classList.add(giusto?'good':'bad');
+if(!giusto){var g=d.querySelector('.pzq-o[data-v="'+q.a.replace(/"/g,'&quot;')+'"]');if(g)g.classList.add('good');}
+if(giusto)st.ok++;
+try{hap(giusto?'':'m');}catch(e){}
+d.querySelectorAll('.pzq-o').forEach(function(x){x.disabled=true;});
+setTimeout(function(){st.i++;dis();},giusto?700:1500);
+};});
+}
+dis();
+}catch(e){}
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   ACCESSI — piazze e regolamenti dentro il flusso dell'app
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* card in home */
+try{
+var _rp9=renderPlan;
+renderPlan=function(){
+_rp9.apply(this,arguments);
+try{
+var home=document.getElementById('homeScreen');if(!home)return;
+if(document.getElementById('pzHome'))return;
+var el=document.createElement('button');
+el.id='pzHome';el.className='home-card';
+var n=(window.__PIAZZE__||[]).length;
+var scad=(typeof pzScaduti==='function')?pzScaduti():0;
+el.innerHTML='<div class="hc-ic" style="background:rgba(109,90,224,.12)">\u2b50</div>'
++'<div class="hc-tx"><strong>Piazze di Milano</strong>'
++'<small>'+n+' piazze e le vie che vi sboccano'+(scad?(' \u00b7 '+scad+' da ripassare'):'')+'</small></div>'
++'<div class="hc-ar">\u203a</div>';
+el.onclick=function(){openPiazze();};
+var el2=document.createElement('button');
+el2.id='rgHome';el2.className='home-card';
+el2.innerHTML='<div class="hc-ic" style="background:rgba(217,119,6,.12)">\ud83d\udcd0</div>'
++'<div class="hc-tx"><strong>Tariffe e regolamenti</strong>'
++'<small>Prontuario sempre a portata \u00b7 quiz sulle tariffe</small></div>'
++'<div class="hc-ar">\u203a</div>';
+el2.onclick=function(){openRegole();};
+var cards=home.querySelector('.home-cards')||home;
+cards.appendChild(el);cards.appendChild(el2);
+}catch(e){}
+};
+}catch(e){}
+
+/* task nel coach */
+try{
+var _ct9=coachTasks;
+coachTasks=function(){
+var t=_ct9();
+try{
+var scad=(typeof pzScaduti==='function')?pzScaduti():0;
+if(scad>0){
+t.push({ic:'\u2b50',tx:scad+' piazze da ripassare',
+sub:'Le vie che vi sboccano \u00b7 con la freccia avanti',
+fn:function(){openPiazze();},p:1.55});
+}
+/* piazza più debole dai quiz */
+var deb=(typeof pzDeboli==='function')?pzDeboli():[];
+if(deb.length&&deb[0].perc<60){
+var d0=deb[0];
+t.push({ic:'\ud83d\udccd',tx:'La piazza che sbagli di pi\u00f9',
+sub:esc(d0.p.n)+' \u00b7 la sai al '+d0.perc+'%',
+fn:function(){pzQuizVie(d0.p.id);},p:1.75});
+}
+/* tariffe: se non le hai mai provate o vai male */
+var h=lg('regHist',[]);
+var ultima=(Array.isArray(h)&&h.length)?h[h.length-1]:null;
+if(!ultima||(Date.now()-ultima.d>6*86400000)||ultima.pct<70){
+t.push({ic:'\ud83d\udcd0',tx:'Quiz sulle tariffe',
+sub:ultima?('ultima volta '+ultima.pct+'% \u00b7 12 domande'):'12 domande su tariffe e regolamenti',
+fn:function(){regQuiz();},p:1.85});
+}
+t.sort(function(a,b){return a.p-b.p;});
+return t.slice(0,4);
+}catch(e){}
+return t;
+};
+}catch(e){}
+
+/* riquadri nel quiz */
+try{
+var _rd9=renderDash;
+renderDash=function(){
+_rd9.apply(this,arguments);
+try{
+var anchor=document.getElementById('mixTile')||document.getElementById('optTile');
+if(!anchor||document.getElementById('pzTile'))return;
+var b=document.createElement('button');
+b.id='pzTile';b.className='qtile';
+b.onclick=function(){pzQuizInv();};
+b.innerHTML='<div class="qtile-ic" style="background:rgba(109,90,224,.12)">\u2b50</div>'
++'<div class="qtile-tx"><strong>In quale piazza sbocca?</strong>'
++'<small>Il verso in cui te lo chiede l\u2019esaminatore</small></div>'
++'<div class="qtile-ar">\u203a</div>';
+anchor.parentNode.insertBefore(b,anchor);
+var b2=document.createElement('button');
+b2.id='rgTile';b2.className='qtile';
+b2.onclick=function(){regQuiz();};
+b2.innerHTML='<div class="qtile-ic" style="background:rgba(217,119,6,.12)">\ud83d\udcd0</div>'
++'<div class="qtile-tx"><strong>Quiz tariffe \u00b7 12 domande</strong>'
++'<small>Costi, progressive, fisse aeroporti, norme</small></div>'
++'<div class="qtile-ar">\u203a</div>';
+anchor.parentNode.insertBefore(b2,anchor);
+}catch(e){}
+};
+}catch(e){}
+
+/* voci nel menu */
+setTimeout(function(){
+try{
+var menu=document.querySelector('#menuSheet .msheet')||document.getElementById('menuSheet');
+if(!menu||document.getElementById('pzMenu'))return;
+var a=document.createElement('button');
+a.id='pzMenu';a.innerHTML='<span class="mi">\u2b50</span>Piazze di Milano';
+a.onclick=function(){openPiazze();try{cm();}catch(e){}};
+var b=document.createElement('button');
+b.id='rgMenu';b.innerHTML='<span class="mi">\ud83d\udcd0</span>Tariffe e regolamenti';
+b.onclick=function(){openRegole();try{cm();}catch(e){}};
+var rif=menu.querySelector('[onclick*="openStats"]')||menu.firstElementChild;
+if(rif&&rif.parentNode){rif.parentNode.insertBefore(a,rif.nextSibling);
+a.parentNode.insertBefore(b,a.nextSibling);}
+else{menu.appendChild(a);menu.appendChild(b);}
+}catch(e){}
+},2200);
+
+/* i suggerimenti pescano anche dalle piazze */
+try{
+var _pz=window.pzDeboli;
+setTimeout(function(){
+try{
+if(typeof renderTip!=='function')return;
+var _rt9=renderTip;
+renderTip=function(){_rt9.apply(this,arguments);};
+}catch(e){}
+},1200);
 }catch(e){}
 })();
