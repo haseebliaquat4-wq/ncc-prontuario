@@ -336,6 +336,7 @@ setTimeout(function(){mostraPannello(p);},450);
 function mostraPannello(p){
 try{
 var vecchio=document.getElementById('pzPan');if(vecchio)vecchio.remove();
+if(PANP!==p){PANP=p;FINO=0;}   /* piazza nuova: il ragno riparte chiuso */
 var co=L('pzCoords',{});
 var d=document.createElement('div');
 d.id='pzPan';
@@ -361,8 +362,15 @@ h+='<button class="pzp-row" onclick="pzPos(\''+p.id+'\','+i+')">'
 h+='</div>';
 d.innerHTML=h;
 document.body.appendChild(d);
-PANP=p;
 disegnaSuMappa(p);
+/* se non ci sono ancora marker, li cerco io: bastano una decina di secondi */
+try{
+var co2=L('pzCoords',{});
+var ne=0;p.v.forEach(function(v,i){if(co2[p.id+'_'+i])ne++;});
+if(!co2[p.id]&&ne===0&&window.pzTrovaMarker){
+setTimeout(function(){try{pzTrovaMarker(p.id,true);}catch(e){}},500);
+}
+}catch(e){}
 }catch(e){}
 }
 window.pzPanChiudi=function(){var d=document.getElementById('pzPan');if(d)d.remove();pulisciMappa();};
@@ -395,6 +403,20 @@ map.__pzOn=true;
 };
 
 var MK=[],LN=null;
+/* allunga la linea dal centro alla via in mezzo secondo */
+function allunga(ln,da,a){
+try{
+var t0=Date.now(),durata=420;
+(function passo(){
+try{
+var k=Math.min(1,(Date.now()-t0)/durata);
+var e=1-Math.pow(1-k,3);   /* parte veloce e rallenta */
+ln.setLatLngs([da,[da[0]+(a[0]-da[0])*e,da[1]+(a[1]-da[1])*e]]);
+if(k<1)requestAnimationFrame(passo);
+}catch(e2){}
+})();
+}catch(e){}
+}
 var FINO=null;   /* quante vie sono comparse sulla mappa */
 var PANP=null;   /* la piazza aperta sulla mappa */
 function pulisciMappa(){
@@ -443,9 +465,11 @@ var f2=(typeof FINO==='number')?FINO:p.v.length;
 p.v.forEach(function(v,i){
 var c=co[p.id+'_'+i];if(!c||i>=f2)return;
 var att=(i===f2-1);
-raggi.push(LF.polyline([centro,[c.lat,c.lon]],
+var ln=LF.polyline(att?[centro,centro]:[centro,[c.lat,c.lon]],
 {color:att?'#2447D6':'#8892a4',weight:att?4:2.5,opacity:att?.9:.45,
-dashArray:att?null:'6 5',interactive:false}).addTo(map));
+dashArray:att?null:'6 5',interactive:false}).addTo(map);
+if(att)allunga(ln,centro,[c.lat,c.lon]);
+raggi.push(ln);
 });
 MK=MK.concat(raggi);
 }
@@ -716,9 +740,9 @@ if(!co[p.id+'_'+i])c.push({p:p,tipo:'v',i:i,v:v});
 return c;
 }
 
-window.pzTrovaMarker=function(soloQuesta){
+window.pzTrovaMarker=function(soloQuesta,silenzioso){
 try{
-if(GEO){avviso('\u23f3 Sto gi\u00e0 cercando\u2026',2000);return;}
+if(GEO){if(!silenzioso)avviso('\u23f3 Sto gi\u00e0 cercando\u2026',2000);return;}
 var tutte=window.pzTutte?window.pzTutte():[];
 if(!tutte.length){avviso('\u26a0\ufe0f Nessuna piazza',2200);return;}
 var scelte=soloQuesta?tutte.filter(function(x){return x.id===soloQuesta;}):tutte;
@@ -727,12 +751,12 @@ if(!c.length){avviso('\u2705 I marker ci sono gi\u00e0 tutti',2600);return;}
 var sec=Math.ceil(c.length*PAUSA/1000);
 var mi=Math.floor(sec/60),se=sec%60;
 var tempo=mi?(mi+' minuti'+(se?' e '+se+' secondi':'')):(se+' secondi');
-if(!confirm('Cerco '+c.length+' punti su OpenStreetMap.\n\n'
+if(!silenzioso&&!confirm('Cerco '+c.length+' punti su OpenStreetMap.\n\n'
 +'Ci vogliono circa '+tempo+': faccio una richiesta al secondo, '
 +'come chiedono loro.\n\n'
 +'Puoi fermarti quando vuoi, quello trovato resta salvato.\n'
 +'Serve la connessione a internet.\n\nProcedo?'))return;
-GEO={c:c,i:0,ok:0,ko:0,stop:false,rete:false};
+GEO={c:c,i:0,ok:0,ko:0,stop:false,rete:false,silenzioso:!!silenzioso};
 pannello();passo();
 }catch(e){}
 };
@@ -805,6 +829,9 @@ try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='fu
 try{if(typeof PANP!=='undefined'&&PANP)disegnaSuMappa(PANP);}catch(e){}
 if(g.rete){alert('\u26a0\ufe0f Non riesco a raggiungere OpenStreetMap.\n\n'
 +'Controlla la connessione e riprova: quello gi\u00e0 trovato resta salvato.');return;}
+if(g.silenzioso){
+avviso('\ud83d\udccd '+g.ok+' marker trovati \u00b7 premi \u25b6 per vederli uno a uno',3400);
+return;}
 var m='\u2705 Trovati '+g.ok+' marker su '+g.c.length+'.';
 if(g.ko)m+='\n\u26a0\ufe0f '+g.ko+' non trovati: mettili a mano dalla mappa.';
 m+='\n\nI marker automatici hanno il bordo tratteggiato.\n'
