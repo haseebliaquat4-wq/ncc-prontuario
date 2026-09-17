@@ -120,6 +120,7 @@ var h='<div class="pz-hd">'
 +'<button class="pz-x" onclick="pzChiudi()">\u2715</button>'
 +'<div class="pz-ti">Piazze di Milano</div>'
 +'<div class="pz-su">'+lista.length+' piazze \u00b7 '+lista.reduce(function(a,p){return a+p.v.length;},0)+' vie</div>'
++'<button class="pz-rnd" onclick="pzRandom()" title="Una piazza a caso">\ud83c\udfb2</button>'
 +'</div>';
 
 h+='<div class="pz-body">';
@@ -184,6 +185,7 @@ ov.innerHTML=''
 +'<button class="pz-x" onclick="openPiazze()">\u2039</button>'
 +'<div class="pz-ti">'+E(p.n)+'</div>'
 +'<div class="pz-su">'+p.v.length+' vie</div>'
++'<button class="pz-rnd" onclick="pzRandom()" title="Un\u2019altra a caso">\ud83c\udfb2</button>'
 +'<div class="pz-modi">'
 +'<button id="pzMs" class="pz-m'+(CIECO?'':' on')+'" onclick="pzModo(false)">Studio</button>'
 +'<button id="pzMc" class="pz-m'+(CIECO?' on':'')+'" onclick="pzModo(true)">Cieco</button>'
@@ -323,15 +325,94 @@ passo();
    ═══════════════════════════════════════════════════ */
 var PL=null;   /* {id, idx} in attesa di un click sulla mappa */
 
-window.pzMappa=function(){
+window.pzMappa=function(id){
 try{
-if(!CUR)return;
-var p=CUR;
-chiudi();
-if(typeof goTopografia==='function')goTopografia();
-setTimeout(function(){mostraPannello(p);},450);
+var p=id?trova(id):CUR;
+if(!p)return;
+apriMappaPiazze(p);
 }catch(e){}
 };
+
+/* ── schermata mappa tutta sua, con la sua mappa Leaflet ── */
+var PZMAP=null,MAPOV=null;
+function apriMappaPiazze(p){
+try{
+var LF=window.L;
+if(!LF||!LF.map){avviso('\u26a0\ufe0f Mappa non disponibile',2400);return;}
+if(PANP!==p){PANP=p;FINO=0;}
+var o=document.getElementById('pzMapOv');
+if(o)o.remove();
+o=document.createElement('div');o.id='pzMapOv';
+o.innerHTML='<div class="pzm-hd">'
++'<button class="pzm-x" onclick="pzMapChiudi()">\u2039</button>'
++'<div class="pzm-ti">'+E(p.n)+'</div>'
++'<div class="pzm-su">'+p.v.length+' vie</div>'
++'<button class="pzm-r" onclick="pzRandom(1)" title="Un\u2019altra piazza a caso">\ud83c\udfb2</button>'
++'</div>'
++'<div class="pzm-nav">'
++'<button onclick="pzMapPrev()">\u25c0</button>'
++'<span id="pzMapN">0 di '+p.v.length+'</span>'
++'<button onclick="pzMapNext()">\u25b6</button>'
++'<button class="pzm-t" onclick="pzMapTutte()">Tutte</button>'
++'<button class="pzm-g" onclick="pzTrovaMarker(\''+p.id+'\')" title="Cerca i marker">\ud83d\udef0</button>'
++'</div>'
++'<div class="pzm-map"><div id="pzMapEl"></div></div>'
++'<div class="pzm-lista" id="pzMapLista"></div>';
+document.body.appendChild(o);
+document.body.classList.add('pz-aperto');
+MAPOV=o;
+PZMAP=LF.map('pzMapEl',{zoomControl:true,attributionControl:true}).setView([45.4642,9.19],14);
+try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(PZMAP);}catch(e){}
+PZMAP.on('click',function(ev){
+try{
+if(!PL||!ev||!ev.latlng)return;
+var co=L('pzCoords',{});
+var k=(PL.idx<0)?PL.id:(PL.id+'_'+PL.idx);
+co[k]={lat:ev.latlng.lat,lon:ev.latlng.lng};
+S('pzCoords',co);
+avviso('\u2713 '+(PL.idx<0?p.n:p.v[PL.idx])+' posizionata',1600);
+PL=null;vibra();
+listaMappa(p);disegnaSuMappa(p);
+}catch(e){}
+});
+setTimeout(function(){try{PZMAP.invalidateSize();}catch(e){}
+listaMappa(p);disegnaSuMappa(p);},220);
+/* se non ci sono marker li cerco io */
+try{
+var co2=L('pzCoords',{}),ne=0;
+p.v.forEach(function(v,i){if(co2[p.id+'_'+i])ne++;});
+if(!co2[p.id]&&ne===0&&window.pzTrovaMarker){
+setTimeout(function(){try{pzTrovaMarker(p.id,true);}catch(e){}},600);}
+}catch(e){}
+vibra();
+}catch(e){}
+}
+window.pzMapChiudi=function(){
+try{
+if(PZMAP){try{PZMAP.remove();}catch(e){}PZMAP=null;}
+if(MAPOV){MAPOV.remove();MAPOV=null;}
+var o=document.getElementById('pzMapOv');if(o)o.remove();
+MK=[];PL=null;
+openPiazze();
+if(PANP)setTimeout(function(){try{pzApri(PANP.id);}catch(e){}},80);
+}catch(e){}
+};
+function listaMappa(p){
+try{
+var d=document.getElementById('pzMapLista');if(!d)return;
+var co=L('pzCoords',{});
+var h='<button class="pzm-row cap'+(PL&&PL.idx<0?' att':'')+'" onclick="pzPos(\''+p.id+'\',-1)">'
++'<span class="pzm-d"></span><span class="pzm-v">'+E(p.n)+'</span>'
++'<span class="pzm-p">'+(co[p.id]?'\ud83d\udccd':'\u2013')+'</span></button>';
+p.v.forEach(function(v,i){
+var c=co[p.id+'_'+i];
+h+='<button class="pzm-row'+(PL&&PL.idx===i?' att':'')+(c?'':' vuota')+'" onclick="pzPos(\''+p.id+'\','+i+')">'
++'<span class="pzm-n">'+(i+1)+'</span><span class="pzm-v">'+E(v)+'</span>'
++'<span class="pzm-p">'+(c?(c.auto?'\ud83d\udef0':'\ud83d\udccd'):'\u2013')+'</span></button>';});
+d.innerHTML=h;
+}catch(e){}
+}
 
 function mostraPannello(p){
 try{
@@ -380,7 +461,7 @@ try{
 PL={id:id,idx:idx};
 var p=trova(id);
 avviso('\ud83d\udccd Tocca sulla mappa dove si trova '+(idx<0?p.n:p.v[idx]),3000);
-document.querySelectorAll('#pzPan .pzp-row').forEach(function(r,i){
+document.querySelectorAll('#pzPan .pzp-row,#pzMapLista .pzm-row').forEach(function(r,i){
 r.classList.toggle('att',i===(idx+1));});
 if(typeof map!=='undefined'&&map&&!map.__pzOn){
 map.on('click',function(ev){
@@ -425,9 +506,53 @@ MK.forEach(function(m){try{m.remove();}catch(e){}});MK=[];
 if(LN){try{LN.remove();}catch(e){}LN=null;}
 }catch(e){}
 }
+/* disegna il ragno su una mappa qualsiasi */
+function disegnaSu(mp,p){
+try{
+var LF=window.L;if(!LF||!mp)return;
+var co=L('pzCoords',{});
+var centro=co[p.id]?[co[p.id].lat,co[p.id].lon]:null;
+var punti=[],fino=(typeof FINO==='number')?FINO:p.v.length;
+if(centro){
+var mc=LF.marker(centro,{draggable:true,icon:LF.divIcon({className:'pz-pin pz-pin-cap',
+html:'<span>\u25cf</span>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(mp);
+try{mc.bindPopup('<b>'+E(p.n)+'</b>');}catch(e){}
+mc.on('dragend',function(){try{var q=mc.getLatLng(),cc=L('pzCoords',{});
+cc[p.id]={lat:q.lat,lon:q.lng};S('pzCoords',cc);vibra();
+avviso('\u2713 '+p.n+' spostata',1500);disegnaSuMappa(p);}catch(e){}});
+MK.push(mc);punti.push(centro);
+}
+p.v.forEach(function(v,i){
+var c=co[p.id+'_'+i];
+if(!c||i>=fino)return;
+var att=(i===fino-1);
+if(centro){
+var ln=LF.polyline(att?[centro,centro]:[centro,[c.lat,c.lon]],
+{color:att?'#2447D6':'#8892a4',weight:att?4:2.5,opacity:att?.9:.45,
+dashArray:att?null:'6 5',interactive:false}).addTo(mp);
+if(att)allunga(ln,centro,[c.lat,c.lon]);
+MK.push(ln);
+}
+var m=LF.marker([c.lat,c.lon],{draggable:true,
+icon:LF.divIcon({className:'pz-pin'+(att?' pz-pin-att':'')+(c.auto?' pz-pin-auto':''),
+html:'<span>'+(i+1)+'</span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(mp);
+try{m.bindPopup((i+1)+'. '+E(v)+(c.auto?'<br><small>posizione automatica: trascinala se \u00e8 fuori posto</small>':''));}catch(e){}
+m.on('dragend',function(){try{var q=m.getLatLng(),cc=L('pzCoords',{});
+cc[p.id+'_'+i]={lat:q.lat,lon:q.lng};S('pzCoords',cc);vibra();
+avviso('\u2713 '+v+' spostata',1500);disegnaSuMappa(p);}catch(e){}});
+MK.push(m);punti.push([c.lat,c.lon]);
+});
+if(punti.length===1){try{mp.setView(punti[0],15);}catch(e){}}
+else if(punti.length>1){try{mp.fitBounds(punti,{padding:[50,50],maxZoom:16});}catch(e){}}
+var n=document.getElementById('pzMapN');
+if(n)n.textContent=fino+' di '+p.v.length;
+}catch(e){}
+}
+
 function disegnaSuMappa(p){
 try{
 pulisciMappa();
+if(PZMAP){disegnaSu(PZMAP,p);try{listaMappa(p);}catch(e){}return;}
 if(typeof map==='undefined'||!map||typeof L2==='undefined'&&typeof window.L==='undefined')return;
 var LF=window.L;if(!LF)return;
 var co=L('pzCoords',{});
@@ -908,4 +1033,49 @@ fn:function(){try{openPiazze();setTimeout(function(){pzApri(p.id);},240);}catch(
 return t;
 };
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎲 UNA PIAZZA A CASO
+   Pesca fra quelle in scadenza, poi fra le mai viste,
+   poi fra tutte. Non ripesca le ultime uscite.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function pesca(a){
+try{
+if(!a||!a.length)return null;
+if(window.nccPesca){var s=window.nccPesca(a);if(s)return s;}
+return a[Math.floor(Math.random()*a.length)];
+}catch(e){return a[0];}
+}
+window.pzPescaPiazza=function(){
+try{
+var tutte=window.pzTutte?pzTutte():[];
+if(!tutte.length)return null;
+var sr=L('pzSR',{}),st=L('pzStats',{}),ora=Date.now();
+var scad=tutte.filter(function(p){var c=sr[p.id];return c&&c.due&&c.due<=ora;});
+if(scad.length)return pesca(scad);
+var mai=tutte.filter(function(p){return !st[p.id];});
+if(mai.length)return pesca(mai);
+return pesca(tutte);
+}catch(e){return null;}
+};
+/* sullaMappa: apre direttamente la schermata mappa */
+window.pzRandom=function(sullaMappa){
+try{
+var p=pzPescaPiazza();
+if(!p){if(typeof toast2==='function')toast2('\u26a0\ufe0f Nessuna piazza',2200);return;}
+if(sullaMappa){
+try{if(typeof pzMapChiudi==='function'&&document.getElementById('pzMapOv')){
+var o=document.getElementById('pzMapOv');o.remove();}}catch(e){}
+pzMappa(p.id);
+}else{
+openPiazze();
+setTimeout(function(){try{pzApri(p.id);}catch(e){}},120);
+}
+try{if(typeof hap==='function')hap();}catch(e){}
+}catch(e){}
+};
 })();

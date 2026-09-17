@@ -1458,6 +1458,58 @@ background:rgba(36,71,214,.1);padding:3px 6px;border-radius:var(--r-pill);margin
 .nm-rv i{display:block;font-style:normal;font-size:13px;font-weight:650;
 color:var(--tx);line-height:1.4;margin-bottom:5px;}
 .nm-rv em{display:block;font-style:normal;font-size:13px;font-weight:850;color:var(--ok);}
+
+
+/* ══════════ MAPPA PIAZZE — schermata sua ══════════ */
+#pzMapOv{position:fixed;inset:0;z-index:8950;background:var(--bg);
+display:flex;flex-direction:column;overflow:hidden;
+animation:pzIn .3s var(--e-soft) both;}
+.pzm-hd{position:relative;padding:16px 56px 12px;text-align:center;flex-shrink:0;
+background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.pzm-x,.pzm-r{position:absolute;top:12px;width:36px;height:36px;border:none;
+border-radius:var(--r-row);background:var(--fill2);color:var(--tx);
+font-size:17px;font-weight:750;cursor:pointer;}
+.pzm-x{left:14px;} .pzm-r{right:14px;background:var(--acc);color:#fff;}
+.pzm-x:active,.pzm-r:active{transform:scale(.92);}
+.pzm-ti{font-size:17px;font-weight:850;letter-spacing:-.02em;color:var(--tx);
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pzm-su{font-size:12px;color:var(--mu);font-weight:650;margin-top:2px;}
+.pzm-nav{display:flex;align-items:center;gap:6px;padding:9px 14px;flex-shrink:0;
+background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.pzm-nav button{width:38px;height:36px;border:1.5px solid var(--bd);
+border-radius:var(--r-row);background:var(--bg);color:var(--tx);
+font-size:14px;font-weight:750;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.pzm-nav button:active{transform:scale(.92);}
+.pzm-nav span{flex:1;text-align:center;font-size:13px;font-weight:850;
+color:var(--tx);font-variant-numeric:tabular-nums;}
+.pzm-nav .pzm-t{width:auto;padding:0 12px;font-size:12px;}
+.pzm-nav .pzm-g{background:var(--acc);color:#fff;border-color:var(--acc);font-size:15px;}
+.pzm-map{flex:1;min-height:0;position:relative;}
+#pzMapEl{position:absolute;inset:0;}
+.pzm-lista{flex-shrink:0;max-height:34vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+background:var(--card);border-top:1.5px solid var(--sep2);
+padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+display:flex;flex-direction:column;gap:5px;}
+.pzm-row{display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;
+border:1.5px solid var(--bd);border-radius:var(--r-row);background:var(--bg);
+text-align:left;cursor:pointer;font-family:inherit;}
+.pzm-row.att{border-color:var(--a);background:rgba(36,71,214,.08);}
+.pzm-row.vuota{opacity:.62;}
+.pzm-row.cap{border-color:var(--a);border-width:2px;}
+.pzm-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--fill2);
+color:var(--tx);font-size:11px;font-weight:850;display:flex;align-items:center;justify-content:center;}
+.pzm-d{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--a);}
+.pzm-v{flex:1;font-size:13px;font-weight:700;color:var(--tx);line-height:1.3;}
+.pzm-p{flex-shrink:0;font-size:12px;opacity:.8;}
+.pz-rnd{position:absolute;right:14px;top:14px;width:36px;height:36px;border:none;
+border-radius:var(--r-row);background:var(--acc);color:#fff;
+font-size:17px;cursor:pointer;}
+.pz-rnd:active{transform:scale(.92) rotate(18deg);}
+@media(min-width:780px){
+.pzm-lista{position:absolute;right:0;top:0;bottom:0;width:320px;max-height:none;
+border-top:none;border-left:1.5px solid var(--sep2);z-index:1200;}
+.pzm-map{margin-right:320px;}
+}
 `;
 }catch(e){}
 })();
