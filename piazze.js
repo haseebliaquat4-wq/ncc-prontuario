@@ -347,9 +347,15 @@ if(o)o.remove();
 o=document.createElement('div');o.id='pzMapOv';o.className='rd';
 o.innerHTML='<div class="pzm-top">'
 +'<button class="pzm-home" onclick="pzMapChiudi()" title="Torna alle piazze">\u2039</button>'
-+'<div class="pzm-sel"><span>\ud83d\udd37</span>'+E(p.n)+'</div>'
++'<div class="pzm-selw"><span class="pzm-ic">\ud83d\udd37</span>'
++'<select class="pzm-sel" id="pzMapSel" onchange="pzMapVaiA(this.value)">'
++tutte().map(function(x){
+return '<option value="'+x.id+'"'+(x.id===p.id?' selected':'')+'>'+E(x.n)+' \u00b7 '+x.v.length+' vie</option>';
+}).join('')
++'</select><span class="pzm-fr">\u25be</span></div>'
 +'<button class="pzm-dado" onclick="pzRandom(1)" title="Una piazza a caso">\ud83c\udfb2</button>'
 +'</div>'
++'<div class="pzm-tasti">\u2190 \u2192 con le frecce \u00b7 T tutte \u00b7 R un\u2019altra piazza \u00b7 Esc esci</div>'
 +'<div class="pzm-seg">'
 +'<button id="pzSegS" class="on" onclick="pzMapModo(\'s\')">Studio</button>'
 +'<button id="pzSegC" onclick="pzMapModo(\'c\')">Cieco</button>'
@@ -521,8 +527,8 @@ if(!c||i>=fino)return;
 var att=(i===fino-1);
 if(centro){
 var ln=LF.polyline(att?[centro,centro]:[centro,[c.lat,c.lon]],
-{color:att?'#2447D6':'#8892a4',weight:att?4:2.5,opacity:att?.9:.45,
-dashArray:att?null:'6 5',interactive:false}).addTo(mp);
+{color:'#2447D6',weight:att?4.5:3,opacity:att?.95:.62,
+dashArray:att?null:'7 6',lineCap:'round',interactive:false}).addTo(mp);
 if(att)allunga(ln,centro,[c.lat,c.lon]);
 MK.push(ln);
 }
@@ -1055,4 +1061,34 @@ setTimeout(function(){try{pzApri(p.id);}catch(e){}},120);
 try{if(typeof hap==='function')hap();}catch(e){}
 }catch(e){}
 };
+})();
+
+/* ═══════════════════════════════════════════════════
+   TASTIERA E TENDINA sulla mappa delle piazze
+   ← → avanti e indietro fra le vie
+   ↑ ↓ mostra tutte / richiudi · Esc esce
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.pzMapVaiA=function(id){
+try{
+if(!id)return;
+if(typeof pzMappa==='function')pzMappa(id);
+}catch(e){}
+};
+function tasti(ev){
+try{
+if(!document.getElementById('pzMapOv'))return;
+var t=ev.target;
+if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'))return;
+var k=ev.key;
+if(k==='ArrowRight'||k==='ArrowDown'){ev.preventDefault();if(window.pzMapNext)pzMapNext();}
+else if(k==='ArrowLeft'||k==='ArrowUp'){ev.preventDefault();if(window.pzMapPrev)pzMapPrev();}
+else if(k===' '||k==='Enter'){ev.preventDefault();if(window.pzMapNext)pzMapNext();}
+else if(k==='Escape'){ev.preventDefault();if(window.pzMapChiudi)pzMapChiudi();}
+else if(k==='t'||k==='T'){ev.preventDefault();if(window.pzMapTutte)pzMapTutte();}
+else if(k==='r'||k==='R'){ev.preventDefault();if(window.pzRandom)pzRandom(1);}
+}catch(e){}
+}
+try{document.addEventListener('keydown',tasti,true);}catch(e){}
 })();

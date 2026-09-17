@@ -3,7 +3,7 @@
    - TILE mappa: cache-first (i posti già visti si ricaricano all'istante, anche offline)
    - resto: stale-while-revalidate (risposta subito dalla cache, aggiornamento in background) */
 
-const CACHE_NAME = 'ncc-v85';
+const CACHE_NAME = 'ncc-v86';
 const TILE_CACHE = 'ncc-tiles-v3';/* v2: cambiato fornitore mappe, i vecchi riquadri avevano la filigrana */
 const TILE_LIMIT = 600; /* massimo tile salvati (≈30-40 MB) */
 
@@ -11,8 +11,8 @@ const PRECACHE = [
   './',
   './index.html',
   './styles.css?v=23',
-  './addon.js?v=78',
-  './piazze.js?v=8',
+  './addon.js?v=79',
+  './piazze.js?v=9',
   './norme.js?v=1',
   './norme-data.js?v=1',
   './icon-512.png',
