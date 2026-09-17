@@ -1205,7 +1205,7 @@ background:var(--fill3);color:var(--mu);font-size:13px;font-weight:750;cursor:po
 .pz-m.on{background:var(--a);border-color:var(--a);color:#fff;}
 .pz-body{flex:1;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 20px;}
 /* su schermo largo l'elenco resta al centro e leggibile */
-#pzOv .pz-body>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
+
 .pz-tiles{display:flex;gap:9px;margin-bottom:13px;}
 .pz-tile{flex:1;padding:13px 8px;border:1.5px solid var(--bd);border-radius:var(--r-card);
 background:var(--card);cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;}
@@ -1514,6 +1514,25 @@ border-radius:var(--r-row);background:var(--acc);color:#fff;font-size:17px;curso
 #pzMapOv .pzm-panel{width:360px;max-height:none;height:auto;
 border-top:none;border-left:1.5px solid var(--sep2);}
 }
+
+
+/* ── piazze: un contenitore unico, tutto allineato ── */
+#pzOv .pz-body{display:block;}
+.pz-in{width:100%;max-width:var(--card-w,560px);margin:0 auto;
+display:flex;flex-direction:column;gap:12px;}
+.pz-in>*{margin:0!important;width:100%;}
+.pz-primario{display:flex;align-items:center;justify-content:center;gap:8px;
+width:100%;padding:15px;border:none;border-radius:var(--r-act);
+background:var(--a);color:#fff;font-size:15px;font-weight:850;
+cursor:pointer;font-family:inherit;box-shadow:var(--sh-sm);}
+.pz-primario:active{transform:scale(.97);}
+#pzOv .pz-azioni{display:flex;gap:9px;}
+#pzOv .pz-azioni button{flex:1;padding:12px;border:1.5px solid var(--bd);
+border-radius:var(--r-act);background:var(--card);color:var(--tx);
+font-size:13px;font-weight:750;cursor:pointer;font-family:inherit;}
+#pzOv .pz-azioni button:active{transform:scale(.96);}
+#pzOv .pz-add{margin:0!important;}
+#pzOv .pz-foot{max-width:var(--card-w,560px);margin:0 auto;width:100%;}
 `;
 }catch(e){}
 })();
@@ -6654,12 +6673,20 @@ el.onclick=function(){openPiazze();};
 var el2=document.createElement('button');
 el2.id='rgHome';el2.className='home-card';
 el2.innerHTML='<div class="hc-ic" style="background:rgba(217,119,6,.12)">\ud83d\udcd0</div>'
-+'<div class="hc-tx"><strong>Tariffe e regolamenti</strong>'
++'<div class="hc-tx"><strong>Tariffe e regole</strong>'
 +'<small>Prontuario sempre a portata \u00b7 quiz sulle tariffe</small></div>'
 +'<div class="hc-ar">\u203a</div>';
 el2.onclick=function(){openRegole();};
+var el3=document.createElement('button');
+el3.id='nmHome';el3.className='home-card';
+el3.innerHTML='<div class="hc-ic" style="background:rgba(36,71,214,.12)">\ud83d\udcdc</div>'
++'<div class="hc-tx"><strong>Norme e regolamento</strong>'
++'<small>Articoli 38-61 \u00b7 contrassegni, sospensioni, decadenza</small></div>'
++'<div class="hc-ar">\u203a</div>';
+el3.onclick=function(){try{openNorme();}catch(e){}};
 var cards=home.querySelector('.home-cards')||home;
 cards.appendChild(el);cards.appendChild(el2);
+if(typeof window.openNorme==='function')cards.appendChild(el3);
 }catch(e){}
 };
 }catch(e){}

@@ -123,7 +123,8 @@ var h='<div class="pz-hd">'
 +'<button class="pz-rnd" onclick="pzRandom()" title="Una piazza a caso">\ud83c\udfb2</button>'
 +'</div>';
 
-h+='<div class="pz-body">';
+h+='<div class="pz-body"><div class="pz-in">';
+h+='<button class="pz-primario" onclick="pzRandom(1)">\ud83d\uddfa\ufe0f Apri la mappa delle piazze</button>';
 h+='<div class="pz-tiles">'
 +'<button class="pz-tile" onclick="pzRipasso()"><b>'+scadute+'</b><span>da ripassare</span></button>'
 +'<button class="pz-tile" onclick="pzNuove()"><b>'+mai+'</b><span>mai viste</span></button>'
@@ -132,9 +133,9 @@ h+='<div class="pz-tiles">'
 
 h+='<div class="pz-cerca"><input id="pzQ" type="search" placeholder="Cerca piazza o via\u2026" '
 +'oninput="pzFiltra(this.value)" value="'+E(FILTRO)+'"></div>';
-h+='<button class="pz-add" onclick="pzNuovaPiazza()">\uff0b Aggiungi una piazza</button>';
 h+='<div id="pzList" class="pz-list"></div>';
-h+='</div>';
+h+='<button class="pz-add" onclick="pzNuovaPiazza()">\uff0b Aggiungi una piazza</button>';
+h+='</div></div>';
 ov.innerHTML=h;
 disegnaElenco();
 vibra();
@@ -190,16 +191,17 @@ ov.innerHTML=''
 +'<button id="pzMs" class="pz-m'+(CIECO?'':' on')+'" onclick="pzModo(false)">Studio</button>'
 +'<button id="pzMc" class="pz-m'+(CIECO?' on':'')+'" onclick="pzModo(true)">Cieco</button>'
 +'</div></div>'
-+'<div class="pz-body pz-linea"><div id="pzMetro"></div></div>'
++'<div class="pz-body pz-linea"><div class="pz-in">'
++'<button class="pz-primario" onclick="pzMappa()">\ud83d\uddfa\ufe0f Vedi sulla mappa</button>'
++'<div id="pzMetro"></div>'
++'<div class="pz-azioni">'
++'<button onclick="pzVerifica()">\u2713 Mi verifico</button>'
++'<button onclick="pzModifica()">\u270e Modifica</button>'
++'</div></div></div>'
 +'<div class="pz-foot">'
 +'<button class="pz-nav" onclick="pzVai(-1)">\u25c0</button>'
 +'<button class="pz-tutte" onclick="pzTutteVie()">Mostra tutte</button>'
 +'<button class="pz-nav pz-next" onclick="pzVai(1)">\u25b6</button>'
-+'</div>'
-+'<div class="pz-azioni">'
-+'<button onclick="pzMappa()">\ud83d\udccd Mappa</button>'
-+'<button onclick="pzModifica()">\u270e Modifica</button>'
-+'<button onclick="pzVerifica()">\u2713 Mi verifico</button>'
 +'</div>';
 disegnaMetro();
 vibra();
@@ -690,20 +692,7 @@ b.onclick=function(ev){try{ev.stopPropagation();}catch(e){}openPiazze();};
 host.parentNode.insertBefore(b,host.nextSibling);
 }
 }
-if(!document.getElementById('pzCard')){
-var home=document.getElementById('homeScreen');
-var cards=home&&home.querySelector('.home-cards');
-if(cards){
-var c=document.createElement('button');
-c.id='pzCard';c.className='home-card';
-var n=pzScadute();
-c.innerHTML='<span class="hc-ic">\ud83d\udd37</span>'
-+'<span class="hc-tx"><b>Piazze</b><i>'+tutte().length+' piazze di Milano'
-+(n?(' \u00b7 '+n+' da ripassare'):'')+'</i></span><span class="hc-ar">\u203a</span>';
-c.onclick=function(){openPiazze();};
-cards.appendChild(c);
-}
-}
+/* la card in home la mette addon.js: una sola, non due */
 }catch(e){}
 }
 /* [FIX] la home si costruisce a tempi variabili: si riprova finché
