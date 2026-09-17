@@ -6,7 +6,9 @@
 try{
 var s=document.getElementById('addonInline');
 if(!s){s=document.createElement('style');s.id='addonInline';document.head.appendChild(s);}
-s.textContent=`/* ═══════════════════════════════════════════════════
+s.textContent=`
+:root,body,.rd{--bg:var(--bg1);--acc:#6D5AE0;}
+/* ═══════════════════════════════════════════════════
    ADDON DESIGN v1 — sopra il core congelato
    Rollback: commenta le 2 righe nell'index
    ═══════════════════════════════════════════════════ */
@@ -1201,7 +1203,9 @@ color:var(--tx);font-size:17px;font-weight:750;cursor:pointer;}
 .pz-m{padding:8px 18px;border:1.5px solid var(--bd);border-radius:var(--r-row);
 background:var(--fill3);color:var(--mu);font-size:13px;font-weight:750;cursor:pointer;}
 .pz-m.on{background:var(--a);border-color:var(--a);color:#fff;}
-.pz-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 20px;}
+.pz-body{flex:1;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 20px;}
+/* su schermo largo l'elenco resta al centro e leggibile */
+#pzOv .pz-body>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
 .pz-tiles{display:flex;gap:9px;margin-bottom:13px;}
 .pz-tile{flex:1;padding:13px 8px;border:1.5px solid var(--bd);border-radius:var(--r-card);
 background:var(--card);cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;}
@@ -2407,10 +2411,11 @@ setTimeout(function(){selectRoute(yr);setTimeout(function(){setMode('c');},250);
 var dueR=routes.filter(function(r){return rSR[r.id]&&rSR[r.id].due<=now;});
 if(dueR.length>=2){
 t=t.filter(function(x){return x.ic!=='🗺️';});
-var names=dueR.slice(0,3).map(function(r){return r.title.length>18?r.title.slice(0,16)+'…':r.title;}).join(' · ');
+var mesc=nccMescola(dueR);
+var names=mesc.slice(0,3).map(function(r){return r.title.length>18?r.title.slice(0,16)+'…':r.title;}).join(' · ');
 t.push({ic:'🗺️',tx:dueR.length+' percorsi in scadenza',sub:names+(dueR.length>3?' e altri':'')+' — in catena, uno dopo l\u2019altro',fn:function(){
 goTopografia();
-setTimeout(function(){selectRoute(dueR[0]);setTimeout(function(){setMode('c');},250);},300);
+setTimeout(function(){selectRoute(nccPesca(dueR)||dueR[0]);setTimeout(function(){setMode('c');},250);},300);
 },p:1.4});
 }
 t.sort(function(a,b){return a.p-b.p;});
@@ -3335,8 +3340,11 @@ coachTasks=function(){
 var t=_ctT();
 try{
 var m=topoModel();if(!m||!m.rows.length)return t;
-var w=m.rows[0];
-if(w.clean>0.45)return t;
+var fragili=m.rows.filter(function(x){return x.clean<=0.45;});
+if(!fragili.length)return t;
+var scelti=fragili.slice(0,6).map(function(x){return {id:x.r.id,__w:x};});
+var pick=nccPesca(scelti);
+var w=pick?pick.__w:fragili[0];
 if(t.some(function(x){return x.ic==='🗺️';}))return t;   /* già c'è un task percorsi */
 t.push({ic:'🧭',tx:'Il percorso più a rischio',sub:w.r.title+' — '+Math.round(w.clean*100)+'% di farlo pulito'+(w.worst!==null?(' · la via critica è la '+(w.worst+1)):''),fn:function(){
 goTopografia();
@@ -5050,7 +5058,7 @@ btn.onclick=function(){
 var giusto=btn.dataset.v==='a';
 if(giusto)OP.ok++;
 btn.classList.add(giusto?'good':'bad');
-if(!giusto)o.querySelector('.or-opt[data-v="a"]').classList.add('good');
+if(!giusto){var og=o.querySelector('.or-opt[data-v="a"]');if(og)og.classList.add('good');}
 try{hap(giusto?'':'m');}catch(e){}
 /* un errore d'ordine è un errore sulla via successiva */
 if(!giusto){try{
@@ -6223,24 +6231,30 @@ try{hap();}catch(e){}
 (function(){
 'use strict';
 var Q2=null;
-function elenco(){try{return (window.__PIAZZE__||[]);}catch(e){return [];}}
+function elenco(){try{
+if(typeof window.pzTutte==='function'){var t=window.pzTutte();if(t&&t.length)return t;}
+return (window.__PIAZZE__||[]);
+}catch(e){try{return (window.__PIAZZE__||[]);}catch(e2){return [];}}}
 function mescola(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 
 /* registro degli errori sulle piazze, per il coach */
 function segna(id,ok){
 try{
-var st=lg('pzStat',{});
-st[id]=st[id]||{ok:0,no:0};
-if(ok)st[id].ok++;else st[id].no++;
-ls('pzStat',st);markDirty('prefs');
+/* registro unico, lo stesso della sezione Piazze */
+var st=lg('pzStats',{});
+st[id]=st[id]||{ok:0,ko:0};
+if(ok)st[id].ok++;else st[id].ko++;
+ls('pzStats',st);
+var log=lg('pzDoneLog',{});log[id]=Date.now();ls('pzDoneLog',log);
+markDirty('prefs');
 }catch(e){}
 }
 window.pzDeboli=function(){
 try{
-var st=lg('pzStat',{}),out=[];
+var st=lg('pzStats',{}),out=[];
 elenco().forEach(function(p){
 var s=st[p.id];if(!s)return;
-var tot=s.ok+s.no;if(tot<2)return;
+var tot=(s.ok||0)+(s.ko||0);if(tot<2)return;
 out.push({p:p,perc:Math.round(s.ok/tot*100),tot:tot});
 });
 return out.sort(function(a,b){return a.perc-b.perc;});
@@ -6324,7 +6338,7 @@ d.querySelectorAll('.pzq-o').forEach(function(b){
 b.onclick=function(){
 var giusto=(b.dataset.id===p.id);
 b.classList.add(giusto?'good':'bad');
-if(!giusto)d.querySelector('.pzq-o[data-id="'+p.id+'"]').classList.add('good');
+if(!giusto){var gg=d.querySelector('.pzq-o[data-id="'+p.id+'"]');if(gg)gg.classList.add('good');}
 segna(p.id,giusto);
 try{hap(giusto?'':'m');}catch(e){}
 d.querySelectorAll('.pzq-o').forEach(function(x){x.disabled=true;});
@@ -6595,4 +6609,37 @@ renderTip=function(){_rt9.apply(this,arguments);};
 }catch(e){}
 },1200);
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   PERCORSI SEMPRE DIVERSI
+   Ovunque l'app scelga un percorso al posto tuo, lo pesca a caso
+   fra quelli che meritano, evitando gli ultimi già usciti: così
+   non ti ritrovi sempre lo stesso davanti.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+window.nccPesca=function(lista){
+try{
+if(!lista||!lista.length)return null;
+if(lista.length===1)return lista[0];
+var st=lg('pescaStoria',[])||[];
+var liberi=lista.filter(function(x){return st.indexOf(x.id)<0;});
+if(!liberi.length){st=[];liberi=lista.slice();}
+var s=liberi[Math.floor(Math.random()*liberi.length)];
+st.push(s.id);
+var tetto=Math.max(2,Math.min(8,Math.floor(lista.length*0.6)));
+while(st.length>tetto)st.shift();
+try{ls('pescaStoria',st);}catch(e){}
+return s;
+}catch(e){return lista[0];}
+};
+/* mescola una lista senza toccare l'originale */
+window.nccMescola=function(a){
+try{
+var b=(a||[]).slice();
+for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}
+return b;
+}catch(e){return a||[];}
+};
 })();

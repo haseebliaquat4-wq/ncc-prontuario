@@ -91,7 +91,15 @@ document.body.classList.remove('pz-aperto');
 window.pzChiudi=chiudi;
 
 function guscio(){
-if(OV)return OV;
+/* se il riquadro è stato staccato dalla pagina lo rimetto:
+   altrimenti resta in memoria e la sezione non si riapre più */
+if(OV&&OV.parentNode&&document.body.contains(OV)){
+document.body.classList.add('pz-aperto');
+return OV;
+}
+if(OV){try{OV.remove();}catch(e){}OV=null;}
+var vecchio=document.getElementById('pzOv');
+if(vecchio){try{vecchio.remove();}catch(e){}}
 OV=document.createElement('div');
 OV.id='pzOv';
 document.body.appendChild(OV);
@@ -280,8 +288,8 @@ ov.innerHTML='<div class="pz-hd pz-hd2"><button class="pz-x" onclick="pzApri(\''
 +'<button class="pz-tutte" id="verShow" onclick="pzVerShow()">\ud83d\udc41 Mostra</button>'
 +'</div>';
 window.pzVerShow=function(){
-document.getElementById('verR').innerHTML='<b>'+E(p.v[idx])+'</b>';
-document.querySelector('.pz-foot2').innerHTML=
+var _vr=document.getElementById('verR');if(_vr)_vr.innerHTML='<b>'+E(p.v[idx])+'</b>';
+var _pf=document.querySelector('.pz-foot2');if(_pf)_pf.innerHTML=
 '<button class="pz-no" onclick="pzVerSeg(false)">\u2715 Non la sapevo</button>'
 +'<button class="pz-si" onclick="pzVerSeg(true)">\u2713 La sapevo</button>';
 vibra();
@@ -805,4 +813,72 @@ alert(m);
 }catch(e){}
 }
 
+})();
+/* ═══════════════════════════════════════════════════
+   LA PIAZZA DEL GIORNO — entra nel piano di oggi
+   Sceglie a caso fra quelle in scadenza, poi fra le mai viste.
+   Non ripropone quella di ieri.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function scadute(){
+try{
+var sr=L('pzSR',{}),ora=Date.now();
+return (window.pzTutte?pzTutte():[]).filter(function(p){
+var c=sr[p.id];return c&&c.due&&c.due<=ora;});
+}catch(e){return [];}
+}
+function maiViste(){
+try{
+var st=L('pzStats',{});
+return (window.pzTutte?pzTutte():[]).filter(function(p){return !st[p.id];});
+}catch(e){return [];}
+}
+function pesca(lista){
+try{
+if(!lista.length)return null;
+if(window.nccPesca){
+var s=window.nccPesca(lista);
+if(s)return s;
+}
+return lista[Math.floor(Math.random()*lista.length)];
+}catch(e){return lista[0];}
+}
+window.pzDelGiorno=function(){
+try{
+var s=scadute();
+if(s.length)return {p:pesca(s),tipo:'ripasso',n:s.length};
+var m=maiViste();
+if(m.length)return {p:pesca(m),tipo:'nuova',n:m.length};
+return null;
+}catch(e){return null;}
+};
+/* aggancio al piano di oggi */
+try{
+var _ctPZ=coachTasks;
+coachTasks=function(){
+var t=_ctPZ.apply(this,arguments)||[];
+try{
+var g=window.pzDelGiorno&&pzDelGiorno();
+if(!g||!g.p)return t;
+var p=g.p;
+if(g.tipo==='ripasso'){
+t.push({ic:'\ud83d\udccd',
+tx:'Piazza da ripassare: '+(p.n.length>22?p.n.slice(0,20)+'\u2026':p.n),
+sub:p.v.length+' vie'+(g.n>1?(' \u00b7 ne hai '+g.n+' in scadenza'):'')+' \u2014 in Cieco',
+p:1.2,
+fn:function(){try{openPiazze();setTimeout(function(){pzApri(p.id);
+setTimeout(function(){try{pzModo('c');}catch(e){}},260);},240);}catch(e){}}});
+}else{
+t.push({ic:'\ud83d\udccd',
+tx:'Piazza nuova: '+(p.n.length>22?p.n.slice(0,20)+'\u2026':p.n),
+sub:p.v.length+' vie da imparare \u00b7 '+g.n+' piazze ancora mai viste',
+p:2.6,
+fn:function(){try{openPiazze();setTimeout(function(){pzApri(p.id);},240);}catch(e){}}});
+}
+}catch(e){}
+return t;
+};
+}catch(e){}
 })();
