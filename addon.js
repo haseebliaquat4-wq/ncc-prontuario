@@ -1324,6 +1324,45 @@ cursor:pointer;text-align:left;font-size:12.5px;}
 display:flex!important;align-items:center;justify-content:center;
 color:#fff;font-size:11px;font-weight:850;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .pz-pin-cap{background:var(--err);font-size:15px;}
+
+
+/* ── marker automatici e pannello di ricerca ── */
+.pz-pin.auto .pz-pb{border-style:dashed;border-width:2.5px;}
+.pz-b.geo{background:var(--acc);color:#fff;border-color:var(--acc);font-size:17px;}
+#pzGeoP{position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.55);
+display:flex;align-items:center;justify-content:center;padding:24px;
+backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.pzg-card{background:var(--card);border-radius:var(--r-card);padding:24px 20px;
+width:100%;max-width:340px;text-align:center;box-shadow:var(--sh-lg);}
+.pzg-t{font-size:15px;font-weight:850;letter-spacing:-.02em;margin-bottom:16px;}
+.pzg-bar{height:8px;background:var(--fill3);border-radius:var(--r-pill);overflow:hidden;}
+.pzg-bar i{display:block;height:100%;background:var(--a);border-radius:var(--r-pill);
+transition:width var(--d2) var(--e-smooth);}
+.pzg-n{font-size:12px;color:var(--mu);font-weight:750;margin-top:9px;
+font-variant-numeric:tabular-nums;}
+.pzg-q{font-size:14px;font-weight:750;color:var(--tx);margin:14px 0 4px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pzg-s{font-size:12px;color:var(--mu);font-weight:650;}
+.pzg-s b{color:var(--tx);font-weight:850;}
+.pzg-x{margin-top:18px;width:100%;padding:12px;border:1.5px solid var(--bd);
+border-radius:var(--r-act);background:var(--card);color:var(--err);
+font-size:14px;font-weight:750;cursor:pointer;font-family:inherit;}
+
+
+/* ── mappa piazze: barra di avanzamento ── */
+.pzp-nav{display:flex;align-items:center;gap:6px;padding:8px 12px;
+border-bottom:1.5px solid var(--sep2);}
+.pzp-nav button{width:36px;height:34px;border:1.5px solid var(--bd);
+border-radius:var(--r-row);background:var(--card);color:var(--tx);
+font-size:14px;font-weight:750;cursor:pointer;font-family:inherit;flex-shrink:0;}
+.pzp-nav button:active{transform:scale(.92);}
+.pzp-nav span{flex:1;text-align:center;font-size:12px;font-weight:750;
+color:var(--mu);font-variant-numeric:tabular-nums;}
+.pzp-nav .pzp-t{width:auto;padding:0 11px;font-size:12px;}
+.pzp-nav .pzp-g{background:var(--acc);color:#fff;border-color:var(--acc);font-size:15px;}
+.pz-pin-auto{border:2.5px dashed var(--warn)!important;box-sizing:border-box;}
+.pz-pin-att{transform:scale(1.25);z-index:600!important;
+box-shadow:0 3px 12px rgba(36,71,214,.4);}
 `;
 }catch(e){}
 })();
