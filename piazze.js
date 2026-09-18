@@ -385,10 +385,11 @@ return '<option value="'+x.id+'"'+(x.id===p.id?' selected':'')+'>'+E(x.n)+' \u00
 +'</select><span class="pzm-fr">\u25be</span></div>'
 +'<button class="pzm-dado" onclick="pzRandom(1)" title="Una piazza a caso">\ud83c\udfb2</button>'
 +'</div>'
-+'<div class="pzm-tasti">\u2190 \u2192 con le frecce \u00b7 T tutte \u00b7 R un\u2019altra piazza \u00b7 Esc esci</div>'
++'<div class="pzm-tasti">\u2190 \u2192 frecce \u00b7 T tutte \u00b7 R un\u2019altra \u00b7 V Street View \u00b7 Esc esci</div>'
 +'<div class="pzm-seg">'
 +'<button id="pzSegS" class="on" onclick="pzMapModo(\'s\')">Studio</button>'
 +'<button id="pzSegC" onclick="pzMapModo(\'c\')">Cieco</button>'
++'<button class="pzm-sv" onclick="pzStreetView()" title="Vedi la strada su Google Street View">\ud83d\udc41\ufe0f</button>'
 +'<button class="pzm-geo" onclick="pzTrovaMarker(\''+p.id+'\')" title="Cerca i marker">\ud83d\udef0</button>'
 +'</div>'
 +'<div class="pzm-wrap">'
@@ -412,7 +413,7 @@ return '<option value="'+x.id+'"'+(x.id===p.id?' selected':'')+'>'+E(x.n)+' \u00
 document.body.appendChild(o);
 document.body.classList.add('pz-aperto');
 MAPOV=o;
-PZMAP=LF.map('pzMapEl',{zoomControl:true,attributionControl:true}).setView([45.4642,9.19],14);
+PZMAP=LF.map('pzMapEl',{zoomControl:true,attributionControl:true}).setView([45.4642,9.19],16);
 try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(PZMAP);}catch(e){}
 PZMAP.on('click',function(ev){
@@ -529,6 +530,8 @@ if(k<1)requestAnimationFrame(passo);
 }
 var FINO=null;   /* quante vie sono comparse sulla mappa */
 var PANP=null;   /* la piazza aperta sulla mappa */
+/* lo stato della mappa serve anche ai blocchi fuori da qui */
+window.pzMapStato=function(){return {p:PANP,fino:(typeof FINO==='number')?FINO:0};};
 function pulisciMappa(){
 try{
 MK.forEach(function(m){try{m.remove();}catch(e){}});MK=[];
@@ -571,8 +574,12 @@ cc[p.id+'_'+i]={lat:q.lat,lon:q.lng};S('pzCoords',cc);vibra();
 avviso('\u2713 '+v+' spostata',1500);disegnaSuMappa(p);}catch(e){}});
 MK.push(m);punti.push([c.lat,c.lon]);
 });
-if(punti.length===1){try{mp.setView(punti[0],15);}catch(e){}}
-else if(punti.length>1){try{mp.fitBounds(punti,{padding:[50,50],maxZoom:16});}catch(e){}}
+if(punti.length===1){try{mp.setView(punti[0],17);}catch(e){}}
+else if(punti.length>1){try{
+mp.fitBounds(punti,{padding:[50,50],maxZoom:17});
+/* se ha allargato troppo torno vicino: le vie devono restare leggibili */
+if(mp.getZoom&&mp.getZoom()<16)mp.setZoom(16);
+}catch(e){}}
 try{listaMappa(p);}catch(e){}
 }catch(e){}
 }
@@ -1123,6 +1130,7 @@ else if(k===' '||k==='Enter'){ev.preventDefault();if(window.pzMapNext)pzMapNext(
 else if(k==='Escape'){ev.preventDefault();if(window.pzMapChiudi)pzMapChiudi();}
 else if(k==='t'||k==='T'){ev.preventDefault();if(window.pzMapTutte)pzMapTutte();}
 else if(k==='r'||k==='R'){ev.preventDefault();if(window.pzRandom)pzRandom(1);}
+else if(k==='v'||k==='V'){ev.preventDefault();if(window.pzStreetView)pzStreetView();}
 }catch(e){}
 }
 try{document.addEventListener('keydown',tasti,true);}catch(e){}
@@ -1302,7 +1310,7 @@ dragging:true,scrollWheelZoom:false});
 try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(SCMAP);}catch(e){}
 if(c){
-SCMAP.setView([c.lat,c.lon],15);
+SCMAP.setView([c.lat,c.lon],17);
 try{LF.marker([c.lat,c.lon],{icon:LF.divIcon({className:'pz-pin pz-pin-cap',
 html:'<span>\u25cf</span>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(SCMAP);}catch(e){}
 /* le vie già trovate compaiono sulla mappa */
@@ -1318,7 +1326,10 @@ html:'<span>'+(i+1)+'</span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(SCMA
 punti.push([k.lat,k.lon]);
 }catch(e){}
 });
-if(punti.length>1){try{SCMAP.fitBounds(punti,{padding:[40,40],maxZoom:16});}catch(e){}}
+if(punti.length>1){try{
+SCMAP.fitBounds(punti,{padding:[40,40],maxZoom:17});
+if(SCMAP.getZoom&&SCMAP.getZoom()<16)SCMAP.setZoom(16);
+}catch(e){}}
 }else{
 SCMAP.setView([45.4642,9.19],13);
 }
@@ -1492,4 +1503,52 @@ t.forEach(function(p){var s=pzStato(p);if(s.k==='ok')fatte++;});
 return {fatte:fatte,tot:t.length,perc:Math.round(fatte/t.length*100)};
 }catch(e){return {fatte:0,tot:0,perc:0};}
 };
+})();
+
+/* ═══════════════════════════════════════════════════
+   👁 STREET VIEW
+   Apre Google Street View sul punto che stai guardando,
+   così vedi la strada com'è davvero.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L2(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function apri(lat,lon,nome){
+try{
+var u='https://www.google.com/maps/@?api=1&map_action=pano'
++'&viewpoint='+lat+','+lon+'&heading=0&pitch=0&fov=90';
+window.open(u,'_blank','noopener');
+try{if(typeof toast2==='function')toast2('\ud83d\udc41\ufe0f '+(nome||'Street View')+' \u2014 si apre Google',2400);}catch(e){}
+try{if(typeof hap==='function')hap();}catch(e){}
+}catch(e){
+try{alert('\u26a0\ufe0f Non riesco ad aprire Street View.');}catch(e2){}
+}
+}
+window.pzStreetView=function(){
+try{
+var st=(window.pzMapStato?pzMapStato():{p:null,fino:0});
+if(!st.p){
+try{if(typeof toast2==='function')toast2('\u26a0\ufe0f Apri prima una piazza',2200);}catch(e){}
+return;}
+var p=st.p,co=L2('pzCoords',{});
+var i=(st.fino>0)?(st.fino-1):-1;
+var c=(i>=0)?co[p.id+'_'+i]:co[p.id];
+var nome=(i>=0)?p.v[i]:p.n;
+if(!c){c=co[p.id];nome=p.n;}
+if(!c){
+try{if(typeof toast2==='function')toast2('\u26a0\ufe0f Nessun marker: mettilo prima',2600);}catch(e){}
+return;}
+apri(c.lat,c.lon,nome);
+}catch(e){}
+};
+/* anche dalla modalità scrittura, sulla piazza */
+window.pzStreetViewPiazza=function(id){
+try{
+var co=L2('pzCoords',{}),c=co[id];
+if(!c){if(typeof toast2==='function')toast2('\u26a0\ufe0f Nessun marker',2200);return;}
+var p=(window.pzTutte?pzTutte():[]).filter(function(x){return x.id===id;})[0];
+apri(c.lat,c.lon,p?p.n:'');
+}catch(e){}
+};
+window.nccStreetView=apri;
 })();

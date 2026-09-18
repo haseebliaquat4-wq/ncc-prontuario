@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="styles.css?v=24">
+<link rel="stylesheet" href="styles.css?v=25">
 <!-- addon.css rimosso: lo stile viaggia dentro addon.js -->
 
 </head>
@@ -105,6 +105,8 @@
 <button onclick="openWrong();cm()"><span class="mi">🔁</span>Vie da ripassare</button>
 <button onclick="ordinaVie();cm()"><span class="mi">🧩</span>Ordina le vie</button>
 <button onclick="weeklyReport(true);cm()"><span class="mi">📅</span>Report settimanale</button>
+<button onclick="nccEsporta();cm()"><span class="mi">💾</span>Salva una copia</button>
+<button onclick="nccRipristina();cm()"><span class="mi">📥</span>Ripristina da una copia</button>
 <button onclick="ordinaVie()"><span class="mi">🧩</span>Ordina le vie</button>
 <div class="mi-sep"></div>
 <button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
@@ -504,7 +506,14 @@
 <div class="toast" id="toast" aria-live="polite"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"></script>
+<script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylinedecorator.js"></script>
+<script>
+/* se la versione fissata non risponde, ricado su quella corrente:
+   meglio una versione non fissata che le frecce sparite */
+if(typeof L==='undefined'||!L.polylineDecorator){
+document.write('<script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylinedecorator.js"><\/script>');
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -515,8 +524,8 @@
 <script src="norme-data.js?v=1"></script>
 
 <script src="app.js?v=5"></script>
-<script src="addon.js?v=81"></script><!-- ADDON: commenta questa riga per disattivare -->
-<script src="piazze.js?v=12"></script>
+<script src="addon.js?v=84"></script><!-- ADDON: commenta questa riga per disattivare -->
+<script src="piazze.js?v=14"></script>
 <script src="norme.js?v=2"></script><!-- PIAZZE: sezione piazze di Milano -->
 
 <!-- ════ collegamento TAB BAR (dopo app.js) ════ -->
