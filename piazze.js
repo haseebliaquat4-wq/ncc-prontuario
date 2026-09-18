@@ -125,6 +125,7 @@ var h='<div class="pz-hd">'
 
 h+='<div class="pz-body"><div class="pz-in">';
 h+='<button class="pz-primario" onclick="pzRandom(1)">\ud83d\uddfa\ufe0f Apri la mappa delle piazze</button>';
+h+='<button class="pz-primario pz-sec" onclick="pzScriviCaso()">\u270d\ufe0f Scrivi le vie a memoria</button>';
 h+='<div class="pz-tiles">'
 +'<button class="pz-tile" onclick="pzRipasso()"><b>'+scadute+'</b><span>da ripassare</span></button>'
 +'<button class="pz-tile" onclick="pzNuove()"><b>'+mai+'</b><span>mai viste</span></button>'
@@ -195,6 +196,7 @@ ov.innerHTML=''
 +'<button class="pz-primario" onclick="pzMappa()">\ud83d\uddfa\ufe0f Vedi sulla mappa</button>'
 +'<div id="pzMetro"></div>'
 +'<div class="pz-azioni">'
++'<button onclick="pzScrivi(\''+p.id+'\')">\u270d\ufe0f Scrivi le vie</button>'
 +'<button onclick="pzVerifica()">\u2713 Mi verifico</button>'
 +'<button onclick="pzModifica()">\u270e Modifica</button>'
 +'</div></div></div>'
@@ -1091,4 +1093,315 @@ else if(k==='r'||k==='R'){ev.preventDefault();if(window.pzRandom)pzRandom(1);}
 }catch(e){}
 }
 try{document.addEventListener('keydown',tasti,true);}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ✍️ SCRIVI LE VIE
+   Ti do la piazza e la mappa, tu scrivi le vie una a una.
+   Gli errori di battitura non contano: conta che sia quella via.
+   Finisci solo quando le hai scritte tutte.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}}catch(e){}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function vibra(){try{if(typeof hap==='function')hap();}catch(e){}}
+
+/* ── confronto tollerante agli errori di battitura ── */
+function norm(s){
+return String(s||'').toLowerCase()
+.replace(/[\u00e0\u00e1\u00e2\u00e4]/g,'a').replace(/[\u00e8\u00e9\u00ea\u00eb]/g,'e')
+.replace(/[\u00ec\u00ed\u00ee\u00ef]/g,'i').replace(/[\u00f2\u00f3\u00f4\u00f6]/g,'o')
+.replace(/[\u00f9\u00fa\u00fb\u00fc]/g,'u').replace(/\u00e7/g,'c')
+.replace(/[\u2018\u2019'`]/g,' ')
+.replace(/\b(via|viale|v\.le|vle|corso|c\.so|cso|piazza|p\.za|pza|piazzale|p\.le|ple|largo|lgo|vicolo|bastioni|foro|ripa|alzaia|galleria|strada|passaggio|piazzetta)\b/g,' ')
+.replace(/\b(san|santa|santo|s\.)\b/g,'s ')
+.replace(/[^a-z0-9 ]/g,' ')
+.replace(/\s+/g,' ').trim();
+}
+function dist(a,b){
+if(a===b)return 0;
+var m=a.length,n=b.length;
+if(!m)return n; if(!n)return m;
+if(Math.abs(m-n)>6)return 99;
+var pre=new Array(n+1),cur=new Array(n+1),i,j;
+for(j=0;j<=n;j++)pre[j]=j;
+for(i=1;i<=m;i++){
+cur[0]=i;var min=i;
+for(j=1;j<=n;j++){
+var c=(a.charCodeAt(i-1)===b.charCodeAt(j-1))?0:1;
+cur[j]=Math.min(pre[j]+1,cur[j-1]+1,pre[j-1]+c);
+if(i>1&&j>1&&a.charCodeAt(i-1)===b.charCodeAt(j-2)&&a.charCodeAt(i-2)===b.charCodeAt(j-1))
+cur[j]=Math.min(cur[j],pre[j-1]);
+if(cur[j]<min)min=cur[j];
+}
+if(min>6)return 99;
+var t=pre;pre=cur;cur=t;
+}
+return pre[n];
+}
+function soglia(len){
+if(len<=4)return 1;
+if(len<=8)return 2;
+if(len<=13)return 3;
+return 4;
+}
+function confronta(scritto,via){
+var a=norm(scritto),b=norm(via);
+if(!a)return null;
+if(a===b)return {d:0,modo:'esatto'};
+var d=dist(a,b);
+if(d<=soglia(b.length))return {d:d,modo:'quasi'};
+var pb=b.split(' ').filter(Boolean),pa=a.split(' ').filter(Boolean);
+if(pa.length&&pa.length<=pb.length){
+var usate={},tutte=true,somma=0;
+pa.forEach(function(w){
+var best=99,k=-1;
+pb.forEach(function(v,i){
+if(usate[i])return;
+var dd=dist(w,v);
+if(dd<best){best=dd;k=i;}
+});
+if(k>=0&&best<=soglia(pb[k].length)){usate[k]=1;somma+=best;}
+else tutte=false;
+});
+if(tutte&&pa.join('').length>=4)return {d:somma+1,modo:'parziale'};
+}
+return null;
+}
+window.pzConfronta=confronta;
+
+var SC=null,SCMAP=null;
+
+window.pzScrivi=function(id){
+try{
+var p=id?(window.pzTutte?pzTutte().filter(function(x){return x.id===id;})[0]:null):null;
+if(!p&&window.pzCorrenteP)p=pzCorrenteP();
+if(!p){var t=window.pzTutte?pzTutte():[];p=t[0];}
+if(!p)return;
+SC={p:p,trovate:{},errori:0,t0:Date.now(),aiuti:0};
+disegna();
+setTimeout(function(){var i=document.getElementById('scIn');if(i)i.focus();},350);
+vibra();
+}catch(e){}
+};
+window.pzScriviCaso=function(){
+try{
+var p=(window.pzPescaPiazza?pzPescaPiazza():null);
+if(p)pzScrivi(p.id);
+}catch(e){}
+};
+window.pzScriviChiudi=function(){
+try{
+if(SCMAP){try{SCMAP.remove();}catch(e){}SCMAP=null;}
+var o=document.getElementById('scOv');if(o)o.remove();
+SC=null;
+if(window.openPiazze)openPiazze();
+}catch(e){}
+};
+
+function disegna(){
+try{
+var p=SC.p,n=p.v.length,fatte=Object.keys(SC.trovate).length;
+var o=document.getElementById('scOv');
+if(!o){o=document.createElement('div');o.id='scOv';o.className='rd';document.body.appendChild(o);}
+var h='<div class="sc-hd">'
++'<button class="sc-x" onclick="pzScriviChiudi()">\u2039</button>'
++'<div class="sc-ti">'+E(p.n)+'</div>'
++'<div class="sc-su">Scrivi le '+n+' vie che ci sboccano</div>'
++'<button class="sc-r" onclick="pzScriviCaso()" title="Un\u2019altra piazza">\ud83c\udfb2</button>'
++'</div>'
++'<div class="sc-bar"><i style="width:'+Math.round(fatte/n*100)+'%"></i></div>'
++'<div class="sc-wrap">'
++'<div class="sc-mappa"><div id="scMapEl"></div>'
++'<div class="sc-badge">'+fatte+' di '+n+'</div></div>'
++'<div class="sc-lato">'
++'<div class="sc-slots" id="scSlots"></div>'
++'</div></div>'
++'<div class="sc-foot">'
++'<input id="scIn" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" '
++'spellcheck="false" placeholder="Scrivi una via e premi Invio\u2026">'
++'<button class="sc-ok" onclick="pzScriviInvia()">\u2713</button>'
++'<button class="sc-aiuto" onclick="pzScriviAiuto()" title="Suggerimento">\ud83d\udca1</button>'
++'</div>';
+o.innerHTML=h;
+slots();
+var i=document.getElementById('scIn');
+if(i){
+i.onkeydown=function(ev){
+if(ev.key==='Enter'){ev.preventDefault();pzScriviInvia();}
+ev.stopPropagation();
+};
+}
+mappa();
+}catch(e){}
+}
+
+function slots(){
+try{
+var d=document.getElementById('scSlots');if(!d)return;
+var p=SC.p,h='';
+p.v.forEach(function(v,i){
+var t=SC.trovate[i];
+h+='<div class="sc-slot'+(t?' ok':'')+'">'
++'<span class="sc-n">'+(i+1)+'</span>'
++'<span class="sc-v">'+(t?E(v):'\u2014')+'</span>'
++(t&&t.modo!=='esatto'?'<span class="sc-q" title="scritta con qualche errore">~</span>':'')
++(t&&t.aiuto?'<span class="sc-h">\ud83d\udca1</span>':'')
++'</div>';
+});
+d.innerHTML=h;
+}catch(e){}
+}
+
+function mappa(){
+try{
+var LF=window.L;if(!LF||!LF.map)return;
+var co=L('pzCoords',{}),p=SC.p;
+var c=co[p.id];
+var el=document.getElementById('scMapEl');if(!el)return;
+if(SCMAP){try{SCMAP.remove();}catch(e){}SCMAP=null;}
+SCMAP=LF.map('scMapEl',{zoomControl:false,attributionControl:true,
+dragging:true,scrollWheelZoom:false});
+try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(SCMAP);}catch(e){}
+if(c){
+SCMAP.setView([c.lat,c.lon],15);
+try{LF.marker([c.lat,c.lon],{icon:LF.divIcon({className:'pz-pin pz-pin-cap',
+html:'<span>\u25cf</span>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(SCMAP);}catch(e){}
+/* le vie già trovate compaiono sulla mappa */
+var punti=[[c.lat,c.lon]];
+p.v.forEach(function(v,i){
+if(!SC.trovate[i])return;
+var k=co[p.id+'_'+i];if(!k)return;
+try{
+LF.polyline([[c.lat,c.lon],[k.lat,k.lon]],{color:'#0E9F6E',weight:3,
+opacity:.7,dashArray:'7 6',interactive:false}).addTo(SCMAP);
+LF.marker([k.lat,k.lon],{icon:LF.divIcon({className:'pz-pin pz-pin-ok',
+html:'<span>'+(i+1)+'</span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(SCMAP);
+punti.push([k.lat,k.lon]);
+}catch(e){}
+});
+if(punti.length>1){try{SCMAP.fitBounds(punti,{padding:[40,40],maxZoom:16});}catch(e){}}
+}else{
+SCMAP.setView([45.4642,9.19],13);
+}
+setTimeout(function(){try{SCMAP.invalidateSize();}catch(e){}},200);
+}catch(e){}
+}
+
+window.pzScriviInvia=function(){
+try{
+if(!SC)return;
+var i=document.getElementById('scIn');if(!i)return;
+var testo=i.value.trim();
+if(!testo)return;
+var p=SC.p,best=null,bi=-1;
+p.v.forEach(function(v,k){
+if(SC.trovate[k])return;
+var r=confronta(testo,v);
+if(r&&(!best||r.d<best.d)){best=r;bi=k;}
+});
+if(best){
+SC.trovate[bi]={modo:best.modo};
+i.value='';
+esito(true,(best.modo==='esatto')?('\u2713 '+p.v[bi]):('\u2713 '+p.v[bi]+' \u2014 si scrive cos\u00ec'));
+aggiorna();
+if(Object.keys(SC.trovate).length>=p.v.length)setTimeout(fine,700);
+}else{
+/* l'ho già scritta? */
+var gia=-1;
+p.v.forEach(function(v,k){if(SC.trovate[k]&&confronta(testo,v))gia=k;});
+if(gia>=0){esito(null,'gi\u00e0 scritta: '+p.v[gia]);i.value='';return;}
+SC.errori++;
+esito(false,'\u2715 non \u00e8 una via di questa piazza');
+i.select();
+}
+vibra();
+}catch(e){}
+};
+
+window.pzScriviAiuto=function(){
+try{
+if(!SC)return;
+var p=SC.p,liberi=[];
+p.v.forEach(function(v,i){if(!SC.trovate[i])liberi.push(i);});
+if(!liberi.length)return;
+var k=liberi[Math.floor(Math.random()*liberi.length)];
+var v=p.v[k];
+var pezzo=v.replace(/^(Via|Viale|Corso|Piazza|Piazzale|Largo|Galleria|Piazzetta)\s+/i,'');
+var iniz=pezzo.slice(0,Math.max(2,Math.ceil(pezzo.length*0.35)));
+SC.aiuti++;
+esito(null,'\ud83d\udca1 una che manca inizia per \u00ab'+iniz+'\u2026\u00bb');
+var i2=document.getElementById('scIn');if(i2)i2.focus();
+vibra();
+}catch(e){}
+};
+
+function esito(buono,testo){
+try{
+var d=document.getElementById('scEsito');
+if(!d){d=document.createElement('div');d.id='scEsito';
+var o=document.getElementById('scOv');if(o)o.appendChild(d);}
+d.className='sc-esito '+(buono===true?'ok':(buono===false?'ko':'info'));
+d.textContent=testo;
+d.style.opacity='1';
+clearTimeout(d.__t);
+d.__t=setTimeout(function(){d.style.opacity='0';},2200);
+}catch(e){}
+}
+function aggiorna(){
+try{
+slots();mappa();
+var p=SC.p,fatte=Object.keys(SC.trovate).length;
+var b=document.querySelector('#scOv .sc-bar i');
+if(b)b.style.width=Math.round(fatte/p.v.length*100)+'%';
+var g=document.querySelector('#scOv .sc-badge');
+if(g)g.textContent=fatte+' di '+p.v.length;
+}catch(e){}
+}
+
+function fine(){
+try{
+var p=SC.p,n=p.v.length;
+var sec=Math.round((Date.now()-SC.t0)/1000);
+var mm=Math.floor(sec/60),ss=sec%60;
+var esatte=0,quasi=0;
+Object.keys(SC.trovate).forEach(function(k){
+if(SC.trovate[k].modo==='esatto')esatte++;else quasi++;});
+/* entra nella spirale come le altre modalità */
+try{
+var sr=L('pzSR',{}),st=L('pzStats',{});
+var buono=(SC.errori<=2&&SC.aiuti===0);
+var c=sr[p.id]||{box:0};
+c.box=buono?Math.min(5,(c.box||0)+1):Math.max(0,(c.box||0)-1);
+c.due=Date.now()+[1,2,4,9,21,45][c.box]*86400000;c.last=Date.now();
+sr[p.id]=c;S('pzSR',sr);
+var x=st[p.id]||{ok:0,ko:0};
+x.ok=(x.ok||0)+n;x.ko=(x.ko||0)+SC.errori;st[p.id]=x;S('pzStats',st);
+}catch(e){}
+var o=document.getElementById('scOv');if(!o)return;
+o.innerHTML='<div class="sc-hd">'
++'<button class="sc-x" onclick="pzScriviChiudi()">\u2039</button>'
++'<div class="sc-ti">'+E(p.n)+'</div><div class="sc-su">finita</div></div>'
++'<div class="sc-fin">'
++'<div class="sc-tick">\u2713</div>'
++'<div class="sc-tit">Tutte e '+n+' le vie</div>'
++'<div class="sc-riga"><b>'+mm+'\u2032'+(ss<10?'0':'')+ss+'\u2033</b><span>tempo</span></div>'
++'<div class="sc-riga"><b>'+esatte+'</b><span>scritte giuste</span></div>'
++(quasi?'<div class="sc-riga"><b>'+quasi+'</b><span>con qualche refuso</span></div>':'')
++'<div class="sc-riga"><b>'+SC.errori+'</b><span>tentativi sbagliati</span></div>'
++(SC.aiuti?'<div class="sc-riga"><b>'+SC.aiuti+'</b><span>suggerimenti usati</span></div>':'')
++'<button class="sc-go" onclick="pzScriviCaso()">\u25b6 Un\u2019altra piazza</button>'
++'<button class="sc-go2" onclick="pzScrivi(\''+p.id+'\')">Rifai questa</button>'
++'<button class="sc-go2" onclick="pzScriviChiudi()">Torna alle piazze</button>'
++'</div>';
+SC=null;
+if(SCMAP){try{SCMAP.remove();}catch(e){}SCMAP=null;}
+vibra();
+}catch(e){}
+}
 })();
