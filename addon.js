@@ -1625,6 +1625,42 @@ border:1.5px solid var(--a);box-shadow:none;}
 .sc-mappa{height:auto;width:58%;min-height:0;}
 .sc-lato{width:42%;}
 }
+
+#pzOv .pz-azioni .pz-del{color:var(--err);border-color:rgba(229,72,77,.35);}
+
+
+/* ══════════ PIAZZE · redesign ══════════ */
+.pz-prog{padding:14px;background:var(--card);border:1.5px solid var(--bd);
+border-radius:var(--r-card);}
+.pz-prog-t{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px;}
+.pz-prog-t b{font-size:15px;font-weight:850;color:var(--tx);}
+.pz-prog-t i{font-style:normal;font-size:21px;font-weight:850;color:var(--a);
+font-variant-numeric:tabular-nums;}
+.pz-prog-b{height:8px;background:var(--fill3);border-radius:var(--r-pill);overflow:hidden;}
+.pz-prog-b span{display:block;height:100%;background:var(--a);border-radius:var(--r-pill);
+transition:width var(--d3) var(--e-smooth);}
+.pz-prog-s{display:flex;gap:7px;margin-top:11px;}
+.pz-prog-s button{flex:1;padding:8px 6px;border:1.5px solid var(--bd);
+border-radius:var(--r-row);background:var(--bg);color:var(--mu);
+font-size:11px;font-weight:750;cursor:pointer;font-family:inherit;line-height:1.25;}
+.pz-prog-s button:active{transform:scale(.95);}
+.pz-grp{font-size:10px;font-weight:850;color:var(--mu);letter-spacing:.07em;
+margin:16px 0 8px;display:flex;align-items:center;gap:7px;}
+.pz-grp:first-child{margin-top:4px;}
+.pz-grp em{font-style:normal;font-size:10px;font-weight:850;color:var(--a);
+background:rgba(36,71,214,.1);padding:2px 7px;border-radius:var(--r-pill);}
+.pz-modi4{display:flex;gap:4px;padding:5px;margin:10px auto 0;background:var(--fill3);
+border-radius:var(--r-row);max-width:var(--card-w,560px);}
+.pz-modi4 .pz-m{flex:1;padding:9px 4px;border:none;border-radius:var(--r-pill);
+background:transparent;color:var(--mu);font-size:12px;font-weight:750;
+cursor:pointer;font-family:inherit;min-height:36px;}
+.pz-modi4 .pz-m.on{background:var(--card);color:var(--tx);box-shadow:var(--sh-sm);}
+.pz-modi4 .pz-m:active{transform:scale(.95);}
+#pzOv .pz-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;background:var(--bd);}
+#pzOv .pz-row.pz-scaduta{border-left:3px solid var(--err);}
+#pzOv .pz-row.pz-corso{border-left:3px solid var(--warn);}
+#pzOv .pz-row.pz-ok{border-left:3px solid var(--ok);}
+#pzOv .pz-row.pz-mai{border-left:3px solid var(--bd);}
 `;
 }catch(e){}
 })();
@@ -2378,21 +2414,6 @@ if(r2&&r2.tot&&Date.now()-r2.ts<14*86400000){var p=Math.round(r2.ok/r2.tot*100);
 return out;
 }
 try{
-window.renderTip=function(){
-try{
-var hd=document.querySelector('#homeScreen .home-hd');if(!hd)return;
-var el=document.getElementById('tipLine');
-if(!el){el=document.createElement('div');el.id='tipLine';hd.appendChild(el);}
-var pool=TIPS.concat(TIPS2).concat(personalTips());
-var hist=lg('tipHist',[]);
-var cand=pool.filter(function(t){return hist.indexOf(t)<0;});
-if(!cand.length)cand=pool;
-var pick=cand[Math.floor(Math.random()*cand.length)];
-hist.push(pick);while(hist.length>6)hist.shift();
-ls('tipHist',hist);
-el.textContent='\ud83d\udca1 '+pick;
-}catch(e){}
-};
 }catch(e){}
 try{
 var _rpE=renderPlan;
@@ -4870,11 +4891,6 @@ _qpF(i);
 };
 }catch(e){}
 /* interruttore nelle impostazioni */
-window.togAntiFretta=function(){
-var v=lg('antiFretta',true)!==false;
-ls('antiFretta',!v);
-toast2(!v?'\ud83d\udc0c Freno anti-fretta attivo':'Freno anti-fretta disattivato');
-};
 })();
 
 /* ═══════════════════════════════════════════════════
@@ -6233,24 +6249,12 @@ var coach=w.querySelector('.coach');if(coach)coach.appendChild(bar);
 })();
 
 /* ═══════════════════════════════════════════════════
-   SEZIONE PIAZZE — 90 piazze di Milano con le vie che vi sboccano
-   Funziona come i percorsi: elenco, freccia avanti, modalità cieco,
-   marker che posizioni tu a mano. Mappa propria e isolata: non tocca
-   nulla della topografia esistente.
+   Il conteggio delle piazze in scadenza serve al coach.
+   L'interfaccia che stava qui è stata sostituita da piazze.js:
+   249 righe rimosse perché irraggiungibili.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var PZ=null;                  /* stato: {p, i, modo, mappa, mk[], centro} */
-var mappaPz=null, livPz=null, gruppo=[];
-var posizionando=-1;
-
-function elenco(){try{return (window.__PIAZZE__||[]).slice();}catch(e){return [];}}
-function chiave(p,i){return p.id+'_'+i;}
-function chiaveC(p){return p.id+'_c';}
-
-/* ── spirale delle piazze, salvata nelle preferenze ── */
-function pzSR(){try{return lg('pzSR',{});}catch(e){return {};}}
-function pzSRset(o){try{ls('pzSR',o);markDirty('prefs');}catch(e){}}
 window.pzScaduti=function(){
 try{
 var sr=pzSR(),ora=Date.now(),n=0;
@@ -6258,229 +6262,6 @@ elenco().forEach(function(p){var s=sr[p.id];if(s&&s.due&&s.due<=ora)n++;});
 return n;
 }catch(e){return 0;}
 };
-function avanza(id,pulito){
-try{
-var sr=pzSR(),s=sr[id]||{box:0};
-if(pulito){s.box=Math.min(4,(s.box||0)+1);
-s.due=Date.now()+[1,2,4,9,21][s.box]*86400000;}
-else{s.box=1;s.due=Date.now()+2*86400000;}
-s.last=Date.now();sr[id]=s;pzSRset(sr);
-}catch(e){}
-}
-
-/* ── apertura ── */
-window.openPiazze=function(){
-try{
-if(document.getElementById('pzOv'))return;
-var o=document.createElement('div');o.id='pzOv';
-o.innerHTML='<div class="pz-app">'
-+'<div class="pz-hd"><button class="pz-back">\u2039</button>'
-+'<div class="pz-ti"><b id="pzTit">Piazze di Milano</b><small id="pzSub"></small></div>'
-+'<button class="pz-x">\u2715</button></div>'
-+'<div class="pz-body">'
-+'<div id="pzMap"></div>'
-+'<div class="pz-panel">'
-+'<div class="pz-phd"><div class="pz-seg" id="pzSeg">'
-+'<button class="pz-sb on" data-m="s">Studio</button>'
-+'<button class="pz-sb" data-m="c">Cieco</button></div>'
-+'<div id="pzCnt" class="pz-cnt"></div></div>'
-+'<div class="pz-list" id="pzList"></div>'
-+'<div class="pz-foot" id="pzFoot"></div>'
-+'</div></div></div>';
-document.body.appendChild(o);
-o.querySelector('.pz-x').onclick=chiudi;
-o.querySelector('.pz-back').onclick=function(){if(PZ)lista();else chiudi();};
-o.querySelector('#pzSeg').addEventListener('click',function(e){
-var b=e.target.closest('.pz-sb');if(!b||!PZ)return;
-PZ.modo=b.dataset.m;
-o.querySelectorAll('.pz-sb').forEach(function(x){x.classList.toggle('on',x===b);});
-disegnaVie();
-});
-setTimeout(creaMappa,120);
-lista();
-try{hap();}catch(e){}
-}catch(e){}
-};
-function chiudi(){
-try{
-var o=document.getElementById('pzOv');if(o)o.remove();
-PZ=null;mappaPz=null;gruppo=[];posizionando=-1;
-}catch(e){}
-}
-window.chiudiPiazze=chiudi;
-
-/* ── mappa dedicata ── */
-function creaMappa(){
-try{
-if(typeof L==='undefined')return;
-var d=document.getElementById('pzMap');if(!d||mappaPz)return;
-mappaPz=L.map('pzMap',{zoomControl:true,attributionControl:true}).setView([45.4642,9.19],13);
-livPz=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-{maxNativeZoom:19,maxZoom:20,keepBuffer:3,attribution:'&copy; OpenStreetMap'}).addTo(mappaPz);
-mappaPz.on('click',function(ev){
-if(posizionando<0||!PZ)return;
-try{
-var k=(posizionando===999)?chiaveC(PZ.p):chiave(PZ.p,posizionando);
-coords[k]={lat:ev.latlng.lat,lon:ev.latlng.lng};
-save();autoSave();
-posizionando=-1;
-document.body.classList.remove('pz-placing');
-disegnaVie();pin();
-toast2('\ud83d\udccd Posizionata');
-try{hap('m');}catch(e){}
-}catch(e){}
-});
-setTimeout(function(){try{mappaPz.invalidateSize();}catch(e){}},200);
-}catch(e){}
-}
-function pulisciPin(){try{gruppo.forEach(function(m){try{mappaPz.removeLayer(m);}catch(e){}});gruppo=[];}catch(e){}}
-function pin(){
-try{
-if(!mappaPz||!PZ)return;
-pulisciPin();
-var punti=[];
-var c=coords[chiaveC(PZ.p)];
-if(c){
-var mc=L.marker([c.lat,c.lon],{icon:L.divIcon({className:'pz-pin centro',
-html:'<div class="pz-pb">\u2b50</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(mappaPz);
-mc.bindPopup(esc(PZ.p.n));gruppo.push(mc);punti.push([c.lat,c.lon]);
-}
-PZ.p.v.forEach(function(v,i){
-var k=coords[chiave(PZ.p,i)];if(!k)return;
-var att=(i===PZ.i);
-var m=L.marker([k.lat,k.lon],{icon:L.divIcon({className:'pz-pin'+(att?' att':''),
-html:'<div class="pz-pb">'+(i+1)+'</div>',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(mappaPz);
-m.bindPopup((i+1)+'. '+esc(v));gruppo.push(m);punti.push([k.lat,k.lon]);
-if(att&&PZ.modo!=='c')setTimeout(function(){try{m.openPopup();}catch(e){}},200);
-});
-if(punti.length){
-try{
-if(punti.length===1)mappaPz.setView(punti[0],16);
-else mappaPz.fitBounds(punti,{padding:[40,40],maxZoom:16});
-}catch(e){}
-}
-}catch(e){}
-}
-
-/* ── elenco delle 90 piazze ── */
-function lista(){
-try{
-PZ=null;posizionando=-1;
-var L2=elenco(),sr=pzSR(),ora=Date.now();
-document.getElementById('pzTit').textContent='Piazze di Milano';
-document.getElementById('pzSub').textContent=L2.length+' piazze \u00b7 tocca per studiarle';
-document.getElementById('pzSeg').style.visibility='hidden';
-document.getElementById('pzFoot').innerHTML='';
-var mappati=function(p){var n=0;p.v.forEach(function(_,i){if(coords[chiave(p,i)])n++;});return n;};
-var scad=L2.filter(function(p){var s=sr[p.id];return s&&s.due&&s.due<=ora;}).length;
-document.getElementById('pzCnt').textContent=scad?(scad+' da ripassare'):'';
-document.getElementById('pzList').innerHTML=
-'<input id="pzCerca" class="pz-cerca" placeholder="Cerca piazza o via\u2026" autocomplete="off">'
-+'<div id="pzRows"></div>';
-function righe(filtro){
-var f=(filtro||'').toLowerCase().trim();
-var sel=L2.filter(function(p){
-if(!f)return true;
-if(p.n.toLowerCase().indexOf(f)>=0)return true;
-return p.v.some(function(v){return v.toLowerCase().indexOf(f)>=0;});
-});
-document.getElementById('pzRows').innerHTML=sel.map(function(p){
-var s=sr[p.id],due=s&&s.due&&s.due<=ora;
-var m=mappati(p);
-return '<button class="pz-row'+(due?' due':'')+'" data-id="'+p.id+'">'
-+'<span class="pz-n">'+esc(p.n)+'</span>'
-+'<span class="pz-m">'+p.v.length+' vie'+(m?(' \u00b7 '+m+' \ud83d\udccd'):'')+(due?' \u00b7 da ripassare':'')+'</span></button>';
-}).join('')||'<div class="pz-vuoto">Nessun risultato</div>';
-}
-righe('');
-document.getElementById('pzCerca').oninput=function(){righe(this.value);};
-document.getElementById('pzRows').addEventListener('click',function(e){
-var b=e.target.closest('.pz-row');if(!b)return;
-var p=L2.find(function(x){return x.id===b.dataset.id;});
-if(p)apri(p);
-});
-}catch(e){}
-}
-
-/* ── apertura di una piazza ── */
-function apri(p){
-try{
-PZ={p:p,i:0,modo:'s',ok:0,err:0};
-document.getElementById('pzTit').textContent=p.n;
-document.getElementById('pzSub').textContent=p.v.length+' vie';
-document.getElementById('pzSeg').style.visibility='visible';
-document.querySelectorAll('.pz-sb').forEach(function(x){x.classList.toggle('on',x.dataset.m==='s');});
-disegnaVie();pin();
-try{hap();}catch(e){}
-}catch(e){}
-}
-
-function disegnaVie(){
-try{
-if(!PZ)return;
-var p=PZ.p,cieco=(PZ.modo==='c');
-document.getElementById('pzCnt').textContent='Via '+(PZ.i+1)+' di '+p.v.length;
-var c=coords[chiaveC(p)];
-document.getElementById('pzList').innerHTML=
-'<button class="pz-centro'+(c?' ok':'')+'" id="pzCentro">'
-+(c?'\u2b50 Centro piazza posizionato \u00b7 tocca per rifarlo':'\u2b50 Posiziona il centro della piazza')+'</button>'
-+p.v.map(function(v,i){
-var att=(i===PZ.i),mk=!!coords[chiave(p,i)];
-var nome=(cieco&&!att)?'\u2022\u2022\u2022\u2022\u2022':((cieco&&att&&!PZ.rivelata)?'\ud83d\udc41 tocca Rivela':esc(v));
-return '<div class="pz-via'+(att?' att':'')+'" data-i="'+i+'">'
-+'<span class="pz-num">'+(i+1)+'</span>'
-+'<span class="pz-nome'+((cieco&&!att)?' nas':'')+'">'+nome+'</span>'
-+'<button class="pz-cb'+(mk?' s':'')+'" data-p="'+i+'">'+(mk?'\ud83d\udccd':'+')+'</button></div>';
-}).join('');
-var f=document.getElementById('pzFoot');
-f.innerHTML='<button class="pz-b" id="pzPrev">\u25c0</button>'
-+(cieco?'<button class="pz-b riv" id="pzRiv">\ud83d\udc41 Rivela</button>':'')
-+'<button class="pz-b av" id="pzNext">\u25b6</button>';
-document.getElementById('pzPrev').onclick=function(){vai(-1);};
-document.getElementById('pzNext').onclick=function(){vai(1);};
-var rv=document.getElementById('pzRiv');
-if(rv)rv.onclick=function(){PZ.rivelata=true;disegnaVie();try{hap();}catch(e){}};
-document.getElementById('pzCentro').onclick=function(){
-posizionando=999;document.body.classList.add('pz-placing');
-toast2('\u2b50 Tocca la mappa dove si trova la piazza',2600);
-};
-document.getElementById('pzList').addEventListener('click',function(e){
-var cb=e.target.closest('.pz-cb');
-if(cb){
-var i=+cb.dataset.p;
-var k=chiave(PZ.p,i);
-if(coords[k]){delete coords[k];save();autoSave();}
-posizionando=i;PZ.i=i;document.body.classList.add('pz-placing');
-disegnaVie();pin();
-toast2('\ud83d\udccd Tocca la mappa dove si trova '+PZ.p.v[i],2800);
-return;
-}
-var r=e.target.closest('.pz-via');
-if(r){PZ.i=+r.dataset.i;PZ.rivelata=false;disegnaVie();pin();}
-});
-var att=document.querySelector('.pz-via.att');
-if(att)try{att.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}
-}catch(e){}
-}
-
-function vai(d){
-try{
-if(!PZ)return;
-var n=PZ.p.v.length;
-var nuovo=PZ.i+d;
-if(nuovo<0)nuovo=0;
-if(nuovo>=n){
-/* fine giro: la spirale avanza */
-avanza(PZ.p.id,true);
-toast2('\u2705 '+PZ.p.n+' completata \u00b7 torna nel ripasso');
-try{confetti();}catch(e){}
-lista();return;
-}
-PZ.i=nuovo;PZ.rivelata=false;
-disegnaVie();pin();
-try{hap();}catch(e){}
-}catch(e){}
-}
 })();
 
 /* ═══════════════════════════════════════════════════

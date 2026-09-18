@@ -18,8 +18,11 @@ function avviso(t,ms){try{if(typeof toast2==='function'){toast2(t,ms||2200);retu
 
 /* ───────── i dati: base + tue aggiunte e modifiche ───────── */
 function base(){try{return (window.__PIAZZE__||[]).slice();}catch(e){return [];}}
-function tue(){return L('pzUser',[]);}            /* piazze aggiunte da te */
-function modifiche(){return L('pzEdit',{});}      /* vie cambiate sulle piazze di base */
+/* se in memoria finisce spazzatura, riparto da vuoto invece di rompermi */
+function tue(){var v=L('pzUser',[]);
+return (Array.isArray(v)?v:[]).filter(function(p){return p&&p.id&&p.n&&Array.isArray(p.v);});}
+function modifiche(){var v=L('pzEdit',{});
+return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
 
 function tutte(){
 var out=[];
@@ -41,8 +44,10 @@ function trova(id){var a=tutte();for(var i=0;i<a.length;i++)if(a[i].id===id)retu
 window.pzTutte=tutte;
 
 /* ───────── statistiche e spirale ───────── */
-function stats(){return L('pzStats',{});}
-function spirale(){return L('pzSR',{});}
+function stats(){var v=L('pzStats',{});
+return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function spirale(){var v=L('pzSR',{});
+return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
 var PASSI=[1,2,4,9,21,45];
 function segna(id,giusto){
 try{
@@ -126,11 +131,15 @@ var h='<div class="pz-hd">'
 h+='<div class="pz-body"><div class="pz-in">';
 h+='<button class="pz-primario" onclick="pzRandom(1)">\ud83d\uddfa\ufe0f Apri la mappa delle piazze</button>';
 h+='<button class="pz-primario pz-sec" onclick="pzScriviCaso()">\u270d\ufe0f Scrivi le vie a memoria</button>';
-h+='<div class="pz-tiles">'
-+'<button class="pz-tile" onclick="pzRipasso()"><b>'+scadute+'</b><span>da ripassare</span></button>'
-+'<button class="pz-tile" onclick="pzNuove()"><b>'+mai+'</b><span>mai viste</span></button>'
-+'<button class="pz-tile" onclick="pzCondiviseVista()"><b>'+condivise().length+'</b><span>vie doppie</span></button>'
-+'</div>';
+var av=window.pzAvanzamento?pzAvanzamento():{fatte:0,tot:lista.length,perc:0};
+h+='<div class="pz-prog">'
++'<div class="pz-prog-t"><b>'+av.fatte+' piazze su '+av.tot+'</b><i>'+av.perc+'%</i></div>'
++'<div class="pz-prog-b"><span style="width:'+av.perc+'%"></span></div>'
++'<div class="pz-prog-s">'
++'<button onclick="pzRipasso()">'+scadute+' da ripassare</button>'
++'<button onclick="pzNuove()">'+mai+' mai viste</button>'
++'<button onclick="pzCondiviseVista()">'+condivise().length+' vie doppie</button>'
++'</div></div>';
 
 h+='<div class="pz-cerca"><input id="pzQ" type="search" placeholder="Cerca piazza o via\u2026" '
 +'oninput="pzFiltra(this.value)" value="'+E(FILTRO)+'"></div>';
@@ -156,19 +165,36 @@ return p.v.some(function(v){return v.toLowerCase().indexOf(q)>=0;});
 });
 if(!lista.length){box.innerHTML='<div class="pz-vuoto">Nessuna piazza trovata</div>';return;}
 var sr=spirale(),st=stats(),ora=Date.now();
-var h='';
+/* raggruppate per stato: prima quelle che ti servono oggi */
+var gruppi=[
+{k:'scaduta',t:'DA RIPASSARE OGGI',a:[]},
+{k:'corso',t:'GI\u00c0 INIZIATE',a:[]},
+{k:'ok',t:'IMPARATE',a:[]},
+{k:'mai',t:'MAI VISTE',a:[]}];
 lista.forEach(function(p){
-var s=sr[p.id],x=st[p.id]||{ok:0,ko:0};
-var stato='mai',lab='mai vista';
-if(s){
-if(s.due&&s.due<=ora){stato='scaduta';lab='da ripassare';}
-else{stato='ok';var gg=Math.max(1,Math.round((s.due-ora)/86400000));lab='fra '+gg+'g';}
+var s=window.pzStato?pzStato(p):{k:'mai'};
+var g=gruppi.filter(function(x){return x.k===s.k;})[0]||gruppi[3];
+g.a.push({p:p,s:s});
+});
+var h='';
+gruppi.forEach(function(g){
+if(!g.a.length)return;
+h+='<div class="pz-grp">'+g.t+' <em>'+g.a.length+'</em></div>';
+g.a.forEach(function(o){
+var p=o.p,s=o.s,x=st[p.id]||{ok:0,ko:0};
+var z=window.pzZona?pzZona(p):null;
+var sp=sr[p.id],lab=s.n;
+if(s.k==='ok'&&sp&&sp.due){
+var gg=Math.max(1,Math.round((sp.due-ora)/86400000));lab='fra '+gg+'g';
 }
-h+='<button class="pz-row pz-'+stato+'" onclick="pzApri(\''+p.id+'\')">'
-+'<span class="pz-dot"></span>'
+h+='<button class="pz-row pz-'+s.k+'" onclick="pzApri(\''+p.id+'\')">'
++'<span class="pz-dot"'+(z?' style="background:'+z.c+'" title="'+z.n+'"':'')+'></span>'
 +'<span class="pz-nm"><b>'+E(p.n)+'</b><i>'+p.v.length+' vie \u00b7 '+lab
++(z?(' \u00b7 '+z.n):'')
 +(x.ko?(' \u00b7 '+x.ko+' errori'):'')+'</i></span>'
 +'<span class="pz-ar">\u203a</span></button>';
+});
+h+='</div>';
 });
 box.innerHTML=h;
 }catch(e){}
@@ -188,17 +214,19 @@ ov.innerHTML=''
 +'<div class="pz-ti">'+E(p.n)+'</div>'
 +'<div class="pz-su">'+p.v.length+' vie</div>'
 +'<button class="pz-rnd" onclick="pzRandom()" title="Un\u2019altra a caso">\ud83c\udfb2</button>'
-+'<div class="pz-modi">'
++'</div>'
++'<div class="pz-modi4">'
 +'<button id="pzMs" class="pz-m'+(CIECO?'':' on')+'" onclick="pzModo(false)">Studio</button>'
 +'<button id="pzMc" class="pz-m'+(CIECO?' on':'')+'" onclick="pzModo(true)">Cieco</button>'
-+'</div></div>'
++'<button class="pz-m" onclick="pzMappa(\''+p.id+'\')">Mappa</button>'
++'<button class="pz-m" onclick="pzScrivi(\''+p.id+'\')">Scrivi</button>'
++'</div>'
 +'<div class="pz-body pz-linea"><div class="pz-in">'
-+'<button class="pz-primario" onclick="pzMappa()">\ud83d\uddfa\ufe0f Vedi sulla mappa</button>'
 +'<div id="pzMetro"></div>'
 +'<div class="pz-azioni">'
-+'<button onclick="pzScrivi(\''+p.id+'\')">\u270d\ufe0f Scrivi le vie</button>'
 +'<button onclick="pzVerifica()">\u2713 Mi verifico</button>'
 +'<button onclick="pzModifica()">\u270e Modifica</button>'
++'<button class="pz-del" onclick="pzElimina(\''+p.id+'\')">\ud83d\uddd1 Elimina</button>'
 +'</div></div></div>'
 +'<div class="pz-foot">'
 +'<button class="pz-nav" onclick="pzVai(-1)">\u25c0</button>'
@@ -898,6 +926,7 @@ pannello();
 var co=L('pzCoords',{}),pr;
 if(a.tipo==='c'){
 pr=cerca(a.p.n+', Milano, Italia',null).then(function(r){
+if(!GEO)return;
 if(r){var c2=L('pzCoords',{});c2[a.p.id]={lat:r.lat,lon:r.lon,auto:1};S('pzCoords',c2);GEO.ok++;}
 else GEO.ko++;
 });
@@ -908,9 +937,11 @@ else{
 var dla=0.011,dlo=0.015;   /* riquadro di circa 1,2 km attorno alla piazza */
 var box=(c.lon-dlo)+','+(c.lat+dla)+','+(c.lon+dlo)+','+(c.lat-dla);
 pr=cerca(a.v+', Milano',box).then(function(r){
+if(!GEO)return;
 if(r){var c2=L('pzCoords',{});c2[a.p.id+'_'+a.i]={lat:r.lat,lon:r.lon,auto:1};S('pzCoords',c2);GEO.ok++;return;}
 /* se lì non c'è, cerco in tutta Milano ma accetto solo se è vicina */
 return cerca(a.v+', Milano, Italia',null).then(function(r2){
+if(!GEO)return;
 if(r2&&lontananza(r2,c)<=2.5){
 var c3=L('pzCoords',{});c3[a.p.id+'_'+a.i]={lat:r2.lat,lon:r2.lon,auto:1};S('pzCoords',c3);GEO.ok++;
 }else GEO.ko++;
@@ -919,9 +950,11 @@ var c3=L('pzCoords',{});c3[a.p.id+'_'+a.i]={lat:r2.lat,lon:r2.lon,auto:1};S('pzC
 }
 }
 pr.catch(function(){
+if(!GEO)return;               /* fermato mentre la richiesta era in volo */
 GEO.ko++;
 if(GEO.ok===0&&GEO.i>=2){GEO.stop=true;GEO.rete=true;}
 }).then(function(){
+if(!GEO)return;               /* idem: non scrivo su quello che non c'è più */
 GEO.i++;
 if(GEO.i%10===0){try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}}
 try{if(typeof PANP!=='undefined'&&PANP)disegnaSuMappa(PANP);}catch(e){}
@@ -1404,4 +1437,59 @@ if(SCMAP){try{SCMAP.remove();}catch(e){}SCMAP=null;}
 vibra();
 }catch(e){}
 }
+})();
+
+/* ═══════════════════════════════════════════════════
+   REDESIGN — barra unica, elenco raggruppato, zone
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+/* il centro di Milano: da lì ricavo la zona */
+var CX=45.4642,CY=9.1900;
+var ZONE=[
+{k:'centro',n:'Centro',c:'#6D5AE0'},
+{k:'nord',n:'Nord',c:'#2447D6'},
+{k:'est',n:'Est',c:'#0E9F6E'},
+{k:'sud',n:'Sud',c:'#D97706'},
+{k:'ovest',n:'Ovest',c:'#E5484D'}
+];
+window.pzZone=ZONE;
+window.pzZona=function(p){
+try{
+var co=L('pzCoords',{}),c=co[p.id];
+if(!c)return null;
+var dy=(c.lat-CX)*111,dx=(c.lon-CY)*78;
+var d=Math.sqrt(dx*dx+dy*dy);
+if(d<1.6)return ZONE[0];
+var a=Math.atan2(dy,dx)*180/Math.PI;   /* 0 = est, 90 = nord */
+if(a>=45&&a<135)return ZONE[1];
+if(a>=-45&&a<45)return ZONE[2];
+if(a>=-135&&a<-45)return ZONE[3];
+return ZONE[4];
+}catch(e){return null;}
+};
+/* a che punto sei con una piazza */
+window.pzStato=function(p){
+try{
+var sr=L('pzSR',{}),st=L('pzStats',{}),ora=Date.now();
+var c=sr[p.id],x=st[p.id];
+if(c&&c.due&&c.due<=ora)return {k:'scaduta',n:'da ripassare',ord:0};
+if(!x)return {k:'mai',n:'mai vista',ord:3};
+var tot=(x.ok||0)+(x.ko||0);
+var perc=tot?Math.round((x.ok||0)/tot*100):0;
+if(perc>=85)return {k:'ok',n:perc+'%',ord:2,perc:perc};
+return {k:'corso',n:perc+'%',ord:1,perc:perc};
+}catch(e){return {k:'mai',n:'mai vista',ord:3};}
+};
+/* quante ne sai davvero */
+window.pzAvanzamento=function(){
+try{
+var t=window.pzTutte?pzTutte():[];
+if(!t.length)return {fatte:0,tot:0,perc:0};
+var fatte=0;
+t.forEach(function(p){var s=pzStato(p);if(s.k==='ok')fatte++;});
+return {fatte:fatte,tot:t.length,perc:Math.round(fatte/t.length*100)};
+}catch(e){return {fatte:0,tot:0,perc:0};}
+};
 })();

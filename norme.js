@@ -19,8 +19,9 @@ var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 var OV=null,VISTA='menu',QZ=null;
 var PASSI=[1,2,4,9,21,45];
 
-function stats(){return L('nmStats',{});}
-function spirale(){return L('nmSR',{});}
+function ogg(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function stats(){return ogg(L('nmStats',{}));}
+function spirale(){return ogg(L('nmSR',{}));}
 window.nmScadute=function(){
 try{var sr=spirale(),ora=Date.now(),n=0,d=D();if(!d)return 0;
 d.sez.forEach(function(s){var c=sr[s.id];if(c&&c.due&&c.due<=ora)n++;});return n;}catch(e){return 0;}};
