@@ -2652,8 +2652,9 @@ if(sl){sl.textContent=(ORD.start+ORD.idx+1)+'. '+v;sl.classList.add('done');}
 ORD.idx++;hap('m');
 if(ORD.idx>=ORD.target.length){
 var perfetto=ORD.err===0;
+var _err=ORD.err;   /* me lo segno ora: se chiudi prima dei 450ms ORD non c'è più */
 setTimeout(function(){
-toast2(perfetto?'🏆 Perfetto, ordine esatto!':'✅ Completato con '+ORD.err+' error'+(ORD.err===1?'e':'i'));
+toast2(perfetto?'🏆 Perfetto, ordine esatto!':'✅ Completato con '+_err+' error'+(_err===1?'e':'i'));
 if(perfetto)try{confetti();}catch(e){}
 ordClose();
 },450);

@@ -1354,7 +1354,7 @@ SC.trovate[bi]={modo:best.modo};
 i.value='';
 esito(true,(best.modo==='esatto')?('\u2713 '+p.v[bi]):('\u2713 '+p.v[bi]+' \u2014 si scrive cos\u00ec'));
 aggiorna();
-if(Object.keys(SC.trovate).length>=p.v.length)setTimeout(fine,700);
+if(Object.keys(SC.trovate).length>=p.v.length)setTimeout(function(){if(SC)fine();},700);
 }else{
 /* l'ho già scritta? */
 var gia=-1;

@@ -174,7 +174,10 @@ else if(j===i)x.classList.add('bad');});
 if(giusto)QZ.ok++;else QZ.sbagliate.push(it);
 segna(it.art,giusto);
 vibra();
-setTimeout(function(){QZ.i++;quizPasso();},giusto?650:1500);
+setTimeout(function(){
+/* se intanto hai chiuso il quiz non scrivo su quello che non c'è più */
+if(!QZ)return;
+QZ.i++;quizPasso();},giusto?650:1500);
 };});
 }catch(e){}
 }
