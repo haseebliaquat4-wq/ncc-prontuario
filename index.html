@@ -99,25 +99,23 @@
 <div class="mwrap">
 <button class="ichip" onclick="togMenu()" aria-label="Altre opzioni" title="Menu">⋯</button>
 <div class="omenu" id="omenu">
+<div class="mi-tit">STUDIA</div>
 <button onclick="goQuiz();cm()"><span class="mi">📝</span>Quiz d'esame</button>
-<button onclick="openMgr();cm()"><span class="mi">📋</span>Percorsi salvati</button>
-<button onclick="openStats();cm()"><span class="mi">📊</span>Statistiche vie</button>
 <button onclick="openWrong();cm()"><span class="mi">🔁</span>Vie da ripassare</button>
 <button onclick="ordinaVie();cm()"><span class="mi">🧩</span>Ordina le vie</button>
-<button onclick="weeklyReport(true);cm()"><span class="mi">📅</span>Report settimanale</button>
-<button onclick="nccEsporta();cm()"><span class="mi">💾</span>Salva una copia</button>
-<button onclick="nccRipristina();cm()"><span class="mi">📥</span>Ripristina da una copia</button>
-<button onclick="ordinaVie()"><span class="mi">🧩</span>Ordina le vie</button>
 <div class="mi-sep"></div>
+<div class="mi-tit">I TUOI DATI</div>
+<button onclick="openMgr();cm()"><span class="mi">📋</span>Percorsi salvati</button>
+<button onclick="openStats();cm()"><span class="mi">📊</span>Statistiche vie</button>
+<button onclick="weeklyReport(true);cm()"><span class="mi">📅</span>Report settimanale</button>
+<button onclick="nccSalvaCopia();cm()"><span class="mi">💾</span>Salva una copia</button>
+<button onclick="nccRiprendiCopia();cm()"><span class="mi">📥</span>Ripristina</button>
+<div class="mi-sep"></div>
+<div class="mi-tit">IMPOSTAZIONI</div>
 <button onclick="togDark();cm()"><span class="mi" id="dkIcon">🌙</span>Modalità notte</button>
 <button onclick="togSnd()"><span class="mi" id="sndIcon">🔊</span>Suoni</button>
 <button onclick="togVib()"><span class="mi" id="vibIcon">📳</span>Vibrazione</button>
 <button onclick="togBerlina()"><span class="mi" id="berlIcon">🚘</span>Tema Berlina</button>
-<div class="mi-sep"></div>
-<button onclick="doExport();cm()"><span class="mi">📤</span>Esporta backup</button>
-<button onclick="doImport();cm()"><span class="mi">📥</span>Importa backup</button>
-<button onclick="cloudSave();cm()"><span class="mi">💾</span>Salva su cloud</button>
-<button onclick="restoreBackup();cm()"><span class="mi">🛟</span>Ripristina backup settimanale</button>
 <div class="mi-sep"></div>
 <button onclick="doReset();cm()" class="red"><span class="mi">🗑️</span>Reimposta tutto</button>
 <div class="mi-sep"></div>
@@ -524,7 +522,7 @@ document.write('<script src="https://unpkg.com/leaflet-polylinedecorator/dist/le
 <script src="norme-data.js?v=1"></script>
 
 <script src="app.js?v=6"></script>
-<script src="addon.js?v=86"></script><!-- ADDON: commenta questa riga per disattivare -->
+<script src="addon.js?v=87"></script><!-- ADDON: commenta questa riga per disattivare -->
 <script src="piazze.js?v=15"></script>
 <script src="norme.js?v=3"></script><!-- PIAZZE: sezione piazze di Milano -->
 

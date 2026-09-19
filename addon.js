@@ -1664,6 +1664,55 @@ cursor:pointer;font-family:inherit;min-height:36px;}
 
 .pzm-seg .pzm-sv{background:var(--ok);color:#fff;border-color:var(--ok);font-size:15px;}
 #panel .brow #svBtn{flex:0 0 46px;background:var(--ok);color:#fff;border-color:var(--ok);}
+
+.mi-tit{font-size:10px;font-weight:850;letter-spacing:.08em;color:var(--mu);
+padding:10px 16px 5px;pointer-events:none;}
+
+
+/* ══════════ CERCA IN TUTTO ══════════ */
+.cx-btn{display:flex;align-items:center;gap:9px;width:100%;
+padding:13px 15px;margin:0 0 12px;
+border:1.5px solid var(--bd);border-radius:var(--r-lg);
+background:var(--card);color:var(--mu);
+font-family:inherit;font-size:14px;font-weight:650;
+text-align:left;cursor:pointer;}
+.cx-btn span{font-size:15px;}
+.cx-btn:active{transform:scale(.98);}
+#cxOv{position:fixed;inset:0;z-index:8980;background:var(--bg);
+display:flex;flex-direction:column;overflow:hidden;
+animation:pzIn .26s var(--e-soft) both;}
+.cx-hd{display:flex;align-items:center;gap:9px;flex-shrink:0;
+padding:12px 14px;background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.cx-x{width:40px;height:40px;flex-shrink:0;border:1.5px solid var(--bd);
+border-radius:var(--r-md);background:var(--bg);color:var(--tx);
+font-size:17px;font-weight:750;cursor:pointer;font-family:inherit;}
+#cxIn{flex:1;min-width:0;padding:12px 14px;
+border:1.5px solid var(--bd);border-radius:var(--r-md);
+background:var(--bg);color:var(--tx);
+font-family:inherit;font-size:16px;font-weight:650;outline:none;}
+#cxIn:focus{border-color:var(--a);}
+.cx-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 24px;}
+.cx-body>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
+.cx-n{font-size:11px;font-weight:800;color:var(--mu);letter-spacing:.05em;
+margin-bottom:9px;}
+.cx-r{display:flex;align-items:center;gap:11px;width:100%;
+min-height:56px;padding:11px 13px;margin-bottom:7px;
+border:1.5px solid var(--bd);border-radius:var(--r-md);
+background:var(--card);text-align:left;cursor:pointer;font-family:inherit;}
+.cx-r:active{transform:scale(.98);}
+.cx-ic{font-size:18px;flex-shrink:0;}
+.cx-tx{flex:1;min-width:0;}
+.cx-tx b{display:block;font-size:14px;font-weight:750;color:var(--tx);
+line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cx-tx i{display:block;font-style:normal;font-size:12px;font-weight:600;
+color:var(--mu);margin-top:2px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cx-t{flex-shrink:0;font-size:9.5px;font-weight:800;color:var(--a);
+background:rgba(36,71,214,.1);padding:3px 7px;border-radius:999px;
+text-transform:uppercase;letter-spacing:.03em;}
+.cx-vuoto{text-align:center;padding:40px 20px;color:var(--mu);
+font-size:14px;font-weight:650;line-height:1.6;}
+.cx-vuoto small{font-size:12px;opacity:.75;}
 `;
 }catch(e){}
 })();
@@ -6971,4 +7020,199 @@ try{
 var _gt=goTopografia;
 goTopografia=function(){var r=_gt.apply(this,arguments);setTimeout(metti,260);return r;};
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   BACKUP: da sei voci a due
+   Sei comandi facevano tre cose. Ora "Salva una copia" e
+   "Ripristina" chiedono dove, e chiamano quello che c'è già.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function c(f){return typeof window[f]==='function';}
+window.nccSalvaCopia=function(){
+try{
+var haCloud=c('cloudSave');
+if(!haCloud){nccEsporta();return;}
+var scelta=confirm('Dove salvo la copia?\n\n'
++'OK  \u2192 sul telefono, come file\n'
++'Annulla \u2192 sul cloud');
+if(scelta)nccEsporta();
+else{try{cloudSave();}catch(e){nccEsporta();}}
+}catch(e){try{nccEsporta();}catch(e2){}}
+};
+window.nccRiprendiCopia=function(){
+try{
+var haSett=c('restoreBackup'),haImp=c('doImport');
+if(!haSett&&!haImp){nccRipristina();return;}
+var m='Da dove ripristino?\n\n'
++'OK  \u2192 da un file che hai salvato\n'
++'Annulla \u2192 dall\u2019ultimo backup automatico settimanale';
+var scelta=confirm(m);
+if(scelta)nccRipristina();
+else{try{restoreBackup();}catch(e){nccRipristina();}}
+}catch(e){try{nccRipristina();}catch(e2){}}
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   🔎 CERCA IN TUTTO
+   Un campo solo che guarda dentro percorsi, vie, piazze,
+   norme e tariffe. Scrivi "Loreto" o "sospensione" e ti
+   porta dove serve.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function norm(s){return String(s||'').toLowerCase()
+.replace(/[\u00e0\u00e1]/g,'a').replace(/[\u00e8\u00e9]/g,'e').replace(/[\u00ec\u00ed]/g,'i')
+.replace(/[\u00f2\u00f3]/g,'o').replace(/[\u00f9\u00fa]/g,'u')
+.replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+
+function cerca(q){
+var n=norm(q),r=[];
+if(n.length<2)return r;
+/* piazze e le loro vie */
+try{
+var P=window.pzTutte?pzTutte():[];
+P.forEach(function(p){
+if(norm(p.n).indexOf(n)>=0)
+r.push({t:'piazza',ic:'\ud83d\udd37',tit:p.n,sub:p.v.length+' vie',
+fn:function(){openPiazze();setTimeout(function(){pzApri(p.id);},180);}});
+p.v.forEach(function(v){
+if(norm(v).indexOf(n)>=0)
+r.push({t:'via',ic:'\ud83d\udee3',tit:v,sub:'sbocca in '+p.n,
+fn:function(){openPiazze();setTimeout(function(){pzApri(p.id);},180);}});
+});
+});
+}catch(e){}
+/* percorsi */
+try{
+var R=(typeof routes!=='undefined'&&routes)?routes:[];
+R.forEach(function(x){
+if(norm(x.title).indexOf(n)>=0)
+r.push({t:'percorso',ic:'\ud83d\uddfa\ufe0f',tit:x.title,sub:(x.steps||[]).length+' tappe',
+fn:function(){try{goTopografia();setTimeout(function(){selectRoute(x);},260);}catch(e){}}});
+(x.steps||[]).forEach(function(s){
+if(norm(s).indexOf(n)>=0)
+r.push({t:'tappa',ic:'\ud83d\udccd',tit:s,sub:'nel percorso '+x.title,
+fn:function(){try{goTopografia();setTimeout(function(){selectRoute(x);},260);}catch(e){}}});
+});
+});
+}catch(e){}
+/* norme */
+try{
+var N=window.__NORME__;
+if(N){
+N.sez.forEach(function(s){
+var dentro=norm(s.t).indexOf(n)>=0||s.p.some(function(x){return norm(x).indexOf(n)>=0;});
+if(dentro)r.push({t:'norma',ic:'\ud83d\udcdc',tit:'Art. '+s.art+' \u2014 '+s.t,sub:s.p.length+' punti',
+fn:function(){openNorme();setTimeout(function(){nmArt(s.id);},180);}});
+});
+N.num.forEach(function(x){
+if(norm(x.d).indexOf(n)>=0||norm(x.v).indexOf(n)>=0)
+r.push({t:'numero',ic:'\ud83d\udd22',tit:x.v,sub:x.d,fn:function(){openNorme();setTimeout(nmNumeri,180);}});
+});
+}
+}catch(e){}
+/* tariffe */
+try{
+var G=window.__REGOLE__;
+if(G&&G.norme)G.norme.forEach(function(x){
+if(norm(x.t).indexOf(n)>=0||norm(x.d).indexOf(n)>=0)
+r.push({t:'tariffa',ic:'\ud83d\udcd0',tit:x.t,sub:x.d.slice(0,58),
+fn:function(){try{openRegole();}catch(e){}}});
+});
+if(G&&G.fisse)G.fisse.forEach(function(x){
+var et=(x.da||'')+' '+(x.a||'')+' '+(x.n||'');
+if(norm(et).indexOf(n)>=0)
+r.push({t:'tariffa fissa',ic:'\ud83d\udcb6',tit:et.trim(),sub:'\u20ac '+(x.p||x.eur||''),
+fn:function(){try{openRegole();}catch(e){}}});
+});
+}catch(e){}
+/* le migliori prima: chi inizia con quello che hai scritto */
+r.sort(function(a,b){
+var A=norm(a.tit).indexOf(n)===0?0:1,B=norm(b.tit).indexOf(n)===0?0:1;
+return A-B;});
+return r.slice(0,40);
+}
+window.nccCerca=cerca;
+
+var RIS=[];
+window.nccApriCerca=function(){
+try{
+var o=document.getElementById('cxOv');
+if(o)o.remove();
+o=document.createElement('div');o.id='cxOv';o.className='rd';
+o.innerHTML='<div class="cx-hd">'
++'<button class="cx-x" onclick="nccChiudiCerca()">\u2039</button>'
++'<input id="cxIn" type="text" autocomplete="off" spellcheck="false" '
++'placeholder="Cerca piazza, via, percorso, norma\u2026">'
++'</div><div class="cx-body" id="cxRis">'
++'<div class="cx-vuoto">Scrivi almeno due lettere.<br><small>Cerca in piazze, vie, percorsi, norme e tariffe.</small></div>'
++'</div>';
+document.body.appendChild(o);
+var i=document.getElementById('cxIn');
+var t=null;
+i.oninput=function(){
+clearTimeout(t);
+t=setTimeout(function(){disegna(i.value);},160);
+};
+i.onkeydown=function(ev){
+if(ev.key==='Escape'){ev.preventDefault();nccChiudiCerca();}
+if(ev.key==='Enter'&&RIS.length){ev.preventDefault();nccVai(0);}
+ev.stopPropagation();
+};
+setTimeout(function(){try{i.focus();}catch(e){}},220);
+try{if(window.nccOvApri)nccOvApri('cxOv',function(){nccChiudiCerca();});}catch(e){}
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccChiudiCerca=function(){
+try{var o=document.getElementById('cxOv');if(o)o.remove();RIS=[];}catch(e){}
+};
+window.nccVai=function(i){
+try{
+var r=RIS[i];if(!r)return;
+nccChiudiCerca();
+setTimeout(function(){try{r.fn();}catch(e){}},120);
+try{hap();}catch(e){}
+}catch(e){}
+};
+function disegna(q){
+try{
+var d=document.getElementById('cxRis');if(!d)return;
+RIS=cerca(q);
+if(!q||norm(q).length<2){
+d.innerHTML='<div class="cx-vuoto">Scrivi almeno due lettere.<br><small>Cerca in piazze, vie, percorsi, norme e tariffe.</small></div>';
+return;}
+if(!RIS.length){
+d.innerHTML='<div class="cx-vuoto">Nessun risultato per \u00ab'+E(q)+'\u00bb.</div>';
+return;}
+var h='<div class="cx-n">'+RIS.length+(RIS.length===1?' risultato':' risultati')+'</div>';
+RIS.forEach(function(r,i){
+h+='<button class="cx-r" onclick="nccVai('+i+')">'
++'<span class="cx-ic">'+r.ic+'</span>'
++'<span class="cx-tx"><b>'+E(r.tit)+'</b><i>'+E(r.sub)+'</i></span>'
++'<span class="cx-t">'+E(r.t)+'</span></button>';
+});
+d.innerHTML=h;
+}catch(e){}
+}
+/* il bottone lente in cima alla home */
+function metti(){
+try{
+if(document.getElementById('cxBtn'))return;
+var h=document.getElementById('homeScreen');if(!h)return;
+var b=document.createElement('button');
+b.id='cxBtn';b.className='cx-btn';
+b.innerHTML='<span>\ud83d\udd0e</span> Cerca piazza, via, percorso, norma\u2026';
+b.onclick=function(){nccApriCerca();};
+var primo=h.firstElementChild;
+if(primo)h.insertBefore(b,primo);else h.appendChild(b);
+}catch(e){}
+}
+setTimeout(metti,2400);
+try{var _gh=goHome;goHome=function(){var r=_gh.apply(this,arguments);setTimeout(metti,200);return r;};}catch(e){}
 })();
