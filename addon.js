@@ -1714,17 +1714,7 @@ text-transform:uppercase;letter-spacing:.03em;}
 font-size:14px;font-weight:650;line-height:1.6;}
 .cx-vuoto small{font-size:12px;opacity:.75;}
 
-#tsOv{position:fixed;inset:0;z-index:8960;background:var(--bg);
-display:flex;flex-direction:column;overflow:hidden;
-animation:pzIn .28s var(--e-soft) both;}
-#tsOv .sc-wrap{flex:1;min-height:0;display:flex;}
-#tsOv .sc-lato{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
-padding:14px;background:var(--bg);}
-.sc-slot.ora{border-style:solid;border-color:var(--a);border-width:2px;
-background:rgba(36,71,214,.06);}
-.sc-slot.ora .sc-n{background:var(--a);color:#fff;}
-.sc-slot.ora .sc-v{color:var(--a);font-weight:800;}
-#panel .brow #tsBtn{flex:0 0 46px;background:var(--acc);color:#fff;border-color:var(--acc);}
+#qf .brow #qvHint{flex:0 0 52px;}
 `;
 }catch(e){}
 })();
@@ -7230,196 +7220,91 @@ try{var _gh=goHome;goHome=function(){var r=_gh.apply(this,arguments);setTimeout(
 })();
 
 /* ═══════════════════════════════════════════════════
-   ✍️ SCRIVI LE TAPPE — la stessa cosa delle piazze, sui percorsi
-   Ti do il percorso e la mappa, tu scrivi le vie in ordine.
-   Gli errori di battitura non contano. C'è il suggerimento 💡.
+   ✍️ QUIZ VIE: i refusi non contano più
+   Il confronto del nucleo è esatto: una lettera fuori posto
+   e la via è sbagliata. Qui accetto anche chi la scrive
+   storta, mostrando come si scrive davvero, e aggiungo il
+   suggerimento 💡 accanto a Salta e Mostra.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
-return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function vibra(){try{if(typeof hap==='function')hap();}catch(e){}}
-function avviso(t,ms){try{if(typeof toast2==='function')toast2(t,ms||2200);}catch(e){}}
-/* uso lo stesso confronto tollerante delle piazze */
-function confronta(a,b){
+function conf(a,b){
 try{if(typeof window.pzConfronta==='function')return window.pzConfronta(a,b);}catch(e){}
-return (String(a).toLowerCase().trim()===String(b).toLowerCase().trim())?{d:0,modo:'esatto'}:null;
+return null;
 }
-
-var TS=null;
-
-window.topoScrivi=function(r){
+setTimeout(function(){
 try{
-var p=r;
-if(!p){
-if(typeof cur!=='undefined'&&cur)p=cur;
-else{
-var R=(typeof routes!=='undefined'&&routes)?routes:[];
-if(!R.length){avviso('\u26a0\ufe0f Nessun percorso salvato',2400);return;}
-p=R[Math.floor(Math.random()*R.length)];
+if(typeof checkQ!=='function')return;
+var _cq=checkQ;
+checkQ=function(){
+try{
+var el=document.getElementById('qa');
+var scritto=el?String(el.value||'').trim():'';
+if(!scritto||typeof cur==='undefined'||!cur)return _cq.apply(this,arguments);
+var giusta=cur.steps[step];
+/* lascio decidere il nucleo: se accetta, non tocco niente */
+var primaOk=(typeof qStats!=='undefined'&&qStats[cur.id])?(qStats[cur.id].correct||0):0;
+var r=_cq.apply(this,arguments);
+var dopoOk=(typeof qStats!=='undefined'&&qStats[cur.id])?(qStats[cur.id].correct||0):0;
+if(dopoOk>primaOk)return r;          /* era giusta: fatto */
+/* il nucleo l'ha bocciata: è solo un refuso? */
+var m=conf(scritto,giusta);
+if(!m)return r;
+/* sì: la converto in risposta giusta */
+try{
+if(qStats[cur.id]){
+qStats[cur.id].correct++;
+if(qStats[cur.id].wrong&&qStats[cur.id].wrong[giusta]){
+qStats[cur.id].wrong[giusta]--;
+if(qStats[cur.id].wrong[giusta]<=0)delete qStats[cur.id].wrong[giusta];
 }
+save();autoSave();
 }
-if(!p||!p.steps||p.steps.length<2){avviso('\u26a0\ufe0f Percorso troppo corto',2400);return;}
-TS={r:p,i:0,errori:0,aiuti:0,fatte:{},t0:Date.now()};
-disegna();
-setTimeout(function(){var i=document.getElementById('tsIn');if(i)i.focus();},320);
-vibra();
+}catch(e){}
+var fb=document.getElementById('qfb');
+if(fb){
+fb.textContent='\u2713 '+giusta+' \u2014 si scrive cos\u00ec';
+fb.style.color='var(--ok)';
+}
+try{hap('m');}catch(e){}
+if(el)el.value='';
+setTimeout(function(){
+try{
+if(step<cur.steps.length-1){nextS();}
+else{if(typeof routeCelebrate==='function')routeCelebrate();}
+var q=document.getElementById('qa');if(q)q.focus();
+}catch(e){}
+},900);
+return r;
+}catch(e){try{return _cq.apply(this,arguments);}catch(e2){}}
+};
+}catch(e){}
+},2600);
+
+/* il suggerimento, accanto a Salta e Mostra */
+window.qvAiuto=function(){
+try{
+if(typeof cur==='undefined'||!cur)return;
+var v=String(cur.steps[step]||'');
+var p=v.replace(/^(VIA|VIALE|CORSO|PIAZZA|PIAZZALE|LARGO|V\.LE|C\.SO|P\.ZA|P\.LE|L\.GO|BASTIONI DI)\s+/i,'');
+var iniz=p.slice(0,Math.max(2,Math.ceil(p.length*0.35)));
+var fb=document.getElementById('qfb');
+if(fb){fb.textContent='\ud83d\udca1 inizia per \u00ab'+iniz+'\u2026\u00bb';fb.style.color='var(--warn)';}
+var q=document.getElementById('qa');if(q)q.focus();
+try{hap();}catch(e){}
 }catch(e){}
 };
-window.topoScriviCaso=function(){
-try{
-var R=(typeof routes!=='undefined'&&routes)?routes:[];
-var buoni=R.filter(function(x){return x.steps&&x.steps.length>=2;});
-if(!buoni.length){avviso('\u26a0\ufe0f Nessun percorso salvato',2400);return;}
-var s=buoni[Math.floor(Math.random()*buoni.length)];
-if(window.nccPesca){var q=window.nccPesca(buoni);if(q)s=q;}
-topoScrivi(s);
-}catch(e){}
-};
-window.topoScriviChiudi=function(){
-try{var o=document.getElementById('tsOv');if(o)o.remove();TS=null;}catch(e){}
-};
-
-function disegna(){
-try{
-var r=TS.r,n=r.steps.length,fatte=Object.keys(TS.fatte).length;
-var o=document.getElementById('tsOv');
-if(!o){o=document.createElement('div');o.id='tsOv';o.className='rd';document.body.appendChild(o);
-try{if(window.nccOvApri)nccOvApri('tsOv',function(){topoScriviChiudi();});}catch(e){}}
-var h='<div class="sc-hd">'
-+'<button class="sc-x" onclick="topoScriviChiudi()">\u2039</button>'
-+'<div class="sc-ti">'+E(r.title)+'</div>'
-+'<div class="sc-su">Scrivi le '+n+' tappe, in ordine</div>'
-+'<button class="sc-r" onclick="topoScriviCaso()" title="Un altro percorso">\ud83c\udfb2</button>'
-+'</div>'
-+'<div class="sc-bar"><i style="width:'+Math.round(fatte/n*100)+'%"></i></div>'
-+'<div class="sc-wrap"><div class="sc-lato"><div class="sc-slots">';
-r.steps.forEach(function(v,i){
-var f=TS.fatte[i];
-h+='<div class="sc-slot'+(f?' ok':'')+(i===TS.i&&!f?' ora':'')+'">'
-+'<span class="sc-n">'+(i+1)+'</span>'
-+'<span class="sc-v">'+(f?E(v):(i===TS.i?'\u2190 questa':'\u2014'))+'</span>'
-+(f&&f.modo!=='esatto'?'<span class="sc-q">~</span>':'')
-+(f&&f.aiuto?'<span class="sc-h">\ud83d\udca1</span>':'')
-+'</div>';
-});
-h+='</div></div></div>'
-+'<div class="sc-foot">'
-+'<input id="tsIn" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" '
-+'spellcheck="false" placeholder="Tappa '+(TS.i+1)+' di '+n+'\u2026">'
-+'<button class="sc-ok" onclick="topoScriviInvia()">\u2713</button>'
-+'<button class="sc-aiuto" onclick="topoScriviAiuto()" title="Suggerimento">\ud83d\udca1</button>'
-+'</div>';
-o.innerHTML=h;
-var i=document.getElementById('tsIn');
-if(i)i.onkeydown=function(ev){
-if(ev.key==='Enter'){ev.preventDefault();topoScriviInvia();}
-ev.stopPropagation();};
-try{
-var el=o.querySelectorAll('.sc-slot')[TS.i];
-if(el&&el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'});
-}catch(e){}
-}catch(e){}
-}
-
-window.topoScriviInvia=function(){
-try{
-if(!TS)return;
-var i=document.getElementById('tsIn');if(!i)return;
-var t=i.value.trim();if(!t)return;
-var r=TS.r,giusta=r.steps[TS.i];
-if(confronta(t,giusta)){
-var esatta=(String(t).toLowerCase()===String(giusta).toLowerCase());
-TS.fatte[TS.i]={modo:esatta?'esatto':'quasi'};
-i.value='';TS.i++;
-if(TS.i>=r.steps.length){
-disegna();
-esito(true,'\u2713 '+giusta);   /* dopo il ridisegno, se no lo cancella */
-setTimeout(function(){if(TS)fine();},900);return;}
-disegna();
-esito(true,esatta?('\u2713 '+giusta):('\u2713 '+giusta+' \u2014 si scrive cos\u00ec'));
-setTimeout(function(){var q=document.getElementById('tsIn');if(q)q.focus();},60);
-}else{
-/* è una tappa del percorso, ma non questa? */
-var altrove=-1;
-r.steps.forEach(function(v,k){if(k!==TS.i&&!TS.fatte[k]&&confronta(t,v))altrove=k;});
-if(altrove>=0){esito(null,'\u00c8 la tappa '+(altrove+1)+', non adesso');}
-else{TS.errori++;esito(false,'\u2715 non \u00e8 questa');}
-i.select();
-}
-vibra();
-}catch(e){}
-};
-
-window.topoScriviAiuto=function(){
-try{
-if(!TS)return;
-var v=TS.r.steps[TS.i];
-var pezzo=String(v).replace(/^(Via|Viale|Corso|Piazza|Piazzale|Largo|Galleria|V\.le|C\.so)\s+/i,'');
-var iniz=pezzo.slice(0,Math.max(2,Math.ceil(pezzo.length*0.35)));
-TS.aiuti++;
-TS.fatte[TS.i]&&(TS.fatte[TS.i].aiuto=1);
-esito(null,'\ud83d\udca1 inizia per \u00ab'+iniz+'\u2026\u00bb');
-var i=document.getElementById('tsIn');if(i)i.focus();
-vibra();
-}catch(e){}
-};
-
-function esito(buono,testo){
-try{
-var d=document.getElementById('tsEsito');
-if(!d){d=document.createElement('div');d.id='tsEsito';
-var o=document.getElementById('tsOv');if(o)o.appendChild(d);}
-d.className='sc-esito '+(buono===true?'ok':(buono===false?'ko':'info'));
-d.textContent=testo;d.style.opacity='1';
-clearTimeout(d.__t);
-d.__t=setTimeout(function(){d.style.opacity='0';},2000);
-}catch(e){}
-}
-
-function fine(){
-try{
-var r=TS.r,n=r.steps.length;
-var sec=Math.round((Date.now()-TS.t0)/1000);
-var mm=Math.floor(sec/60),ss=sec%60;
-var esatte=0,quasi=0;
-Object.keys(TS.fatte).forEach(function(k){
-if(TS.fatte[k].modo==='esatto')esatte++;else quasi++;});
-var o=document.getElementById('tsOv');if(!o)return;
-o.innerHTML='<div class="sc-hd">'
-+'<button class="sc-x" onclick="topoScriviChiudi()">\u2039</button>'
-+'<div class="sc-ti">'+E(r.title)+'</div><div class="sc-su">finito</div></div>'
-+'<div class="sc-fin"><div class="sc-tick">\u2713</div>'
-+'<div class="sc-tit">Tutte e '+n+' le tappe</div>'
-+'<div class="sc-riga"><b>'+mm+'\u2032'+(ss<10?'0':'')+ss+'\u2033</b><span>tempo</span></div>'
-+'<div class="sc-riga"><b>'+esatte+'</b><span>scritte giuste</span></div>'
-+(quasi?'<div class="sc-riga"><b>'+quasi+'</b><span>con qualche refuso</span></div>':'')
-+'<div class="sc-riga"><b>'+TS.errori+'</b><span>tentativi sbagliati</span></div>'
-+(TS.aiuti?'<div class="sc-riga"><b>'+TS.aiuti+'</b><span>suggerimenti usati</span></div>':'')
-+'<button class="sc-go" onclick="topoScriviCaso()">\u25b6 Un altro percorso</button>'
-+'<button class="sc-go2" onclick="topoScriviChiudi()">Torna alla mappa</button>'
-+'</div>';
-/* se l'hai fatto bene, il percorso avanza nella spirale */
-try{
-if(TS.errori<=2&&TS.aiuti===0&&typeof rSRbump==='function')rSRbump(r.id,true);
-}catch(e){}
-TS=null;vibra();
-}catch(e){}
-}
-
-/* il bottone nella barra dei percorsi */
 function metti(){
 try{
-if(document.getElementById('tsBtn'))return;
-var f=document.querySelector('#panel .brow');if(!f)return;
+if(document.getElementById('qvHint'))return;
+var f=document.querySelector('#qf .brow');if(!f)return;
 var b=document.createElement('button');
-b.id='tsBtn';b.className='btn bs';
-b.title='Scrivi le tappe a memoria';
-b.innerHTML='\u270d\ufe0f';
-b.onclick=function(){topoScrivi();};
-f.appendChild(b);
+b.id='qvHint';b.className='btn bs';
+b.title='Suggerimento';b.textContent='\ud83d\udca1';
+b.onclick=function(){qvAiuto();};
+f.insertBefore(b,f.firstChild);
 }catch(e){}
 }
-setTimeout(metti,2900);
-try{var _gt2=goTopografia;goTopografia=function(){var r=_gt2.apply(this,arguments);setTimeout(metti,280);return r;};}catch(e){}
+setTimeout(metti,2700);
+try{var _sm=setMode;setMode=function(m){var r=_sm.apply(this,arguments);if(m==='q')setTimeout(metti,160);return r;};}catch(e){}
 })();
