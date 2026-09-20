@@ -7730,3 +7730,186 @@ try{alert('\u26a0\ufe0f Non sono riuscito ad aggiungerli.');}catch(e2){}
 }
 };
 })();
+
+/* ═══════════════════════════════════════════════════
+   🧠 COACH PIÙ SVEGLIO
+   Tre compiti che mancavano:
+   · un percorso VERO col suo nome, diverso ogni giorno
+   · le schede nuove da fare
+   · la scheda degli errori da smaltire
+   La scelta del giorno resta ferma fino a domani: il piano
+   non deve cambiarti sotto gli occhi mentre lo leggi.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function oggi(){return new Date().toISOString().slice(0,10);}
+
+/* sceglie una volta al giorno e poi non cambia più */
+function delGiorno(chiave,candidati,idDi){
+try{
+if(!candidati||!candidati.length)return null;
+var mem=L('coachGiorno',{})||{};
+if(mem.d!==oggi()){mem={d:oggi()};}
+var salvato=mem[chiave];
+if(salvato){
+var trovato=candidati.filter(function(x){return idDi(x)===salvato;})[0];
+if(trovato)return trovato;
+}
+var s=(window.nccPesca?window.nccPesca(candidati.map(function(x){return {id:idDi(x),__x:x};})):null);
+var scelto=s?s.__x:candidati[Math.floor(Math.random()*candidati.length)];
+mem[chiave]=idDi(scelto);S('coachGiorno',mem);
+return scelto;
+}catch(e){return candidati[0];}
+}
+
+/* ── 1 · il percorso del giorno, col suo nome ── */
+function percorsoDelGiorno(){
+try{
+if(typeof routes==='undefined'||!routes||!routes.length)return null;
+var m=null;try{m=topoModel();}catch(e){}
+var cand=[];
+if(m&&m.rows&&m.rows.length){
+/* prima i fragili, poi quelli in scadenza, poi tutti */
+var scad=m.rows.filter(function(r){return r.due&&r.due<=Date.now();});
+var deboli=m.rows.filter(function(r){return r.clean<0.6;});
+/* parto dai piu' urgenti, ma tengo almeno cinque candidati
+   in ballo: con uno solo usciva sempre lo stesso percorso */
+var lista=scad.slice();
+deboli.forEach(function(r){if(lista.indexOf(r)<0)lista.push(r);});
+if(lista.length<5)m.rows.forEach(function(r){if(lista.indexOf(r)<0&&lista.length<8)lista.push(r);});
+cand=lista.map(function(r){return r.r;});
+}else cand=routes.slice();
+cand=cand.filter(function(r){return r&&r.steps&&r.steps.length>=4;});
+if(!cand.length)return null;
+var r=delGiorno('perc',cand,function(x){return x.id;});
+if(!r)return null;
+var stato='';
+try{
+if(m&&m.rows){
+var row=m.rows.filter(function(x){return x.r.id===r.id;})[0];
+if(row)stato=Math.round(row.clean*100)+'% pulito';
+}
+}catch(e){}
+return {r:r,stato:stato};
+}catch(e){return null;}
+}
+
+/* ── 2 · le schede nuove ── */
+function schedeNuove(){
+try{
+var tot=0,fatte=0;
+try{
+var Lg=window.__LUOGHI__;
+tot=Array.isArray(Lg)?Lg.length:(Lg?Object.keys(Lg).length:0);
+}catch(e){}
+try{
+var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:L('studyProg',{});
+fatte=sp?Object.keys(sp).length:0;
+}catch(e){}
+var nuove=Math.max(0,tot-fatte);
+return {tot:tot,fatte:fatte,nuove:nuove};
+}catch(e){return {tot:0,fatte:0,nuove:0};}
+}
+
+/* ── 3 · gli errori da smaltire ── */
+function errori(){
+try{
+var aperti=0,scaduti=0,peggiore='';
+try{
+var e=(qtStats&&qtStats.err)?qtStats.err:{};
+var k=Object.keys(e);
+aperti=k.length;
+var ora=Date.now();
+scaduti=k.filter(function(x){return e[x]&&e[x].due&&e[x].due<=ora;}).length;
+/* l'argomento che pesa di più */
+var per={};
+k.forEach(function(x){var c=e[x]&&e[x].cat;if(c)per[c]=(per[c]||0)+1;});
+var top=Object.keys(per).sort(function(a,b){return per[b]-per[a];})[0];
+if(top)peggiore=top+' ('+per[top]+')';
+}catch(e2){}
+var vie=0;
+try{
+if(typeof qStats!=='undefined'&&qStats)
+vie=Object.keys(qStats).reduce(function(a,k2){
+return a+Object.keys((qStats[k2]||{}).wrong||{}).length;},0);
+}catch(e2){}
+return {aperti:aperti,scaduti:scaduti,vie:vie,peggiore:peggiore};
+}catch(e){return {aperti:0,scaduti:0,vie:0,peggiore:''};}
+}
+
+/* ── i compiti nuovi entrano nel piano ──
+   avvolgo in ritardo: piazze.js e norme.js avvolgono dopo addon.js,
+   e il mio tetto di sette deve valere per ultimo. */
+setTimeout(function(){
+try{
+var _ct=coachTasks;
+coachTasks=function(){
+var t=_ct.apply(this,arguments)||[];
+try{
+/* tolgo il generico "Ripasso percorso a rotazione": lo sostituisco
+   con il percorso vero, che ha un nome e si può iniziare subito */
+t=t.filter(function(x){
+return !/percorso a rotazione/i.test(String(x.tx||'')+String(x.sub||''));
+});
+
+var pg=percorsoDelGiorno();
+if(pg){
+var tit=pg.r.title.length>26?pg.r.title.slice(0,24)+'\u2026':pg.r.title;
+t.push({ic:'\ud83d\uddfa\ufe0f',
+tx:'Percorso di oggi: '+tit,
+sub:pg.r.steps.length+' tappe'+(pg.stato?(' \u00b7 '+pg.stato):'')+' \u00b7 in Cieco',
+p:1.7,
+fn:function(){try{
+goTopografia();
+setTimeout(function(){try{selectRoute(pg.r);setTimeout(function(){setMode('c');},240);}catch(e){}},300);
+}catch(e){}}});
+}
+
+var sc=schedeNuove();
+if(sc.nuove>0){
+var quante=Math.min(10,sc.nuove);
+t.push({ic:'\ud83c\udd95',
+tx:quante+(quante===1?' scheda nuova':' schede nuove'),
+sub:'Ne hai fatte '+sc.fatte+' su '+sc.tot+' \u00b7 Cosa & Dove',
+p:2.2,
+fn:function(){try{openStudy();}catch(e){}}});
+}
+
+var er=errori();
+/* se il nucleo ne ha gia' messa una, tolgo la sua e metto la mia
+   che dice anche l'argomento peggiore e le vie */
+t=t.filter(function(x){
+return !/scheda errori|errori in scadenza/i.test(String(x.tx||''));
+});
+if(er.scaduti>0||er.aperti>0){
+var n=er.scaduti||er.aperti;
+t.unshift({ic:'\ud83d\udd01',
+tx:(er.scaduti?('Scheda errori: '+er.scaduti+' in scadenza'):('Scheda errori: '+er.aperti+' aperti')),
+sub:(er.peggiore?('soprattutto '+er.peggiore):'le domande che sbagli')
++(er.vie?(' \u00b7 e '+er.vie+' vie'):''),
+p:0.5,
+fn:function(){try{
+openQuiz();
+setTimeout(function(){try{
+if(typeof buildQuiz==='function')buildQuiz();
+if(typeof qStartErr==='function')qStartErr();
+else if(typeof qStartMix==='function')qStartMix();
+}catch(e){}},260);
+}catch(e){}}});
+}else if(er.vie>0){
+t.push({ic:'\ud83d\udd01',
+tx:'Scheda errori: '+er.vie+(er.vie===1?' via sbagliata':' vie sbagliate'),
+sub:'Quelle che hai toppato nel Quiz vie',p:1.9,
+fn:function(){try{openWrong();}catch(e){}}});
+}
+/* al massimo sette: oltre diventa una lista della spesa */
+t.sort(function(a,b){return (a.p||9)-(b.p||9);});
+if(t.length>7)t=t.slice(0,7);
+}catch(e){}
+return t;
+};
+}catch(e){}
+},3200);
+})();
