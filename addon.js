@@ -1715,6 +1715,112 @@ font-size:14px;font-weight:650;line-height:1.6;}
 .cx-vuoto small{font-size:12px;opacity:.75;}
 
 #qf .brow #qvHint{flex:0 0 52px;}
+
+
+/* ══════════ VOGLIA DI STUDIARE ══════════ */
+.vg-card{padding:16px;margin:0 0 12px;border-radius:var(--r-xl);
+background:linear-gradient(135deg,rgba(36,71,214,.08),rgba(109,90,224,.06));
+border:1.5px solid rgba(36,71,214,.18);}
+.vg-top{display:flex;align-items:baseline;gap:9px;margin-bottom:11px;}
+.vg-n b{font-size:34px;font-weight:850;letter-spacing:-.04em;color:var(--a);
+font-variant-numeric:tabular-nums;line-height:1;}
+.vg-n span{font-size:14px;font-weight:700;color:var(--mu);margin-left:4px;}
+.vg-lb{flex:1;font-size:12px;font-weight:700;color:var(--mu);}
+.vg-fu{font-size:15px;font-weight:850;color:var(--warn);
+background:rgba(217,119,6,.12);padding:5px 11px;border-radius:999px;white-space:nowrap;}
+.vg-bar{height:9px;background:rgba(36,71,214,.12);border-radius:999px;overflow:hidden;}
+.vg-bar i{display:block;height:100%;border-radius:999px;
+background:linear-gradient(90deg,var(--a),var(--acc));
+transition:width .6s cubic-bezier(.4,0,.2,1);}
+.vg-det{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.vg-det span{font-size:11px;font-weight:750;color:var(--tx);
+background:var(--card);padding:5px 9px;border-radius:999px;
+font-variant-numeric:tabular-nums;}
+.vg-cres{margin-top:9px;font-size:12px;font-weight:800;color:var(--ok);}
+.vg-str{margin-top:9px;font-size:12.5px;font-weight:650;color:var(--tx);line-height:1.4;}
+.vg-str b{font-weight:850;color:var(--a);}
+.vg-azioni{display:flex;gap:8px;margin-top:12px;}
+.vg-mini{flex:1;min-height:44px;padding:11px 8px;border:none;border-radius:var(--r-lg);
+background:var(--card);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.06);
+font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;}
+.vg-mini:active{transform:scale(.96);}
+#vgFine{position:fixed;inset:0;z-index:9200;background:rgba(0,0,0,.5);
+display:flex;align-items:center;justify-content:center;padding:24px;
+opacity:0;transition:opacity .28s cubic-bezier(.4,0,.2,1);
+backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+#vgFine.on{opacity:1;}
+.vgf-box{background:var(--card);border-radius:var(--r-xl);padding:26px 22px;
+width:100%;max-width:330px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.2);}
+.vgf-t{font-size:15px;font-weight:800;color:var(--mu);margin-bottom:12px;}
+.vgf-g{font-size:48px;font-weight:850;letter-spacing:-.04em;color:var(--ok);line-height:1;}
+.vgf-s{font-size:13px;font-weight:700;color:var(--mu);margin-top:5px;}
+.vgf-r{margin-top:18px;font-size:13.5px;font-weight:650;color:var(--tx);line-height:1.45;}
+.vgf-r b{font-weight:850;color:var(--err);}
+.vgf-go{display:block;width:100%;min-height:46px;margin-top:14px;padding:13px;
+border:none;border-radius:var(--r-lg);background:var(--a);color:#fff;
+font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
+.vgf-x{display:block;width:100%;min-height:44px;margin-top:8px;padding:12px;
+border:none;border-radius:var(--r-lg);background:transparent;color:var(--mu);
+font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+
+
+/* ══════════ IMPORTA PERCORSI ══════════ */
+#ipOv{position:fixed;inset:0;z-index:8990;background:var(--bg);
+display:flex;flex-direction:column;overflow:hidden;
+animation:pzIn .28s var(--e-soft) both;}
+.ip-hd{position:relative;flex-shrink:0;text-align:center;padding:15px 56px 12px;
+background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.ip-x{position:absolute;left:14px;top:12px;width:40px;height:40px;
+border:1.5px solid var(--bd);border-radius:var(--r-md);background:var(--bg);
+color:var(--tx);font-size:17px;font-weight:750;cursor:pointer;font-family:inherit;}
+.ip-ti{font-size:17px;font-weight:850;letter-spacing:-.02em;color:var(--tx);}
+.ip-su{font-size:12px;font-weight:650;color:var(--mu);margin-top:2px;}
+.ip-tools{display:flex;gap:7px;padding:10px 14px;flex-shrink:0;
+background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.ip-tools button{flex:1;min-height:38px;padding:9px 6px;border:1.5px solid var(--bd);
+border-radius:var(--r-md);background:var(--bg);color:var(--tx);
+font-family:inherit;font-size:12px;font-weight:750;cursor:pointer;}
+.ip-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 20px;}
+.ip-body>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
+.ip-r{display:flex;align-items:stretch;gap:9px;margin-bottom:7px;}
+.ip-chk{flex:0 0 42px;min-height:52px;border:1.5px solid var(--bd);
+border-radius:var(--r-md);background:var(--card);color:var(--a);
+font-size:17px;font-weight:850;cursor:pointer;font-family:inherit;}
+.ip-r.sel .ip-chk{background:var(--a);color:#fff;border-color:var(--a);}
+.ip-tx{flex:1;min-width:0;min-height:52px;padding:10px 12px;text-align:left;
+border:1.5px solid var(--bd);border-radius:var(--r-md);
+background:var(--card);cursor:pointer;font-family:inherit;}
+.ip-r.sel .ip-tx{border-color:var(--a);}
+.ip-tx b{display:block;font-size:13.5px;font-weight:800;color:var(--tx);line-height:1.3;}
+.ip-tx i{display:block;font-style:normal;font-size:11.5px;font-weight:650;
+color:var(--mu);margin-top:2px;}
+.ip-tx em{font-style:normal;color:var(--warn);font-weight:800;}
+.ip-det{margin:0 0 9px 51px;padding:10px 12px;background:var(--fill3);
+border-radius:var(--r-md);}
+.ip-det div{font-size:12.5px;font-weight:650;color:var(--tx);line-height:1.7;}
+.ip-det span{display:inline-block;min-width:22px;font-weight:850;color:var(--mu);}
+.ip-vuoto{text-align:center;padding:40px 20px;color:var(--mu);font-size:14px;font-weight:650;}
+.ip-foot{flex-shrink:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+background:var(--card);border-top:1.5px solid var(--sep2);}
+.ip-go{display:block;width:100%;min-height:50px;padding:14px;border:none;
+border-radius:var(--r-lg);background:var(--a);color:#fff;
+font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
+.ip-go.off{background:var(--fill2);color:var(--mu);}
+
+
+/* ── il menu ⋯ deve poter scorrere ──
+   aveva overflow:hidden e nessuna altezza massima: con 17 voci
+   le ultime finivano fuori schermo e non le raggiungevi. */
+.omenu{
+max-height:calc(100vh - 110px)!important;
+max-height:calc(100dvh - 110px)!important;
+overflow-y:auto!important;
+-webkit-overflow-scrolling:touch;
+overscroll-behavior:contain;
+padding-bottom:env(safe-area-inset-bottom,0px);}
+.omenu::-webkit-scrollbar{width:4px;}
+.omenu::-webkit-scrollbar-thumb{background:var(--bd);border-radius:999px;}
+.omenu .mi-tit{position:sticky;top:0;z-index:2;background:var(--card);}
 `;
 }catch(e){}
 })();
@@ -7307,4 +7413,320 @@ f.insertBefore(b,f.firstChild);
 }
 setTimeout(metti,2700);
 try{var _sm=setMode;setMode=function(m){var r=_sm.apply(this,arguments);if(m==='q')setTimeout(metti,160);return r;};}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🔥 VOGLIA DI STUDIARE
+   Tre cose, in quest'ordine:
+   1. In cima quello che SAI, non quello che ti manca.
+   2. Un bottone da 1 minuto, perché le sessioni corte si fanno.
+   3. Alla fine di ogni cosa, ti dico cosa hai guadagnato.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+/* ── quanto sai davvero ── */
+function conta(){
+var o={dom:0,domTot:0,piazze:0,piazzeTot:0,perc:0,percTot:0,norme:0,normeTot:0};
+try{o.domTot=(window.__QUIZDATA__&&__QUIZDATA__.domande)?__QUIZDATA__.domande.length:0;}catch(e){}
+try{
+/* una domanda conta come saputa se l'hai vista e non è fra gli errori aperti */
+var viste=(qtStats&&qtStats.seenIds)?Object.keys(qtStats.seenIds).length:0;
+var err=(qtStats&&qtStats.err)?Object.keys(qtStats.err).length:0;
+o.dom=Math.max(0,viste-err);
+o.errAperti=err;
+}catch(e){}
+try{
+if(window.pzAvanzamento){var a=pzAvanzamento();o.piazze=a.fatte;o.piazzeTot=a.tot;}
+}catch(e){}
+try{
+if(window.topoModel){var m=topoModel();
+o.percTot=m.rows.length;
+o.perc=m.rows.filter(function(r){return r.clean>=0.8;}).length;}
+}catch(e){}
+try{
+if(window.__NORME__){o.normeTot=__NORME__.sez.length;
+var st=L('nmStats',{});
+o.norme=__NORME__.sez.filter(function(s){var x=st[s.id];
+if(!x)return false;var t=(x.ok||0)+(x.ko||0);return t>0&&(x.ok||0)/t>=0.8;}).length;}
+}catch(e){}
+return o;
+}
+
+/* ── la striscia: quanto manca per tenerla viva oggi ── */
+function striscia(){
+try{
+var s=L('striscia',null);
+var oggi=new Date().toDateString();
+var log=L('rDoneLog',{})||{};
+var fatteOggi=0;
+try{
+var d=(qtStats&&qtStats.daily)?qtStats.daily:null;
+if(d&&d.day===oggi)fatteOggi=d.n||0;
+}catch(e){}
+var giorni=0;
+if(s&&typeof s==='object')giorni=s.n||s.giorni||0;
+else if(typeof s==='number')giorni=s;
+return {giorni:giorni,oggi:fatteOggi,salva:Math.max(0,5-fatteOggi)};
+}catch(e){return {giorni:0,oggi:0,salva:5};}
+}
+
+/* ── la striscia di ieri, per vedere se cresci ── */
+function crescita(){
+try{
+var st=L('crescitaLog',{})||{};
+var oggi=new Date().toISOString().slice(0,10);
+var c=conta();
+st[oggi]=c.dom;
+/* tengo 30 giorni */
+var k=Object.keys(st).sort();
+while(k.length>30){delete st[k.shift()];}
+S('crescitaLog',st);
+var sett=k.filter(function(x){
+return (Date.now()-new Date(x).getTime())<=7*86400000;});
+if(sett.length<2)return null;
+var primo=st[sett[0]],ultimo=st[sett[sett.length-1]];
+return {delta:ultimo-primo,giorni:sett.length};
+}catch(e){return null;}
+}
+
+function banner(){
+try{
+var h=document.getElementById('homeScreen');if(!h)return;
+var vecchio=document.getElementById('vgCard');
+var c=conta(),s=striscia(),g=crescita();
+var tot=c.domTot+c.piazzeTot+c.percTot+c.normeTot;
+var sai=c.dom+c.piazze+c.perc+c.norme;
+var perc=tot?Math.round(sai/tot*100):0;
+var d=vecchio||document.createElement('div');
+d.id='vgCard';d.className='vg-card';
+var riga2='';
+if(s.salva>0)riga2='Ti bastano <b>'+s.salva+' risposte</b> per tenere viva la striscia';
+else riga2='\u2713 Striscia salva per oggi';
+var crescitaTx='';
+if(g&&g.delta>0)crescitaTx='<div class="vg-cres">\u2197 <b>+'+g.delta+'</b> in '+g.giorni+' giorni</div>';
+d.innerHTML='<div class="vg-top">'
++'<div class="vg-n"><b>'+sai+'</b><span>su '+tot+'</span></div>'
++'<div class="vg-lb">cose che sai</div>'
++'<div class="vg-fu">\ud83d\udd25 '+s.giorni+'</div></div>'
++'<div class="vg-bar"><i style="width:'+perc+'%"></i></div>'
++'<div class="vg-det">'
++'<span>\ud83d\udcdd '+c.dom+'/'+c.domTot+'</span>'
++'<span>\ud83d\udd37 '+c.piazze+'/'+c.piazzeTot+'</span>'
++'<span>\ud83d\uddfa\ufe0f '+c.perc+'/'+c.percTot+'</span>'
++'<span>\ud83d\udcdc '+c.norme+'/'+c.normeTot+'</span>'
++'</div>'
++crescitaTx
++'<div class="vg-str">'+riga2+'</div>'
++'<div class="vg-azioni">'
++'<button class="vg-mini" onclick="nccUnMinuto()">\u26a1 1 minuto</button>'
++'<button class="vg-mini" onclick="nccUnaPiazza()">\ud83d\udd37 Una piazza</button>'
++'</div>';
+if(!vecchio){
+var cerca=document.getElementById('cxBtn');
+if(cerca&&cerca.nextSibling)h.insertBefore(d,cerca.nextSibling);
+else if(cerca)h.insertBefore(d,cerca.nextSibling);
+else h.insertBefore(d,h.firstElementChild);
+}
+}catch(e){}
+}
+
+/* ── le due sessioni minuscole ── */
+window.nccUnMinuto=function(){
+try{
+if(typeof openQuiz==='function')openQuiz();
+setTimeout(function(){
+try{
+if(typeof buildQuiz==='function')buildQuiz();
+if(typeof qStartMix==='function')qStartMix(5);
+else if(typeof qStartMix==='function')qStartMix();
+}catch(e){}
+},260);
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccUnaPiazza=function(){
+try{
+if(window.pzRandom)pzRandom();
+else if(window.openPiazze)openPiazze();
+try{hap();}catch(e){}
+}catch(e){}
+};
+
+/* ── la chiusura: cosa hai guadagnato ── */
+var PRIMA=null;
+window.nccSegnaInizio=function(){
+try{PRIMA=conta();}catch(e){}
+};
+window.nccChiusura=function(titolo){
+try{
+if(!PRIMA)return;
+var d=conta();
+var guad=(d.dom-PRIMA.dom)+(d.piazze-PRIMA.piazze)+(d.perc-PRIMA.perc)+(d.norme-PRIMA.norme);
+var resta=d.errAperti||0;
+PRIMA=null;
+if(guad<=0&&!resta)return;
+var o=document.getElementById('vgFine');
+if(!o){o=document.createElement('div');o.id='vgFine';document.body.appendChild(o);}
+o.innerHTML='<div class="vgf-box">'
++'<div class="vgf-t">'+(titolo||'Fatto')+'</div>'
++(guad>0?('<div class="vgf-g">+'+guad+'</div><div class="vgf-s">cose in pi\u00f9 che sai</div>'):'')
++(resta?('<div class="vgf-r">Ti restano <b>'+resta+'</b> errori da smaltire</div>'
++'<button class="vgf-go" onclick="nccChiudiFine();nccUnMinuto()">\u26a1 Finiscine 5</button>'):'')
++'<button class="vgf-x" onclick="nccChiudiFine()">Chiudi</button>'
++'</div>';
+setTimeout(function(){try{o.classList.add('on');}catch(e){}},30);
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccChiudiFine=function(){
+try{var o=document.getElementById('vgFine');if(o)o.remove();banner();}catch(e){}
+};
+
+/* aggancio: segno prima e dopo ogni sessione */
+setTimeout(function(){
+try{
+['qStartMix','qStartTopic','pzVerifica','nmQuiz','pzScrivi'].forEach(function(f){
+if(typeof window[f]!=='function')return;
+var _o=window[f];
+window[f]=function(){nccSegnaInizio();return _o.apply(this,arguments);};
+});
+['qFinish','pzScriviChiudi','nmChiudi'].forEach(function(f){
+if(typeof window[f]!=='function')return;
+var _o=window[f];
+window[f]=function(){var r=_o.apply(this,arguments);
+setTimeout(function(){nccChiusura('Sessione finita');},450);return r;};
+});
+}catch(e){}
+},3000);
+
+setTimeout(banner,2600);
+try{var _gh3=goHome;goHome=function(){var r=_gh3.apply(this,arguments);setTimeout(banner,220);return r;};}catch(e){}
+try{var _rp=renderPlan;renderPlan=function(){var r=_rp.apply(this,arguments);setTimeout(banner,120);return r;};}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   📥 IMPORTA I PERCORSI DEL PDF
+   198 percorsi estratti dal PDF della scuola. Quelli che hai
+   già li riconosco dal titolo e li salto. Gli altri li scegli
+   tu uno per uno. I marker restano vuoti: li metti tu.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function norm(s){return String(s||'').toUpperCase()
+.replace(/[^A-Z0-9]/g,'');}
+var SEL={},APERTO={};
+
+function gia(){
+try{
+var R=(typeof routes!=='undefined'&&routes)?routes:[];
+var m={};R.forEach(function(r){m[norm(r.title)]=1;});
+return m;
+}catch(e){return {};}
+}
+function dati(){try{return window.__PERCORSI_PDF__||[];}catch(e){return [];}}
+
+window.nccImportaPercorsi=function(){
+try{
+var D=dati();
+if(!D.length){if(typeof toast2==='function')toast2('\u26a0\ufe0f percorsi-data.js non caricato',2800);return;}
+SEL={};APERTO={};
+disegna();
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccImpChiudi=function(){
+try{var o=document.getElementById('ipOv');if(o)o.remove();}catch(e){}
+};
+
+function disegna(){
+try{
+var D=dati(),avuti=gia();
+var nuovi=D.filter(function(p){return !avuti[norm(p.t)];});
+var scelti=Object.keys(SEL).filter(function(k){return SEL[k];}).length;
+var o=document.getElementById('ipOv');
+if(!o){o=document.createElement('div');o.id='ipOv';o.className='rd';document.body.appendChild(o);
+try{if(window.nccOvApri)nccOvApri('ipOv',function(){nccImpChiudi();});}catch(e){}}
+var h='<div class="ip-hd">'
++'<button class="ip-x" onclick="nccImpChiudi()">\u2715</button>'
++'<div class="ip-ti">Percorsi dal PDF</div>'
++'<div class="ip-su">'+nuovi.length+' nuovi su '+D.length+' \u00b7 '+(D.length-nuovi.length)+' li hai gi\u00e0</div>'
++'</div>'
++'<div class="ip-tools">'
++'<button onclick="nccImpTutti(1)">Scegli tutti</button>'
++'<button onclick="nccImpTutti(0)">Nessuno</button>'
++'<button onclick="nccImpPuliti()">Solo i puliti</button>'
++'</div>'
++'<div class="ip-body">';
+nuovi.forEach(function(p){
+var s=!!SEL[p.id],ap=!!APERTO[p.id];
+h+='<div class="ip-r'+(s?' sel':'')+'">'
++'<button class="ip-chk" onclick="nccImpTog(\''+p.id+'\')">'+(s?'\u2713':'')+'</button>'
++'<button class="ip-tx" onclick="nccImpApri(\''+p.id+'\')">'
++'<b>'+E(p.t)+'</b>'
++'<i>'+p.s.length+' tappe'+(p.ck?' \u00b7 <em>da controllare</em>':'')+' \u00b7 pag. '+p.p+'</i>'
++'</button></div>';
+if(ap){
+h+='<div class="ip-det">';
+p.s.forEach(function(v,i){h+='<div><span>'+(i+1)+'</span>'+E(v)+'</div>';});
+h+='</div>';
+}
+});
+if(!nuovi.length)h+='<div class="ip-vuoto">Li hai gi\u00e0 tutti.</div>';
+h+='</div>'
++'<div class="ip-foot">'
++'<button class="ip-go'+(scelti?'':' off')+'" onclick="nccImpAggiungi()">'
++(scelti?('\u2795 Aggiungi '+scelti+(scelti===1?' percorso':' percorsi')):'Scegli quali aggiungere')
++'</button></div>';
+o.innerHTML=h;
+}catch(e){}
+}
+window.nccImpTog=function(id){SEL[id]=!SEL[id];disegna();try{hap();}catch(e){}};
+window.nccImpApri=function(id){APERTO[id]=!APERTO[id];disegna();};
+window.nccImpTutti=function(v){
+try{
+var avuti=gia();
+dati().forEach(function(p){if(!avuti[norm(p.t)])SEL[p.id]=!!v;});
+disegna();try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccImpPuliti=function(){
+try{
+var avuti=gia();
+SEL={};
+dati().forEach(function(p){if(!avuti[norm(p.t)]&&!p.ck)SEL[p.id]=true;});
+disegna();try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccImpAggiungi=function(){
+try{
+var D=dati(),scelti=D.filter(function(p){return SEL[p.id];});
+if(!scelti.length)return;
+if(!confirm('Aggiungo '+scelti.length+' percorsi.\n\n'
++'I marker restano vuoti: li posizioni tu dalla mappa.\n\nProcedo?'))return;
+var n=0;
+scelti.forEach(function(p){
+try{
+var id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+routes.push({id:id,title:p.t,steps:p.s.slice()});
+n++;
+}catch(e){}
+});
+try{save();autoSave();}catch(e){}
+try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
+try{if(typeof buildList==='function')buildList();}catch(e){}
+alert('\u2705 Aggiunti '+n+' percorsi.\n\n'
++'Li trovi nell\u2019elenco dei percorsi. I marker sono da mettere:\n'
++'apri il percorso, tocca una tappa e poi il punto sulla mappa.');
+SEL={};
+nccImpChiudi();
+try{hap();}catch(e){}
+}catch(e){
+try{alert('\u26a0\ufe0f Non sono riuscito ad aggiungerli.');}catch(e2){}
+}
+};
 })();
