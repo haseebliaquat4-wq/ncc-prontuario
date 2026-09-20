@@ -270,6 +270,8 @@ window._tileLayer.setUrl(url);
 function startPl(i){plIdx=i;document.getElementById('map').classList.add('pl');document.getElementById('plBanner').style.display='block';}
 function stopPl(){plIdx=null;document.getElementById('map').classList.remove('pl');document.getElementById('plBanner').style.display='none';}
 function putMkr(lat,lon,name,k){
+/* in Quiz vie il fumetto svelava la via da indovinare */
+try{if(typeof mode!=='undefined'&&mode==='q'&&!_revealed)name='Via '+((typeof step==='number'?step:0)+1);}catch(e){}
 if(mkr){
 slideMarker(mkr,[lat,lon]);var _pp=mkr.getPopup();if(_pp)_pp.setContent('<b>'+esc(name)+'</b>');else mkr.bindPopup('<b>'+esc(name)+'</b>');/*[FIX] getPopup() può essere null*/
 const pe=mkr.getElement()&&mkr.getElement().querySelector('.pin-emoji');if(pe){pe.style.animation='none';void pe.offsetWidth;pe.style.animation='pinDrop .5s cubic-bezier(.34,1.56,.64,1)';}
@@ -361,7 +363,7 @@ if(d._nm){
 let hide;
 if(mode==='s')hide=false;
 else if(mode==='c')hide=!(isA&&_revealed); /* attiva visibile solo se rivelata */
-else hide=!isA; /* q: nascondi tutte tranne l'attiva */
+else hide=isA?!_revealed:!isD; /* q: l'attiva e le future coperte, le gia' fatte visibili */
 d._nm.classList.toggle('hid',hide);
 }
 if(d._wb)d._wb.style.display=(isW&&!isA)?'':'none';
@@ -376,7 +378,7 @@ const ae=listRows[step];if(ae)ae.scrollIntoView({block:'nearest'});
 }
 function nextS(){if(!cur||step>=cur.steps.length-1)return;step++;_revealed=false;syncListActive();updateUI();goStep();hap();ls('lStep',step);if(mode!=='q'&&step===cur.steps.length-1)routeFinishCheck();const b=document.getElementById('bNext');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}/*[PUNTO 3] _revealed=false: la nuova via riparte coperta*/
 function prevS(){if(!cur||step<=0)return;if(typeof stopAutoplay==='function')stopAutoplay();step--;_revealed=false;syncListActive();updateUI();goStep();hap();ls('lStep',step);const b=document.getElementById('bPrev');if(b){b.style.transform='scale(.88)';setTimeout(()=>b.style.transform='',150);}}
-function revealS(){if(!cur)return;_revealed=true;/*[PUNTO 3] scopre la via attiva*/var _r=listRows[step];if(mode==='c'&&_r&&_r._nm){_r._nm.classList.remove('hid');typewrite(_r._nm,cur.steps[step]);}else{const el=listRows[step]?listRows[step]._nm:null;if(el)typewrite(el,cur.steps[step]);}if(mode==='q'){var _fb=$id('qfb');if(_fb){_fb.textContent=cur.steps[step]||'';_fb.style.color='var(--mu)';}}hap();}
+function revealS(){if(!cur)return;_revealed=true;/*[PUNTO 3] scopre la via attiva*/var _r=listRows[step];if((mode==='c'||mode==='q')&&_r&&_r._nm){_r._nm.classList.remove('hid');typewrite(_r._nm,cur.steps[step]);}else{const el=listRows[step]?listRows[step]._nm:null;if(el)typewrite(el,cur.steps[step]);}if(mode==='q'){var _fb=$id('qfb');if(_fb){_fb.textContent=cur.steps[step]||'';_fb.style.color='var(--mu)';}}hap();}
 function showNM(){const e=document.getElementById('nmHint');e.style.display='block';clearTimeout(nmTimer);nmTimer=setTimeout(()=>hideNM(),2500);}
 function hideNM(){document.getElementById('nmHint').style.display='none';clearTimeout(nmTimer);}
 function updateUI(){
