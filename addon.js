@@ -7432,10 +7432,20 @@ function conta(){
 var o={dom:0,domTot:0,piazze:0,piazzeTot:0,perc:0,percTot:0,norme:0,normeTot:0};
 try{o.domTot=(window.__QUIZDATA__&&__QUIZDATA__.domande)?__QUIZDATA__.domande.length:0;}catch(e){}
 try{
-/* una domanda conta come saputa se l'hai vista e non è fra gli errori aperti */
-var viste=(qtStats&&qtStats.seenIds)?Object.keys(qtStats.seenIds).length:0;
-var err=(qtStats&&qtStats.err)?Object.keys(qtStats.err).length:0;
-o.dom=Math.max(0,viste-err);
+/* qtStats.seenIds resta sempre vuoto: il conto vero lo fa
+   studentModel(), la stessa funzione che scrive "Padronanza 55%". */
+var m=(typeof studentModel==='function')?studentModel():null;
+if(m&&m.subs&&m.subs.length){
+var sapute=0,tot=0;
+m.subs.forEach(function(s){
+tot+=(s.n||0);
+sapute+=Math.round((s.n||0)*(s.m||0)/100);
+});
+if(tot>0){o.dom=sapute;o.domTot=tot;}
+}
+var err=0;
+try{err=(qtStats&&qtStats.err)?Object.keys(qtStats.err).length:0;}catch(e2){}
+if(!err){try{err=Object.keys(JSON.parse(localStorage.getItem('wrongN')||'{}')).length;}catch(e2){}}
 o.errAperti=err;
 }catch(e){}
 try{
@@ -7774,11 +7784,25 @@ if(m&&m.rows&&m.rows.length){
 /* prima i fragili, poi quelli in scadenza, poi tutti */
 var scad=m.rows.filter(function(r){return r.due&&r.due<=Date.now();});
 var deboli=m.rows.filter(function(r){return r.clean<0.6;});
-/* parto dai piu' urgenti, ma tengo almeno cinque candidati
-   in ballo: con uno solo usciva sempre lo stesso percorso */
-var lista=scad.slice();
-deboli.forEach(function(r){if(lista.indexOf(r)<0)lista.push(r);});
-if(lista.length<5)m.rows.forEach(function(r){if(lista.indexOf(r)<0&&lista.length<8)lista.push(r);});
+/* SOLO i percorsi che hai gia' preparato: almeno un marker
+   messo, oppure gia' studiati. Quelli appena importati senza
+   marker aprirebbero una mappa vuota. */
+function pronto(row){
+try{
+var r=row.r;
+if(typeof coords!=='undefined'&&coords){
+for(var i=0;i<r.steps.length;i++){if(coords[r.id+'_'+i])return true;}
+}
+if(typeof qStats!=='undefined'&&qStats&&qStats[r.id])return true;
+var sr=L('rSR',{})||{};
+if(sr[r.id])return true;
+}catch(e){}
+return false;
+}
+var usabili=m.rows.filter(pronto);
+if(!usabili.length)return null;          /* niente di pronto: niente compito */
+var lista=usabili.filter(function(r){return r.clean<0.6;});
+usabili.forEach(function(r){if(lista.indexOf(r)<0&&lista.length<8)lista.push(r);});
 cand=lista.map(function(r){return r.r;});
 }else cand=routes.slice();
 cand=cand.filter(function(r){return r&&r.steps&&r.steps.length>=4;});
@@ -7789,7 +7813,7 @@ var stato='';
 try{
 if(m&&m.rows){
 var row=m.rows.filter(function(x){return x.r.id===r.id;})[0];
-if(row)stato=Math.round(row.clean*100)+'% pulito';
+if(row)stato=row.n?(Math.round(row.clean*100)+'% pulito'):'mai fatto';
 }
 }catch(e){}
 return {r:r,stato:stato};
@@ -7819,6 +7843,9 @@ try{
 var aperti=0,scaduti=0,peggiore='';
 try{
 var e=(qtStats&&qtStats.err)?qtStats.err:{};
+if(!Object.keys(e).length){
+try{e=JSON.parse(localStorage.getItem('wrongN')||'{}')||{};}catch(e3){e={};}
+}
 var k=Object.keys(e);
 aperti=k.length;
 var ora=Date.now();
@@ -7912,4 +7939,112 @@ return t;
 };
 }catch(e){}
 },3200);
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎲 PIAZZA E NORMA DEL GIORNO, FERME FINO A DOMANI
+   La piazza cambiava a ogni lettura del piano: sei letture,
+   sei piazze diverse. E le norme dicevano solo "7 articoli mai
+   visti", senza dirti quale. Qui scelgo una volta al giorno,
+   dando la precedenza a quello che non hai mai fatto.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function oggi(){return new Date().toISOString().slice(0,10);}
+function fermo(chiave,cand,idDi){
+try{
+if(!cand||!cand.length)return null;
+var mem=L('coachGiorno2',{})||{};
+if(mem.d!==oggi())mem={d:oggi()};
+if(mem[chiave]){
+var t=cand.filter(function(x){return idDi(x)===mem[chiave];})[0];
+if(t)return t;
+}
+var s=(window.nccPesca?window.nccPesca(cand.map(function(x){return {id:idDi(x),__x:x};})):null);
+var sc=s?s.__x:cand[Math.floor(Math.random()*cand.length)];
+mem[chiave]=idDi(sc);S('coachGiorno2',mem);
+return sc;
+}catch(e){return cand[0];}
+}
+window.nccFermo=fermo;
+
+/* ── la piazza del giorno: prima le mai viste ── */
+function piazzaDelGiorno(){
+try{
+if(!window.pzTutte)return null;
+var tutte=pzTutte();if(!tutte.length)return null;
+var st=L('pzStats',{})||{},sr=L('pzSR',{})||{},co=L('pzCoords',{})||{},ora=Date.now();
+/* solo quelle che hai preparato: marker messi o gia' studiate */
+function pronta(p){
+if(st[p.id])return true;
+if(co[p.id])return true;
+for(var i=0;i<p.v.length;i++){if(co[p.id+'_'+i])return true;}
+return false;
+}
+var usabili=tutte.filter(pronta);
+if(!usabili.length)return null;          /* niente di pronto: niente compito */
+var scad=usabili.filter(function(p){var c=sr[p.id];return c&&c.due&&c.due<=ora;});
+var deboli=usabili.filter(function(p){var x=st[p.id];
+if(!x)return true;var t=(x.ok||0)+(x.ko||0);return !t||(x.ok||0)/t<0.85;});
+var cand=scad.length?scad:(deboli.length?deboli:usabili);
+var p=fermo('pz',cand,function(x){return x.id;});
+if(!p)return null;
+return {p:p,nuova:!st[p.id],quante:cand.length,pronte:usabili.length};
+}catch(e){return null;}
+}
+/* ── l'articolo del giorno: prima i mai visti ── */
+function normaDelGiorno(){
+try{
+var D=window.__NORME__;if(!D||!D.sez)return null;
+var st=L('nmStats',{})||{},sr=L('nmSR',{})||{},ora=Date.now();
+var mai=D.sez.filter(function(s){return !st[s.id];});
+var scad=D.sez.filter(function(s){var c=sr[s.id];return c&&c.due&&c.due<=ora;});
+var cand=mai.length?mai:(scad.length?scad:D.sez);
+var s=fermo('nm',cand,function(x){return x.id;});
+if(!s)return null;
+return {s:s,nuova:!st[s.id],quante:cand.length};
+}catch(e){return null;}
+}
+
+setTimeout(function(){
+try{
+var _ct=coachTasks;
+coachTasks=function(){
+var t=_ct.apply(this,arguments)||[];
+try{
+/* tolgo le versioni ballerine e generiche */
+t=t.filter(function(x){
+var s=String(x.tx||'');
+return !(x.ic==='\ud83d\udccd'&&/Piazza (nuova|da ripassare)/.test(s))
+&& !(x.ic==='\ud83d\udcdc'&&/articol/i.test(s));
+});
+var pg=piazzaDelGiorno();
+if(pg){
+var n=pg.p.n.length>24?pg.p.n.slice(0,22)+'\u2026':pg.p.n;
+t.push({ic:'\ud83d\udd37',
+tx:(pg.nuova?'Piazza da imparare: ':'Piazza da ripassare: ')+n,
+sub:pg.p.v.length+' vie \u00b7 in Cieco \u00b7 '+pg.pronte+' piazze pronte',
+p:2.3,
+fn:function(){try{openPiazze();setTimeout(function(){
+pzApri(pg.p.id);
+if(!pg.nuova)setTimeout(function(){try{pzModo(true);}catch(e){}},240);
+},200);}catch(e){}}});
+}
+var ng=normaDelGiorno();
+if(ng){
+t.push({ic:'\ud83d\udcdc',
+tx:(ng.nuova?'Articolo nuovo: ':'Da ripassare: ')+'art. '+ng.s.art,
+sub:ng.s.t+' \u00b7 '+ng.s.p.length+' punti'+(ng.nuova?(' \u00b7 ne restano '+ng.quante):''),
+p:2.5,
+fn:function(){try{openNorme();setTimeout(function(){nmArt(ng.s.id);},200);}catch(e){}}});
+}
+t.sort(function(a,b){return (a.p||9)-(b.p||9);});
+if(t.length>7)t=t.slice(0,7);
+}catch(e){}
+return t;
+};
+}catch(e){}
+},3600);
 })();
