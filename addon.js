@@ -1856,6 +1856,10 @@ font-weight:650;color:var(--tx);line-height:1.6;}
 .vc-x{margin-top:14px;min-height:46px;width:100%;padding:13px;border:none;
 border-radius:var(--r-lg);background:var(--a);color:#fff;
 font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
+
+.vc-diag{font-size:11.5px;font-weight:700;color:var(--mu);text-align:center;
+margin-bottom:10px;padding:7px;background:var(--fill3);border-radius:var(--r-sm);}
+.vc-diag b{color:var(--tx);}
 `;
 }catch(e){}
 })();
@@ -8106,13 +8110,51 @@ if(v.localService===false)p+=20;   /* le voci di rete sono piu' fluide */
 if(/^it-IT/i.test(v.lang||''))p+=10;
 return p;
 }
-function vociIt(){
+var CACHE=[];
+function tutteLeVoci(){
 try{
 var v=speechSynthesis.getVoices()||[];
-return v.filter(function(x){return /^it/i.test(x.lang||'');})
-.sort(function(a,b){return punteggio(b)-punteggio(a);});
+if(v.length)CACHE=v;
+return CACHE.slice();
+}catch(e){return CACHE.slice();}
+}
+window.nccTutteLeVoci=tutteLeVoci;
+function italiana(x){
+var l=String(x.lang||'').replace('_','-');
+if(/^it/i.test(l))return true;
+/* certe voci iOS hanno il tag storto ma il nome parla chiaro */
+return /alice|luca|federica|paola|elsa|italian|italiano/i.test(x.name||'');
+}
+function vociIt(){
+try{
+var l=tutteLeVoci().filter(italiana);
+return l.sort(function(a,b){return punteggio(b)-punteggio(a);});
 }catch(e){return [];}
 }
+/* su iOS la lista arriva dopo, e a volte solo dopo un primo speak */
+function caricaVoci(quando){
+try{
+var tentativi=0;
+(function giro(){
+tentativi++;
+var v=tutteLeVoci();
+if(v.length||tentativi>12){if(quando)quando(v);return;}
+if(tentativi===4){try{
+var u=new SpeechSynthesisUtterance(' ');u.volume=0;
+speechSynthesis.speak(u);
+setTimeout(function(){try{speechSynthesis.cancel();}catch(e){}},60);
+}catch(e){}}
+setTimeout(giro,180);
+})();
+}catch(e){if(quando)quando([]);}
+}
+window.nccCaricaVoci=caricaVoci;
+try{
+if('speechSynthesis' in window){
+speechSynthesis.onvoiceschanged=function(){tutteLeVoci();};
+setTimeout(function(){caricaVoci();},900);
+}
+}catch(e){}
 window.nccVociIt=vociIt;
 function sceltaSalvata(){
 try{return localStorage.getItem('vocePreferita')||'';}catch(e){return '';}
@@ -8225,22 +8267,38 @@ window.nccScegliVoce=function(){
 try{
 if(!('speechSynthesis' in window)){
 if(typeof toast2==='function')toast2('\ud83d\udd07 Sintesi vocale non disponibile',2600);return;}
-try{speechSynthesis.getVoices();}catch(e){}
-setTimeout(function(){disegna();},120);
+disegna(true);                       /* intanto mostro "sto cercando" */
+if(window.nccCaricaVoci)nccCaricaVoci(function(){disegna();});
+else setTimeout(function(){disegna();},400);
 }catch(e){}
 };
-function disegna(){
+function disegna(attesa){
 try{
 var l=window.nccVociIt?nccVociIt():[];
+var tutte=window.nccTutteLeVoci?nccTutteLeVoci():[];
 var sel='';try{sel=localStorage.getItem('vocePreferita')||'';}catch(e){}
 var o=document.getElementById('vcOv');
 if(o)o.remove();
 o=document.createElement('div');o.id='vcOv';o.className='rd';
 var h='<div class="vc-box"><div class="vc-t">\ud83c\udf99 Scegli la voce</div>';
-if(!l.length){
-h+='<div class="vc-vuoto">Nessuna voce italiana installata.<br><small>'
-+'Su iPhone: Impostazioni \u203a Accessibilit\u00e0 \u203a Contenuto letto \u203a Voci \u203a Italiano, '
-+'e scarica una voce <b>Avanzata</b> o <b>Premium</b>.</small></div>';
+h+='<div class="vc-diag">Il browser vede <b>'+tutte.length+'</b> voci in tutto, '
++'<b>'+l.length+'</b> italiane'+(attesa?' \u00b7 sto cercando\u2026':'')+'</div>';
+if(!l.length&&!tutte.length){
+h+='<div class="vc-vuoto">'+(attesa?'Sto cercando le voci\u2026':'Safari non mi passa nessuna voce.')
++'<br><small>Su iPhone succede quando la pagina \u00e8 appena aperta: premi \ud83d\udd0a '
++'una volta nel quiz e poi riapri questa schermata.</small></div>';
+}else if(!l.length){
+h+='<div class="vc-vuoto">Nessuna voce italiana fra quelle che Safari espone.<br><small>'
++'Le voci <b>Avanzate</b> scaricate nelle impostazioni spesso non arrivano al browser: '
++'sono riservate a VoiceOver. Puoi provare una delle altre qui sotto.</small></div>';
+h+='<div class="vc-lista">';
+tutte.slice(0,12).forEach(function(v,i){
+h+='<div class="vc-r">'
++'<button class="vc-p" onclick="nccProvaVoceTutte('+i+')">\u25b6</button>'
++'<button class="vc-n" onclick="nccUsaVoceTutte('+i+')"><b>'+E(v.name)+'</b>'
++'<i>'+E(v.lang||'')+'</i></button></div>';
+});
+h+='</div>';
 }else{
 h+='<div class="vc-lista">';
 l.forEach(function(v,i){
@@ -8360,4 +8418,31 @@ return s||_pp.apply(this,arguments);
 };
 }catch(e){}
 },3400);
+})();
+
+/* provare e scegliere anche fra le voci non italiane, se Safari
+   non ne espone nessuna italiana */
+(function(){
+'use strict';
+window.nccProvaVoceTutte=function(i){
+try{
+var l=window.nccTutteLeVoci?nccTutteLeVoci():[];
+var v=l[i];if(!v)return;
+try{speechSynthesis.cancel();}catch(e){}
+var u=new SpeechSynthesisUtterance('Piazzale Loreto. Viale Monza. Via Padova.');
+u.voice=v;u.lang=v.lang||'it-IT';u.rate=0.98;
+speechSynthesis.speak(u);
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccUsaVoceTutte=function(i){
+try{
+var l=window.nccTutteLeVoci?nccTutteLeVoci():[];
+var v=l[i];if(!v)return;
+localStorage.setItem('vocePreferita',v.voiceURI||v.name);
+if(typeof toast2==='function')toast2('\ud83c\udf99 Voce: '+v.name,2400);
+try{hap();}catch(e){}
+try{nccScegliVoce();}catch(e){}
+}catch(e){}
+};
 })();
