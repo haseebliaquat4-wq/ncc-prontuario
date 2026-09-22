@@ -8048,3 +8048,175 @@ return t;
 }catch(e){}
 },3600);
 })();
+
+/* ═══════════════════════════════════════════════════
+   🔊 LA VOCE DEL QUIZ
+   Tre motivi per cui non si sentiva:
+   · il motore resta "occupato" dopo un annullamento e il
+     bottone si limitava a fermarlo invece di parlare
+   · su iPhone le voci arrivano tarde: alla prima pressione
+     la lista è vuota e non esce niente
+   · se falliva, falliva in silenzio
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var scaldato=false;
+function voceIt(){
+try{
+var v=speechSynthesis.getVoices()||[];
+return v.filter(function(x){return /^it/i.test(x.lang||'');})[0]
+|| v.filter(function(x){return /ital/i.test(x.name||'');})[0] || null;
+}catch(e){return null;}
+}
+/* iPhone: il motore va svegliato con la prima pressione dell'utente */
+function scalda(){
+try{
+if(scaldato||!('speechSynthesis' in window))return;
+scaldato=true;
+var u=new SpeechSynthesisUtterance(' ');
+u.volume=0;u.rate=2;
+speechSynthesis.speak(u);
+setTimeout(function(){try{speechSynthesis.cancel();}catch(e){}},80);
+}catch(e){}
+}
+try{
+['click','touchstart','keydown'].forEach(function(ev){
+document.addEventListener(ev,scalda,{once:true,capture:true});
+});
+}catch(e){}
+
+setTimeout(function(){
+try{
+if(typeof qSpeak!=='function')return;
+var _qs=qSpeak;
+qSpeak=function(){
+try{
+if(!('speechSynthesis' in window)){
+if(typeof toast2==='function')toast2('\ud83d\udd07 Questo browser non legge ad alta voce',2800);
+return;}
+var btn=document.getElementById('qListen');
+/* se sta parlando davvero, il bottone ferma: giusto */
+if(speechSynthesis.speaking&&!speechSynthesis.paused){
+try{speechSynthesis.cancel();}catch(e){}
+if(btn)btn.classList.remove('playing');
+return;
+}
+/* altrimenti azzero lo stato bloccato prima di parlare */
+try{speechSynthesis.cancel();}catch(e){}
+scalda();
+if(typeof Q==='undefined'||!Q||!Q.items||!Q.items[Q.idx]){
+if(typeof toast2==='function')toast2('\u26a0\ufe0f Nessuna domanda da leggere',2200);
+return;}
+var it=Q.items[Q.idx];
+var n=(it.choices&&it.choices.length)||4;
+var LET=[];for(var i=0;i<Math.max(4,n);i++)LET.push(String.fromCharCode(65+i));
+var txt=it.q+'. ';
+(it.choices||[]).forEach(function(c,i){txt+=LET[i]+'. '+c+'. ';});
+var u=new SpeechSynthesisUtterance(txt);
+u.lang=(it.cat==='lingua')?'en-GB':'it-IT';
+u.rate=0.96;
+var v=voceIt();
+if(v&&it.cat!=='lingua')u.voice=v;
+u.onend=function(){if(btn)btn.classList.remove('playing');};
+u.onerror=function(){
+if(btn)btn.classList.remove('playing');
+if(typeof toast2==='function')toast2('\ud83d\udd07 La voce non parte su questo dispositivo',2800);
+};
+if(btn)btn.classList.add('playing');
+speechSynthesis.speak(u);
+/* se dopo mezzo secondo non ha iniziato, lo dico invece di tacere */
+setTimeout(function(){
+try{
+if(!speechSynthesis.speaking&&!speechSynthesis.pending){
+if(btn)btn.classList.remove('playing');
+if(typeof toast2==='function')
+toast2('\ud83d\udd07 Niente voce: controlla il volume e il tasto silenzioso',3200);
+}
+}catch(e){}
+},600);
+}catch(e){
+try{return _qs.apply(this,arguments);}catch(e2){}
+}
+};
+}catch(e){}
+},2800);
+/* su iPhone le voci arrivano dopo: quando arrivano non faccio niente,
+   servono solo a far trovare la voce italiana al prossimo giro */
+try{
+if('speechSynthesis' in window&&typeof speechSynthesis.addEventListener==='function')
+speechSynthesis.addEventListener('voiceschanged',function(){});
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎲 IL CASUALE PESCA FRA TUTTI QUELLI COMPLETATI
+   Prima il dado dava solo i deboli o i mai visti. Ora gira
+   su TUTTI quelli che hai preparato, senza ripetere gli
+   ultimi usciti.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+
+function percorsiPronti(){
+try{
+if(typeof routes==='undefined'||!routes)return [];
+var sr=L('rSR',{})||{};
+return routes.filter(function(r){
+if(!r||!r.steps||r.steps.length<2)return false;
+try{
+if(typeof coords!=='undefined'&&coords){
+for(var i=0;i<r.steps.length;i++){if(coords[r.id+'_'+i])return true;}
+}
+if(typeof qStats!=='undefined'&&qStats&&qStats[r.id])return true;
+if(sr[r.id])return true;
+}catch(e){}
+return false;
+});
+}catch(e){return [];}
+}
+window.nccPercorsiPronti=percorsiPronti;
+
+/* il dado dei percorsi: tutti i completati, a rotazione */
+setTimeout(function(){
+try{
+if(typeof rndRoute!=='function')return;
+var _rr=rndRoute;
+rndRoute=function(){
+try{
+var pool=percorsiPronti();
+if(pool.length<2)return _rr.apply(this,arguments);
+var s=window.nccPesca?window.nccPesca(pool):pool[Math.floor(Math.random()*pool.length)];
+if(!s)return _rr.apply(this,arguments);
+selectRoute(s);
+try{hap();}catch(e){}
+try{if(typeof toast2==='function')toast2('\ud83c\udfb2 '+s.title,2000);}catch(e){}
+}catch(e){try{return _rr.apply(this,arguments);}catch(e2){}}
+};
+}catch(e){}
+},3000);
+
+/* il dado delle piazze: tutte quelle preparate, a rotazione */
+setTimeout(function(){
+try{
+if(typeof window.pzPescaPiazza!=='function')return;
+var _pp=window.pzPescaPiazza;
+window.pzPescaPiazza=function(){
+try{
+if(!window.pzTutte)return _pp.apply(this,arguments);
+var tutte=pzTutte();
+var st=L('pzStats',{})||{},co=L('pzCoords',{})||{};
+var pronte=tutte.filter(function(p){
+if(st[p.id])return true;
+if(co[p.id])return true;
+for(var i=0;i<p.v.length;i++){if(co[p.id+'_'+i])return true;}
+return false;
+});
+if(pronte.length<2)return _pp.apply(this,arguments);
+var s=window.nccPesca?window.nccPesca(pronte):pronte[Math.floor(Math.random()*pronte.length)];
+return s||_pp.apply(this,arguments);
+}catch(e){try{return _pp.apply(this,arguments);}catch(e2){return null;}}
+};
+}catch(e){}
+},3400);
+})();
