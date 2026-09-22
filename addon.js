@@ -1891,6 +1891,192 @@ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw;}
 .mg-info{display:none;}
 .mg-c{width:26px;height:26px;}
 }
+
+
+/* ══════════ COLORI DI SISTEMA iOS ══════════
+   le vecchie --ios-* contenevano la tavolozza di prima (e teal e
+   indigo erano lo stesso blu): ora sono i valori veri di iOS */
+:root,body,.rd{
+--ios-blue:#007AFF;--ios-green:#34C759;--ios-red:#FF3B30;--ios-orange:#FF9500;
+--ios-yellow:#FFCC00;--ios-teal:#30B0C7;--ios-indigo:#5856D6;--ios-purple:#AF52DE;
+--ios-pink:#FF2D55;--ios-gray:#8E8E93;--ios-gray2:#AEAEB2;--ios-gray3:#C7C7CC;
+--ios-gray4:#D1D1D6;--ios-gray5:#E5E5EA;--ios-gray6:#F2F2F7;
+--ios-bg:#F2F2F7;--ios-card:#FFFFFF;--ios-lbl:#000;--ios-lbl2:rgba(60,60,67,.6);
+--ios-lbl3:rgba(60,60,67,.3);--ios-sep:rgba(60,60,67,.29);--ios-hl:#D1D1D6;
+--ios-spring:cubic-bezier(.32,.72,0,1);}
+.dark,.dark .rd,body.dark{
+--ios-blue:#0A84FF;--ios-green:#30D158;--ios-red:#FF453A;--ios-orange:#FF9F0A;
+--ios-teal:#40C8E0;--ios-indigo:#5E5CE6;--ios-purple:#BF5AF2;--ios-pink:#FF375F;
+--ios-bg:#000;--ios-card:#1C1C1E;--ios-lbl:#fff;--ios-lbl2:rgba(235,235,245,.6);
+--ios-lbl3:rgba(235,235,245,.3);--ios-sep:rgba(84,84,88,.6);--ios-hl:#3A3A3C;}
+
+/* ══════════ PROFILO ══════════ */
+#pfOv{position:fixed;top:0;left:0;right:0;
+bottom:calc(var(--tabh,64px) + env(safe-area-inset-bottom));
+z-index:2700;background:var(--ios-bg);
+display:flex;flex-direction:column;overflow:hidden;
+transform:translateX(100%);
+transition:transform .42s var(--ios-spring);
+box-shadow:-8px 0 24px rgba(0,0,0,.08);
+font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;}
+#pfOv.dentro{transform:none;}
+#pfOv.fuori{transform:translateX(100%);}
+.pf-nav{position:absolute;top:0;left:0;right:0;z-index:3;
+padding:calc(12px + env(safe-area-inset-top,0px)) 16px 11px;
+text-align:center;background:transparent;
+border-bottom:.5px solid transparent;
+transition:background .2s,border-color .2s;}
+.pf-nav.pieno{background:color-mix(in srgb,var(--ios-bg) 88%,transparent);
+backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+border-bottom-color:var(--ios-sep);}
+.pf-nav-t{font-size:17px;font-weight:600;color:var(--ios-lbl);letter-spacing:-.4px;
+opacity:0;transition:opacity .2s;}
+.pf-nav.pieno .pf-nav-t{opacity:1;}
+.pf-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+padding:calc(46px + env(safe-area-inset-top,0px)) 0 34px;}
+.pf-body>*{max-width:680px;margin-left:auto;margin-right:auto;}
+.pf-big{font-size:34px;font-weight:700;letter-spacing:.37px;color:var(--ios-lbl);
+margin:6px 16px 22px;line-height:1.2;}
+.pf-sez{font-size:13px;font-weight:400;color:var(--ios-lbl2);letter-spacing:-.08px;
+text-transform:uppercase;margin:0 32px 7px;}
+.pf-gr{background:var(--ios-card);border-radius:10px;margin:0 16px 35px;overflow:hidden;}
+.pf-r{display:flex;align-items:center;gap:0;width:100%;min-height:44px;
+padding:0 0 0 16px;border:none;background:transparent;text-align:left;
+cursor:pointer;font-family:inherit;position:relative;
+-webkit-tap-highlight-color:transparent;
+transition:background .12s;}
+/* la pressione: grigio, come iOS. niente rimpicciolimento */
+.pf-r:active{background:var(--ios-hl);transform:none!important;}
+.pf-ic{flex:0 0 29px;width:29px;height:29px;border-radius:7px;
+display:flex;align-items:center;justify-content:center;
+font-size:17px;line-height:1;margin-right:16px;}
+.pf-txt{flex:1;min-width:0;display:flex;align-items:center;gap:8px;
+min-height:44px;padding:11px 16px 11px 0;position:relative;}
+/* il separatore parte dopo l'icona */
+.pf-r+.pf-r .pf-txt::before{content:'';position:absolute;top:0;left:0;right:0;
+height:.5px;background:var(--ios-sep);}
+.pf-n{flex:1;font-size:17px;font-weight:400;color:var(--ios-lbl);letter-spacing:-.43px;
+line-height:1.29;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-d{flex-shrink:0;max-width:52%;font-size:17px;color:var(--ios-lbl2);
+letter-spacing:-.43px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-ch{position:absolute;right:16px;font-size:22px;font-weight:400;
+color:var(--ios-lbl3);line-height:1;pointer-events:none;}
+.pf-r .pf-txt{padding-right:34px;}
+.pf-r.rosso .pf-n{color:var(--ios-red);}
+/* l'interruttore iOS */
+.pf-sw{position:absolute;right:16px;width:51px;height:31px;border-radius:999px;
+background:var(--ios-gray5);transition:background .25s var(--ios-spring);pointer-events:none;}
+.pf-sw i{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;
+background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);
+transition:transform .25s var(--ios-spring);}
+.pf-sw.on{background:var(--ios-green);}
+.pf-sw.on i{transform:translateX(20px);}
+.pf-r:has(.pf-sw) .pf-txt{padding-right:76px;}
+.pf-piede{text-align:center;font-size:13px;color:var(--ios-lbl3);margin:6px 0 10px;}
+/* la barra a due voci */
+#tabbar.due-voci .tab[data-t="topo"],
+#tabbar.due-voci .tab[data-t="quiz"],
+#tabbar.due-voci .tab[data-t="studio"]{display:none!important;}
+
+
+/* ══════════ HOME A RIQUADRI ══════════ */
+/* la vecchia home resta nel DOM (il nucleo la aggiorna), ma si vede solo in Statistiche */
+#homeScreen.hm-nuova:not(.hm-stat)>*:not(#hmNew){display:none!important;}
+#homeScreen.hm-stat>#hmNew,#homeScreen.hm-stat>#cxBtn,
+#homeScreen.hm-stat>.home-hd,#homeScreen.hm-stat .home-cards .home-card{display:none!important;}
+#hmNew{padding:calc(6px + env(safe-area-inset-top,0px)) 0 18px;
+font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;}
+#hmNew>*{max-width:900px;margin-left:auto;margin-right:auto;}
+.hm-top{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.hm-ciao{flex:1;min-width:0;margin:0;font-size:32px;font-weight:700;letter-spacing:.3px;
+color:var(--ios-lbl,var(--tx));line-height:1.15;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm-lente{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:none;
+background:var(--ios-card,#fff);color:var(--ios-blue);cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+box-shadow:0 1px 3px rgba(0,0,0,.08);-webkit-tap-highlight-color:transparent;}
+.hm-lente svg{width:21px;height:21px;}
+.hm-lente:active{background:var(--ios-hl);}
+.hm-sez{font-size:13px;color:var(--ios-lbl2,var(--mu));letter-spacing:-.08px;
+margin:0 16px 7px;}
+.hm-sug{background:var(--ios-card,#fff);border-radius:12px;overflow:hidden;margin-bottom:22px;}
+.hm-sr{display:flex;align-items:center;gap:12px;padding:11px 14px 11px 14px;position:relative;}
+.hm-sr+.hm-sr::before{content:'';position:absolute;top:0;left:56px;right:0;
+height:.5px;background:var(--ios-sep);}
+.hm-si{flex:0 0 30px;width:30px;height:30px;border-radius:8px;
+display:flex;align-items:center;justify-content:center;font-size:16px;}
+.hm-st{flex:1;min-width:0;}
+.hm-st b{display:block;font-size:16px;font-weight:600;color:var(--ios-lbl,var(--tx));
+letter-spacing:-.3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm-st i{display:block;font-style:normal;font-size:13px;color:var(--ios-lbl2,var(--mu));
+margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm-sb{flex-shrink:0;min-height:34px;padding:7px 14px;border:none;border-radius:999px;
+background:var(--ios-gray6,#F2F2F7);font-family:inherit;font-size:15px;font-weight:600;
+cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.dark .hm-sb{background:#2C2C2E;}
+.hm-sb:active{opacity:.55;}
+/* i riquadri */
+.hm-griglia{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(min-width:700px){.hm-griglia{grid-template-columns:repeat(4,1fr);gap:14px;}}
+.hm-rq{position:relative;display:flex;flex-direction:column;align-items:flex-start;
+min-height:122px;padding:14px 14px 15px;border:none;border-radius:22px;
+text-align:left;cursor:pointer;color:#fff;font-family:inherit;overflow:hidden;
+background:linear-gradient(160deg,color-mix(in srgb,var(--rq) 88%,#fff),var(--rq) 55%,color-mix(in srgb,var(--rq) 86%,#000));
+box-shadow:0 6px 16px color-mix(in srgb,var(--rq) 28%,transparent);
+transition:transform .35s var(--ios-spring,cubic-bezier(.32,.72,0,1)),filter .2s;
+-webkit-tap-highlight-color:transparent;}
+@media(min-width:700px){.hm-rq{min-height:150px;}}
+.hm-rq:active{transform:scale(.965);filter:brightness(.94);}
+.hm-rq-top{display:flex;align-items:flex-start;justify-content:space-between;width:100%;
+margin-bottom:auto;gap:6px;}
+.hm-rq-ic{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.22);
+display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hm-rq-ic svg{width:21px;height:21px;}
+.hm-rq-b{font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;
+background:rgba(0,0,0,.2);white-space:nowrap;letter-spacing:-.1px;
+max-width:62%;overflow:hidden;text-overflow:ellipsis;}
+.hm-rq-t{font-size:19px;font-weight:700;letter-spacing:-.4px;line-height:1.18;margin-top:12px;
+max-width:100%;overflow-wrap:break-word;hyphens:auto;}
+/* schermi stretti: il titolo va a capo invece di tagliarsi */
+@media(max-width:380px){.hm-rq-t{font-size:17px;}.hm-rq-s{font-size:12px;}
+.hm-rq{padding:12px 12px 13px;}.hm-rq-b{font-size:12px;padding:3px 8px;}}
+.hm-rq-s{font-size:13px;font-weight:500;opacity:.9;margin-top:2px;line-height:1.3;
+max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* la barra di Statistiche */
+#hmStatBar{position:sticky;top:0;z-index:20;display:flex;align-items:center;
+margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top,0px)) 8px 10px;
+background:color-mix(in srgb,var(--ios-bg,#F2F2F7) 90%,transparent);
+backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+border-bottom:.5px solid var(--ios-sep);}
+.hm-indietro{display:flex;align-items:center;gap:2px;border:none;background:transparent;
+color:var(--ios-blue);font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+font-size:17px;letter-spacing:-.4px;cursor:pointer;padding:6px 8px;min-height:44px;}
+.hm-indietro svg{width:22px;height:22px;}
+.hm-indietro:active{opacity:.4;}
+.hm-sbt{position:absolute;left:50%;transform:translateX(-50%);
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+font-size:17px;font-weight:600;letter-spacing:-.4px;color:var(--ios-lbl,var(--tx));}
+/* il foglio d'azione */
+#hmFg{position:fixed;inset:0;z-index:9400;
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;}
+.hmf-velo{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;transition:opacity .3s;}
+#hmFg.su .hmf-velo{opacity:1;}
+.hmf-box{position:absolute;left:8px;right:8px;
+bottom:calc(8px + env(safe-area-inset-bottom,0px));
+max-width:520px;margin:0 auto;
+transform:translateY(110%);transition:transform .42s var(--ios-spring,cubic-bezier(.32,.72,0,1));}
+#hmFg.su .hmf-box{transform:none;}
+.hmf-gr{background:color-mix(in srgb,var(--ios-card,#fff) 94%,transparent);
+backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+border-radius:14px;overflow:hidden;margin-bottom:8px;}
+.hmf-t{text-align:center;font-size:13px;font-weight:600;color:var(--ios-lbl2);
+padding:14px 16px 12px;border-bottom:.5px solid var(--ios-sep);}
+.hmf-b{display:block;width:100%;min-height:57px;padding:14px;border:none;
+background:transparent;color:var(--ios-blue);font-family:inherit;font-size:20px;
+letter-spacing:-.4px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.hmf-gr .hmf-b+.hmf-b{border-top:.5px solid var(--ios-sep);}
+.hmf-b:active{background:var(--ios-hl);}
+.hmf-no{background:var(--ios-card,#fff);border-radius:14px;font-weight:600;}
 `;
 }catch(e){}
 })();
@@ -5873,6 +6059,16 @@ if(typeof L!=='undefined'&&L.tileLayer){
 var _tl=L.tileLayer;
 L.tileLayer=function(url,opt){
 try{
+/* ALTA DEFINIZIONE — su iPad e iPhone lo schermo ha il doppio dei
+   punti: senza questo i riquadri arrivano a meta' risoluzione e,
+   zoomando, le scritte sono sfocate. detectRetina fa chiedere a
+   Leaflet i riquadri dello zoom successivo e li disegna a meta'
+   dimensione: quattro volte i dettagli. */
+try{
+opt=opt||{};
+var dpr=window.devicePixelRatio||1;
+if(dpr>1.2&&opt.detectRetina===undefined)opt.detectRetina=true;
+}catch(e){}
 if(typeof url==='string'&&url.indexOf('cartocdn')>=0){
 url=CON;
 opt=opt||{};
@@ -7547,8 +7743,13 @@ var d=(qtStats&&qtStats.daily)?qtStats.daily:null;
 if(d&&d.day===oggi)fatteOggi=d.n||0;
 }catch(e){}
 var giorni=0;
+/* la chiave vera e' 'streak' ({n,last}): 'striscia' non esiste,
+   per questo la card diceva 0 mentre l'app diceva 9 */
+try{var sv=L('streak',null);if(sv&&typeof sv==='object')giorni=sv.n||0;}catch(e){}
+if(!giorni){
 if(s&&typeof s==='object')giorni=s.n||s.giorni||0;
 else if(typeof s==='number')giorni=s;
+}
 return {giorni:giorni,oggi:fatteOggi,salva:Math.max(0,5-fatteOggi)};
 }catch(e){return {giorni:0,oggi:0,salva:5};}
 }
@@ -8544,7 +8745,7 @@ try{
 var LF=window.L;if(!LF||!LF.map)return;
 MG=LF.map('mgMap',{zoomControl:true,attributionControl:true});
 try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
+{maxZoom:19,maxNativeZoom:19,detectRetina:(window.devicePixelRatio||1)>1.2,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
 /* parto da dove sei: il percorso aperto, se c'è */
 var punti=[];
 try{
@@ -8685,4 +8886,480 @@ var o=document.getElementById('mgOv');if(o)o.remove();
 CTX=null;CORRENTE=null;
 }catch(e){}
 };
+})();
+
+/* ═══════════════════════════════════════════════════
+   👤 PROFILO — fase 1 del nuovo impianto
+   Tutte le impostazioni in un posto solo, in stile iOS:
+   gruppi di righe bianche su fondo grigio, icone quadrate
+   colorate, separatori che partono dopo l'icona.
+   Entra scivolando da destra, esce con lo stesso gesto
+   o trascinando dal bordo sinistro.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function f(n){return typeof window[n]==='function';}
+/* lo stato vero: le variabili vive dell'app, non la memoria,
+   perche' "nessun valore salvato" per l'app significa acceso */
+function acceso(k){
+try{
+if(k==='sndOn'&&typeof sndOn!=='undefined')return !!sndOn;
+if(k==='vibOn'&&typeof vibOn!=='undefined')return !!vibOn;
+if(k==='dark')return document.body.classList.contains('dark')||document.documentElement.classList.contains('dark');
+if(k==='berlina')return document.body.classList.contains('berlina')||document.documentElement.classList.contains('berlina');
+}catch(e){}
+var v=L(k,null);return v===true||v==='1'||v===1||v==='true';
+}
+
+function giorniA(d){
+try{
+if(!d)return null;
+var t=new Date(d);if(isNaN(t))return null;
+var oggi=new Date();oggi.setHours(0,0,0,0);t.setHours(0,0,0,0);
+return Math.round((t-oggi)/86400000);
+}catch(e){return null;}
+}
+function dataIt(d){
+try{var t=new Date(d);if(isNaN(t))return '';
+return t.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '';}
+}
+
+/* colore iOS per ogni icona */
+var C={blu:'#007AFF',verde:'#34C759',rosso:'#FF3B30',arancio:'#FF9500',
+giallo:'#FFCC00',indaco:'#5856D6',viola:'#AF52DE',teal:'#30B0C7',
+rosa:'#FF2D55',grigio:'#8E8E93',marrone:'#A2845E'};
+
+function righe(){
+var esame=L('examDate',null),trag=L('targetDate',null);
+var ge=giorniA(esame),gt=giorniA(trag);
+var voce='';try{voce=localStorage.getItem('vocePreferita')||'';}catch(e){}
+return [
+{t:'IL MIO ESAME',v:[
+{ic:'\ud83d\udc64',c:C.grigio,n:'Il tuo nome',d:(function(){try{return localStorage.getItem('nomeUtente')||'Aggiungi';}catch(e){return 'Aggiungi';}})(),f:'nccPfNome'},
+{ic:'\ud83c\udfaf',c:C.rosso,n:'Data dell\u2019esame',
+ d:esame?(dataIt(esame)+(ge!==null?(' \u00b7 fra '+ge+' giorni'):'')):'Non impostata',f:'setExamDate'},
+{ic:'\ud83c\udfc1',c:C.arancio,n:'Traguardo',
+ d:trag?(dataIt(trag)+(gt!==null?(' \u00b7 fra '+gt+' giorni'):'')):'Non impostato',f:'setTargetDate'}
+]},
+{t:'I MIEI DATI',v:[
+{ic:'\ud83d\udccb',c:C.blu,n:'Percorsi salvati',f:'openMgr'},
+{ic:'\ud83d\udce5',c:C.teal,n:'Importa percorsi dal PDF',f:'nccImportaPercorsi'},
+{ic:'\ud83d\udcca',c:C.viola,n:'Statistiche vie',f:'openStats'},
+{ic:'\ud83d\udcc5',c:C.indaco,n:'Report settimanale',f:'weeklyReport',a:true},
+{ic:'\ud83d\udcbe',c:C.verde,n:'Salva una copia',f:'nccSalvaCopia'},
+{ic:'\u21a9\ufe0f',c:C.grigio,n:'Ripristina',f:'nccRiprendiCopia'}
+]},
+{t:'STRUMENTI',v:[
+{ic:'\ud83d\udd01',c:C.arancio,n:'Vie da ripassare',f:'openWrong'},
+{ic:'\ud83e\udde9',c:C.verde,n:'Ordina le vie',f:'ordinaVie'},
+{ic:'\u270f\ufe0f',c:C.blu,n:'Mappa grande + Pencil',f:'nccMappaGrande'}
+]},
+{t:'IMPOSTAZIONI',v:[
+{ic:'\ud83c\udf19',c:C.indaco,n:'Modalit\u00e0 notte',s:acceso('dark'),f:'togDark',k:'dark'},
+{ic:'\ud83d\udd0a',c:C.rosa,n:'Suoni',s:acceso('sndOn'),f:'togSnd',k:'sndOn'},
+{ic:'\ud83d\udcf3',c:C.viola,n:'Vibrazione',s:acceso('vibOn'),f:'togVib',k:'vibOn'},
+{ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
+{ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'}
+]},
+{t:'',v:[
+{ic:'\ud83d\uddd1\ufe0f',c:C.rosso,n:'Reimposta tutto',f:'doReset',rosso:true}
+]}
+];
+}
+
+function disegna(){
+try{
+var o=document.getElementById('pfOv');if(!o)return;
+var h='<div class="pf-nav" id="pfNav"><div class="pf-nav-t">Profilo</div></div>'
++'<div class="pf-body" id="pfBody">'
++'<h1 class="pf-big">Profilo</h1>';
+righe().forEach(function(g){
+var vis=g.v.filter(function(r){return f(r.f);});
+if(!vis.length)return;
+if(g.t)h+='<div class="pf-sez">'+E(g.t)+'</div>';
+h+='<div class="pf-gr">';
+vis.forEach(function(r,i){
+var interruttore=(typeof r.s==='boolean');
+h+='<button class="pf-r'+(r.rosso?' rosso':'')+'" onclick="nccPfTocca(\''+r.f+'\','+(r.a?'1':'0')+')">'
++'<span class="pf-ic" style="background:'+r.c+'">'+r.ic+'</span>'
++'<span class="pf-txt"><span class="pf-n">'+E(r.n)+'</span>'
++(r.d?'<span class="pf-d">'+E(r.d)+'</span>':'')+'</span>'
++(interruttore?('<span class="pf-sw'+(r.s?' on':'')+'"><i></i></span>')
+:'<span class="pf-ch">\u203a</span>')
++'</button>';
+});
+h+='</div>';
+});
+h+='<div class="pf-piede">NCC Milano</div></div>';
+o.innerHTML=h;
+/* il titolo grande si fa piccolo scorrendo, come in iOS */
+var b=document.getElementById('pfBody'),n=document.getElementById('pfNav');
+if(b&&n)b.onscroll=function(){n.classList.toggle('pieno',b.scrollTop>38);};
+}catch(e){}
+}
+
+window.nccPfTocca=function(fn,arg){
+try{
+if(!f(fn))return;
+try{if(typeof hap==='function')hap();}catch(e){}
+var interruttori={togDark:1,togSnd:1,togVib:1,togBerlina:1};
+if(interruttori[fn]){
+window[fn]();
+setTimeout(disegna,60);    /* aggiorno l'interruttore al volo */
+return;
+}
+/* le date si chiedono restando qui */
+if(fn==='setExamDate'||fn==='setTargetDate'||fn==='nccPfNome'){
+window[fn]();
+setTimeout(disegna,400);
+return;
+}
+/* il resto apre una schermata: chiudo il profilo e vado */
+nccProfiloChiudi(true);
+setTimeout(function(){try{arg?window[fn](true):window[fn]();}catch(e){}},200);
+}catch(e){}
+};
+
+window.nccProfilo=function(){
+try{
+var o=document.getElementById('pfOv');
+if(o){disegna();return;}
+o=document.createElement('div');o.id='pfOv';o.className='rd';
+document.body.appendChild(o);
+disegna();
+requestAnimationFrame(function(){o.classList.add('dentro');});
+tab(true);
+try{if(window.nccOvApri)nccOvApri('pfOv',function(){nccProfiloChiudi();});}catch(e){}
+bordo(o);
+}catch(e){}
+};
+window.nccProfiloChiudi=function(subito){
+try{
+var o=document.getElementById('pfOv');if(!o)return;
+tab(false);
+if(subito){o.remove();return;}
+o.classList.remove('dentro');o.classList.add('fuori');
+setTimeout(function(){try{o.remove();}catch(e){}},320);
+}catch(e){}
+};
+function tab(on){
+try{
+var p=document.querySelector('#tabbar .tab[data-t="profilo"]');
+var h=document.querySelector('#tabbar .tab[data-t="home"]');
+if(p)p.classList.toggle('on',on);
+if(h)h.classList.toggle('on',!on);
+}catch(e){}
+}
+
+/* trascinando dal bordo sinistro si torna indietro, come in iOS */
+function bordo(o){
+try{
+var x0=null,y0=null,dx=0,attivo=false;
+o.addEventListener('touchstart',function(e){
+var t=e.touches[0];
+if(t.clientX>28){x0=null;return;}
+x0=t.clientX;y0=t.clientY;dx=0;attivo=false;
+},{passive:true});
+o.addEventListener('touchmove',function(e){
+if(x0===null)return;
+var t=e.touches[0];dx=t.clientX-x0;
+if(!attivo&&Math.abs(t.clientY-y0)>Math.abs(dx))return;
+if(dx>8){attivo=true;o.style.transition='none';
+o.style.transform='translateX('+Math.max(0,dx)+'px)';}
+},{passive:true});
+o.addEventListener('touchend',function(){
+if(x0===null)return;
+o.style.transition='';
+if(attivo&&dx>window.innerWidth*0.33){nccProfiloChiudi();}
+else{o.style.transform='';}
+x0=null;
+},{passive:true});
+}catch(e){}
+}
+
+/* la barra in basso: Home · Profilo */
+function barra(){
+try{
+var tb=document.getElementById('tabbar');if(!tb)return;
+if(tb.querySelector('.tab[data-t="profilo"]'))return;
+var b=document.createElement('button');
+b.className='tab';b.setAttribute('data-t','profilo');
+b.innerHTML='<span class="tb-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
++'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
++'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>'
++'<span class="tb-lb">Profilo</span>';
+b.onclick=function(){
+if(document.getElementById('pfOv'))return;
+try{if(typeof goHome==='function')goHome();}catch(e){}
+nccProfilo();};
+tb.appendChild(b);
+tb.classList.add('due-voci');
+}catch(e){}
+}
+setTimeout(barra,600);
+setTimeout(barra,2400);
+/* toccando Home o qualunque altra linguetta il profilo si chiude */
+setTimeout(function(){
+try{
+if(typeof tabGo!=='function')return;
+var _t=tabGo;
+tabGo=function(){
+if(document.getElementById('pfOv'))nccProfiloChiudi(true);
+return _t.apply(this,arguments);};
+}catch(e){}
+},2600);
+})();
+
+/* il profilo si chiude a QUALUNQUE navigazione, non solo dalla barra:
+   se il coach, la ricerca o una card aprono una schermata, il profilo
+   restava sopra a coprirla */
+setTimeout(function(){
+try{
+['goHome','goTopografia','openQuiz','openStudy','openPiazze','openNorme',
+ 'openRegole','nccApriCerca','nccMappaGrande','openMgr','openStats','openWrong'].forEach(function(n){
+if(typeof window[n]!=='function'||window[n].__pf)return;
+var _o=window[n];
+var w=function(){
+try{if(document.getElementById('pfOv')&&window.nccProfiloChiudi)nccProfiloChiudi(true);}catch(e){}
+return _o.apply(this,arguments);};
+w.__pf=true;
+window[n]=w;
+});
+}catch(e){}
+},3900);
+
+/* ═══════════════════════════════════════════════════
+   🏠 HOME A RIQUADRI — fase 2
+   In cima i suggerimenti: quello che sbagli.
+   Sotto otto riquadri grandi, ognuno col suo numero.
+   La vecchia home non viene cancellata: diventa la pagina
+   Statistiche, cosi' nessuna funzione va persa.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function f(n){return typeof window[n]==='function';}
+
+window.nccPfNome=function(){
+try{
+var v='';try{v=localStorage.getItem('nomeUtente')||'';}catch(e){}
+var n=prompt('Come ti chiami? Lo uso per salutarti in home.',v);
+if(n===null)return;
+n=String(n).trim().slice(0,24);
+try{if(n)localStorage.setItem('nomeUtente',n);else localStorage.removeItem('nomeUtente');}catch(e){}
+disegna();
+}catch(e){}
+};
+
+/* ── i numeri dei riquadri, tutti dalle fonti vere dell'app ── */
+function numeri(){
+var o={};
+try{
+var m=(typeof studentModel==='function')?studentModel():null;
+if(m&&m.subs&&m.subs.length){var s=0,t=0;
+m.subs.forEach(function(x){t+=(x.n||0);s+=Math.round((x.n||0)*(x.m||0)/100);});
+o.quiz=t?Math.round(s/t*100):0;}
+if(m&&m.cats&&m.cats.length){
+var peg=m.cats.slice().sort(function(a,b){return (b.pErr||0)-(a.pErr||0);})[0];
+if(peg&&peg.pErr>0.15)o.peggiore=peg.label;}
+}catch(e){}
+/* lo stesso conto del pallino rosso sulla linguetta Quiz */
+try{o.errori=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;}catch(e){o.errori=0;}
+try{o.erroriTot=Object.keys(qtStats.err||{}).length;}catch(e){o.erroriTot=0;}
+try{var tm=topoModel();o.percTot=tm.rows.length;
+o.perc=tm.rows.filter(function(r){return r.clean>=0.8;}).length;}catch(e){}
+try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}catch(e){}
+try{var Lg=window.__LUOGHI__;o.luoghiTot=Array.isArray(Lg)?Lg.length:(Lg?Object.keys(Lg).length:0);
+var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:{};o.luoghi=Object.keys(sp).length;}catch(e){}
+try{var N=window.__NORME__;if(N){o.normeTot=N.sez.length;var st=L('nmStats',{})||{};
+o.norme=N.sez.filter(function(x){var y=st[x.id];if(!y)return false;var t2=(y.ok||0)+(y.ko||0);
+return t2>0&&(y.ok||0)/t2>=0.8;}).length;}}catch(e){}
+try{var ex=L('examDate',null);if(ex){var d=new Date(ex),g=new Date();g.setHours(0,0,0,0);d.setHours(0,0,0,0);
+o.esame=Math.round((d-g)/86400000);}}catch(e){}
+try{var sk=L('streak',null);o.striscia=(sk&&sk.n)||0;}catch(e){o.striscia=0;}
+try{if(typeof qStats!=='undefined'&&qStats)o.vie=Object.keys(qStats).reduce(function(a,k){
+return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){o.vie=0;}
+return o;
+}
+
+/* ── i suggerimenti: SOLO quello che sbagli ── */
+function suggerimenti(n){
+var s=[];
+if(n.errori>0){
+s.push({ic:'\ud83d\udd01',c:'#FF3B30',
+t:n.errori+(n.errori===1?' errore da ripassare':' errori da ripassare'),
+d:n.peggiore?('Sbagli soprattutto in '+n.peggiore):'Sono in scadenza oggi',
+b:'Ripassa',fn:'nccHmErrori'});
+}
+try{
+var m=studentModel();
+if(m&&m.subs&&m.subs.length){var w=m.subs[0];
+if(w.m<70&&w.n>=8)s.push({ic:'\ud83d\udd2c',c:'#FF9500',
+t:'Tema debole: '+String(w.label).split('\u00b7')[0].trim(),
+d:'Padronanza '+w.m+'% \u00b7 12 domande solo su questo',b:'Allenati',fn:'nccHmDebole'});}
+}catch(e){}
+if(n.vie>0)s.push({ic:'\ud83d\uddfa\ufe0f',c:'#007AFF',
+t:n.vie+(n.vie===1?' via sbagliata':' vie sbagliate'),
+d:'Nel Quiz vie dei percorsi',b:'Rivedi',fn:'openWrong'});
+if(!s.length)s.push({ic:'\u2705',c:'#34C759',t:'Nessun errore in sospeso',
+d:'Una scheda da un minuto per restare in forma',b:'Vai',fn:'nccUnMinuto'});
+return s.slice(0,3);
+}
+window.nccHmErrori=function(){
+try{openQuiz();setTimeout(function(){try{buildQuiz();qStartCat('errata');}catch(e){}},260);}catch(e){}
+};
+window.nccHmDebole=function(){
+try{
+var t=(coachTasks()||[]).filter(function(x){return x.ic==='\ud83d\udd2c';})[0];
+if(t&&t.fn)t.fn();else nccHmErrori();
+}catch(e){}
+};
+
+var ICONE={
+quiz:'<path d="M9 5h10M9 12h10M9 19h10"/><circle cx="4.5" cy="5" r="1.5"/><circle cx="4.5" cy="12" r="1.5"/><circle cx="4.5" cy="19" r="1.5"/>',
+topo:'<path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4z"/><path d="M9 4v13.5M15 6.5V20"/>',
+err:'<path d="M20 11a8 8 0 1 0-2.4 5.7"/><path d="M20 5v6h-6"/>',
+pz:'<path d="M12 2 22 12 12 22 2 12z"/>',
+luoghi:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+norme:'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/>',
+esame:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+stat:'<path d="M5 20V11M12 20V5M19 20v-7"/>'
+};
+function icona(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
++'stroke-linecap="round" stroke-linejoin="round">'+ICONE[k]+'</svg>';}
+
+function riquadri(n){
+function fr(a,b){return (b?a+'/'+b:'');}
+return [
+{k:'quiz',t:'Quiz',s:'Simulazioni e schede',c:'#FF9500',b:(n.quiz!=null?n.quiz+'% sai':''),fn:'openQuiz'},
+{k:'topo',t:'Topografia',s:'Percorsi e vie',c:'#007AFF',b:fr(n.perc||0,n.percTot),fn:'goTopografia'},
+{k:'err',t:'Ripasso errori',s:n.errori?(n.errori+' da rivedere'):'Niente in sospeso',c:'#34C759',
+ b:n.errori?String(n.errori):'',fn:'nccHmErrori'},
+{k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),fn:'openPiazze'},
+{k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),fn:'openStudy'},
+{k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),fn:'nccHmNorme'},
+{k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?'fra '+n.esame+' giorni':'data passata'):'Imposta la data'),
+ c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?n.esame+' g':''),fn:'nccHmEsame'},
+{k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
+ b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),fn:'nccHmStat'}
+];
+}
+
+function saluto(){
+var h=new Date().getHours();
+var s=h<13?'Buongiorno':(h<18?'Buon pomeriggio':'Buonasera');
+var n='';try{n=localStorage.getItem('nomeUtente')||'';}catch(e){}
+return s+(n?(' '+n):'');
+}
+
+function disegna(){
+try{
+var home=document.getElementById('homeScreen');if(!home)return;
+var n=numeri();
+var d=document.getElementById('hmNew');
+if(!d){d=document.createElement('div');d.id='hmNew';}
+if(home.firstElementChild!==d)home.insertBefore(d,home.firstElementChild);
+var h='<div class="hm-top"><h1 class="hm-ciao">'+E(saluto())+'</h1>'
++'<button class="hm-lente" onclick="nccApriCerca()" aria-label="Cerca">'
++'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">'
++'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div>';
+/* i suggerimenti in cima */
+h+='<div class="hm-sez">DA SISTEMARE</div><div class="hm-sug">';
+suggerimenti(n).forEach(function(x){
+h+='<div class="hm-sr">'
++'<span class="hm-si" style="background:'+x.c+'">'+x.ic+'</span>'
++'<span class="hm-st"><b>'+E(x.t)+'</b><i>'+E(x.d)+'</i></span>'
++'<button class="hm-sb" style="color:'+x.c+'" onclick="'+x.fn+'()">'+E(x.b)+'</button>'
++'</div>';
+});
+h+='</div><div class="hm-griglia">';
+riquadri(n).forEach(function(r){
+h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
++'<span class="hm-rq-top"><span class="hm-rq-ic">'+icona(r.k)+'</span>'
++(r.b?'<span class="hm-rq-b">'+E(r.b)+'</span>':'')+'</span>'
++'<span class="hm-rq-t">'+E(r.t)+'</span>'
++'<span class="hm-rq-s">'+E(r.s)+'</span></button>';
+});
+h+='</div>';
+d.innerHTML=h;
+home.classList.add('hm-nuova');
+}catch(e){}
+}
+window.nccHomeRiquadri=disegna;
+
+/* ── il foglio d'azione iOS, per i riquadri con due strade ── */
+function foglio(titolo,voci){
+try{
+var o=document.getElementById('hmFg');if(o)o.remove();
+o=document.createElement('div');o.id='hmFg';
+var h='<div class="hmf-velo" onclick="nccHmFgChiudi()"></div><div class="hmf-box">'
++'<div class="hmf-gr">'+(titolo?'<div class="hmf-t">'+E(titolo)+'</div>':'');
+voci.forEach(function(v,i){h+='<button class="hmf-b" data-i="'+i+'">'+E(v.t)+'</button>';});
+h+='</div><button class="hmf-b hmf-no" onclick="nccHmFgChiudi()">Annulla</button></div>';
+o.innerHTML=h;document.body.appendChild(o);
+o.querySelectorAll('.hmf-b[data-i]').forEach(function(b){
+b.onclick=function(){var v=voci[+b.getAttribute('data-i')];nccHmFgChiudi();
+setTimeout(function(){try{v.fn();}catch(e){}},180);};});
+requestAnimationFrame(function(){o.classList.add('su');});
+try{if(window.nccOvApri)nccOvApri('hmFg',function(){nccHmFgChiudi();});}catch(e){}
+try{hap();}catch(e){}
+}catch(e){}
+}
+window.nccHmFgChiudi=function(){
+try{var o=document.getElementById('hmFg');if(!o)return;o.classList.remove('su');
+setTimeout(function(){try{o.remove();}catch(e){}},300);}catch(e){}
+};
+window.nccHmNorme=function(){
+foglio('',[
+{t:'\ud83d\udcdc  Norme e regolamento',fn:function(){if(f('openNorme'))openNorme();}},
+{t:'\ud83d\udcd0  Tariffe e regole',fn:function(){if(f('openRegole'))openRegole();}},
+{t:'\u2696\ufe0f  Quiz sulle norme',fn:function(){if(f('nmQuiz'))nmQuiz();}},
+{t:'\ud83d\udcb6  Quiz sulle tariffe',fn:function(){if(f('regQuiz'))regQuiz();}}
+]);
+};
+window.nccHmEsame=function(){
+foglio('Il mio esame',[
+{t:'Cambia la data dell\u2019esame',fn:function(){if(f('setExamDate')){setExamDate();setTimeout(disegna,500);}}},
+{t:'Cambia il traguardo',fn:function(){if(f('setTargetDate')){setTargetDate();setTimeout(disegna,500);}}},
+{t:'Fai una simulazione d\u2019esame',fn:function(){try{openQuiz();setTimeout(function(){buildQuiz();qStartExam();},260);}catch(e){}}}
+]);
+};
+
+/* ── Statistiche: la vecchia home, intera, con la barra per tornare ── */
+window.nccHmStat=function(){
+try{
+var home=document.getElementById('homeScreen');if(!home)return;
+home.classList.add('hm-stat');
+var bar=document.getElementById('hmStatBar');
+if(!bar){bar=document.createElement('div');bar.id='hmStatBar';
+bar.innerHTML='<button class="hm-indietro" onclick="nccHmStatEsci()">'
++'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'
++'Home</button><div class="hm-sbt">Statistiche</div>';
+home.insertBefore(bar,home.firstElementChild);}
+try{window.scrollTo(0,0);home.scrollTop=0;}catch(e){}
+try{if(window.nccOvApri)nccOvApri('hmStatBar',function(){nccHmStatEsci();});}catch(e){}
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccHmStatEsci=function(){
+try{
+var home=document.getElementById('homeScreen');if(home)home.classList.remove('hm-stat');
+var bar=document.getElementById('hmStatBar');if(bar)bar.remove();
+disegna();
+try{window.scrollTo(0,0);if(home)home.scrollTop=0;}catch(e){}
+}catch(e){}
+};
+
+setTimeout(disegna,2700);
+try{var _gh4=goHome;goHome=function(){
+var r=_gh4.apply(this,arguments);
+try{var home=document.getElementById('homeScreen');
+if(home&&home.classList.contains('hm-stat'))nccHmStatEsci();}catch(e){}
+setTimeout(disegna,240);return r;};}catch(e){}
+try{var _rp2=renderPlan;renderPlan=function(){var r=_rp2.apply(this,arguments);setTimeout(disegna,140);return r;};}catch(e){}
 })();
