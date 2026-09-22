@@ -1821,6 +1821,41 @@ padding-bottom:env(safe-area-inset-bottom,0px);}
 .omenu::-webkit-scrollbar{width:4px;}
 .omenu::-webkit-scrollbar-thumb{background:var(--bd);border-radius:999px;}
 .omenu .mi-tit{position:sticky;top:0;z-index:2;background:var(--card);}
+
+
+/* ══════════ SCEGLI LA VOCE ══════════ */
+#vcOv{position:fixed;inset:0;z-index:9300;background:rgba(0,0,0,.5);
+display:flex;align-items:center;justify-content:center;padding:20px;
+backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+animation:pzIn .24s var(--e-soft) both;}
+.vc-box{background:var(--card);border-radius:var(--r-xl);padding:20px;
+width:100%;max-width:390px;max-height:82vh;display:flex;flex-direction:column;
+box-shadow:0 12px 34px rgba(0,0,0,.2);}
+.vc-t{font-size:17px;font-weight:850;letter-spacing:-.02em;color:var(--tx);
+margin-bottom:14px;text-align:center;}
+.vc-lista{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+display:flex;flex-direction:column;gap:7px;}
+.vc-r{display:flex;align-items:center;gap:8px;padding:8px 10px;
+border:1.5px solid var(--bd);border-radius:var(--r-md);background:var(--bg);}
+.vc-r.on{border-color:var(--a);background:rgba(36,71,214,.06);}
+.vc-p{flex:0 0 40px;min-height:40px;border:1.5px solid var(--bd);
+border-radius:var(--r-sm);background:var(--card);color:var(--a);
+font-size:14px;font-weight:850;cursor:pointer;font-family:inherit;}
+.vc-n{flex:1;min-width:0;text-align:left;border:none;background:transparent;
+cursor:pointer;font-family:inherit;padding:4px 2px;}
+.vc-n b{display:block;font-size:13.5px;font-weight:800;color:var(--tx);
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vc-n i{display:block;font-style:normal;font-size:11px;font-weight:650;
+color:var(--mu);margin-top:2px;}
+.vc-ok{flex-shrink:0;font-size:16px;font-weight:850;color:var(--a);}
+.vc-nota{margin-top:12px;font-size:11.5px;font-weight:650;color:var(--mu);
+line-height:1.5;}
+.vc-vuoto{text-align:center;padding:18px 6px;font-size:13.5px;
+font-weight:650;color:var(--tx);line-height:1.6;}
+.vc-vuoto small{display:block;margin-top:9px;font-size:12px;color:var(--mu);}
+.vc-x{margin-top:14px;min-height:46px;width:100%;padding:13px;border:none;
+border-radius:var(--r-lg);background:var(--a);color:#fff;
+font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
 `;
 }catch(e){}
 })();
@@ -8051,101 +8086,207 @@ return t;
 
 /* ═══════════════════════════════════════════════════
    🔊 LA VOCE DEL QUIZ
-   Tre motivi per cui non si sentiva:
-   · il motore resta "occupato" dopo un annullamento e il
-     bottone si limitava a fermarlo invece di parlare
-   · su iPhone le voci arrivano tarde: alla prima pressione
-     la lista è vuota e non esce niente
-   · se falliva, falliva in silenzio
+   · sceglie la voce italiana migliore che hai installato
+   · spezza la frase: la domanda, poi le risposte, con respiro
+   · non grida piu' "niente voce" se invece sta parlando
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var scaldato=false;
-function voceIt(){
+var scaldato=false,parlando=false;
+
+/* ── quanto e' buona una voce ── */
+function punteggio(v){
+var n=(v.name||'')+' '+(v.voiceURI||'');
+var p=0;
+if(/siri/i.test(n))p+=60;
+if(/premium|enhanced|neural|natural|wavenet|studio/i.test(n))p+=50;
+if(/google/i.test(n))p+=30;
+if(/compact|eloquence|espeak/i.test(n))p-=60;
+if(v.localService===false)p+=20;   /* le voci di rete sono piu' fluide */
+if(/^it-IT/i.test(v.lang||''))p+=10;
+return p;
+}
+function vociIt(){
 try{
 var v=speechSynthesis.getVoices()||[];
-return v.filter(function(x){return /^it/i.test(x.lang||'');})[0]
-|| v.filter(function(x){return /ital/i.test(x.name||'');})[0] || null;
+return v.filter(function(x){return /^it/i.test(x.lang||'');})
+.sort(function(a,b){return punteggio(b)-punteggio(a);});
+}catch(e){return [];}
+}
+window.nccVociIt=vociIt;
+function sceltaSalvata(){
+try{return localStorage.getItem('vocePreferita')||'';}catch(e){return '';}
+}
+function migliore(){
+try{
+var l=vociIt();
+if(!l.length)return null;
+var s=sceltaSalvata();
+if(s){var t=l.filter(function(x){return x.voiceURI===s||x.name===s;})[0];if(t)return t;}
+return l[0];
 }catch(e){return null;}
 }
-/* iPhone: il motore va svegliato con la prima pressione dell'utente */
+window.nccVoceMigliore=migliore;
+
 function scalda(){
 try{
 if(scaldato||!('speechSynthesis' in window))return;
 scaldato=true;
-var u=new SpeechSynthesisUtterance(' ');
-u.volume=0;u.rate=2;
+var u=new SpeechSynthesisUtterance(' ');u.volume=0;u.rate=2;
 speechSynthesis.speak(u);
 setTimeout(function(){try{speechSynthesis.cancel();}catch(e){}},80);
 }catch(e){}
 }
+try{['click','touchstart','keydown'].forEach(function(ev){
+document.addEventListener(ev,scalda,{once:true,capture:true});});}catch(e){}
+
+/* legge una lista di frasi, una dopo l'altra, con una pausa in mezzo:
+   un unico blocco lungo suona piatto e su iPhone si tronca */
+function leggi(frasi,lang,alFine){
 try{
-['click','touchstart','keydown'].forEach(function(ev){
-document.addEventListener(ev,scalda,{once:true,capture:true});
-});
-}catch(e){}
+var v=migliore();
+var i=0;
+function prossima(){
+if(i>=frasi.length){parlando=false;if(alFine)alFine();return;}
+var u=new SpeechSynthesisUtterance(frasi[i]);
+u.lang=lang;
+if(v&&/^it/i.test(lang))u.voice=v;
+u.rate=0.98;      /* quasi naturale: piu' lento sembra finto */
+u.pitch=1.0;
+u.volume=1;
+u.onstart=function(){parlando=true;};
+u.onend=function(){i++;setTimeout(prossima,160);};
+u.onerror=function(){i++;setTimeout(prossima,60);};
+speechSynthesis.speak(u);
+}
+prossima();
+}catch(e){parlando=false;}
+}
+window.nccLeggi=leggi;
 
 setTimeout(function(){
 try{
 if(typeof qSpeak!=='function')return;
-var _qs=qSpeak;
 qSpeak=function(){
 try{
 if(!('speechSynthesis' in window)){
 if(typeof toast2==='function')toast2('\ud83d\udd07 Questo browser non legge ad alta voce',2800);
 return;}
 var btn=document.getElementById('qListen');
-/* se sta parlando davvero, il bottone ferma: giusto */
-if(speechSynthesis.speaking&&!speechSynthesis.paused){
+if(speechSynthesis.speaking||speechSynthesis.pending||parlando){
 try{speechSynthesis.cancel();}catch(e){}
+parlando=false;
 if(btn)btn.classList.remove('playing');
 return;
 }
-/* altrimenti azzero lo stato bloccato prima di parlare */
 try{speechSynthesis.cancel();}catch(e){}
 scalda();
 if(typeof Q==='undefined'||!Q||!Q.items||!Q.items[Q.idx]){
 if(typeof toast2==='function')toast2('\u26a0\ufe0f Nessuna domanda da leggere',2200);
 return;}
 var it=Q.items[Q.idx];
-var n=(it.choices&&it.choices.length)||4;
-var LET=[];for(var i=0;i<Math.max(4,n);i++)LET.push(String.fromCharCode(65+i));
-var txt=it.q+'. ';
-(it.choices||[]).forEach(function(c,i){txt+=LET[i]+'. '+c+'. ';});
-var u=new SpeechSynthesisUtterance(txt);
-u.lang=(it.cat==='lingua')?'en-GB':'it-IT';
-u.rate=0.96;
-var v=voceIt();
-if(v&&it.cat!=='lingua')u.voice=v;
-u.onend=function(){if(btn)btn.classList.remove('playing');};
-u.onerror=function(){
-if(btn)btn.classList.remove('playing');
-if(typeof toast2==='function')toast2('\ud83d\udd07 La voce non parte su questo dispositivo',2800);
-};
+var lang=(it.cat==='lingua')?'en-GB':'it-IT';
+var LET=[];for(var k=0;k<Math.max(4,(it.choices||[]).length);k++)LET.push(String.fromCharCode(65+k));
+var frasi=[it.q];
+(it.choices||[]).forEach(function(c,k){frasi.push(LET[k]+'. '+c);});
 if(btn)btn.classList.add('playing');
-speechSynthesis.speak(u);
-/* se dopo mezzo secondo non ha iniziato, lo dico invece di tacere */
+parlando=true;
+leggi(frasi,lang,function(){if(btn)btn.classList.remove('playing');});
+/* avviso solo se dopo un secondo e mezzo non ha davvero cominciato */
 setTimeout(function(){
 try{
-if(!speechSynthesis.speaking&&!speechSynthesis.pending){
+if(!parlando&&!speechSynthesis.speaking&&!speechSynthesis.pending){
 if(btn)btn.classList.remove('playing');
 if(typeof toast2==='function')
-toast2('\ud83d\udd07 Niente voce: controlla il volume e il tasto silenzioso',3200);
+toast2('\ud83d\udd07 Niente voce: alza il volume e togli il silenzioso',3200);
 }
 }catch(e){}
-},600);
-}catch(e){
-try{return _qs.apply(this,arguments);}catch(e2){}
-}
+},1500);
+}catch(e){}
 };
 }catch(e){}
 },2800);
-/* su iPhone le voci arrivano dopo: quando arrivano non faccio niente,
-   servono solo a far trovare la voce italiana al prossimo giro */
 try{
 if('speechSynthesis' in window&&typeof speechSynthesis.addEventListener==='function')
 speechSynthesis.addEventListener('voiceschanged',function(){});
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎙 SCEGLI LA VOCE
+   Elenca le voci italiane installate, ordinate dalla piu'
+   naturale, e te le fa provare prima di scegliere.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"\']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"\'":'&#39;'}[c];});}
+window.nccScegliVoce=function(){
+try{
+if(!('speechSynthesis' in window)){
+if(typeof toast2==='function')toast2('\ud83d\udd07 Sintesi vocale non disponibile',2600);return;}
+try{speechSynthesis.getVoices();}catch(e){}
+setTimeout(function(){disegna();},120);
+}catch(e){}
+};
+function disegna(){
+try{
+var l=window.nccVociIt?nccVociIt():[];
+var sel='';try{sel=localStorage.getItem('vocePreferita')||'';}catch(e){}
+var o=document.getElementById('vcOv');
+if(o)o.remove();
+o=document.createElement('div');o.id='vcOv';o.className='rd';
+var h='<div class="vc-box"><div class="vc-t">\ud83c\udf99 Scegli la voce</div>';
+if(!l.length){
+h+='<div class="vc-vuoto">Nessuna voce italiana installata.<br><small>'
++'Su iPhone: Impostazioni \u203a Accessibilit\u00e0 \u203a Contenuto letto \u203a Voci \u203a Italiano, '
++'e scarica una voce <b>Avanzata</b> o <b>Premium</b>.</small></div>';
+}else{
+h+='<div class="vc-lista">';
+l.forEach(function(v,i){
+var mio=(v.voiceURI===sel||v.name===sel)||(!sel&&i===0);
+var et=/siri|premium|enhanced|neural|natural/i.test(v.name)?'naturale'
+:(/compact|eloquence/i.test(v.name)?'base':'');
+h+='<div class="vc-r'+(mio?' on':'')+'">'
++'<button class="vc-p" onclick="nccProvaVoce('+i+')" title="Ascolta">\u25b6</button>'
++'<button class="vc-n" onclick="nccUsaVoce('+i+')">'
++'<b>'+E(v.name)+'</b>'
++'<i>'+E(v.lang||'')+(et?(' \u00b7 '+et):'')+(v.localService===false?' \u00b7 di rete':'')+'</i>'
++'</button>'
++(mio?'<span class="vc-ok">\u2713</span>':'')
++'</div>';
+});
+h+='</div>';
+h+='<div class="vc-nota">Se suonano tutte metalliche, scaricane una <b>Avanzata</b> '
++'dalle impostazioni del telefono: quelle di serie sono compresse.</div>';
+}
+h+='<button class="vc-x" onclick="nccChiudiVoce()">Chiudi</button></div>';
+o.innerHTML=h;
+document.body.appendChild(o);
+try{if(window.nccOvApri)nccOvApri('vcOv',function(){nccChiudiVoce();});}catch(e){}
+}catch(e){}
+}
+window.nccChiudiVoce=function(){try{var o=document.getElementById('vcOv');if(o)o.remove();
+try{speechSynthesis.cancel();}catch(e){}}catch(e){}};
+window.nccProvaVoce=function(i){
+try{
+var l=nccVociIt();var v=l[i];if(!v)return;
+try{speechSynthesis.cancel();}catch(e){}
+var u=new SpeechSynthesisUtterance('Piazzale Loreto. Viale Monza. Via Padova.');
+u.voice=v;u.lang=v.lang||'it-IT';u.rate=0.98;u.pitch=1;
+speechSynthesis.speak(u);
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccUsaVoce=function(i){
+try{
+var l=nccVociIt();var v=l[i];if(!v)return;
+localStorage.setItem('vocePreferita',v.voiceURI||v.name);
+if(typeof toast2==='function')toast2('\ud83c\udf99 Voce: '+v.name,2400);
+try{hap();}catch(e){}
+disegna();
+}catch(e){}
+};
 })();
 
 /* ═══════════════════════════════════════════════════
