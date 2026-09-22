@@ -1860,6 +1860,37 @@ font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
 .vc-diag{font-size:11.5px;font-weight:700;color:var(--mu);text-align:center;
 margin-bottom:10px;padding:7px;background:var(--fill3);border-radius:var(--r-sm);}
 .vc-diag b{color:var(--tx);}
+
+
+/* ══════════ MAPPA GRANDE CON LA PENCIL ══════════ */
+#mgOv{position:fixed;inset:0;z-index:9100;background:var(--bg);
+display:flex;flex-direction:column;overflow:hidden;
+animation:pzIn .26s var(--e-soft) both;}
+.mg-barra{display:flex;align-items:center;gap:7px;flex-shrink:0;
+padding:9px 12px calc(9px) 12px;
+padding-top:calc(9px + env(safe-area-inset-top,0px));
+background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.mg-b{min-width:44px;min-height:44px;flex-shrink:0;
+border:1.5px solid var(--bd);border-radius:var(--r-md);
+background:var(--bg);color:var(--tx);
+font-family:inherit;font-size:17px;font-weight:800;cursor:pointer;
+display:inline-flex;align-items:center;justify-content:center;}
+.mg-b:active{transform:scale(.93);}
+.mg-b.on{background:var(--a);color:#fff;border-color:var(--a);}
+.mg-col{display:flex;gap:5px;flex-shrink:0;padding:0 4px;}
+.mg-c{width:30px;height:30px;border-radius:50%;border:2.5px solid transparent;
+cursor:pointer;padding:0;}
+.mg-c.on{border-color:var(--tx);transform:scale(1.12);}
+.mg-sp{flex:1;}
+.mg-info{font-size:13px;font-weight:800;color:var(--mu);
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw;}
+.mg-area{flex:1;min-height:0;position:relative;touch-action:none;}
+#mgMap{position:absolute;inset:0;}
+#mgCanvas{position:absolute;inset:0;z-index:900;touch-action:none;}
+@media(max-width:560px){
+.mg-info{display:none;}
+.mg-c{width:26px;height:26px;}
+}
 `;
 }catch(e){}
 })();
@@ -8443,6 +8474,215 @@ localStorage.setItem('vocePreferita',v.voiceURI||v.name);
 if(typeof toast2==='function')toast2('\ud83c\udf99 Voce: '+v.name,2400);
 try{hap();}catch(e){}
 try{nccScegliVoce();}catch(e){}
+}catch(e){}
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   ✏️ MAPPA GRANDE CON LA PENCIL
+   Tutta la mappa a schermo pieno, con un foglio trasparente
+   sopra su cui disegni con la Apple Pencil: ripassi il percorso
+   con la matita, come sul libro. Il dito resta libero di
+   spostare e ingrandire la mappa.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var MG=null,CTX=null,DIS=false,ULTIMO=null,TRATTI=[],CORRENTE=null;
+var COLORI=[['#2447D6','blu'],['#E5484D','rosso'],['#0E9F6E','verde'],['#111827','nero']];
+var COL=0,SPESS=3;
+
+function salva(){try{localStorage.setItem('pencilTratti',JSON.stringify(TRATTI.slice(-400)));}catch(e){}}
+function carica(){try{var v=JSON.parse(localStorage.getItem('pencilTratti')||'[]');
+return Array.isArray(v)?v:[];}catch(e){return [];}}
+
+window.nccMappaGrande=function(){
+try{
+var el=document.getElementById('map');
+if(!el){
+if(typeof goTopografia==='function'){goTopografia();setTimeout(window.nccMappaGrande,600);return;}
+if(typeof toast2==='function')toast2('\u26a0\ufe0f Apri prima la mappa',2200);return;}
+var o=document.getElementById('mgOv');
+if(o)o.remove();
+o=document.createElement('div');o.id='mgOv';o.className='rd';
+o.innerHTML='<div class="mg-barra">'
++'<button class="mg-b" onclick="nccMappaGrandeChiudi()" title="Esci">\u2715</button>'
++'<button class="mg-b mg-pen" id="mgPen" onclick="nccPencilTog()" title="Disegna con la Pencil">\u270f\ufe0f</button>'
++'<div class="mg-col" id="mgColori"></div>'
++'<button class="mg-b" onclick="nccPencilSpess()" title="Spessore" id="mgSp">3</button>'
++'<button class="mg-b" onclick="nccPencilAnnulla()" title="Annulla">\u21b6</button>'
++'<button class="mg-b" onclick="nccPencilPulisci()" title="Cancella tutto">\ud83d\uddd1</button>'
++'<div class="mg-sp"></div>'
++'<div class="mg-info" id="mgInfo"></div>'
++'</div>'
++'<div class="mg-area"><div id="mgMap"></div>'
++'<canvas id="mgCanvas"></canvas></div>';
+document.body.appendChild(o);
+try{if(window.nccOvApri)nccOvApri('mgOv',function(){nccMappaGrandeChiudi();});}catch(e){}
+colori();
+setTimeout(function(){avvia();},120);
+try{hap();}catch(e){}
+}catch(e){}
+};
+
+function colori(){
+try{
+var d=document.getElementById('mgColori');if(!d)return;
+d.innerHTML=COLORI.map(function(c,i){
+return '<button class="mg-c'+(i===COL?' on':'')+'" style="background:'+c[0]+'" '
++'onclick="nccPencilColore('+i+')" title="'+c[1]+'"></button>';}).join('');
+}catch(e){}
+}
+window.nccPencilColore=function(i){COL=i;colori();try{hap();}catch(e){}};
+window.nccPencilSpess=function(){
+SPESS=(SPESS>=8)?2:SPESS+2;
+var b=document.getElementById('mgSp');if(b)b.textContent=String(SPESS);
+try{hap();}catch(e){}
+};
+
+function avvia(){
+try{
+var LF=window.L;if(!LF||!LF.map)return;
+MG=LF.map('mgMap',{zoomControl:true,attributionControl:true});
+try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{maxZoom:19,maxNativeZoom:19,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
+/* parto da dove sei: il percorso aperto, se c'è */
+var punti=[];
+try{
+if(typeof cur!=='undefined'&&cur&&typeof coords!=='undefined'){
+cur.steps.forEach(function(s,i){var c=coords[cur.id+'_'+i];
+if(c)punti.push([c.lat,c.lon]);});
+}
+}catch(e){}
+if(punti.length>1){
+try{
+LF.polyline(punti,{color:'#2447D6',weight:4,opacity:.65}).addTo(MG);
+punti.forEach(function(q,i){
+LF.marker(q,{icon:LF.divIcon({className:'pz-pin',html:'<span>'+(i+1)+'</span>',
+iconSize:[24,24],iconAnchor:[12,12]})}).addTo(MG);});
+MG.fitBounds(punti,{padding:[60,60],maxZoom:16});
+}catch(e){}
+var inf=document.getElementById('mgInfo');
+if(inf&&typeof cur!=='undefined'&&cur)inf.textContent=cur.title+' \u00b7 '+punti.length+' tappe';
+}else{
+MG.setView([45.4642,9.19],13);
+var inf2=document.getElementById('mgInfo');
+if(inf2)inf2.textContent='Milano';
+}
+setTimeout(function(){try{MG.invalidateSize();}catch(e){}ridimensiona();},220);
+prepara();
+}catch(e){}
+}
+
+function ridimensiona(){
+try{
+var c=document.getElementById('mgCanvas');if(!c)return;
+var a=c.parentElement.getBoundingClientRect();
+var r=window.devicePixelRatio||1;
+c.width=Math.round(a.width*r);c.height=Math.round(a.height*r);
+c.style.width=a.width+'px';c.style.height=a.height+'px';
+CTX=c.getContext('2d');
+CTX.setTransform(r,0,0,r,0,0);
+CTX.lineCap='round';CTX.lineJoin='round';
+ridisegna();
+}catch(e){}
+}
+window.addEventListener('resize',function(){if(document.getElementById('mgOv'))ridimensiona();});
+
+function ridisegna(){
+try{
+if(!CTX)return;
+var c=document.getElementById('mgCanvas');
+CTX.clearRect(0,0,c.width,c.height);
+TRATTI.forEach(function(t){
+if(!t.p||t.p.length<2)return;
+CTX.strokeStyle=t.c;CTX.lineWidth=t.w;
+CTX.beginPath();CTX.moveTo(t.p[0].x,t.p[0].y);
+for(var i=1;i<t.p.length;i++)CTX.lineTo(t.p[i].x,t.p[i].y);
+CTX.stroke();
+});
+}catch(e){}
+}
+
+function prepara(){
+try{
+var c=document.getElementById('mgCanvas');if(!c)return;
+TRATTI=carica();
+function xy(ev){
+var r=c.getBoundingClientRect();
+return {x:ev.clientX-r.left,y:ev.clientY-r.top};
+}
+/* la Pencil disegna, il dito no: cosi' puoi spostare la mappa
+   appoggiando la mano senza sporcare */
+function pennaVera(ev){
+return ev.pointerType==='pen'||(DIS&&ev.pointerType!=='touch')||(DIS&&ev.pointerType==='touch');
+}
+c.addEventListener('pointerdown',function(ev){
+if(!pennaVera(ev))return;
+if(ev.pointerType==='touch'&&!DIS)return;
+ev.preventDefault();
+try{c.setPointerCapture(ev.pointerId);}catch(e){}
+CORRENTE={c:COLORI[COL][0],w:SPESS*(ev.pressure?(0.6+ev.pressure*0.9):1),p:[xy(ev)]};
+TRATTI.push(CORRENTE);
+},{passive:false});
+c.addEventListener('pointermove',function(ev){
+if(!CORRENTE)return;
+ev.preventDefault();
+var q=xy(ev);
+var u=CORRENTE.p[CORRENTE.p.length-1];
+if(Math.abs(q.x-u.x)<1&&Math.abs(q.y-u.y)<1)return;
+CORRENTE.p.push(q);
+CTX.strokeStyle=CORRENTE.c;CTX.lineWidth=CORRENTE.w;
+CTX.beginPath();CTX.moveTo(u.x,u.y);CTX.lineTo(q.x,q.y);CTX.stroke();
+},{passive:false});
+function fine(){if(CORRENTE){CORRENTE=null;salva();}}
+c.addEventListener('pointerup',fine);
+c.addEventListener('pointercancel',fine);
+c.addEventListener('pointerleave',fine);
+aggiornaModo();
+}catch(e){}
+}
+
+window.nccPencilTog=function(){
+DIS=!DIS;aggiornaModo();try{hap();}catch(e){}
+try{if(typeof toast2==='function')
+toast2(DIS?'\u270f\ufe0f Disegno col dito acceso':'\u270f\ufe0f Solo Pencil: il dito sposta la mappa',2600);}catch(e){}
+};
+function aggiornaModo(){
+try{
+var c=document.getElementById('mgCanvas'),b=document.getElementById('mgPen');
+if(!c)return;
+/* con il dito libero la mappa si sposta: il foglio lascia passare il tocco */
+c.style.pointerEvents=DIS?'auto':'none';
+c.style.touchAction='none';
+if(b)b.classList.toggle('on',DIS);
+/* la Pencil deve comunque poter scrivere: intercetto sul contenitore */
+var area=c.parentElement;
+if(area&&!area.__pen){
+area.__pen=true;
+area.addEventListener('pointerdown',function(ev){
+if(ev.pointerType==='pen'&&!DIS){
+c.style.pointerEvents='auto';
+setTimeout(function(){if(!DIS)c.style.pointerEvents='none';},1200);
+}
+},true);
+}
+}catch(e){}
+}
+window.nccPencilAnnulla=function(){
+try{TRATTI.pop();salva();ridisegna();hap();}catch(e){}
+};
+window.nccPencilPulisci=function(){
+try{
+if(TRATTI.length&&!confirm('Cancello tutto quello che hai disegnato?'))return;
+TRATTI=[];salva();ridisegna();try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccMappaGrandeChiudi=function(){
+try{
+salva();
+if(MG){try{MG.remove();}catch(e){}MG=null;}
+var o=document.getElementById('mgOv');if(o)o.remove();
+CTX=null;CORRENTE=null;
 }catch(e){}
 };
 })();
