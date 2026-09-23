@@ -2327,6 +2327,60 @@ padding:11px 18px;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:
 .qc-lt{flex:1;min-width:0;}
 .qc-ch{flex-shrink:0;color:var(--qc);font-size:26px;font-weight:400;line-height:1;}
 @media(max-width:370px){.qc{grid-template-columns:auto 1fr;}.qc-b{grid-column:1/-1;justify-self:end;}}
+
+
+/* ══════════ FASE 5 · STATISTICHE ══════════ */
+.sx-tabs{display:flex;margin:0 16px 18px;border-bottom:2px solid var(--ios-sep);}
+.sx-tab{flex:1;border:none;background:transparent;font:inherit;font-size:16px;font-weight:700;
+color:var(--ios-lbl2);padding:10px 0 12px;cursor:pointer;margin-bottom:-2px;border-bottom:3px solid transparent;}
+.sx-tab.on{color:var(--t-arancio);border-bottom-color:var(--t-arancio);}
+.sx-body{padding:0 16px 20px;}
+.sx-card{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:var(--t-r);padding:18px;margin-bottom:14px;}
+.sx-lab{font-size:12.5px;font-weight:800;letter-spacing:.08em;color:var(--ios-lbl2);}
+.sx-ix{display:flex;gap:16px;align-items:center;}
+.sx-lock{flex:0 0 64px;width:64px;height:64px;border-radius:50%;background:var(--ios-bg);display:flex;
+align-items:center;justify-content:center;font-size:28px;}
+.sx-ixt b{display:block;font-size:19px;font-weight:800;color:var(--ios-lbl);margin:4px 0;}
+.sx-ixt span{display:block;font-size:14px;color:var(--ios-lbl2);line-height:1.4;}
+.sx-seg{display:flex;align-items:center;gap:8px;margin:16px 0;}
+.sx-seg i{flex:1;height:8px;border-radius:999px;background:var(--ios-sep);}
+.sx-seg i.on{background:var(--t-arancio);}
+.sx-seg em{font-style:normal;font-size:15px;font-weight:800;color:var(--ios-lbl);margin-left:6px;white-space:nowrap;}
+.sx-go{display:block;width:100%;border:none;border-radius:999px;background:var(--t-arancio);color:#fff;
+font:inherit;font-size:16px;font-weight:800;padding:14px;cursor:pointer;}
+.sx-go:active,.sx-ab:active{transform:scale(.97);}
+.sx-ring{flex:0 0 96px;width:96px;height:96px;color:var(--ios-lbl);}
+.sx-chip{display:inline-block;font-style:normal;font-size:14px;font-weight:800;color:var(--c);
+background:color-mix(in srgb,var(--c) 14%,transparent);padding:5px 12px;border-radius:999px;margin:6px 0;}
+.sx-tre,.sx-box3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sx-tre{margin-top:16px;padding-top:14px;border-top:1.5px solid var(--ios-sep);}
+.sx-tre div,.sx-box3 div{text-align:center;}
+.sx-box3{margin-bottom:14px;}
+.sx-box3 div{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:var(--t-r);padding:16px 6px;}
+.sx-tre b,.sx-box3 b{display:block;font-size:24px;font-weight:900;color:var(--ios-lbl);letter-spacing:-.5px;}
+.sx-box3 b.rosso{color:var(--t-rosso);}
+.sx-tre span,.sx-box3 span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.07em;color:var(--ios-lbl2);margin-top:4px;line-height:1.3;}
+.sx-cos{display:flex;align-items:center;gap:14px;margin:14px 0 16px;}
+.sx-fiam{flex:0 0 52px;width:52px;height:52px;border-radius:50%;background:var(--t-arancio);display:flex;
+align-items:center;justify-content:center;font-size:24px;}
+.sx-cos b{display:block;font-size:20px;font-weight:800;color:var(--ios-lbl);}
+.sx-cos span{font-size:14px;color:var(--ios-lbl2);}
+.sx-sett{display:flex;gap:8px;align-items:flex-end;height:110px;}
+.sx-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;}
+.sx-col em{font-style:normal;font-size:11px;font-weight:800;color:var(--ios-lbl2);height:15px;}
+.sx-bar{flex:1;width:100%;display:flex;align-items:flex-end;background:var(--ios-bg);border-radius:8px;overflow:hidden;}
+.sx-bar i{display:block;width:100%;background:color-mix(in srgb,var(--t-arancio) 55%,var(--ios-card));border-radius:8px;}
+.sx-col.oggi .sx-bar i{background:var(--t-arancio);}
+.sx-col span{font-size:12px;font-weight:800;color:var(--ios-lbl2);margin-top:6px;}
+.sx-col.oggi span{color:var(--ios-lbl);}
+.sx-arg{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px 12px;background:var(--ios-card);
+border:1.5px solid var(--ios-sep);border-radius:var(--t-r);padding:16px;margin-bottom:10px;}
+.sx-at b{display:block;font-size:16px;font-weight:800;color:var(--ios-lbl);}
+.sx-at span{font-size:13px;color:var(--ios-lbl2);}
+.sx-ab{border:none;border-radius:999px;background:var(--c);color:#fff;font:inherit;font-size:14px;font-weight:800;padding:9px 16px;cursor:pointer;}
+.sx-abar{height:9px;border-radius:999px;background:color-mix(in srgb,var(--c) 16%,transparent);overflow:hidden;}
+.sx-abar i{display:block;height:100%;border-radius:999px;background:var(--c);}
+.sx-arg em{font-style:normal;font-size:16px;font-weight:900;color:var(--c);text-align:right;}
 `;
 }catch(e){}
 })();
@@ -9462,7 +9516,7 @@ return [
 {k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?'fra '+n.esame+' giorni':'data passata'):'Imposta la data'),
  c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?n.esame+' g':''),fn:'nccHmEsame'},
 {k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
- b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),fn:'nccHmStat'}
+ b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),fn:'nccStat'}
 ];
 }
 
@@ -10383,5 +10437,125 @@ nccPopup({icona:'\ud83c\udf13',titolo:'Tema',testo:'Ora: '+temaAttuale(),azioni:
 {t:'\u2600\ufe0f Chiaro',stile:'pieno2',fn:function(){metti('chiaro');}},
 {t:'\ud83c\udf19 Scuro',stile:'pieno2',fn:function(){metti('scuro');}},
 {t:'Annulla',stile:'vuoto'}]});
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   📊 FASE 5 — STATISTICHE COME L'APP QUIZ
+   Panoramica: indice di preparazione (bloccato fino a 3
+   simulazioni), tre riquadri, costanza con la settimana.
+   Argomenti: la padronanza tema per tema.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+var TAB='pan',FMT=null,SUBS=[];
+/* la chiave del giorno nello stesso formato del nucleo */
+function chiave(d){
+if(!FMT){
+var og=new Date(),k0='';try{k0=_dayKey();}catch(e){}
+var k1=null;try{k1=_dayKey(new Date(Date.now()-864e5));}catch(e){}
+if(k1&&k1!==k0)FMT='arg';else if(k0===og.toDateString())FMT='ds';
+else if(k0===og.toLocaleDateString('it-IT'))FMT='it';else FMT='iso';
+}
+if(FMT==='arg')return _dayKey(d);
+if(FMT==='ds')return d.toDateString();
+if(FMT==='it')return d.toLocaleDateString('it-IT');
+return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function media(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;}
+function dati(){
+var o={},daily={};
+try{daily=(qtStats&&qtStats.daily)||{};}catch(e){}
+o.risposte=Object.keys(daily).reduce(function(a,k){return a+(+daily[k]||0);},0);
+var h=[];try{h=(typeof qExamHist!=='undefined'&&Array.isArray(qExamHist))?qExamHist:L('qExamHist',[]);}catch(e){h=L('qExamHist',[]);}
+o.sim=h.length;o.promosse=h.filter(function(x){return x&&x.pass;}).length;
+var ult=h.slice(-5);
+if(o.sim>=3){
+o.indice=Math.round(media(ult.map(function(x){var t=(x.ok||0)+(x.err||0)+(x.skip||0);return t?(x.ok||0)/t*100:0;})));
+o.mediaErr=media(ult.map(function(x){return x.err||0;}));o.nUlt=ult.length;
+}
+try{o.errTot=Object.keys(qtStats.err||{}).length;}catch(e){o.errTot=0;}
+var st=L('streak',null);o.striscia=(st&&st.n)||0;
+o.sett=[];o.tot7=0;
+for(var i=6;i>=0;i--){var d=new Date(Date.now()-i*864e5),n=+daily[chiave(d)]||0;
+o.sett.push({g:['D','L','M','M','G','V','S'][d.getDay()],n:n,oggi:i===0});o.tot7+=n;}
+try{var m=studentModel();SUBS=(m&&m.subs)?m.subs.slice():[];var s=0,t=0;
+SUBS.forEach(function(x){t+=x.n||0;s+=Math.round((x.n||0)*(x.m||0)/100);});o.sai=t?Math.round(s/t*100):0;}catch(e){SUBS=[];}
+return o;
+}
+function tabs(){
+return '<div class="sx-tabs"><button class="sx-tab'+(TAB==='pan'?' on':'')+'" onclick="nccStatTab(\'pan\')">Panoramica</button>'
++'<button class="sx-tab'+(TAB==='arg'?' on':'')+'" onclick="nccStatTab(\'arg\')">Argomenti</button></div>';
+}
+function panoramica(o){
+var h='';
+if(o.sim<3){
+var seg='';for(var i=0;i<3;i++)seg+='<i class="'+(i<o.sim?'on':'')+'"></i>';
+h+='<div class="sx-card"><div class="sx-ix"><div class="sx-lock">\ud83d\udd12</div><div class="sx-ixt">'
++'<div class="sx-lab">INDICE DI PREPARAZIONE</div><b>Sblocca il tuo indice</b>'
++'<span>Completa 3 simulazioni d\u2019esame per scoprire quanto sei davvero pronto.</span></div></div>'
++'<div class="sx-seg">'+seg+'<em>'+o.sim+' su 3 fatte</em></div>'
++'<button class="sx-go" onclick="nccStatSim()">Nuova simulazione</button></div>';
+}else{
+var col=o.indice>=90?'#43A047':(o.indice>=75?'#F39C12':'#C62828');
+var lab=o.indice>=90?'Pronto per l\u2019esame':(o.indice>=75?'Quasi pronto':'Da allenare');
+var C=2*Math.PI*46,pie=C*o.indice/100;
+h+='<div class="sx-card"><div class="sx-ix"><svg class="sx-ring" viewBox="0 0 110 110">'
++'<circle cx="55" cy="55" r="46" fill="none" stroke="var(--ios-sep)" stroke-width="10"/>'
++'<circle cx="55" cy="55" r="46" fill="none" stroke="'+col+'" stroke-width="10" stroke-linecap="round" '
++'stroke-dasharray="'+pie.toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 55 55)"/>'
++'<text x="55" y="64" text-anchor="middle" font-size="30" font-weight="900" fill="currentColor">'+o.indice+'</text></svg>'
++'<div class="sx-ixt"><div class="sx-lab">INDICE DI PREPARAZIONE</div>'
++'<em class="sx-chip" style="--c:'+col+'">'+lab+'</em><span>Basato sulle ultime '+o.nUlt+' simulazioni</span></div></div>'
++'<div class="sx-tre"><div><b>'+o.promosse+'/'+o.sim+'</b><span>PROMOSSE</span></div>'
++'<div><b style="color:'+col+'">'+o.mediaErr.toFixed(1).replace('.',',')+'</b><span>MEDIA ERRORI</span></div>'
++'<div><b>'+o.sai+'%</b><span>DOMANDE CHE SAI</span></div></div></div>';
+}
+h+='<div class="sx-box3"><div><b>'+o.risposte+'</b><span>DOMANDE RISPOSTE</span></div>'
++'<div><b>'+o.sim+'</b><span>SIMULAZIONI FATTE</span></div>'
++'<div><b class="rosso">'+o.errTot+'</b><span>ERRORI DA RIVEDERE</span></div></div>';
+var mx=Math.max.apply(null,o.sett.map(function(x){return x.n;}).concat([1]));
+h+='<div class="sx-card"><div class="sx-lab">COSTANZA</div><div class="sx-cos"><div class="sx-fiam">\ud83d\udd25</div>'
++'<div><b>'+o.striscia+' giorn'+(o.striscia===1?'o':'i')+' di fila</b><span>'+o.tot7+' risposte negli ultimi 7 giorni</span></div></div>'
++'<div class="sx-sett">';
+o.sett.forEach(function(x){
+h+='<div class="sx-col'+(x.oggi?' oggi':'')+'"><em>'+(x.n||'')+'</em><div class="sx-bar"><i style="height:'
++Math.max(x.n?8:0,Math.round(x.n/mx*100))+'%"></i></div><span>'+x.g+'</span></div>';});
+h+='</div></div>'
++'<button class="qc qc-link" style="--qc:#6B7280" onclick="nccSezChiudi(true);setTimeout(nccHmStat,120)">'
++'<span class="qc-li">\ud83d\uddd3</span><span class="qc-lt"><b>Il piano, il traguardo e i percorsi</b>'
++'<span>Prontezza, ripassi dei percorsi, salvataggi</span></span><span class="qc-ch">\u203a</span></button>';
+return h;
+}
+function argomenti(){
+if(!SUBS.length)return '<div class="sc-vuoto">Rispondi a qualche domanda e qui vedrai tema per tema come vai.</div>';
+var h='<div class="sc-nota">Dal pi\u00f9 debole al pi\u00f9 forte. Allenati apre 12 domande solo su quel tema.</div>';
+SUBS.slice().sort(function(a,b){return (a.m||0)-(b.m||0);}).forEach(function(s){
+var m=s.m||0,col=m>=80?'#43A047':(m>=60?'#F39C12':'#C62828');
+h+='<div class="sx-arg" style="--c:'+col+'"><div class="sx-at"><b>'+E(s.label)+'</b><span>'+(s.n||0)+' domande</span></div>'
++'<button class="sx-ab" onclick="nccStatTema(\''+E(String(s.sub)).replace(/'/g,'')+'\')">Allenati</button>'
++'<div class="sx-abar"><i style="width:'+m+'%"></i></div><em>'+m+'%</em></div>';
+});
+return h;
+}
+function disegna(){
+try{var o=dati();
+var corpo=tabs()+'<div class="sx-body">'+(TAB==='arg'?argomenti():panoramica(o))+'</div>';
+var b=document.getElementById('scnBody');
+if(b&&document.getElementById('scnOv')&&document.getElementById('scnOv').getAttribute('data-p')==='stat')b.innerHTML=corpo;
+else nccPagina('stat','Statistiche',corpo,'nccSezChiudi()');
+}catch(e){}
+}
+window.nccStat=function(){TAB='pan';disegna();try{hap();}catch(e){}};
+window.nccStatTab=function(t){TAB=t;disegna();try{hap();}catch(e){}};
+window.nccStatSim=function(){try{nccSezChiudi(true);openQuiz();setTimeout(function(){try{buildQuiz();qStartExam();}catch(e){}},260);}catch(e){}};
+window.nccStatTema=function(sub){
+try{nccSezChiudi(true);openQuiz();setTimeout(function(){try{buildQuiz();
+var pool=QUIZ_ALL.filter(function(x){return String(x.sub)===String(sub);});
+var lab=(SUBS.filter(function(s){return String(s.sub)===String(sub);})[0]||{}).label||'Argomento';
+startQuiz((typeof qShuffle==='function'?qShuffle(pool):pool).slice(0,12),{mode:'study',title:lab});}catch(e){}},260);}catch(e){}
 };
 })();
