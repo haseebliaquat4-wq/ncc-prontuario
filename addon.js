@@ -2266,6 +2266,67 @@ font-family:inherit;font-size:16px;font-weight:800;letter-spacing:-.1px;
 .pop-b.pieno2{background:var(--t-verde);color:#fff;}
 .pop-b.rosso{background:var(--t-rosso);color:#fff;}
 .pop-b.vuoto{background:transparent;color:var(--ios-lbl2);font-weight:700;}
+
+
+/* ══════════ FASE 3 · IL COACH, IL MIO ESAME ══════════ */
+.co{display:flex;gap:10px;align-items:flex-start;margin:0 0 22px;}
+.co-av{flex:0 0 46px;width:46px;height:46px;border-radius:50%;
+background:linear-gradient(135deg,var(--a,#2447D6),#6D5AE0);display:flex;align-items:center;
+justify-content:center;font-size:22px;box-shadow:0 0 0 3px var(--ios-card);}
+.co-dx{flex:1;min-width:0;}
+.co-nm{font-size:13px;color:var(--ios-lbl2);margin:2px 0 6px 4px;}
+.co-nm b{color:var(--ios-lbl);font-weight:800;}
+.co-bol{background:var(--ios-card);border:1.5px solid var(--ios-sep);
+border-radius:6px var(--t-r) var(--t-r) var(--t-r);padding:14px 16px;}
+.co-t{font-size:16.5px;font-weight:700;color:var(--ios-lbl);line-height:1.35;}
+.co-d{font-size:14px;color:var(--ios-lbl2);margin-top:4px;line-height:1.4;}
+.co-az{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}
+.co-alt{border:none;background:transparent;color:var(--ios-lbl2);font:inherit;font-size:13px;
+font-weight:700;cursor:pointer;padding:6px 2px;-webkit-tap-highlight-color:transparent;}
+.co-b{flex-shrink:0;border:none;border-radius:999px;background:var(--t-arancio);color:#fff;font:inherit;
+font-size:15px;font-weight:800;padding:11px 22px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.co-b:active,.co-alt:active{transform:scale(.95);}
+.es-big{margin:0 0 16px;}
+.es-big b{display:block;font-size:54px;font-weight:900;color:var(--a,#2447D6);line-height:1;letter-spacing:-1px;}
+.es-big span{font-size:14px;color:var(--ios-lbl2);font-weight:700;}
+.es-l{display:block;text-align:left;font-size:13px;font-weight:800;color:var(--ios-lbl2);margin:0 0 12px;}
+.es-l input,.es-in{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:13px 14px;
+border:1.5px solid var(--ios-sep);border-radius:14px;background:var(--ios-bg);color:var(--ios-lbl);
+font:inherit;font-size:16px;font-weight:700;}
+.es-in{margin:0 0 16px;}
+/* Statistiche: i suggerimenti doppi se ne vanno, parla solo il coach */
+#homeScreen.hm-stat>#vgCard,#homeScreen.hm-stat>.smart-btn,#homeScreen.hm-stat>#coachCard{display:none!important;}
+
+
+/* ══════════ FASE 4 · LE SCHEDE DELL'APP QUIZ ══════════ */
+.qc-gr{display:flex;flex-direction:column;gap:12px;margin:0 16px 26px;}
+.qc{--qt:color-mix(in srgb,var(--qc) 9%,var(--ios-card));--qbd:color-mix(in srgb,var(--qc) 38%,transparent);
+position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:12px;row-gap:12px;
+padding:16px;border-radius:var(--t-r);border:1.5px solid var(--qbd);background:var(--qt);
+cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;box-sizing:border-box;
+-webkit-tap-highlight-color:transparent;transition:transform .14s ease;}
+.qc:active{transform:scale(.985);}
+.qc-i{width:30px;height:30px;border-radius:50%;border:2px solid var(--qc);background:transparent;color:var(--qc);
+font:italic 700 15px Georgia,'Times New Roman',serif;cursor:pointer;padding:0;align-self:start;margin-top:2px;}
+.qc-tx{min-width:0;}
+.qc-tx b,.qc-lt b{display:block;font-size:17px;font-weight:800;color:var(--ios-lbl);letter-spacing:-.2px;line-height:1.25;}
+.qc-tx span,.qc-lt span{display:block;font-size:14px;color:var(--ios-lbl2);line-height:1.38;margin-top:3px;}
+.qc-n{font-style:normal;display:inline-block;margin-left:8px;padding:1px 9px;border-radius:999px;
+background:var(--qc);color:#fff;font-size:13px;font-weight:800;vertical-align:2px;}
+.qc-b{border:none;border-radius:999px;background:var(--qc);color:#fff;font:inherit;font-size:15px;font-weight:800;
+padding:11px 18px;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.qc-b:active{transform:scale(.94);}
+.qc-big{grid-column:1/-1;font-size:28px;font-weight:900;color:var(--ios-lbl);letter-spacing:-.6px;line-height:1.1;}
+.qc-pr{grid-column:1/-1;}
+.qc-bar{height:9px;border-radius:999px;background:color-mix(in srgb,var(--qc) 18%,transparent);overflow:hidden;}
+.qc-bar i{display:block;height:100%;border-radius:999px;background:var(--qc);}
+.qc-pt{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:14px;color:var(--ios-lbl2);}
+.qc-pt b{color:var(--qc);font-size:17px;font-weight:900;}
+.qc-link{display:flex;align-items:center;gap:14px;}
+.qc-li{font-size:22px;flex-shrink:0;}
+.qc-lt{flex:1;min-width:0;}
+.qc-ch{flex-shrink:0;color:var(--qc);font-size:26px;font-weight:400;line-height:1;}
+@media(max-width:370px){.qc{grid-template-columns:auto 1fr;}.qc-b{grid-column:1/-1;justify-self:end;}}
 `;
 }catch(e){}
 })();
@@ -9110,7 +9171,7 @@ return [
 {ic:'\u21a9\ufe0f',c:C.grigio,n:'Ripristina',f:'nccRiprendiCopia'}
 ]},
 {t:'IMPOSTAZIONI',v:[
-{ic:'\ud83c\udf19',c:C.indaco,n:'Modalit\u00e0 notte',s:acceso('dark'),f:'togDark',k:'dark'},
+{ic:'\ud83c\udf13',c:C.indaco,n:'Tema',d:(window.nccTemaAttuale?nccTemaAttuale():''),f:'nccPfTema'},
 {ic:'\ud83d\udd0a',c:C.rosa,n:'Suoni',s:acceso('sndOn'),f:'togSnd',k:'sndOn'},
 {ic:'\ud83d\udcf3',c:C.viola,n:'Vibrazione',s:acceso('vibOn'),f:'togVib',k:'vibOn'},
 {ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
@@ -9164,7 +9225,7 @@ setTimeout(disegna,60);    /* aggiorno l'interruttore al volo */
 return;
 }
 /* le date si chiedono restando qui */
-if(fn==='setExamDate'||fn==='setTargetDate'||fn==='nccPfNome'){
+if(fn==='setExamDate'||fn==='setTargetDate'||fn==='nccPfNome'||fn==='nccPfTema'||fn==='nccHmEsame'){
 window[fn]();
 setTimeout(disegna,400);
 return;
@@ -9405,6 +9466,28 @@ return [
 ];
 }
 
+var CI=0;
+function coach(n){
+var M=[];
+suggerimenti(n).forEach(function(x){if(/Nessun errore/.test(x.t))return;M.push({t:x.t,d:x.d,b:x.b,fn:x.fn});});
+try{(coachTasks()||[]).forEach(function(x){
+var s=String(x.tx||'').replace(/<[^>]*>/g,'');
+if(/errori|pi\u00f9 debole|Tema debole/i.test(s))return;
+M.push({t:s,d:String(x.sub||'').replace(/<[^>]*>/g,''),b:'Inizia',fn:x.fn});});}catch(e){}
+if(!M.length)M.push({t:'Tutto in ordine',d:'Una scheda da un minuto per restare in forma',b:'Vai',fn:'nccUnMinuto'});
+window.__coachM=M;if(CI>=M.length)CI=0;
+var m=M[CI];
+return '<div class="co"><div class="co-av">\ud83d\ude96</div><div class="co-dx">'
++'<div class="co-nm"><b>Coach</b> \u00b7 il tuo istruttore</div>'
++'<div class="co-bol"><div class="co-t">'+E(m.t)+'</div>'+(m.d?'<div class="co-d">'+E(m.d)+'</div>':'')
++'<div class="co-az">'+(M.length>1?'<button class="co-alt" onclick="nccCoachAltro()">'+(CI+1)+' di '+M.length+' \u203a</button>':'<span></span>')
++'<button class="co-b" onclick="nccCoachVai()">'+E(m.b)+'</button></div></div></div></div>';
+}
+window.nccCoachVai=function(){
+var m=(window.__coachM||[])[CI];if(!m)return;try{hap();}catch(e){}
+try{if(typeof m.fn==='function')m.fn();else if(typeof window[m.fn]==='function')window[m.fn]();}catch(e){}
+};
+window.nccCoachAltro=function(){CI++;if(CI>=(window.__coachM||[]).length)CI=0;disegna();try{hap();}catch(e){}};
 function saluto(){
 var h=new Date().getHours();
 var s=h<13?'Buongiorno':(h<18?'Buon pomeriggio':'Buonasera');
@@ -9423,16 +9506,8 @@ var h='<div class="hm-top"><h1 class="hm-ciao">'+E(saluto())+'</h1>'
 +'<button class="hm-lente" onclick="nccApriCerca()" aria-label="Cerca">'
 +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">'
 +'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div>';
-/* i suggerimenti in cima */
-h+='<div class="hm-sez">DA SISTEMARE</div><div class="hm-sug">';
-suggerimenti(n).forEach(function(x){
-h+='<div class="hm-sr">'
-+'<span class="hm-si" style="background:'+x.c+'">'+x.ic+'</span>'
-+'<span class="hm-st"><b>'+E(x.t)+'</b><i>'+E(x.d)+'</i></span>'
-+'<button class="hm-sb" style="color:'+x.c+'" onclick="'+x.fn+'()">'+E(x.b)+'</button>'
-+'</div>';
-});
-h+='</div><div class="hm-griglia">';
+/* il coach: l'unico posto dei suggerimenti, un messaggio alla volta */
+h+=coach(n)+'<div class="hm-griglia">';
 riquadri(n).forEach(function(r){
 h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
 +'<span class="hm-rq-top"><span class="hm-rq-ic">'+icona(r.k)+'</span>'
@@ -9648,22 +9723,81 @@ b.classList.add('sc-entra');
 o.setAttribute('data-p',id);
 }
 
+/* ── FASE 4: le schede in stile app quiz ──
+   azione: (i) · titolo · spiegazione · bottone colorato a destra
+   elenco: icona · testo · ›
+   toccando la scheda (non il bottone) si apre il popup con la spiegazione */
+var AZR={};
+var COLG={'ESAME':'#43A047','ALLENAMENTO':'#F39C12','RIPASSO':'#C62828','MAPPA':'#2447D6','STUDIA':'#43A047',
+'QUIZ':'#F39C12','NORME':'#5856D6','TARIFFE':'#0E9AA7','I TUOI PERCORSI':'#6B7280','ELENCO':'#6B7280'};
+var EX={
+q1:['Avvia quiz','Come quello vero: stesse domande, stesso tempo, stessi criteri. Alla fine sai se saresti passato.'],
+q2:['Allenati','Una scheda mista scelta dal coach: domande nuove e domande deboli. Senza fretta, con la spiegazione dopo ogni risposta.'],
+q3:['Inizia','Solo domande che non hai mai visto: il modo pi\u00f9 veloce per coprire tutta la banca dati.'],
+q4:['','Scegli tu gli argomenti e crea la tua scheda.'],
+q5:['Via!','Tre minuti, quante ne fai. Allena la velocit\u00e0 di risposta.'],
+q6:['Ripassa','Le domande che hai sbagliato, prima quelle scadute. \u00c8 il ripasso che rende di pi\u00f9.'],
+q7:['Ripassa','Le domande che sbagli da sempre: qui non basta ripetere, serve capire la regola.'],
+q8:['Ripassa','Le domande che scambi con un\u2019altra simile. Le vedi vicine, cos\u00ec impari la differenza.'],
+q9:['Verifica','Domande che sapevi da settimane: se le sai ancora, restano; se no, tornano in ripasso.'],
+q10:['Apri','Le domande che hai salvato col segnalibro.'],
+t1:['Apri','Milano a tutto schermo, a livello strada. La Pencil disegna, il dito sposta e zooma.'],
+t3:['Studia','Il percorso con tutte le vie in vista: lo leggi tappa per tappa sulla mappa.'],
+t4:['Allenati','Le vie sono coperte: le scopri una alla volta e vedi se te le ricordi.'],
+t5:['Scrivi','Scrivi tu ogni via a memoria. I refusi non contano, il suggerimento \u00e8 a un tocco.'],
+t6:['Pesca','Un percorso a caso fra quelli che hai preparato.'],
+t7:['Gioca','Sei tappe mescolate: rimettile nell\u2019ordine giusto.'],
+t8:['Ripassa','Le vie che hai sbagliato nel Quiz vie.'],
+p1:['Studia','Una piazza fra quelle che hai preparato, con le sue vie.'],
+p2:['Apri','La piazza sulla mappa: le vie compaiono una alla volta, come le zampe di un ragno.'],
+p3:['Scrivi','Scrivi a memoria le vie che sboccano nella piazza.'],
+p4:['Avvia','Ti do la piazza, scegli le vie che ci sboccano.'],
+p5:['Avvia','Ti do la via, trova la piazza dove sbocca.'],
+p6:['Avvia','Tutte le vie di una piazza, a memoria, senza aiuti.'],
+n4:['Avvia','41 domande sul regolamento comunale.'],
+n6:['Avvia','Gli importi delle tariffe, a memoria.']};
+var LINK={q4:1,t0:1,t9:1,t10:1,t11:1,t12:1,p7:1,n1:1,n2:1,n3:1,n5:1};
+
 function righeHTML(gruppi){
-var h='';
+var h='',nn={};
+try{nn=conti();}catch(e){}
 gruppi.forEach(function(g){
+var col=COLG[g.t]||'#2447D6';
 if(g.t)h+='<div class="pf-sez">'+((window.nccEmoSez&&nccEmoSez[g.t])?nccEmoSez[g.t]+' ':'')+E(g.t)+'</div>';
-h+='<div class="pf-gr">';
+h+='<div class="qc-gr">';
 g.v.forEach(function(r){
-h+='<button class="pf-r sc-r" onclick="nccSezVai(\''+r.a+'\','+(r.resta?'1':'0')+')">'
-+'<span class="pf-ic" style="background:'+r.c+'">'+r.ic+'</span>'
-+'<span class="pf-txt sc-txt"><span class="sc-col"><span class="pf-n">'+E(r.n)+'</span>'
-+(r.s?'<span class="sc-s">'+E(r.s)+'</span>':'')+'</span>'
-+(r.d?'<span class="sc-d">'+E(r.d)+'</span>':'')+'</span>'
-+'<span class="pf-ch">\u203a</span></button>';
+AZR[r.a]=r;var ex=EX[r.a]||['Apri',r.s||''];var vai="nccSezVai('"+r.a+"',"+(r.resta?'1':'0')+")";
+var num=r.d?'<em class="qc-n">'+E(r.d)+'</em>':'';
+if(LINK[r.a]){
+h+='<button class="qc qc-link" style="--qc:'+col+'" onclick="'+vai+'">'
++'<span class="qc-li">'+r.ic+'</span><span class="qc-lt"><b>'+E(r.n)+num+'</b>'
++(r.s?'<span>'+E(r.s)+'</span>':'')+'</span><span class="qc-ch">\u203a</span></button>';
+return;}
+var extra='';
+if(r.a==='q6'&&nn.errTot)extra='<div class="qc-big">'+nn.errTot+' errori da rivedere</div>';
+if(r.a==='q2'&&nn.tot){var pc=Math.round(nn.sai/nn.tot*100);
+extra='<div class="qc-pr"><div class="qc-bar"><i style="width:'+pc+'%"></i></div>'
++'<div class="qc-pt"><span>Banca dati: sai '+nn.sai+' su '+nn.tot+'</span><b>'+pc+'%</b></div></div>';}
+h+='<div class="qc" style="--qc:'+col+'" onclick="nccSezInfo(\''+r.a+'\')">'
++'<button class="qc-i" onclick="event.stopPropagation();nccSezInfo(\''+r.a+'\')" aria-label="Informazioni">i</button>'
++'<div class="qc-tx"><b>'+E(r.n)+num+'</b><span>'+E(r.s||'')+'</span></div>'
++'<button class="qc-b" onclick="event.stopPropagation();'+vai+'">'+E(ex[0])+'</button>'+extra+'</div>';
 });
 h+='</div>';
 });
 return h;
+}
+window.nccSezInfo=function(a){
+try{var r=AZR[a];if(!r)return;var ex=EX[a]||['Apri',r.s||''];
+nccPopup({icona:r.ic,titolo:r.n,testo:ex[1]||r.s||'',azioni:[
+{t:ex[0]||'Apri',stile:'pieno',fn:function(){nccSezVai(a,r.resta?1:0);}},{t:'Chiudi',stile:'vuoto'}]});}catch(e){}
+};
+function dividiTopo(P){
+try{var st=P.g.filter(function(g){return g.t==='STUDIA';})[0];if(!st)return;
+var rip=st.v.filter(function(r){return r.a==='t6'||r.a==='t7'||r.a==='t8';});
+st.v=st.v.filter(function(r){return rip.indexOf(r)<0;});
+var i=P.g.indexOf(st);P.g.splice(i+1,0,{t:'RIPASSO',v:[rip.filter(function(r){return r.a==='t8';})[0],
+rip.filter(function(r){return r.a==='t6';})[0],rip.filter(function(r){return r.a==='t7';})[0]].filter(Boolean)});}catch(e){}
 }
 
 window.nccPagina=function(id,t,c,ind){pagina(id,t,c,ind);};
@@ -9671,6 +9805,9 @@ window.nccSez=function(k){
 try{
 AZ={};
 var P=pagine()[k];if(!P)return;
+AZR={};
+if(k==='quiz')P.testa=null;          /* la barra sta gia' dentro la scheda di allenamento */
+if(k==='topo')dividiTopo(P);         /* 📖 studia · 🔁 ripasso, come nell'app quiz */
 var corpo='';
 if(P.testa)corpo+='<div class="sc-testa"><div class="sc-tt">'+E(P.testa.t)+'</div>'
 +'<div class="sc-bar"><i style="width:'+P.testa.p+'%;background:'+P.c+'"></i></div>'
@@ -10034,7 +10171,8 @@ v.classList.remove('su');
 setTimeout(function(){try{v.remove();}catch(e){}if(typeof cb==='function'){try{cb();}catch(e){}}},240);
 }
 v.querySelectorAll('.pop-b').forEach(function(b){b.onclick=function(){
-var a=az[+b.getAttribute('data-i')];try{hap();}catch(e){}chiudi(a&&a.fn);};});
+var a=az[+b.getAttribute('data-i')];try{hap();}catch(e){}
+if(a&&a.subito){try{a.fn();}catch(e){}chiudi();}else chiudi(a&&a.fn);};});
 v.querySelector('.pop-velo').onclick=function(){chiudi(o.annulla);};
 /* trascinando giu' si chiude */
 var box=v.querySelector('.pop-box'),y0=null,dy=0;
@@ -10168,4 +10306,82 @@ dark=mq.matches;if(typeof applyDark==='function')applyDark();}catch(e){}
 setTimeout(segui,600);
 if(mq&&mq.addEventListener)mq.addEventListener('change',segui);
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎯 FASE 3 — IL MIO ESAME, IL NOME, IL TEMA: POPUP VERI
+   Le due funzioni del nucleo leggono "GG/MM/AAAA" dal prompt():
+   il popup ha i campi data, e al salvataggio chiamo l'originale
+   con la risposta gia' scritta. Tutta la sua logica resta intatta.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function iso(t){var d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function gma(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[3]+'/'+m[2]+'/'+m[1]):'';}
+function ts(k){var v=L(k,0);if(!v)return 0;var t=(typeof v==='number')?v:new Date(v).getTime();return isNaN(t)?0:t;}
+function giorni(t){if(!t)return null;var a=new Date();a.setHours(0,0,0,0);var b=new Date(t);b.setHours(0,0,0,0);return Math.round((b-a)/86400000);}
+function conPrompt(fn,val){var o=window.prompt;window.prompt=function(){return val;};try{fn();}catch(e){}finally{window.prompt=o;}}
+function aggiorna(){
+try{nccHomeRiquadri();}catch(e){}
+try{if(document.getElementById('pfOv'))nccProfilo();}catch(e){}
+try{autoSave();}catch(e){}
+}
+/* le originali del nucleo, prese una volta sola; chi le chiama ora apre il popup */
+var _se=window.setExamDate,_st=window.setTargetDate;
+if(typeof _se==='function')window.setExamDate=function(){nccHmEsame();};
+if(typeof _st==='function')window.setTargetDate=function(){nccHmEsame();};
+
+window.nccHmEsame=function(){
+try{
+var te=ts('examDate'),tt=ts('targetDate'),g=giorni(te);
+var html='<div class="es-big">'+((g!=null&&g>=0)?('<b>'+g+'</b><span>giorn'+(g===1?'o':'i')+' all\u2019esame</span>')
+:'<span>Imposta la data del tuo esame</span>')+'</div>'
++'<label class="es-l">Data dell\u2019esame<input type="date" id="esD" value="'+(te?iso(te):'')+'"></label>'
++'<label class="es-l">Traguardo: tutto studiato entro<input type="date" id="esT" value="'+(tt?iso(tt):'')+'"></label>';
+nccPopup({icona:'\ud83c\udfaf',titolo:'Il mio esame',html:html,azioni:[
+{t:'Salva',stile:'pieno',subito:true,fn:function(){
+var d=document.getElementById('esD'),t=document.getElementById('esT');
+var nd=d?d.value:'',nt=t?t.value:'';
+if(typeof _se==='function'&&nd!==(te?iso(te):''))conPrompt(_se,nd?gma(nd):'');
+if(typeof _st==='function'&&nt!==(tt?iso(tt):''))conPrompt(_st,nt?gma(nt):'');
+aggiorna();}},
+{t:'\ud83c\udfc1 Fai una simulazione',stile:'pieno2',fn:function(){
+try{openQuiz();setTimeout(function(){try{buildQuiz();qStartExam();}catch(e){}},260);}catch(e){}}},
+{t:'Chiudi',stile:'vuoto'}]});
+}catch(e){}
+};
+
+window.nccPfNome=function(){
+var v='';try{v=localStorage.getItem('nomeUtente')||'';}catch(e){}
+nccPopup({icona:'\ud83d\udc64',titolo:'Come ti chiami?',testo:'Lo uso per salutarti in home.',
+html:'<input class="es-in" id="nmIn" type="text" maxlength="24" value="'+E(v)+'" placeholder="Il tuo nome" autocomplete="given-name">',
+azioni:[{t:'Salva',stile:'pieno',subito:true,fn:function(){
+var i=document.getElementById('nmIn');var nn=i?String(i.value).trim().slice(0,24):'';
+try{if(nn)localStorage.setItem('nomeUtente',nn);else localStorage.removeItem('nomeUtente');}catch(e){}
+aggiorna();}},{t:'Annulla',stile:'vuoto'}]});
+setTimeout(function(){var i=document.getElementById('nmIn');if(i)i.focus();},380);
+};
+
+function temaAttuale(){var v=null;try{v=localStorage.getItem('dark');}catch(e){}
+if(v===null)return 'Automatico';return (v==='true'||v==='1')?'Scuro':'Chiaro';}
+window.nccTemaAttuale=temaAttuale;
+window.nccPfTema=function(){
+function metti(m){
+try{
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+if(m==='auto'){localStorage.removeItem('dark');dark=!!(mq&&mq.matches);}
+else{dark=(m==='scuro');if(typeof ls==='function')ls('dark',dark);else localStorage.setItem('dark',JSON.stringify(dark));}
+if(typeof applyDark==='function')applyDark();
+}catch(e){}
+aggiorna();
+}
+nccPopup({icona:'\ud83c\udf13',titolo:'Tema',testo:'Ora: '+temaAttuale(),azioni:[
+{t:'Automatico, come il telefono',stile:'pieno',fn:function(){metti('auto');}},
+{t:'\u2600\ufe0f Chiaro',stile:'pieno2',fn:function(){metti('chiaro');}},
+{t:'\ud83c\udf19 Scuro',stile:'pieno2',fn:function(){metti('scuro');}},
+{t:'Annulla',stile:'vuoto'}]});
+};
 })();
