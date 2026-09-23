@@ -2131,7 +2131,7 @@ font-family:inherit;font-size:17px;letter-spacing:-.4px;cursor:pointer;text-alig
 #panel.pnl-mini #edBtn{display:none!important;}
 
 /* ── fase 1: la schermata mappa senza comandi di contorno ── */
-#homeTopBtn,button.ichip[onclick="rndRoute()"],#fullBtn,#satBtn{display:none!important;}
+#homeTopBtn,#fullBtn,#satBtn{display:none!important;}
 /* 7 · i sottotitoli non devono finire sotto le righe */
 .pf-r.sc-r{min-height:62px;height:auto;align-items:stretch;}
 .pf-r.sc-r .pf-ic{align-self:center;}
@@ -2391,6 +2391,36 @@ font-weight:800!important;font-size:16px!important;border:none!important;}
 /* ── scatto 3: le pagine che scivolano, piu' leggere da muovere ── */
 #scnOv,#pfOv,#edOv,#mgOv{will-change:transform;contain:layout paint;}
 .hm-rq{contain:paint;}
+
+:has(> .t-info-in){position:relative;}
+.t-info-in{position:absolute!important;right:14px;top:50%;transform:translateY(-50%);margin:0!important;}
+
+#quizApp{transition:opacity .18s ease;}
+body.qz-avvio #quizApp{opacity:0!important;pointer-events:none!important;}
+
+/* ══════════ SCHERMI LARGHI: TUTTO IN UNA COLONNA CENTRATA ══════════ */
+@media(min-width:900px){
+#qRun .qrun-pillrow,#qRun .qrun-info,#qRun .qrun-body,#qRunAns{max-width:720px!important;
+width:100%!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;}
+#nmOv .nm-q,#nmOv .nm-opz{max-width:720px!important;width:100%!important;
+margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;}
+#nmOv .nm-q{text-align:center!important;}
+#scOv{display:flex!important;flex-direction:column!important;}
+#scOv .sc-wrap{flex:1 1 auto!important;min-height:0!important;height:auto!important;}
+#scOv > div:empty{display:none!important;}
+}
+
+/* ══ la barra della mappa delle piazze: bottoni col loro nome ══
+   Street View non e' una modalita': niente piu' segmento largo 427px */
+#pzMapOv .pzm-sv{flex:0 0 auto!important;width:auto!important;min-width:44px;padding:0 14px!important;
+background:var(--card)!important;color:var(--tx)!important;border:1.5px solid var(--bd)!important;}
+@media(min-width:700px){
+#pzMapOv .pzm-sv::after{content:' Street View';font-size:14px;font-weight:700;}
+#pzMapOv .pzm-geo{width:auto!important;padding:0 14px!important;}
+#pzMapOv .pzm-geo::after{content:' Trova le vie';font-size:14px;font-weight:700;}
+#pzMapOv .pzm-dado{width:auto!important;padding:0 14px!important;}
+#pzMapOv .pzm-dado::after{content:' Un’altra piazza';font-size:14px;font-weight:700;}
+}
 `;
 }catch(e){}
 })();
@@ -7810,8 +7840,8 @@ nd++;
 (function(it){
 var giusta=(it.choices&&it.choices[it.correct]!=null)?it.choices[it.correct]:'';
 r.push({t:'domanda',ic:'\ud83d\udcdd',tit:it.q,sub:giusta?('Risposta: '+giusta):'',
-fn:function(){try{openQuiz();setTimeout(function(){try{buildQuiz();
-startQuiz([it],{mode:'study',title:'Domanda cercata'});}catch(e){}},260);}catch(e){}}});
+fn:function(){try{nccAvvio(function(){try{buildQuiz();
+startQuiz([it],{mode:'study',title:'Domanda cercata'});}catch(e){}});}catch(e){}}});
 })(it);
 }
 }
@@ -8128,17 +8158,8 @@ else h.insertBefore(d,h.firstElementChild);
 
 /* ── le due sessioni minuscole ── */
 window.nccUnMinuto=function(){
-try{
-if(typeof openQuiz==='function')openQuiz();
-setTimeout(function(){
-try{
-if(typeof buildQuiz==='function')buildQuiz();
-if(typeof qStartMix==='function')qStartMix(5);
-else if(typeof qStartMix==='function')qStartMix();
-}catch(e){}
-},260);
-try{hap();}catch(e){}
-}catch(e){}
+try{nccAvvio(function(){try{if(typeof buildQuiz==='function')buildQuiz();if(typeof qStartMix==='function')qStartMix(5);}catch(e){}});
+try{hap();}catch(e){}}catch(e){}
 };
 window.nccUnaPiazza=function(){
 try{
@@ -8187,7 +8208,8 @@ var _o=window[f];
 window[f]=function(){nccSegnaInizio();return _o.apply(this,arguments);};
 });
 /* il quiz ha il suo popup di fine sessione (fase 6): qui solo le altre */
-['pzScriviChiudi','nmChiudi'].forEach(function(f){
+/* niente riepilogo quando esci: si accendeva con gli errori aperti, cioe' sempre */
+[].forEach(function(f){
 if(typeof window[f]!=='function')return;
 var _o=window[f];
 window[f]=function(){var r=_o.apply(this,arguments);
@@ -9462,7 +9484,7 @@ d:'Una scheda da un minuto per restare in forma',b:'Vai',fn:'nccUnMinuto'});
 return s.slice(0,3);
 }
 window.nccHmErrori=function(){
-try{openQuiz();setTimeout(function(){try{buildQuiz();qStartCat('errata');}catch(e){}},260);}catch(e){}
+try{nccAvvio(function(){try{buildQuiz();qStartCat('errata');}catch(e){}});}catch(e){}
 };
 window.nccHmDebole=function(){
 try{
@@ -9635,7 +9657,7 @@ return true;});
 
 /* ── azioni: prima chiudo la pagina, poi apro la schermata ── */
 function quiz(fn,arg){return function(){
-try{openQuiz();setTimeout(function(){try{buildQuiz();window[fn](arg);}catch(e){}},260);}catch(e){}};}
+try{nccAvvio(function(){try{buildQuiz();window[fn](arg);}catch(e){}});}catch(e){}};}
 function topo(modo){return function(){
 try{goTopografia();if(modo)setTimeout(function(){try{setMode(modo);}catch(e){}},320);}catch(e){}};}
 var AZ={};
@@ -10363,7 +10385,7 @@ if(typeof _se==='function'&&nd!==(te?iso(te):''))conPrompt(_se,nd?gma(nd):'');
 if(typeof _st==='function'&&nt!==(tt?iso(tt):''))conPrompt(_st,nt?gma(nt):'');
 aggiorna();}},
 {t:'\ud83c\udfc1 Fai una simulazione',stile:'pieno2',fn:function(){
-try{openQuiz();setTimeout(function(){try{buildQuiz();qStartExam();}catch(e){}},260);}catch(e){}}},
+try{nccAvvio(function(){try{buildQuiz();qStartExam();}catch(e){}});}catch(e){}}},
 {t:'Chiudi',stile:'vuoto'}]});
 }catch(e){}
 };
@@ -10511,12 +10533,12 @@ else nccPagina('stat','Statistiche',corpo,'nccSezChiudi()');
 }
 window.nccStat=function(){TAB='pan';disegna();try{hap();}catch(e){}};
 window.nccStatTab=function(t){TAB=t;disegna();try{hap();}catch(e){}};
-window.nccStatSim=function(){try{nccSezChiudi(true);openQuiz();setTimeout(function(){try{buildQuiz();qStartExam();}catch(e){}},260);}catch(e){}};
+window.nccStatSim=function(){try{nccSezChiudi(true);nccAvvio(function(){try{buildQuiz();qStartExam();}catch(e){}});}catch(e){}};
 window.nccStatTema=function(sub){
-try{nccSezChiudi(true);openQuiz();setTimeout(function(){try{buildQuiz();
+try{nccSezChiudi(true);nccAvvio(function(){try{buildQuiz();
 var pool=QUIZ_ALL.filter(function(x){return String(x.sub)===String(sub);});
 var lab=(SUBS.filter(function(s){return String(s.sub)===String(sub);})[0]||{}).label||'Argomento';
-startQuiz((typeof qShuffle==='function'?qShuffle(pool):pool).slice(0,12),{mode:'study',title:lab});}catch(e){}},260);}catch(e){}
+startQuiz((typeof qShuffle==='function'?qShuffle(pool):pool).slice(0,12),{mode:'study',title:lab});}catch(e){}});}catch(e){}
 };
 })();
 
@@ -10623,3 +10645,50 @@ var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}}}catch(e){}})
 return r;};}catch(e){}
 },3200);
 })();
+
+/* ── la sessione parte senza mostrare la dashboard ──
+   l'apertura del quiz ha dei passaggi suoi in ritardo: aspetto il
+   quarto di secondo che serve, ma il quiz resta invisibile finche'
+   la sessione non e' pronta. Se la sessione non parte (es. nessun
+   errore), dopo poco il quiz ricompare comunque. */
+window.nccAvvio=function(fn){
+try{document.body.classList.add('qz-avvio');}catch(e){}
+try{openQuiz();}catch(e){}
+setTimeout(function(){
+try{fn();}catch(e){}
+var t0=Date.now();
+(function libera(){
+var pronta=(typeof qCurView!=='undefined'&&qCurView==='run')||Date.now()-t0>1200;
+if(pronta)requestAnimationFrame(function(){try{document.body.classList.remove('qz-avvio');}catch(e){}});
+else requestAnimationFrame(libera);
+})();
+},260);
+};
+
+/* ── Ripasso errori che non partiva ──
+   i due strati piu' esterni prendono solo gli errori gia' scaduti:
+   se nessuno e' scaduto oggi, il bottone non faceva niente, in silenzio.
+   Ora in quel caso ripassi comunque i tuoi errori, dai piu' vicini
+   alla scadenza. Avvolto per ultimo, cosi' vale per tutti i bottoni. */
+setTimeout(function(){
+try{
+if(typeof qStartCat!=='function')return;
+var _q=qStartCat;
+qStartCat=function(cid){
+if(cid!=='errata')return _q.apply(this,arguments);
+try{
+var tutte=QUIZ_ALL.filter(function(it){return qtStats.err[it.id];});
+var scad=tutte.filter(function(it){try{return srDue(it.id)<=Date.now();}catch(e){return false;}});
+if(tutte.length&&!scad.length){
+tutte.sort(function(a,b){try{return srDue(a.id)-srDue(b.id);}catch(e){return 0;}});
+startQuiz(tutte.slice(0,30),{mode:'study',title:'Ripasso errori'});return;}
+}catch(e){}
+return _q.apply(this,arguments);
+};
+}catch(e){}
+},5200);
+/* i nomi anche al passaggio del mouse, e per chi usa la lettura dello schermo */
+setTimeout(function(){try{var _pm=window.pzMappa;if(typeof _pm!=='function')return;
+window.pzMappa=function(){var r=_pm.apply(this,arguments);setTimeout(function(){try{
+[['.pzm-dado','Un\u2019altra piazza a caso'],['.pzm-sv','Street View della via'],['.pzm-geo','Trova le vie sulla mappa da sole (OpenStreetMap)']].forEach(function(x){
+var e=document.querySelector('#pzMapOv '+x[0]);if(e){e.title=x[1];e.setAttribute('aria-label',x[1]);}});}catch(e){}},300);return r;};}catch(e){}},5400);
