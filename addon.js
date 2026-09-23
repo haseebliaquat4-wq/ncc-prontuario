@@ -2387,6 +2387,10 @@ font-weight:800!important;font-size:16px!important;border:none!important;}
 .rq-yes,.pzq-b.sap{background:var(--t-verde)!important;color:#fff!important;}
 .rq-no{background:var(--t-rosso)!important;color:#fff!important;}
 .rq-close{background:transparent!important;color:var(--mu)!important;}
+
+/* ── scatto 3: le pagine che scivolano, piu' leggere da muovere ── */
+#scnOv,#pfOv,#edOv,#mgOv{will-change:transform;contain:layout paint;}
+.hm-rq{contain:paint;}
 `;
 }catch(e){}
 })();
@@ -9547,7 +9551,8 @@ h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
 +'<span class="hm-rq-s">'+E(r.s)+'</span></button>';
 });
 h+='</div>';
-d.innerHTML=h;
+/* se non e' cambiato niente non riscrivo: era un ridisegno inutile a ogni ritorno */
+if(d.__h!==h){d.innerHTML=h;d.__h=h;}
 home.classList.add('hm-nuova');
 }catch(e){}
 }
@@ -9587,7 +9592,8 @@ try{var _gh4=goHome;goHome=function(){
 var r=_gh4.apply(this,arguments);
 try{var home=document.getElementById('homeScreen');
 if(home&&home.classList.contains('hm-stat'))nccHmStatEsci();}catch(e){}
-setTimeout(disegna,240);return r;};}catch(e){}
+/* a movimento finito, non a meta' dell'animazione */
+setTimeout(function(){requestAnimationFrame(disegna);},450);return r;};}catch(e){}
 try{var _rp2=renderPlan;renderPlan=function(){var r=_rp2.apply(this,arguments);setTimeout(disegna,140);return r;};}catch(e){}
 })();
 
@@ -10297,7 +10303,11 @@ h.parentElement.appendChild(inf);
 }
 }catch(e){}
 }
-setInterval(inietta,900);setTimeout(inietta,2600);
+/* prima ogni 900ms: ora dopo ogni navigazione, e un controllo lento di sicurezza */
+setInterval(inietta,4000);setTimeout(inietta,2600);
+setTimeout(function(){['goHome','goTopografia','openQuiz','openStudy','openPiazze','openNorme','openRegole','nccApriCerca','nmQuiz','pzQuizVie','regQuiz'].forEach(function(n){
+if(typeof window[n]!=='function'||window[n].__inj)return;var o=window[n];
+var w=function(){var r=o.apply(this,arguments);setTimeout(inietta,380);return r;};w.__inj=true;window[n]=w;});},4800);
 
 /* ── scuro automatico: segue il telefono finche' non lo scegli tu ── */
 try{
@@ -10520,7 +10530,9 @@ startQuiz((typeof qShuffle==='function'?qShuffle(pool):pool).slice(0,12),{mode:'
 (function(){
 'use strict';
 function tempo(s){s=+s||0;if(s>36000)s=s/1000;s=Math.max(0,Math.round(s));var m=Math.floor(s/60),x=s%60;return m+':'+(x<10?'0':'')+x;}
-function visibile(id){var e=document.getElementById(id);return !!e&&getComputedStyle(e).display!=='none';}
+/* niente getComputedStyle ogni 400ms: leggo lo stato che l'app gia' segna */
+function visibile(id){var e=document.getElementById(id);if(!e)return false;
+return e.classList.contains('open')||e.style.display==='block'||e.style.display==='flex';}
 setInterval(function(){
 try{
 var quiz=(typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&Q&&!Q._finished&&visibile('quizApp'));
@@ -10546,4 +10558,68 @@ nccPopup({icona:perfetto?'\ud83c\udfc6':(s<=Math.max(1,Math.round(tot*0.1))?'\u2
 titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':'')+g+' giuste su '+tot,html:h,azioni:az});
 }catch(e){}
 }
+})();
+
+/* ═══════════════════════════════════════════════════
+   ☁️ SINCRONIZZAZIONE DI QUELLO CHE NON SALIVA
+   Norme, piazze (progressi, ripasso, marker), Pencil e nome
+   restavano solo sul telefono: iPhone e iPad non se li passavano.
+   Viaggiano ora nel pacchetto "preferenze" che l'app gia' manda.
+   Al rientro aggiungo quello che manca, senza mai sovrascrivere
+   quello che hai sul dispositivo.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente'];
+function raccogli(){
+var o={};
+CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
+if(k==='pencilGeo'){try{var a=JSON.parse(v);if(Array.isArray(a))v=JSON.stringify(a.slice(-100));}catch(e){}}
+o[k]=v;}catch(e){}});
+return o;
+}
+window.nccSyncRaccogli=raccogli;
+function unisci(ncc){
+var n=0;
+try{
+CHIAVI.forEach(function(k){
+if(!ncc||ncc[k]==null)return;
+var loc=localStorage.getItem(k),cl=ncc[k];
+if(loc==null||loc===''||loc==='{}'||loc==='[]'){localStorage.setItem(k,cl);n++;return;}
+if(k==='nomeUtente'||k==='pencilGeo')return;       /* quelli del dispositivo vincono */
+try{var a=JSON.parse(loc),b=JSON.parse(cl);
+if(a&&b&&typeof a==='object'&&!Array.isArray(a)){
+var agg=0;Object.keys(b).forEach(function(id){if(!(id in a)){a[id]=b[id];agg++;}});
+if(agg){localStorage.setItem(k,JSON.stringify(a));n+=agg;}}}catch(e){}
+});
+}catch(e){}
+return n;
+}
+window.nccSyncUnisci=unisci;
+/* invio: dentro le preferenze che l'app gia' spedisce */
+setTimeout(function(){
+try{if(typeof getPrefs!=='function')return;var _g=getPrefs;
+getPrefs=function(){var p=_g.apply(this,arguments)||{};try{p.ncc=raccogli();}catch(e){}return p;};}catch(e){}
+},3000);
+/* quando cambia una di queste, lo segnalo all'app (con calma: 3 secondi) */
+var tm=null;
+try{
+var _si=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k,v){
+var r=_si.apply(this,arguments);
+if(CHIAVI.indexOf(k)>=0){clearTimeout(tm);tm=setTimeout(function(){
+/* scrivo solo il mio ramo: prefs/ncc. Niente data, niente altri dati toccati */
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.child)fbRef.child('prefs').child('ncc').set(raccogli());}catch(e){}
+try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}},3000);}
+return r;};
+}catch(e){}
+/* ricezione: dopo la sincronizzazione dell'app, leggo il pacchetto e aggiungo */
+setTimeout(function(){
+try{if(typeof syncFromCloud!=='function')return;var _s=syncFromCloud;
+syncFromCloud=function(){var r=_s.apply(this,arguments);
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(snap){
+try{var d=snap&&snap.val?snap.val():null;if(d&&d.prefs&&d.prefs.ncc){
+var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}}}catch(e){}});}catch(e){}
+return r;};}catch(e){}
+},3200);
 })();
