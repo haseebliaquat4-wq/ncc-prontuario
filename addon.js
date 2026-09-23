@@ -1886,7 +1886,7 @@ cursor:pointer;padding:0;}
 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw;}
 .mg-area{flex:1;min-height:0;position:relative;touch-action:none;}
 #mgMap{position:absolute;inset:0;}
-#mgCanvas{position:absolute;inset:0;z-index:900;touch-action:none;}
+#mgCanvas{position:absolute;inset:0;z-index:650;pointer-events:none;}
 @media(max-width:560px){
 .mg-info{display:none;}
 .mg-c{width:26px;height:26px;}
@@ -2111,10 +2111,6 @@ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 font-variant-numeric:tabular-nums;}
 .sc-nota{font-size:13px;color:var(--ios-lbl2);margin:0 32px 10px;line-height:1.4;}
 .sc-vuoto{text-align:center;font-size:15px;color:var(--ios-lbl2);padding:40px 24px;}
-/* la mappa pulita: niente matita, niente foglio */
-#mgOv.pulita #mgCanvas,#mgOv.pulita #mgPen,#mgOv.pulita .mg-col,
-#mgOv.pulita #mgSp,#mgOv.pulita .mg-b[title="Annulla"],
-#mgOv.pulita .mg-b[title="Cancella tutto"]{display:none!important;}
 
 
 /* ══════════ FASE 4 · PULIZIA ══════════
@@ -2173,6 +2169,103 @@ font-family:inherit;font-size:17px;letter-spacing:-.4px;cursor:pointer;text-alig
 .ed-add:active{background:var(--ios-hl);}
 .ed-nota{margin-top:4px;}
 #panel.pnl-mini #edBtn{display:none!important;}
+
+/* ── fase 1: la schermata mappa senza comandi di contorno ── */
+#homeTopBtn,button.ichip[onclick="rndRoute()"],#fullBtn,#satBtn{display:none!important;}
+/* 7 · i sottotitoli non devono finire sotto le righe */
+.pf-r.sc-r{min-height:62px;height:auto;align-items:stretch;}
+.pf-r.sc-r .pf-ic{align-self:center;}
+.sc-r .pf-txt.sc-txt{min-height:62px;padding-top:10px;padding-bottom:10px;align-items:center;}
+.sc-col{justify-content:center;gap:2px;}
+.sc-col .pf-n{line-height:1.25;}
+.sc-s{line-height:1.3;}
+
+
+/* ══════════ FASE 2 · UN TEMA SOLO, STILE APP QUIZ ══════════
+   le variabili --ios-* restano come nome, ma ora contengono il tema
+   dell'app: fondo chiaro caldo, schede bianche con bordo, niente vetro */
+:root,body,.rd{--ios-bg:#F4F5F7;--ios-card:#FFFFFF;--ios-sep:rgba(17,24,39,.09);
+--ios-lbl:#111827;--ios-lbl2:#6B7280;--ios-lbl3:#9CA3AF;--ios-hl:rgba(17,24,39,.05);
+--ios-blue:var(--a,#2447D6);--t-verde:#43A047;--t-arancio:#F39C12;--t-rosso:#C62828;--t-r:18px;}
+.dark,.dark .rd,body.dark{--ios-bg:#111214;--ios-card:#1C1D20;--ios-sep:rgba(255,255,255,.09);
+--ios-lbl:#F3F4F6;--ios-lbl2:#9CA3AF;--ios-lbl3:#6B7280;--ios-hl:rgba(255,255,255,.06);}
+#pfOv,#scnOv,#hmNew,#hmFg,#edOv,#popOv,#hmStatBar{font-family:inherit!important;}
+#pfOv,#scnOv{box-shadow:none!important;}
+
+/* ── la testata unica ── */
+.t-hd{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;
+padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px;background:var(--ios-bg);}
+.t-tit{flex:1;min-width:0;margin:0;font-size:24px;font-weight:800;letter-spacing:-.4px;
+color:var(--ios-lbl);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+.t-back,.qback,.pz-x,.pzq-x,.pzg-x,.nm-x,.rg-x,.cx-x,.ip-x,.rq-x,.or-x,.sc-x,.qrun-x,#mgOv .mg-b[title="Esci"]{display:inline-flex!important;align-items:center!important;justify-content:center!important;
+flex:0 0 40px;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+padding:0!important;border-radius:50%!important;border:1.5px solid var(--ios-sep)!important;
+background:var(--ios-card)!important;color:var(--ios-lbl)!important;font-size:0!important;
+cursor:pointer;box-shadow:none!important;-webkit-tap-highlight-color:transparent;}
+.t-back::before,.qback::before,.pz-x::before,.pzq-x::before,.pzg-x::before,.nm-x::before,.rg-x::before,.cx-x::before,.ip-x::before,.rq-x::before,.or-x::before,.sc-x::before,.qrun-x::before,#mgOv .mg-b[title="Esci"]::before{content:'';display:block;width:10px;height:10px;
+border-left:2.6px solid currentColor;border-bottom:2.6px solid currentColor;
+transform:translateX(2px) rotate(45deg);border-radius:1px;}
+.qback svg,.pz-x svg,.pzq-x svg,.pzg-x svg,.nm-x svg,.rg-x svg,.cx-x svg,.ip-x svg,.rq-x svg,.or-x svg,.sc-x svg,.qrun-x svg,#mgOv .mg-b[title="Esci"] svg,.t-back svg{display:none!important;}
+.t-back:active,.qback:active,.pz-x:active,.pzq-x:active,.pzg-x:active,.nm-x:active,.rg-x:active,.cx-x:active,.ip-x:active,.rq-x:active,.or-x:active,.sc-x:active,.qrun-x:active,#mgOv .mg-b[title="Esci"]:active{transform:scale(.92);}
+.t-info{flex:0 0 38px;width:38px;height:38px;border-radius:50%;border:2px solid var(--a,#2447D6);
+background:transparent;color:var(--a,#2447D6);font:italic 700 17px Georgia,'Times New Roman',serif;
+cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;}
+.t-info:active{transform:scale(.92);}
+.t-info-in{margin-left:auto;}
+#tpBack{margin-right:2px;}#tpInfo{margin-left:6px;}
+#hmStatBar{margin:0 -16px 12px!important;padding:0!important;background:var(--ios-bg)!important;
+backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:none!important;}
+#hmStatBar{display:block!important;}
+#hmStatBar .t-hd{position:static;width:100%;box-sizing:border-box;padding-left:10px;padding-right:10px;}
+
+/* ── via lo stile iOS: le liste diventano schede ── */
+.pf-big,.pf-nav{display:none!important;}
+.pf-body{padding-top:4px!important;}
+.pf-sez{font-size:13px!important;font-weight:800!important;letter-spacing:.08em!important;
+text-transform:uppercase;color:var(--ios-lbl)!important;margin:6px 18px 10px!important;}
+.pf-gr{background:transparent!important;border-radius:0!important;overflow:visible!important;
+margin:0 16px 24px!important;display:flex;flex-direction:column;gap:10px;}
+.pf-r{background:var(--ios-card)!important;border:1.5px solid var(--ios-sep)!important;
+border-radius:var(--t-r)!important;padding:8px 8px 8px 14px!important;min-height:64px!important;
+transition:transform .15s ease!important;}
+.pf-r:active{background:var(--ios-card)!important;transform:scale(.98)!important;}
+.pf-r+.pf-r .pf-txt::before{display:none!important;}
+.pf-ic{flex:0 0 42px!important;width:42px!important;height:42px!important;border-radius:12px!important;
+font-size:20px!important;margin-right:14px!important;}
+.pf-n{font-size:16px!important;font-weight:700!important;letter-spacing:-.2px!important;}
+.pf-d,.sc-d{font-size:15px!important;font-weight:600!important;}
+.pf-sw{background:var(--ios-gray5,#E5E7EB)!important;}
+.pf-sw.on{background:var(--a,#2447D6)!important;}
+.pf-r.rosso{border-color:rgba(198,40,40,.35)!important;}
+.pf-r.rosso .pf-n{color:var(--t-rosso)!important;}
+.sc-testa{background:var(--ios-card)!important;border:1.5px solid var(--ios-sep);
+border-radius:var(--t-r)!important;padding:16px!important;}
+.hm-sug{border:1.5px solid var(--ios-sep);border-radius:var(--t-r)!important;}
+.hm-rq{border-radius:var(--t-r)!important;}
+
+/* ── il popup ── */
+#popOv{position:fixed;inset:0;z-index:9800;}
+.pop-velo{position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:0;transition:opacity .25s;}
+#popOv.su .pop-velo{opacity:1;}
+.pop-box{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;
+background:var(--ios-card);border-radius:24px 24px 0 0;
+padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));text-align:center;
+transform:translateY(105%);transition:transform .36s cubic-bezier(.32,.72,0,1);
+box-shadow:0 -8px 30px rgba(0,0,0,.18);}
+#popOv.su .pop-box{transform:none;}
+.pop-grab{width:40px;height:5px;border-radius:999px;background:var(--ios-sep);margin:0 auto 16px;}
+.pop-ic{font-size:40px;line-height:1;margin-bottom:10px;}
+.pop-t{font-size:20px;font-weight:800;letter-spacing:-.3px;color:var(--ios-lbl);margin-bottom:8px;}
+.pop-x{font-size:15.5px;line-height:1.5;color:var(--ios-lbl2);margin:0 0 18px;}
+.pop-az{display:flex;flex-direction:column;gap:9px;}
+.pop-b{min-height:52px;padding:14px;border-radius:999px;border:none;cursor:pointer;
+font-family:inherit;font-size:16px;font-weight:800;letter-spacing:-.1px;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.pop-b:active{transform:scale(.97);}
+.pop-b.pieno{background:var(--a,#2447D6);color:#fff;}
+.pop-b.pieno2{background:var(--t-verde);color:#fff;}
+.pop-b.rosso{background:var(--t-rosso);color:#fff;}
+.pop-b.vuoto{background:transparent;color:var(--ios-lbl2);font-weight:700;}
 `;
 }catch(e){}
 })();
@@ -6160,11 +6253,9 @@ try{
    zoomando, le scritte sono sfocate. detectRetina fa chiedere a
    Leaflet i riquadri dello zoom successivo e li disegna a meta'
    dimensione: quattro volte i dettagli. */
-try{
-opt=opt||{};
-var dpr=window.devicePixelRatio||1;
-if(dpr>1.2&&opt.detectRetina===undefined)opt.detectRetina=true;
-}catch(e){}
+/* niente detectRetina: caricava i riquadri dello zoom dopo a meta'
+   grandezza, e i NOMI DELLE VIE uscivano a meta' misura */
+try{opt=opt||{};opt.detectRetina=false;}catch(e){}
 if(typeof url==='string'&&url.indexOf('cartocdn')>=0){
 url=CON;
 opt=opt||{};
@@ -8212,10 +8303,7 @@ return {r:r,stato:stato};
 function schedeNuove(){
 try{
 var tot=0,fatte=0;
-try{
-var Lg=window.__LUOGHI__;
-tot=Array.isArray(Lg)?Lg.length:(Lg?Object.keys(Lg).length:0);
-}catch(e){}
+try{tot=(typeof LUOGHI!=='undefined'&&LUOGHI&&LUOGHI.length)?LUOGHI.length:0;}catch(e){}
 try{
 var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:L('studyProg',{});
 fatte=sp?Object.keys(sp).length:0;
@@ -8237,7 +8325,8 @@ try{e=JSON.parse(localStorage.getItem('wrongN')||'{}')||{};}catch(e3){e={};}
 var k=Object.keys(e);
 aperti=k.length;
 var ora=Date.now();
-scaduti=k.filter(function(x){return e[x]&&e[x].due&&e[x].due<=ora;}).length;
+/* la stessa scadenza del resto dell'app: srDue, non un campo .due */
+scaduti=k.filter(function(x){try{return srDue(x)<=ora;}catch(e4){return false;}}).length;
 /* l'argomento che pesa di più */
 var per={};
 k.forEach(function(x){var c=e[x]&&e[x].cat;if(c)per[c]=(per[c]||0)+1;});
@@ -8797,213 +8886,163 @@ try{nccScegliVoce();}catch(e){}
 })();
 
 /* ═══════════════════════════════════════════════════
-   ✏️ MAPPA GRANDE CON LA PENCIL
-   Tutta la mappa a schermo pieno, con un foglio trasparente
-   sopra su cui disegni con la Apple Pencil: ripassi il percorso
-   con la matita, come sul libro. Il dito resta libero di
-   spostare e ingrandire la mappa.
+   ✏️ LA MAPPA — una sola: grande, pulita, Pencil pronta
+   · la Pencil disegna, il dito sposta e zooma: insieme,
+     senza cambiare modalita'
+   · i tratti sono agganciati alla mappa (lat/lng), non allo
+     schermo: zoomando o spostando restano sulle vie giuste
+   · parte a livello strada, dove i nomi si leggono
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var MG=null,CTX=null,DIS=false,ULTIMO=null,TRATTI=[],CORRENTE=null;
+var MG=null,CTX=null,CV=null,DIS=false,TRATTI=[],CORRENTE=null,ULT=null,GEO=false;
 var COLORI=[['#2447D6','blu'],['#E5484D','rosso'],['#0E9F6E','verde'],['#111827','nero']];
-var COL=0,SPESS=3;
+var COL=0,SPESS=3,CHIAVE='pencilGeo';
+function salva(){try{localStorage.setItem(CHIAVE,JSON.stringify(TRATTI.slice(-400)));}catch(e){}}
+function carica(){try{var v=JSON.parse(localStorage.getItem(CHIAVE)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
 
-function salva(){try{localStorage.setItem('pencilTratti',JSON.stringify(TRATTI.slice(-400)));}catch(e){}}
-function carica(){try{var v=JSON.parse(localStorage.getItem('pencilTratti')||'[]');
-return Array.isArray(v)?v:[];}catch(e){return [];}}
-
-var PULITA=false;
-window.nccMappaPulita=function(){nccMappaGrande({pulita:true});};
-window.nccMappaGrande=function(opz){
+window.nccMappaPulita=function(){nccMappaGrande();};
+window.nccMappaGrande=function(){
 try{
-PULITA=!!(opz&&opz.pulita);
-var el=document.getElementById('map');
-if(!el){
-if(typeof goTopografia==='function'){goTopografia();setTimeout(function(){nccMappaGrande(opz);},600);return;}
-if(typeof toast2==='function')toast2('\u26a0\ufe0f Apri prima la mappa',2200);return;}
-var o=document.getElementById('mgOv');
-if(o)o.remove();
-o=document.createElement('div');o.id='mgOv';o.className='rd'+(PULITA?' pulita':'');
+var o=document.getElementById('mgOv');if(o)o.remove();
+o=document.createElement('div');o.id='mgOv';o.className='rd';
 o.innerHTML='<div class="mg-barra">'
 +'<button class="mg-b" onclick="nccMappaGrandeChiudi()" title="Esci">\u2715</button>'
-+'<button class="mg-b mg-pen" id="mgPen" onclick="nccPencilTog()" title="Disegna con la Pencil">\u270f\ufe0f</button>'
 +'<div class="mg-col" id="mgColori"></div>'
-+'<button class="mg-b" onclick="nccPencilSpess()" title="Spessore" id="mgSp">3</button>'
++'<button class="mg-b" onclick="nccPencilSpess()" title="Spessore" id="mgSp">'+SPESS+'</button>'
 +'<button class="mg-b" onclick="nccPencilAnnulla()" title="Annulla">\u21b6</button>'
 +'<button class="mg-b" onclick="nccPencilPulisci()" title="Cancella tutto">\ud83d\uddd1</button>'
-+'<div class="mg-sp"></div>'
-+'<div class="mg-info" id="mgInfo"></div>'
-+'</div>'
-+'<div class="mg-area"><div id="mgMap"></div>'
-+'<canvas id="mgCanvas"></canvas></div>';
++'<button class="mg-b mg-pen" id="mgPen" onclick="nccPencilTog()" title="Disegna anche col dito">\u261d\ufe0f</button>'
++'<div class="mg-sp"></div><div class="mg-info" id="mgInfo">\u270f\ufe0f Pencil pronta</div>'
++'</div><div class="mg-area" id="mgArea"><div id="mgMap"></div><canvas id="mgCanvas"></canvas></div>';
 document.body.appendChild(o);
 try{if(window.nccOvApri)nccOvApri('mgOv',function(){nccMappaGrandeChiudi();});}catch(e){}
 colori();
-setTimeout(function(){avvia();},120);
+setTimeout(avvia,120);
 try{hap();}catch(e){}
 }catch(e){}
 };
 
 function colori(){
-try{
-var d=document.getElementById('mgColori');if(!d)return;
-d.innerHTML=COLORI.map(function(c,i){
-return '<button class="mg-c'+(i===COL?' on':'')+'" style="background:'+c[0]+'" '
-+'onclick="nccPencilColore('+i+')" title="'+c[1]+'"></button>';}).join('');
-}catch(e){}
+try{var d=document.getElementById('mgColori');if(!d)return;
+d.innerHTML=COLORI.map(function(c,i){return '<button class="mg-c'+(i===COL?' on':'')+'" style="background:'+c[0]
++'" onclick="nccPencilColore('+i+')" title="'+c[1]+'"></button>';}).join('');}catch(e){}
 }
 window.nccPencilColore=function(i){COL=i;colori();try{hap();}catch(e){}};
-window.nccPencilSpess=function(){
-SPESS=(SPESS>=8)?2:SPESS+2;
-var b=document.getElementById('mgSp');if(b)b.textContent=String(SPESS);
-try{hap();}catch(e){}
-};
+window.nccPencilSpess=function(){SPESS=(SPESS>=8)?2:SPESS+2;
+var b=document.getElementById('mgSp');if(b)b.textContent=String(SPESS);try{hap();}catch(e){}};
 
 function avvia(){
 try{
 var LF=window.L;if(!LF||!LF.map)return;
-MG=LF.map('mgMap',{zoomControl:true,attributionControl:true});
+MG=LF.map('mgMap',{zoomControl:true,attributionControl:true,tap:false,minZoom:11,maxZoom:19});
 try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{maxZoom:19,maxNativeZoom:19,detectRetina:(window.devicePixelRatio||1)>1.2,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
-/* parto da dove sei: il percorso aperto, se c'è */
-var punti=[];
-try{
-if(!PULITA&&typeof cur!=='undefined'&&cur&&typeof coords!=='undefined'){
-cur.steps.forEach(function(s,i){var c=coords[cur.id+'_'+i];
-if(c)punti.push([c.lat,c.lon]);});
-}
-}catch(e){}
-if(punti.length>1){
-try{
-LF.polyline(punti,{color:'#2447D6',weight:4,opacity:.65}).addTo(MG);
-punti.forEach(function(q,i){
-LF.marker(q,{icon:LF.divIcon({className:'pz-pin',html:'<span>'+(i+1)+'</span>',
-iconSize:[24,24],iconAnchor:[12,12]})}).addTo(MG);});
-MG.fitBounds(punti,{padding:[60,60],maxZoom:16});
-}catch(e){}
-var inf=document.getElementById('mgInfo');
-if(inf&&typeof cur!=='undefined'&&cur)inf.textContent=cur.title+' \u00b7 '+punti.length+' tappe';
-}else{
-MG.setView([45.4642,9.19],13);
-var inf2=document.getElementById('mgInfo');
-if(inf2)inf2.textContent=PULITA?'Milano \u00b7 mappa pulita':'Milano';
-}
+{maxZoom:19,maxNativeZoom:19,detectRetina:false,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
+/* a livello strada: sul primo marker del percorso che stavi studiando, o sul Duomo */
+var c=[45.4642,9.1900];
+try{if(typeof cur!=='undefined'&&cur&&typeof coords!=='undefined'){
+for(var i=0;i<cur.steps.length;i++){var k=coords[cur.id+'_'+i];
+if(k){c=[k.lat,(k.lon!=null?k.lon:k.lng)];break;}}}}catch(e){}
+MG.setView(c,16);
+GEO=typeof MG.latLngToContainerPoint==='function'&&typeof MG.containerPointToLatLng==='function';
+try{MG.on('move zoom viewreset resize',ridisegna);}catch(e){}
 setTimeout(function(){try{MG.invalidateSize();}catch(e){}ridimensiona();},220);
-prepara();
+TRATTI=carica();
+input();
 }catch(e){}
 }
 
 function ridimensiona(){
 try{
-var c=document.getElementById('mgCanvas');if(!c)return;
-var a=c.parentElement.getBoundingClientRect();
-var r=window.devicePixelRatio||1;
-c.width=Math.round(a.width*r);c.height=Math.round(a.height*r);
-c.style.width=a.width+'px';c.style.height=a.height+'px';
-CTX=c.getContext('2d');
-CTX.setTransform(r,0,0,r,0,0);
+CV=document.getElementById('mgCanvas');if(!CV)return;
+var a=CV.parentElement.getBoundingClientRect(),r=window.devicePixelRatio||1;
+CV.width=Math.round(a.width*r);CV.height=Math.round(a.height*r);
+CV.style.width=a.width+'px';CV.style.height=a.height+'px';
+CTX=CV.getContext('2d');CTX.setTransform(r,0,0,r,0,0);
 CTX.lineCap='round';CTX.lineJoin='round';
 ridisegna();
 }catch(e){}
 }
 window.addEventListener('resize',function(){if(document.getElementById('mgOv'))ridimensiona();});
 
+/* dal punto salvato al punto sullo schermo, e ritorno */
+function aSchermo(q){
+try{if(GEO&&q&&q.lat!=null){var p=MG.latLngToContainerPoint({lat:q.lat,lng:q.lng});return {x:p.x,y:p.y};}}catch(e){}
+return {x:q.x||0,y:q.y||0};
+}
+function daSchermo(x,y){
+try{if(GEO){var ll=MG.containerPointToLatLng({x:x,y:y});return {lat:ll.lat,lng:ll.lng};}}catch(e){}
+return {x:x,y:y};
+}
 function ridisegna(){
 try{
-if(!CTX||PULITA)return;
-var c=document.getElementById('mgCanvas');
-CTX.clearRect(0,0,c.width,c.height);
+if(!CTX||!CV)return;
+CTX.clearRect(0,0,CV.width,CV.height);
 TRATTI.forEach(function(t){
-if(!t.p||t.p.length<2)return;
-CTX.strokeStyle=t.c;CTX.lineWidth=t.w;
-CTX.beginPath();CTX.moveTo(t.p[0].x,t.p[0].y);
-for(var i=1;i<t.p.length;i++)CTX.lineTo(t.p[i].x,t.p[i].y);
-CTX.stroke();
-});
+if(!t||!t.p||t.p.length<2)return;
+CTX.strokeStyle=t.c;CTX.lineWidth=t.w;CTX.beginPath();
+var a=aSchermo(t.p[0]);CTX.moveTo(a.x,a.y);
+for(var i=1;i<t.p.length;i++){var b=aSchermo(t.p[i]);CTX.lineTo(b.x,b.y);}
+CTX.stroke();});
 }catch(e){}
 }
 
-function prepara(){
+function input(){
 try{
-var c=document.getElementById('mgCanvas');if(!c)return;
-TRATTI=carica();
-function xy(ev){
-var r=c.getBoundingClientRect();
-return {x:ev.clientX-r.left,y:ev.clientY-r.top};
-}
-/* la Pencil disegna, il dito no: cosi' puoi spostare la mappa
-   appoggiando la mano senza sporcare */
-function pennaVera(ev){
-return ev.pointerType==='pen'||(DIS&&ev.pointerType!=='touch')||(DIS&&ev.pointerType==='touch');
-}
-c.addEventListener('pointerdown',function(ev){
-if(!pennaVera(ev))return;
-if(ev.pointerType==='touch'&&!DIS)return;
-ev.preventDefault();
-try{c.setPointerCapture(ev.pointerId);}catch(e){}
-CORRENTE={c:COLORI[COL][0],w:SPESS*(ev.pressure?(0.6+ev.pressure*0.9):1),p:[xy(ev)]};
+var area=document.getElementById('mgArea');if(!area||area.__in)return;area.__in=true;
+function xy(ev){var r=area.getBoundingClientRect();return {x:ev.clientX-r.left,y:ev.clientY-r.top};}
+function disegno(ev){return ev.pointerType==='pen'||(DIS&&ev.pointerType!=='pen');}
+area.addEventListener('pointerdown',function(ev){
+if(!disegno(ev))return;
+if(ev.target&&ev.target.closest&&ev.target.closest('.leaflet-control'))return;
+ev.preventDefault();ev.stopPropagation();
+try{area.setPointerCapture(ev.pointerId);}catch(e){}
+var q=xy(ev);ULT=q;
+CORRENTE={c:COLORI[COL][0],w:SPESS*(ev.pressure?(0.6+ev.pressure*0.9):1),p:[daSchermo(q.x,q.y)]};
 TRATTI.push(CORRENTE);
-},{passive:false});
-c.addEventListener('pointermove',function(ev){
+},true);
+area.addEventListener('pointermove',function(ev){
 if(!CORRENTE)return;
-ev.preventDefault();
-var q=xy(ev);
-var u=CORRENTE.p[CORRENTE.p.length-1];
-if(Math.abs(q.x-u.x)<1&&Math.abs(q.y-u.y)<1)return;
-CORRENTE.p.push(q);
-CTX.strokeStyle=CORRENTE.c;CTX.lineWidth=CORRENTE.w;
-CTX.beginPath();CTX.moveTo(u.x,u.y);CTX.lineTo(q.x,q.y);CTX.stroke();
-},{passive:false});
-function fine(){if(CORRENTE){CORRENTE=null;salva();}}
-c.addEventListener('pointerup',fine);
-c.addEventListener('pointercancel',fine);
-c.addEventListener('pointerleave',fine);
-aggiornaModo();
+ev.preventDefault();ev.stopPropagation();
+var q=xy(ev);if(ULT&&Math.abs(q.x-ULT.x)<1&&Math.abs(q.y-ULT.y)<1)return;
+CORRENTE.p.push(daSchermo(q.x,q.y));
+if(CTX&&ULT){CTX.strokeStyle=CORRENTE.c;CTX.lineWidth=CORRENTE.w;
+CTX.beginPath();CTX.moveTo(ULT.x,ULT.y);CTX.lineTo(q.x,q.y);CTX.stroke();}
+ULT=q;
+},true);
+function fine(ev){if(!CORRENTE)return;if(ev){ev.stopPropagation();}
+if(CORRENTE.p.length<2)TRATTI.pop();CORRENTE=null;ULT=null;salva();}
+area.addEventListener('pointerup',fine,true);
+area.addEventListener('pointercancel',fine,true);
+/* la Pencil su Safari manda anche i tocchi: Leaflet non deve vederli */
+['touchstart','touchmove'].forEach(function(t){
+area.addEventListener(t,function(ev){
+var s=ev.touches&&ev.touches[0];
+if((s&&s.touchType==='stylus')||(DIS&&ev.touches&&ev.touches.length===1)){
+ev.stopPropagation();if(ev.cancelable)ev.preventDefault();}
+},{capture:true,passive:false});});
 }catch(e){}
 }
 
 window.nccPencilTog=function(){
-DIS=!DIS;aggiornaModo();try{hap();}catch(e){}
-try{if(typeof toast2==='function')
-toast2(DIS?'\u270f\ufe0f Disegno col dito acceso':'\u270f\ufe0f Solo Pencil: il dito sposta la mappa',2600);}catch(e){}
+DIS=!DIS;
+var b=document.getElementById('mgPen');if(b)b.classList.toggle('on',DIS);
+var i=document.getElementById('mgInfo');
+if(i)i.textContent=DIS?'\u261d\ufe0f Disegni col dito':'\u270f\ufe0f Pencil pronta';
+try{if(typeof toast2==='function')toast2(DIS?'Disegno anche col dito: la mappa non si sposta':'Il dito sposta la mappa, la Pencil disegna',2400);}catch(e){}
+try{hap();}catch(e){}
 };
-function aggiornaModo(){
-try{
-var c=document.getElementById('mgCanvas'),b=document.getElementById('mgPen');
-if(!c)return;
-/* con il dito libero la mappa si sposta: il foglio lascia passare il tocco */
-c.style.pointerEvents=DIS?'auto':'none';
-c.style.touchAction='none';
-if(b)b.classList.toggle('on',DIS);
-/* la Pencil deve comunque poter scrivere: intercetto sul contenitore */
-var area=c.parentElement;
-if(area&&!area.__pen){
-area.__pen=true;
-area.addEventListener('pointerdown',function(ev){
-if(ev.pointerType==='pen'&&!DIS){
-c.style.pointerEvents='auto';
-setTimeout(function(){if(!DIS)c.style.pointerEvents='none';},1200);
-}
-},true);
-}
-}catch(e){}
-}
-window.nccPencilAnnulla=function(){
-try{TRATTI.pop();salva();ridisegna();hap();}catch(e){}
-};
+window.nccPencilAnnulla=function(){try{TRATTI.pop();salva();ridisegna();hap();}catch(e){}};
 window.nccPencilPulisci=function(){
-try{
-if(TRATTI.length&&!confirm('Cancello tutto quello che hai disegnato?'))return;
-TRATTI=[];salva();ridisegna();try{hap();}catch(e){}
-}catch(e){}
+try{if(TRATTI.length&&!confirm('Cancello tutto quello che hai disegnato?'))return;
+TRATTI=[];salva();ridisegna();try{hap();}catch(e){}}catch(e){}
 };
 window.nccMappaGrandeChiudi=function(){
 try{
 salva();
 if(MG){try{MG.remove();}catch(e){}MG=null;}
 var o=document.getElementById('mgOv');if(o)o.remove();
-CTX=null;CORRENTE=null;
+CTX=null;CV=null;CORRENTE=null;ULT=null;
 }catch(e){}
 };
 })();
@@ -9075,6 +9114,7 @@ return [
 {ic:'\ud83d\udd0a',c:C.rosa,n:'Suoni',s:acceso('sndOn'),f:'togSnd',k:'sndOn'},
 {ic:'\ud83d\udcf3',c:C.viola,n:'Vibrazione',s:acceso('vibOn'),f:'togVib',k:'vibOn'},
 {ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
+{ic:'\ud83d\udef0',c:C.teal,n:'Vista satellite',s:(function(){try{return !!_mapSat;}catch(e){return false;}})(),f:'togSat'},
 {ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'}
 ]},
 {t:'',v:[
@@ -9086,13 +9126,12 @@ return [
 function disegna(){
 try{
 var o=document.getElementById('pfOv');if(!o)return;
-var h='<div class="pf-nav" id="pfNav"><div class="pf-nav-t">Profilo</div></div>'
-+'<div class="pf-body" id="pfBody">'
-+'<h1 class="pf-big">Profilo</h1>';
+var h=nccTestata('Profilo','nccProfiloChiudi()','profilo')
++'<div class="pf-body" id="pfBody">';
 righe().forEach(function(g){
 var vis=g.v.filter(function(r){return f(r.f);});
 if(!vis.length)return;
-if(g.t)h+='<div class="pf-sez">'+E(g.t)+'</div>';
+if(g.t)h+='<div class="pf-sez">'+((window.nccEmoSez&&nccEmoSez[g.t])?nccEmoSez[g.t]+' ':'')+E(g.t)+'</div>';
 h+='<div class="pf-gr">';
 vis.forEach(function(r,i){
 var interruttore=(typeof r.s==='boolean');
@@ -9118,7 +9157,7 @@ window.nccPfTocca=function(fn,arg){
 try{
 if(!f(fn))return;
 try{if(typeof hap==='function')hap();}catch(e){}
-var interruttori={togDark:1,togSnd:1,togVib:1,togBerlina:1};
+var interruttori={togDark:1,togSnd:1,togVib:1,togBerlina:1,togSat:1};
 if(interruttori[fn]){
 window[fn]();
 setTimeout(disegna,60);    /* aggiorno l'interruttore al volo */
@@ -9287,8 +9326,11 @@ try{o.erroriTot=Object.keys(qtStats.err||{}).length;}catch(e){o.erroriTot=0;}
 try{var tm=topoModel();o.percTot=tm.rows.length;
 o.perc=tm.rows.filter(function(r){return r.clean>=0.8;}).length;}catch(e){}
 try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}catch(e){}
-try{var Lg=window.__LUOGHI__;o.luoghiTot=Array.isArray(Lg)?Lg.length:(Lg?Object.keys(Lg).length:0);
-var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:{};o.luoghi=Object.keys(sp).length;}catch(e){}
+/* LUOGHI e' la lista (218); __LUOGHI__ e' diviso per categorie:
+   contando le sue chiavi usciva "17/3" */
+try{o.luoghiTot=(typeof LUOGHI!=='undefined'&&LUOGHI&&LUOGHI.length)?LUOGHI.length:0;
+var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:{};
+o.luoghi=Math.min(Object.keys(sp).length,o.luoghiTot||Object.keys(sp).length);}catch(e){}
 try{var N=window.__NORME__;if(N){o.normeTot=N.sez.length;var st=L('nmStats',{})||{};
 o.norme=N.sez.filter(function(x){var y=st[x.id];if(!y)return false;var t2=(y.ok||0)+(y.ko||0);
 return t2>0&&(y.ok||0)/t2>=0.8;}).length;}}catch(e){}
@@ -9303,10 +9345,10 @@ return o;
 /* ── i suggerimenti: SOLO quello che sbagli ── */
 function suggerimenti(n){
 var s=[];
-if(n.errori>0){
+if(n.erroriTot>0){
 s.push({ic:'\ud83d\udd01',c:'#FF3B30',
-t:n.errori+(n.errori===1?' errore da ripassare':' errori da ripassare'),
-d:n.peggiore?('Sbagli soprattutto in '+n.peggiore):'Sono in scadenza oggi',
+t:n.erroriTot+(n.erroriTot===1?' errore da rivedere':' errori da rivedere'),
+d:(n.errori?(n.errori+' in scadenza oggi'):'')+(n.errori&&n.peggiore?' \u00b7 ':'')+(n.peggiore?('soprattutto '+n.peggiore):(n.errori?'':'Le domande che hai sbagliato')),
 b:'Ripassa',fn:'nccHmErrori'});
 }
 try{
@@ -9351,8 +9393,8 @@ function fr(a,b){return (b?a+'/'+b:'');}
 return [
 {k:'quiz',t:'Quiz',s:'Simulazioni e schede',c:'#FF9500',b:(n.quiz!=null?n.quiz+'% sai':''),fn:'nccSezQuiz'},
 {k:'topo',t:'Topografia',s:'Percorsi e vie',c:'#007AFF',b:fr(n.perc||0,n.percTot),fn:'nccSezTopo'},
-{k:'err',t:'Ripasso errori',s:n.errori?(n.errori+' da rivedere'):'Niente in sospeso',c:'#34C759',
- b:n.errori?String(n.errori):'',fn:'nccHmErrori'},
+{k:'err',t:'Ripasso errori',s:n.erroriTot?(n.errori?(n.errori+' in scadenza oggi'):'da rivedere'):'Niente in sospeso',c:'#34C759',
+ b:n.erroriTot?String(n.erroriTot):'',fn:'nccHmErrori'},
 {k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),fn:'nccSezPz'},
 {k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),fn:'openStudy'},
 {k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),fn:'nccSezNorme'},
@@ -9450,9 +9492,7 @@ var home=document.getElementById('homeScreen');if(!home)return;
 home.classList.add('hm-stat');
 var bar=document.getElementById('hmStatBar');
 if(!bar){bar=document.createElement('div');bar.id='hmStatBar';
-bar.innerHTML='<button class="hm-indietro" onclick="nccHmStatEsci()">'
-+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'
-+'Home</button><div class="hm-sbt">Statistiche</div>';
+bar.innerHTML=nccTestata('Statistiche','nccHmStatEsci()','stat');
 home.insertBefore(bar,home.firstElementChild);}
 try{window.scrollTo(0,0);home.scrollTop=0;}catch(e){}
 try{if(window.nccOvApri)nccOvApri('hmStatBar',function(){nccHmStatEsci();});}catch(e){}
@@ -9536,7 +9576,7 @@ g:[
 {ic:'\ud83d\udcc2',c:C.indaco,n:'Allenati per argomento',s:'Scegli i temi e crea la tua scheda',a:az('q4',function(){try{openQuiz();}catch(e){}})},
 {ic:'\u26a1',c:C.giallo,n:'Sprint 3 minuti',s:'Quante ne fai finch\u00e9 scade il tempo',a:az('q5',quiz('qStartSprint'))}]},
 {t:'RIPASSO',v:[
-{ic:'\ud83d\udd01',c:C.rosso,n:'Ripasso errori',s:'Prima i pi\u00f9 scaduti',d:n.err?String(n.err):'',a:az('q6',quiz('qStartCat','errata'))},
+{ic:'\ud83d\udd01',c:C.rosso,n:'Ripasso errori',s:'Prima i pi\u00f9 scaduti',d:n.errTot?String(n.errTot):'',a:az('q6',quiz('qStartCat','errata'))},
 {ic:'\ud83e\ude79',c:C.rosa,n:'Le pi\u00f9 sbagliate',s:'Quelle che sbagli da sempre',a:az('q7',quiz('qStartHard'))},
 {ic:'\ud83d\udd00',c:C.viola,n:'Le confusioni',s:'Quelle che scambi con un\u2019altra',a:az('q8',quiz('qStartConf'))},
 {ic:'\ud83e\ude7a',c:C.teal,n:'Test di ritenzione',s:'Reggono ancora quelle che sapevi?',a:az('q9',quiz('qStartRet'))},
@@ -9546,8 +9586,7 @@ topo:{t:'Topografia',c:C.blu,
 testa:(n.perc?{t:n.perc+' percorsi \u00b7 '+(n.perc-(n.senza||0))+' con i marker',p:pct(n.perc-(n.senza||0),n.perc)}:null),
 g:[
 {t:'MAPPA',v:[
-{ic:'\ud83d\uddfa\ufe0f',c:C.blu,n:'Apri la mappa',s:'Milano pulita, a tutto schermo',a:az('t1',function(){nccMappaPulita();})},
-{ic:'\u270f\ufe0f',c:C.indaco,n:'Mappa + Pencil',s:'Ripassa il percorso con la matita',a:az('t2',function(){nccMappaGrande();})}]},
+{ic:'\ud83d\uddfa\ufe0f',c:C.blu,n:'La mappa',s:'Grande, pulita, con la Pencil pronta',a:az('t1',function(){nccMappaGrande();})}]},
 {t:'STUDIA',v:[
 {ic:'\ud83d\udcd6',c:C.verde,n:'Studio',s:'Tutte le vie in vista',a:az('t3',topo('s'))},
 {ic:'\ud83d\ude48',c:C.arancio,n:'Cieco',s:'Le vie coperte, le scopri una a una',a:az('t4',topo('c'))},
@@ -9594,12 +9633,8 @@ function pagina(id,titolo,corpo,indietro){
 var o=document.getElementById('scnOv');
 var nuovo=!o;
 if(nuovo){o=document.createElement('div');o.id='scnOv';o.className='rd';document.body.appendChild(o);}
-o.innerHTML='<div class="pf-nav sc-nav" id="scnNav">'
-+'<button class="sc-ind" onclick="'+(indietro||'nccSezChiudi()')+'">'
-+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'
-+(indietro?'Indietro':'Home')+'</button>'
-+'<div class="pf-nav-t">'+E(titolo)+'</div></div>'
-+'<div class="pf-body" id="scnBody"><h1 class="pf-big">'+E(titolo)+'</h1>'+corpo+'</div>';
+o.innerHTML=nccTestata(titolo,(indietro||'nccSezChiudi()'),id)
++'<div class="pf-body" id="scnBody">'+corpo+'</div>';
 var b=document.getElementById('scnBody'),nv=document.getElementById('scnNav');
 if(b&&nv)b.onscroll=function(){nv.classList.toggle('pieno',b.scrollTop>38);};
 if(nuovo){
@@ -9616,7 +9651,7 @@ o.setAttribute('data-p',id);
 function righeHTML(gruppi){
 var h='';
 gruppi.forEach(function(g){
-if(g.t)h+='<div class="pf-sez">'+E(g.t)+'</div>';
+if(g.t)h+='<div class="pf-sez">'+((window.nccEmoSez&&nccEmoSez[g.t])?nccEmoSez[g.t]+' ':'')+E(g.t)+'</div>';
 h+='<div class="pf-gr">';
 g.v.forEach(function(r){
 h+='<button class="pf-r sc-r" onclick="nccSezVai(\''+r.a+'\','+(r.resta?'1':'0')+')">'
@@ -9631,6 +9666,7 @@ h+='</div>';
 return h;
 }
 
+window.nccPagina=function(id,t,c,ind){pagina(id,t,c,ind);};
 window.nccSez=function(k){
 try{
 AZ={};
@@ -9941,16 +9977,8 @@ corpo+='<button class="pf-r sc-r" onclick="nccEdDaElenco(\''+String(x.r.id).repl
 +'<span class="pf-ch">\u203a</span></button>';
 });
 corpo+='</div>';
-/* riuso la pagina sezione: stessa grafica, stesso Indietro */
-var o=document.getElementById('scnOv');
-if(!o){nccSez('topo');o=document.getElementById('scnOv');}
-if(!o)return;
-var b=o.querySelector('#scnBody');var nv=o.querySelector('#scnNav .pf-nav-t');
-if(b){b.innerHTML='<h1 class="pf-big">Correggi le tappe</h1>'+corpo;b.scrollTop=0;b.classList.remove('sc-entra');void b.offsetWidth;b.classList.add('sc-entra');}
-if(nv)nv.textContent='Correggi le tappe';
-var ind=o.querySelector('.sc-ind');
-if(ind){ind.setAttribute('onclick',"nccSez('topo')");
-ind.innerHTML=ind.innerHTML.replace(/Home$/,'Indietro');}
+/* la stessa pagina e la stessa testata di tutte le altre */
+nccPagina('correggi','Correggi le tappe',corpo,"nccSez('topo')");
 }catch(e){}
 };
 window.nccEdDaElenco=function(id){
@@ -9971,4 +9999,173 @@ lb.parentElement.insertBefore(b,lb.nextSibling);
 }
 setTimeout(metti,2800);
 try{var _gt=goTopografia;goTopografia=function(){var r=_gt.apply(this,arguments);setTimeout(metti,300);return r;};}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🎨 FASE 2 — TEMA UNICO, TESTATA UNICA, POPUP
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ── il popup che sale dal basso, uguale per tutto ── */
+window.nccPopup=function(o){
+try{
+o=o||{};
+var v=document.getElementById('popOv');if(v)v.remove();
+v=document.createElement('div');v.id='popOv';
+var az=(o.azioni&&o.azioni.length)?o.azioni:[{t:'Ho capito',stile:'pieno'}];
+var ic=o.icona||'',tx=String(o.testo==null?'':o.testo);
+/* se il messaggio comincia con un'emoji, diventa l'icona */
+try{var m=tx.match(/^(\p{Extended_Pictographic}\uFE0F?)\s*/u);if(m&&!ic){ic=m[1];tx=tx.slice(m[0].length);}}catch(e){}
+var h='<div class="pop-velo"></div><div class="pop-box" role="dialog"><div class="pop-grab"></div>'
++(ic?'<div class="pop-ic">'+ic+'</div>':'')
++(o.titolo?'<div class="pop-t">'+E(o.titolo)+'</div>':'')
++(tx?'<div class="pop-x">'+E(tx).replace(/\n/g,'<br>')+'</div>':'')
++(o.html||'')+'<div class="pop-az">';
+az.forEach(function(a,i){h+='<button class="pop-b '+(a.stile||'pieno')+'" data-i="'+i+'">'+E(a.t)+'</button>';});
+h+='</div></div>';
+v.innerHTML=h;document.body.appendChild(v);
+var chiuso=false;
+function chiudi(cb){
+if(chiuso)return;chiuso=true;
+v.classList.remove('su');
+setTimeout(function(){try{v.remove();}catch(e){}if(typeof cb==='function'){try{cb();}catch(e){}}},240);
+}
+v.querySelectorAll('.pop-b').forEach(function(b){b.onclick=function(){
+var a=az[+b.getAttribute('data-i')];try{hap();}catch(e){}chiudi(a&&a.fn);};});
+v.querySelector('.pop-velo').onclick=function(){chiudi(o.annulla);};
+/* trascinando giu' si chiude */
+var box=v.querySelector('.pop-box'),y0=null,dy=0;
+box.addEventListener('touchstart',function(e){y0=e.touches[0].clientY;dy=0;box.style.transition='none';},{passive:true});
+box.addEventListener('touchmove',function(e){if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);
+box.style.transform='translateY('+dy+'px)';},{passive:true});
+box.addEventListener('touchend',function(){if(y0===null)return;box.style.transition='';
+if(dy>90)chiudi(o.annulla);else box.style.transform='';y0=null;},{passive:true});
+requestAnimationFrame(function(){v.classList.add('su');});
+try{if(window.nccOvApri)nccOvApri('popOv',function(){chiudi(o.annulla);});}catch(e){}
+return {chiudi:chiudi};
+}catch(e){return {chiudi:function(){}};}
+};
+window.nccConferma=function(msg,ok,op){
+op=op||{};
+var rosso=/cancell|elimin|reimpost|azzer|perder|perso|uscire|esci/i.test(String(msg))||op.rosso;
+nccPopup({icona:op.icona||(rosso?'\u26a0\ufe0f':'\u2753'),titolo:op.titolo||'',testo:msg,
+azioni:[{t:op.si||'Conferma',stile:rosso?'rosso':'pieno',fn:ok},{t:'Annulla',stile:'vuoto',fn:op.no}],annulla:op.no});
+};
+window.nccChiudiPopup=function(){try{var v=document.getElementById('popOv');if(v)v.remove();}catch(e){}};
+
+/* ── alert(): non aspetta risposta, quindi si sostituisce e basta ── */
+var _al=window.alert;
+window.alert=function(m){try{nccPopup({testo:String(m==null?'':m),azioni:[{t:'OK',stile:'pieno'}]});}
+catch(e){try{_al.call(window,m);}catch(e2){}}};
+
+/* ── confirm(): la funzione gira a vuoto per catturare il suo messaggio,
+   poi, se confermi, la rilancio con la risposta gia' data ── */
+function avvolgi(nome){
+try{
+var o=window[nome];if(typeof o!=='function'||o.__pop)return;
+var w=function(){
+var self=this,args=arguments,msg=null,orig=window.confirm,r;
+window.confirm=function(m){if(msg===null)msg=String(m==null?'':m);return false;};
+try{r=o.apply(self,args);}finally{window.confirm=orig;}
+if(msg===null)return r;
+nccConferma(msg,function(){
+var o2=window.confirm;window.confirm=function(){return true;};
+try{o.apply(self,args);}finally{window.confirm=o2;}
+});
+return r;
+};
+w.__pop=true;window[nome]=w;
+}catch(e){}
+}
+setTimeout(function(){
+['qConfirmExit','qFinish','doReset','delRoute','restoreBackup','sdExit','tabGo',
+'pzElimina','pzTrovaMarker','nccEdAnnulla','nccImpAggiungi','nccPencilPulisci',
+'nccAnnullaRipristino','nccAzzeraErrori','nccRipristina','openRestore'].forEach(avvolgi);
+},4400);
+
+/* ── salva e ripristina: due strade vere, non un OK/Annulla che finge ── */
+window.nccSalvaCopia=function(){
+var az=[{t:'\ud83d\udcf1 Sul telefono, come file',stile:'pieno',fn:function(){try{nccEsporta();}catch(e){}}}];
+if(typeof cloudSave==='function')az.push({t:'\u2601\ufe0f Sul cloud',stile:'pieno2',fn:function(){try{cloudSave();}catch(e){}}});
+az.push({t:'Annulla',stile:'vuoto'});
+nccPopup({icona:'\ud83d\udcbe',titolo:'Salva una copia',testo:'Dove la salvo?',azioni:az});
+};
+window.nccRiprendiCopia=function(){
+var az=[{t:'\ud83d\udcc2 Da un file che hai salvato',stile:'pieno',fn:function(){try{nccRipristina();}catch(e){}}}];
+if(typeof restoreBackup==='function')az.push({t:'\ud83d\udee1 Dall\u2019ultimo backup settimanale',stile:'pieno2',fn:function(){try{restoreBackup();}catch(e){}}});
+az.push({t:'Annulla',stile:'vuoto'});
+nccPopup({icona:'\u21a9\ufe0f',titolo:'Ripristina',testo:'Da dove riprendo i tuoi dati?',azioni:az});
+};
+
+/* ── la (i): cosa c'e' in questa pagina ── */
+var INFO={
+quiz:['\ud83d\udcdd','Quiz','Le domande ufficiali dell\u2019esame. La simulazione \u00e8 identica a quella vera; l\u2019allenamento ti fa studiare con calma; il ripasso ti rimette davanti le domande sbagliate, prima quelle scadute.'],
+topo:['\ud83d\uddfa\ufe0f','Topografia','I percorsi di Milano. Studio: vedi tutte le vie. Cieco: sono coperte e le scopri una alla volta. Quiz vie: le scrivi tu a memoria, i refusi non contano.'],
+mappa:['\ud83d\uddfa\ufe0f','La mappa dei percorsi','In alto scegli il percorso e la modalit\u00e0: Studio, Cieco o Quiz vie. Trascina in su la maniglia del pannello per vedere l\u2019elenco delle vie.'],
+pz:['\ud83d\udd37','Piazze','Le 91 piazze e le vie che vi sboccano. Prima le studi sulla mappa a ragno, poi le scrivi a memoria, poi fai i quiz.'],
+norme:['\ud83d\udcdc','Norme e tariffe','Il regolamento comunale, articoli 38-61, e il prontuario delle tariffe: le cose che all\u2019esame si chiedono a memoria.'],
+tariffe:['\ud83d\udcd0','Tariffe','Il prontuario: scatti, tariffe fisse, minimi per gli aeroporti.'],
+studio:['\ud83d\udccd','Cosa & Dove','I luoghi di Milano con le schede: leggi la scheda, poi rispondi dove si trova.'],
+profilo:['\ud83d\udc64','Profilo','Le impostazioni dell\u2019app e i tuoi dati: la data dell\u2019esame, il backup, i suoni, la voce.'],
+stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto e la tua costanza.'],
+senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemmeno un marker. Tocca un percorso: si apre sulla mappa pronto per posizionarli.'],
+cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
+correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le tappe di un percorso. I marker e gli errori seguono la tappa quando la sposti.']
+};
+window.nccInfo=function(k){
+var i=INFO[k]||INFO.quiz;
+nccPopup({icona:i[0],titolo:i[1],testo:i[2],azioni:[{t:'Ho capito',stile:'pieno'}]});
+};
+
+/* ── la testata unica: ‹ · titolo · (i) ── */
+window.nccTestata=function(titolo,indietro,info){
+return '<div class="t-hd"><button class="t-back" onclick="'+(indietro||'goHome()')+'" aria-label="Indietro"></button>'
++'<h1 class="t-tit">'+E(titolo)+'</h1>'
++(info?'<button class="t-info" onclick="nccInfo(\''+info+'\')" aria-label="Informazioni">i</button>':'')
++'</div>';
+};
+window.nccEmoSez={'ESAME':'\ud83c\udfc1','ALLENAMENTO':'\ud83c\udfaf','RIPASSO':'\ud83d\udd01','MAPPA':'\ud83d\uddfa\ufe0f',
+'STUDIA':'\ud83d\udcd6','I TUOI PERCORSI':'\ud83d\udccb','QUIZ':'\u2753','ELENCO':'\ud83d\udcda','NORME':'\ud83d\udcdc',
+'TARIFFE':'\ud83d\udcb6','IL MIO ESAME':'\ud83c\udfaf','I MIEI DATI':'\ud83d\udcbe','IMPOSTAZIONI':'\u2699\ufe0f'};
+
+/* ── la (i) e il ‹ anche nelle schermate che non ho scritto io ── */
+var PRESE=[['#cxOv .cx-x','cerca'],['#qBack','quiz'],['#studyApp .qback','studio'],['#pzOv .pz-x','pz'],['#nmOv .nm-x','norme'],['#rgOv .rg-x','tariffe']];
+function inietta(){
+try{
+PRESE.forEach(function(p){
+var el=document.querySelector(p[0]);if(!el||!el.parentElement)return;
+if(el.parentElement.querySelector('.t-info'))return;
+var b=document.createElement('button');b.className='t-info t-info-in';b.textContent='i';
+b.setAttribute('aria-label','Informazioni');
+b.onclick=function(ev){ev.stopPropagation();nccInfo(p[1]);};
+el.parentElement.appendChild(b);
+});
+/* la schermata mappa: ‹ al posto della casetta, (i) in fondo alla barra */
+var h=document.getElementById('homeTopBtn');
+if(h&&h.parentElement&&!document.getElementById('tpBack')){
+var bk=document.createElement('button');bk.id='tpBack';bk.className='t-back';bk.setAttribute('aria-label','Indietro');
+bk.onclick=function(){try{goHome();}catch(e){}};
+h.parentElement.insertBefore(bk,h);
+var inf=document.createElement('button');inf.id='tpInfo';inf.className='t-info';inf.textContent='i';
+inf.setAttribute('aria-label','Informazioni');inf.onclick=function(){nccInfo('mappa');};
+h.parentElement.appendChild(inf);
+}
+}catch(e){}
+}
+setInterval(inietta,900);setTimeout(inietta,2600);
+
+/* ── scuro automatico: segue il telefono finche' non lo scegli tu ── */
+try{
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function segui(){
+try{if(!mq||localStorage.getItem('dark')!==null)return;
+if(typeof dark!=='undefined'&&dark===mq.matches)return;
+dark=mq.matches;if(typeof applyDark==='function')applyDark();}catch(e){}
+}
+setTimeout(segui,600);
+if(mq&&mq.addEventListener)mq.addEventListener('change',segui);
+}catch(e){}
 })();
