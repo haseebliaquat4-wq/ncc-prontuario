@@ -9681,6 +9681,9 @@ try{window.scrollTo(0,0);if(home)home.scrollTop=0;}catch(e){}
 }catch(e){}
 };
 
+/* subito all'avvio (e di nuovo a pagina caricata): la home vecchia non si vede mai */
+try{disegna();}catch(e){}
+document.addEventListener('DOMContentLoaded',function(){try{disegna();}catch(e){}});
 setTimeout(disegna,2700);
 try{var _gh4=goHome;goHome=function(){
 var r=_gh4.apply(this,arguments);
@@ -9747,7 +9750,7 @@ g:[
 {t:'ALLENAMENTO',v:[
 {ic:'\ud83d\udcdd',c:C.arancio,n:'Scheda di allenamento',s:'Il mix scelto dal coach',a:az('q2',quiz('qStartMix'))},
 {ic:'\ud83c\udd95',c:C.blu,n:'Domande nuove',s:'Solo quelle mai viste',a:az('q3',quiz('qStartNew'))},
-{ic:'\ud83d\udcc2',c:C.indaco,n:'Allenati per argomento',s:'Scegli i temi e crea la tua scheda',a:az('q4',function(){try{openQuiz();}catch(e){}})},
+{ic:'\ud83d\udcc2',c:C.indaco,n:'Allenati per argomento',s:'Scegli i temi e crea la tua scheda',a:az('q4',function(){try{nccAvvio(function(){buildQuiz();showTopics();});}catch(e){}})},
 {ic:'\u26a1',c:C.giallo,n:'Sprint 3 minuti',s:'Quante ne fai finch\u00e9 scade il tempo',a:az('q5',quiz('qStartSprint'))}]},
 {t:'RIPASSO',v:[
 {ic:'\ud83d\udd01',c:C.rosso,n:'Ripasso errori',s:'Prima i pi\u00f9 scaduti',d:n.errTot?String(n.errTot):'',a:az('q6',quiz('qStartCat','errata'))},
@@ -9989,7 +9992,7 @@ try{
 if(typeof window[n]!=='function'||window[n].__sc)return;
 var _o=window[n];
 var w=function(){
-try{if(document.getElementById('scnOv'))nccSezChiudi(true);}catch(e){}
+try{if(document.getElementById('scnOv')&&!window.__nccTieniPagina)nccSezChiudi(true);}catch(e){}
 return _o.apply(this,arguments);};
 w.__sc=true;window[n]=w;
 });
@@ -11385,12 +11388,24 @@ qFinish.__giro=true;
 }
 }catch(e){}
 
-/* ── un solo menu: al posto della dashboard vecchia, la pagina Quiz ── */
-function allaPagina(){
+/* ── un solo menu, e passaggi senza schermate di mezzo ──
+   · apri un esercizio dalla pagina Quiz: la pagina resta visibile finche'
+     l'esercizio e' pronto, poi lascia il posto direttamente all'esercizio
+   · il quiz aperto da altri punti (coach) resta invisibile finche' non parte
+   · "torna al menu" (fine, uscita, Torna al menu, indietro) = pagina Quiz,
+     nello stesso istante: la dashboard vecchia non viene mai dipinta */
+var APRE=false,SORV=0;
+function quizAperto(){var qa=document.getElementById('quizApp');return !!(qa&&qa.classList.contains('open'));}
+function rivela(){
+requestAnimationFrame(function(){try{
+if(window.__qzHome){window.__qzHome.style.display='none';window.__qzHome=null;}
+document.body.classList.remove('qz-avvio');
+if(window.__nccTieniPagina){window.__nccTieniPagina=false;if(document.getElementById('scnOv'))nccSezChiudi(true);}
+}catch(e){}});
+}
+function menuQuiz(){
 try{
-if(typeof qCurView==='undefined'||qCurView!=='dash')return;
-var qa=document.getElementById('quizApp');if(!qa||!qa.classList.contains('open'))return;
-if(document.getElementById('popOv')||document.body.classList.contains('qz-avvio')){setTimeout(allaPagina,350);return;}   /* avvio in corso o popup aperto: aspetto */
+document.body.classList.remove('qz-avvio');window.__nccTieniPagina=false;window.__qzHome=null;
 closeQuiz();
 try{goHome();}catch(e){}
 nccSez('quiz');
@@ -11398,11 +11413,59 @@ var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
 }
+/* se entro 1,6 s non parte niente (niente da ripassare...): niente dashboard vecchia */
+function sorveglia(daPagina){
+var t0=Date.now(),id=++SORV;
+(function giro(){
+if(id!==SORV)return;
 try{
+if(quizAperto()&&typeof qCurView!=='undefined'&&qCurView!=='dash')return;          /* e' partito */
+if(document.getElementById('popOv')){setTimeout(giro,250);return;}                     /* aspetto la risposta */
+if(Date.now()-t0<1600){setTimeout(giro,250);return;}
+document.body.classList.remove('qz-avvio');
+if(quizAperto()){
+if(daPagina&&document.getElementById('scnOv')){window.__nccTieniPagina=true;try{closeQuiz();goHome();}catch(e){}window.__nccTieniPagina=false;}  /* resto sulla pagina, la home pronta sotto */
+else menuQuiz();
+}else window.__nccTieniPagina=false;
+}catch(e){}
+})();
+}
+try{
+if(typeof openQuiz==='function'&&!openQuiz.__unico){
+var _oq=openQuiz;
+openQuiz=function(){
+APRE=true;
+try{document.body.classList.add('qz-avvio');}catch(e){}
+var hs=document.getElementById('homeScreen'),prima=hs?hs.style.display:null;
+var r;try{r=_oq.apply(this,arguments);}finally{APRE=false;}
+/* mentre l'esercizio si prepara resta visibile quello che c'era (niente schermo vuoto) */
+try{if(hs&&document.body.classList.contains('qz-avvio')&&hs.style.display!==prima){hs.style.display=prima;window.__qzHome=hs;}}catch(e){}
+sorveglia(!!window.__nccTieniPagina);
+return r;};
+openQuiz.__unico=true;
+}
 if(typeof showQView==='function'&&!showQView.__unico){
 var _sq=showQView;
-showQView=function(v){var r=_sq.apply(this,arguments);if(v==='dash')setTimeout(allaPagina,0);return r;};
+showQView=function(v){
+var r=_sq.apply(this,arguments);
+try{
+if(!quizAperto()){}
+else if(v==='dash'){if(!APRE)menuQuiz();}
+else rivela();
+}catch(e){}
+return r;};
 showQView.__unico=true;
+}
+/* dalla pagina Quiz: la pagina resta finche' l'esercizio non e' pronto */
+var _svq=window.nccSezVai;
+if(typeof _svq==='function'&&!_svq.__quiz){
+window.nccSezVai=function(nome,resta){
+try{var s=document.getElementById('scnOv');
+if(!resta&&s&&s.getAttribute('data-p')==='quiz'){window.__nccTieniPagina=true;
+setTimeout(function(){if(!quizAperto()&&!document.getElementById('popOv'))window.__nccTieniPagina=false;},2500);
+return _svq.call(this,nome,1);}}catch(e){}
+return _svq.apply(this,arguments);};
+window.nccSezVai.__quiz=true;
 }
 }catch(e){}
 })();

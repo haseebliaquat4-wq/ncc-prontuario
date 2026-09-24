@@ -28,7 +28,7 @@
 
 <!-- avvio pulito: finche' la home nuova non e' pronta non si vede niente (niente menu vecchio che lampeggia) -->
 <script>document.documentElement.classList.add('avvio');(function(){function via(){document.documentElement.classList.remove('avvio');}
-document.addEventListener('DOMContentLoaded',function(){requestAnimationFrame(function(){requestAnimationFrame(via);});});setTimeout(via,3000);})();</script>
+document.addEventListener('DOMContentLoaded',function(){(function pronta(){if(document.getElementById('hmNew'))requestAnimationFrame(via);else requestAnimationFrame(pronta);})();});setTimeout(via,3500);})();</script>
 <style>html.avvio body>*:not(#splash){visibility:hidden!important;}</style>
 </head>
 <body class="rd">
@@ -530,7 +530,7 @@ document.write('<script src="https://unpkg.com/leaflet-polylinedecorator/dist/le
 <script src="percorsi-data.js?v=2"></script>
 
 <script src="app.js?v=7"></script>
-<script src="addon.js?v=128"></script><!-- ADDON: commenta questa riga per disattivare -->
+<script src="addon.js?v=129"></script><!-- ADDON: commenta questa riga per disattivare -->
 <script src="piazze.js?v=17"></script>
 <script src="norme.js?v=3"></script><!-- PIAZZE: sezione piazze di Milano -->
 
