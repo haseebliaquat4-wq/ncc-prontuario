@@ -2345,6 +2345,20 @@ padding:11px 18px;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:
 .qc-lt{flex:1;min-width:0;}
 .qc-ch{flex-shrink:0;color:var(--qc);font-size:26px;font-weight:400;line-height:1;}
 @media(max-width:370px){.qc{grid-template-columns:auto 1fr;}.qc-b{grid-column:1/-1;justify-self:end;}}
+/* righe delle pagine sezione: tutte uguali, bianche; il colore solo nell'icona */
+.qc.qc-riga{display:flex;align-items:center;gap:14px;padding:14px 12px 14px 14px;
+background:var(--ios-card);border:1.5px solid var(--ios-sep);}
+.qc-riga .qc-li{width:46px;height:46px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+font-size:23px;background:color-mix(in srgb,var(--qc) 15%,var(--ios-card));}
+.qc-riga .qc-lt{flex:1;min-width:0;}
+.qc-riga .qc-lt b{font-size:17px;}
+.qc-riga .qc-i{width:30px;height:30px;flex-shrink:0;align-self:center;margin:0;border:1.5px solid var(--ios-sep);
+color:var(--ios-lbl2);background:var(--ios-card);font:italic 700 14px Georgia,'Times New Roman',serif;}
+.qc-riga .qc-ch{color:var(--ios-lbl3);font-size:26px;}
+.qc-mini{display:block;height:6px;max-width:280px;margin-top:9px;border-radius:999px;background:var(--ios-gray5);overflow:hidden;}
+.qc-mini i{display:block;height:100%;border-radius:999px;background:var(--qc);}
+.qc-riga .qc-lt .qc-st{font-size:13px;margin-top:5px;color:var(--ios-lbl2);}
+.qc-riga:focus-visible{outline:3px solid color-mix(in srgb,var(--qc) 50%,transparent);outline-offset:2px;}
 
 
 /* ══════════ FASE 5 · STATISTICHE ══════════ */
@@ -9853,20 +9867,17 @@ h+='<div class="qc-gr">';
 g.v.forEach(function(r){
 AZR[r.a]=r;var ex=EX[r.a]||['Apri',r.s||''];var vai="nccSezVai('"+r.a+"',"+(r.resta?'1':'0')+")";
 var num=r.d?'<em class="qc-n">'+E(r.d)+'</em>':'';
-if(LINK[r.a]){
-h+='<button class="qc qc-link" style="--qc:'+col+'" onclick="'+vai+'">'
-+'<span class="qc-li">'+r.ic+'</span><span class="qc-lt"><b>'+E(r.n)+num+'</b>'
-+(r.s?'<span>'+E(r.s)+'</span>':'')+'</span><span class="qc-ch">\u203a</span></button>';
-return;}
+/* una regola sola per tutte le righe: tocchi la riga e parte; la (i) piccola spiega */
 var extra='';
-if(r.a==='q6'&&nn.errTot)extra='<div class="qc-big">'+nn.errTot+' errori da rivedere</div>';
 if(r.a==='q2'&&nn.tot){var pc=Math.round(nn.sai/nn.tot*100);
-extra='<div class="qc-pr"><div class="qc-bar"><i style="width:'+pc+'%"></i></div>'
-+'<div class="qc-pt"><span>Banca dati: sai '+nn.sai+' su '+nn.tot+'</span><b>'+pc+'%</b></div></div>';}
-h+='<div class="qc" style="--qc:'+col+'" onclick="nccSezInfo(\''+r.a+'\')">'
-+'<button class="qc-i" onclick="event.stopPropagation();nccSezInfo(\''+r.a+'\')" aria-label="Informazioni">i</button>'
-+'<div class="qc-tx"><b>'+E(r.n)+num+'</b><span>'+E(r.s||'')+'</span></div>'
-+'<button class="qc-b" onclick="event.stopPropagation();'+vai+'">'+E(ex[0])+'</button>'+extra+'</div>';
+extra='<span class="qc-mini"><i style="width:'+pc+'%"></i></span><span class="qc-st">Sai '+nn.sai+' su '+nn.tot+' \u00b7 '+pc+'%</span>';}
+if(r.a==='q3'){try{var gi=window.nccGiroInfo?nccGiroInfo():null;
+if(gi)extra='<span class="qc-mini"><i style="width:'+gi.pc+'%"></i></span><span class="qc-st">Giro '+gi.n+' \u00b7 '+gi.viste+' su '+gi.tot+' viste</span>';}catch(e){}}
+h+='<div class="qc qc-riga" role="button" tabindex="0" style="--qc:'+col+'" onclick="'+vai+'">'
++'<span class="qc-li">'+r.ic+'</span>'
++'<span class="qc-lt"><b>'+E(r.n)+num+'</b>'+(r.s?'<span>'+E(r.s)+'</span>':'')+extra+'</span>'
++(LINK[r.a]?'':'<button class="qc-i" onclick="event.stopPropagation();nccSezInfo(\''+r.a+'\')" aria-label="Cos\u2019\u00e8">i</button>')
++'<span class="qc-ch">\u203a</span></div>';
 });
 h+='</div>';
 });
@@ -11311,6 +11322,87 @@ if(sc&&sc.getAttribute('data-p')==='correggi'&&!document.getElementById('addModa
 nccCorreggiElenco();var sb=document.getElementById('scnBody');if(sb)sb.classList.remove('sc-entra');}}catch(e){}
 return r;};
 savRoute.__ncc=true;
+}
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🧭 UN SOLO MENU DEL QUIZ + IL GIRO DELLE DOMANDE
+   · La vecchia dashboard "Quiz d'esame" non compare piu': quando il
+     quiz tornerebbe li' (fine sessione, uscita, apertura) torni alla
+     pagina Quiz, l'unico menu.
+   · Domande nuove va a giri: finite tutte le domande della banca dati
+     si riparte dall'inizio (giro 2, 3...). Le statistiche restano.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+/* ── il giro ── */
+function G(){try{return qtStats.giro&&qtStats.giro.n>1?qtStats.giro:null;}catch(e){return null;}}
+function viste(){var g=G();return g?(g.viste||(g.viste={})):(qtStats.seenIds||{});}
+function conta(){try{buildQuiz();var v=viste(),n=0;QUIZ_ALL.forEach(function(it){if(v[it.id])n++;});return n;}catch(e){return 0;}}
+window.nccGiroInfo=function(){try{buildQuiz();var t=QUIZ_ALL.length,n=conta();
+return {n:(G()?G().n:1),viste:n,tot:t,pc:t?Math.round(n/t*100):0};}catch(e){return null;}};
+function nuovoGiro(){
+var n=(G()?G().n:1)+1;
+qtStats.giro={n:n,da:Date.now(),viste:{}};
+try{ls('qtStats',qtStats);}catch(e){}
+try{if(typeof markDirty==='function')markDirty('qtStats');}catch(e){}
+return n;
+}
+function festa(n,t){
+try{nccPopup({icona:'\ud83c\udf89',titolo:'Hai visto tutte le '+t+' domande',
+testo:'Si riparte dall\u2019inizio: giro '+n+'. Domande nuove ti ripropone tutta la banca dati, una alla volta.',
+azioni:[{t:'Va bene',stile:'pieno'}]});}catch(e){try{toast2('\ud83c\udf89 Giro '+n+': si riparte dall\u2019inizio',3000);}catch(e2){}}
+}
+/* ogni risposta conta per il giro in corso */
+try{
+if(typeof qPick==='function'&&!qPick.__giro){
+var _qp=qPick;
+qPick=function(){var it=null;try{it=Q&&Q.items&&!Q._locked?Q.items[Q.idx]:null;}catch(e){}
+var r=_qp.apply(this,arguments);
+try{var g=G();if(g&&it)g.viste[it.id]=1;}catch(e){}
+return r;};
+qPick.__giro=true;
+}
+}catch(e){}
+/* Domande nuove: quelle non ancora viste in questo giro; finite, si riparte */
+try{
+qStartNew=function(){
+buildQuiz();
+var v=viste(),items=QUIZ_ALL.filter(function(it){return !v[it.id];});
+if(!items.length){var n=nuovoGiro();festa(n,QUIZ_ALL.length);items=QUIZ_ALL.slice();}
+startQuiz(qShuffle(items.slice()).slice(0,30),{mode:'study',title:'Domande nuove'});
+};
+}catch(e){}
+/* a fine sessione: se il giro e' completo, parte il prossimo */
+try{
+if(typeof qFinish==='function'&&!qFinish.__giro){
+var _qf=qFinish;
+qFinish=function(){var r=_qf.apply(this,arguments);
+try{buildQuiz();if(QUIZ_ALL.length&&conta()>=QUIZ_ALL.length){var n=nuovoGiro();setTimeout(function(){festa(n,QUIZ_ALL.length);},900);}}catch(e){}
+return r;};
+qFinish.__giro=true;
+}
+}catch(e){}
+
+/* ── un solo menu: al posto della dashboard vecchia, la pagina Quiz ── */
+function allaPagina(){
+try{
+if(typeof qCurView==='undefined'||qCurView!=='dash')return;
+var qa=document.getElementById('quizApp');if(!qa||!qa.classList.contains('open'))return;
+if(document.getElementById('popOv')||document.body.classList.contains('qz-avvio')){setTimeout(allaPagina,350);return;}   /* avvio in corso o popup aperto: aspetto */
+closeQuiz();
+try{goHome();}catch(e){}
+nccSez('quiz');
+var s=document.getElementById('scnOv');
+if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+}catch(e){}
+}
+try{
+if(typeof showQView==='function'&&!showQView.__unico){
+var _sq=showQView;
+showQView=function(v){var r=_sq.apply(this,arguments);if(v==='dash')setTimeout(allaPagina,0);return r;};
+showQView.__unico=true;
 }
 }catch(e){}
 })();
