@@ -10923,7 +10923,16 @@ if(loc==null||loc===''||loc==='{}'||loc==='[]'){localStorage.setItem(k,cl);n++;r
 if(k==='nomeUtente'||k==='pencilGeo')return;       /* quelli del dispositivo vincono */
 try{var a=JSON.parse(loc),b=JSON.parse(cl);
 if(a&&b&&typeof a==='object'&&!Array.isArray(a)){
-var agg=0;Object.keys(b).forEach(function(id){if(!(id in a)){a[id]=b[id];agg++;}});
+var agg=0;Object.keys(b).forEach(function(id){
+var x=a[id],y=b[id];
+if(!(id in a)){a[id]=y;agg++;return;}
+if(!x||!y||typeof x!=='object'||typeof y!=='object')return;
+/* ripasso a spirale: vince l'ultimo ripasso fatto, su qualunque dispositivo */
+if(k==='pzSR'||k==='nmSR'){if((+y.last||+y.due||0)>(+x.last||+x.due||0)){a[id]=y;agg++;}return;}
+/* giuste e sbagliate: il conteggio piu' avanti (mai all'indietro) */
+if(k==='pzStats'||k==='nmStats'){var ok=Math.max(+x.ok||0,+y.ok||0),ko=Math.max(+x.ko||0,+y.ko||0);
+if(ok!==(+x.ok||0)||ko!==(+x.ko||0)){x.ok=ok;x.ko=ko;agg++;}}
+});
 if(agg){localStorage.setItem(k,JSON.stringify(a));n+=agg;}}}catch(e){}
 });
 }catch(e){}
@@ -11095,10 +11104,22 @@ s2.val=function(){return v;};s2.exportVal=function(){return v;};
 return s2;
 }catch(e){return snap;}
 }
+/* il giro delle domande fatto su un altro dispositivo: vince il giro piu' avanti, a pari giro si uniscono le viste */
+function unisciGiro(snap){
+try{
+var v=snap&&typeof snap.val==='function'?snap.val():null;
+var c=v&&v.qtStats&&v.qtStats.giro;if(!c||!(c.n>1)||typeof qtStats==='undefined'||!qtStats)return;
+var l=qtStats.giro;
+if(!l||!(l.n>1)||c.n>l.n)qtStats.giro={n:c.n,da:c.da||Date.now(),viste:c.viste||{}};
+else if(c.n===l.n&&c.viste){l.viste=l.viste||{};Object.keys(c.viste).forEach(function(id){l.viste[id]=1;});}
+else return;
+try{ls('qtStats',qtStats);}catch(e){}
+}catch(e){}
+}
 function avvolgiOnce(o,bind){
 return function(ev,cb){
 var a=[].slice.call(arguments);
-if(ev==='value'&&typeof cb==='function'){a[1]=function(snap){var r=[].slice.call(arguments);r[0]=snapPulito(snap);return cb.apply(this,r);};}
+if(ev==='value'&&typeof cb==='function'){a[1]=function(snap){var r=[].slice.call(arguments);r[0]=snapPulito(snap);var out=cb.apply(this,r);try{unisciGiro(r[0]);}catch(e){}return out;};}
 var p=o.apply(bind||this,a);
 if(ev==='value'&&typeof cb!=='function'&&p&&typeof p.then==='function')return p.then(snapPulito);
 return p;
