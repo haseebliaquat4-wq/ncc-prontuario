@@ -2493,6 +2493,12 @@ background:var(--card)!important;color:var(--tx)!important;border:1.5px solid va
 #pzMapOv .pzm-dado{width:auto!important;padding:0 14px!important;}
 #pzMapOv .pzm-dado::after{content:' Un’altra piazza';font-size:14px;font-weight:700;}
 }
+/* quiz: la schermata scorre tutta insieme come una pagina e la barra in alto resta ferma.
+   Prima la domanda stava in una finestrella di 170 pixel sopra risposte lunghe: si vedeva a pezzi */
+#qRun.qview-run{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+#qRun .qrun-top{position:sticky;top:0;z-index:3;background:var(--ios-bg);}
+#qRun .qrun-body{flex:1 0 auto;overflow:visible;}
+.qrun-meta .cell[style*="none"] + .sep{display:none;}
 `;
 }catch(e){}
 })();
@@ -11487,6 +11493,24 @@ setTimeout(function(){if(!quizAperto()&&!document.getElementById('popOv'))window
 return _svq.call(this,nome,1);}}catch(e){}
 return _svq.apply(this,arguments);};
 window.nccSezVai.__quiz=true;
+}
+}catch(e){}
+})();
+
+/* ═══ quiz: ogni domanda nuova si guarda dall'alto ═══ */
+(function(){
+try{
+if(typeof qRenderRun==='function'&&!qRenderRun.__su){
+var _rr=qRenderRun,ult=-1;
+qRenderRun=function(){var r=_rr.apply(this,arguments);
+try{if(Q&&Q.idx!==ult){ult=Q.idx;var v=document.getElementById('qRun');if(v)v.scrollTop=0;}}catch(e){}
+/* in allenamento una domanda gia' risposta si rivede com'era: giusta in verde, tua sbagliata in rosso, bloccata.
+   Nella simulazione no: li' la risposta si puo' cambiare fino alla fine, come all'esame */
+try{if(Q&&Q.mode!=='exam'){var a=Q.ans[Q.idx],it=Q.items[Q.idx];
+if(a!=null&&a>=0)document.querySelectorAll('#qRunAns .qans').forEach(function(b,bi){b.style.pointerEvents='none';
+if(bi===it.correct)b.classList.add('good');if(bi===a&&a!==it.correct)b.classList.add('bad');});}}catch(e){}
+return r;};
+qRenderRun.__su=true;
 }
 }catch(e){}
 })();
