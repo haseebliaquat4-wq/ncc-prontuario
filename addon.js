@@ -11635,3 +11635,67 @@ ordinaVie.__topo=true;
 }
 setTimeout(installa,1200);
 })();
+
+/* ═══════════════════════════════════════════════════
+   ‹ NORME E TARIFFE: DA DOVE VIENI, LI' TORNI
+   · dalla pagina Norme l'esercizio si apre senza Home di passaggio
+   · ‹ dalla schermata in cui sei entrato torna alla pagina Norme
+     (prima: articoli → Home; numeri, classi, quiz → indice mai visto)
+   · se ti sposti dentro la finestra (indice → articolo), ‹ fa il passo interno
+   · prontuario e quiz tariffe si chiudono anche col tasto del telefono
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var N={torna:false,firma:'',tab:false,primo:false};
+var DEST=['nmOv','rgOv','rgqOv'];
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function vis(id){var e=document.getElementById(id);if(!e)return false;var c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden';}
+function aperto(){return DEST.some(vis);}
+function firma(){var h=document.querySelector('#nmOv .nm-hd');return h?h.textContent.trim():'';}
+function allaPagina(){
+N.torna=false;
+try{nccSez('norme');var s=document.getElementById('scnOv');
+if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}
+}
+function controlla(){try{
+if(pag()==='norme'){N.torna=false;return;}
+if(!N.torna||pag())return;
+if(!aperto())allaPagina();
+}catch(e){}}
+function ricontrolla(){requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){setTimeout(controlla,ms);});}
+/* ‹ nelle tre finestre */
+document.addEventListener('click',function(ev){try{
+var t=ev.target;if(!t||!t.closest)return;
+if(t.closest('#tabbar')){N.torna=false;return;}
+if(!N.torna)return;
+var x=t.closest('#nmOv .nm-x');
+/* la schermata di partenza e' quella in cui fai il primo tocco (o quella in cui sei, se non hai toccato niente) */
+if(!x&&t.closest('#nmOv')&&!N.primo){N.primo=true;N.firma=firma();}
+if(x&&(!N.primo||firma()===N.firma)){ev.stopPropagation();ev.preventDefault();try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}ricontrolla();return;}
+if(x){ricontrolla();return;}
+if(t.closest('#rgOv .rg-x,#rgqOv button[class$="-x"],#rgqOv .rq-x'))ricontrolla();
+}catch(e){}},true);
+window.addEventListener('popstate',function(){try{if(N.torna)ricontrolla();}catch(e){}},true);
+/* prontuario e quiz tariffe: registrati per il tasto indietro del telefono quando compaiono */
+try{new MutationObserver(function(ms){ms.forEach(function(m){[].forEach.call(m.addedNodes||[],function(n){
+if(!n||!n.id||(n.id!=='rgOv'&&n.id!=='rgqOv'))return;
+var id=n.id;try{if(window.nccOvApri)nccOvApri(id,function(){var e=document.getElementById(id);if(e)e.remove();ricontrolla();});}catch(e){}
+});});}).observe(document.body,{childList:true});}catch(e){}
+/* entrata dalla pagina Norme: la pagina resta finche' la finestra e' pronta */
+setTimeout(function(){try{
+var _sv=window.nccSezVai;if(typeof _sv!=='function'||_sv.__norme)return;
+window.nccSezVai=function(nome,resta){
+try{if(!resta&&pag()==='norme'){
+window.__nccTieniPagina=true;N.torna=true;N.firma='';N.primo=false;
+var r=_sv.call(this,nome,1),t0=Date.now();
+(function att(){try{
+if(aperto()){window.__nccTieniPagina=false;
+setTimeout(function(){try{if(pag()==='norme')nccSezChiudi(true);}catch(e){}},260);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;N.torna=false;                /* non si e' aperto niente: resto sulla pagina */
+}catch(e){}})();
+return r;}}catch(e){}
+return _sv.apply(this,arguments);};
+window.nccSezVai.__norme=true;
+}catch(e){}},1300);
+})();
