@@ -9374,9 +9374,22 @@ window[fn]();
 setTimeout(disegna,400);
 return;
 }
-/* il resto apre una schermata: chiudo il profilo e vado */
-nccProfiloChiudi(true);
-setTimeout(function(){try{arg?window[fn](true):window[fn]();}catch(e){}},200);
+/* il resto si apre SOPRA il profilo (schede, popup, voce): il profilo resta sotto,
+   niente Home di passaggio e alla chiusura sei di nuovo qui */
+var primaAperte={};try{document.querySelectorAll('.modal.open').forEach(function(m){if(m.id)primaAperte[m.id]=1;});}catch(e){}
+window.__nccTieniProfilo=true;
+try{arg?window[fn](true):window[fn]();}catch(e){}
+window.__nccTieniProfilo=false;
+/* ogni finestra aperta sopra il profilo si registra per il tasto indietro del telefono */
+var registra=function(){try{
+document.querySelectorAll('.modal.open').forEach(function(m){if(!m.id||primaAperte[m.id])return;primaAperte[m.id]=1;
+if(window.nccOvApri)nccOvApri(m.id,function(){var b=m.querySelector('.mhdr-close');if(b)b.click();else m.classList.remove('open');});});
+var v=document.getElementById('vcOv');if(v&&!primaAperte.vcOv){primaAperte.vcOv=1;if(window.nccOvApri)nccOvApri('vcOv',function(){var e=document.getElementById('vcOv');if(e)e.remove();});}
+['wkModal','stModal'].forEach(function(id){var e=document.getElementById(id);if(!e||primaAperte[id])return;var c=getComputedStyle(e);
+if(c.display==='none'||c.visibility==='hidden')return;primaAperte[id]=1;
+if(window.nccOvApri)nccOvApri(id,function(){var x=document.getElementById(id);if(!x)return;var b=x.querySelector('.mhdr-close,[class$="-x"]');if(b)b.click();else x.remove();});});
+}catch(e){}};
+registra();(function giro(n){if(n>16||!document.getElementById('pfOv'))return;setTimeout(function(){registra();giro(n+1);},300);})(0);   /* finche' il profilo e' aperto, per ~5 s */
 }catch(e){}
 };
 
@@ -9480,7 +9493,7 @@ try{
 if(typeof window[n]!=='function'||window[n].__pf)return;
 var _o=window[n];
 var w=function(){
-try{if(document.getElementById('pfOv')&&window.nccProfiloChiudi)nccProfiloChiudi(true);}catch(e){}
+try{if(document.getElementById('pfOv')&&window.nccProfiloChiudi&&!window.__nccTieniProfilo)nccProfiloChiudi(true);}catch(e){}
 return _o.apply(this,arguments);};
 w.__pf=true;
 window[n]=w;
@@ -10825,7 +10838,7 @@ o.sett.forEach(function(x){
 h+='<div class="sx-col'+(x.oggi?' oggi':'')+'"><em>'+(x.n||'')+'</em><div class="sx-bar"><i style="height:'
 +Math.max(x.n?8:0,Math.round(x.n/mx*100))+'%"></i></div><span>'+x.g+'</span></div>';});
 h+='</div></div>'
-+'<button class="qc qc-link" style="--qc:#6B7280" onclick="nccSezChiudi(true);setTimeout(nccHmStat,120)">'
++'<button class="qc qc-link" style="--qc:#6B7280" onclick="nccStatPiano()">'
 +'<span class="qc-li">\ud83d\uddd3</span><span class="qc-lt"><b>Il piano, il traguardo e i percorsi</b>'
 +'<span>Prontezza, ripassi dei percorsi, salvataggi</span></span><span class="qc-ch">\u203a</span></button>';
 return h;
@@ -10851,7 +10864,7 @@ else nccPagina('stat','Statistiche',corpo,'nccSezChiudi()');
 }
 window.nccStat=function(){TAB='pan';disegna();try{hap();}catch(e){}};
 window.nccStatTab=function(t){TAB=t;disegna();try{hap();}catch(e){}};
-window.nccStatSim=function(){try{nccSezChiudi(true);nccAvvio(function(){try{buildQuiz();qStartExam();}catch(e){}});}catch(e){}};
+window.nccStatSim=function(){try{window.__nccTieniPagina=true;window.__nccQuizOrigine='stat';nccAvvio(function(){try{buildQuiz();qStartExam();}catch(e){}});}catch(e){}};
 window.nccStatTema=function(sub){
 try{nccSezChiudi(true);nccAvvio(function(){try{buildQuiz();
 var pool=QUIZ_ALL.filter(function(x){return String(x.sub)===String(sub);});
@@ -11438,7 +11451,7 @@ qFinish.__giro=true;
    · il quiz aperto da altri punti (coach) resta invisibile finche' non parte
    · "torna al menu" (fine, uscita, Torna al menu, indietro) = pagina Quiz,
      nello stesso istante: la dashboard vecchia non viene mai dipinta */
-var APRE=false,SORV=0;
+var APRE=false,SORV=0,QORIG=null;
 function quizAperto(){var qa=document.getElementById('quizApp');return !!(qa&&qa.classList.contains('open'));}
 function rivela(){
 requestAnimationFrame(function(){try{
@@ -11452,7 +11465,7 @@ try{
 document.body.classList.remove('qz-avvio');window.__nccTieniPagina=false;window.__qzHome=null;
 closeQuiz();
 try{goHome();}catch(e){}
-nccSez('quiz');
+nccSez(QORIG||'quiz');QORIG=null;
 var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
@@ -11478,7 +11491,7 @@ try{
 if(typeof openQuiz==='function'&&!openQuiz.__unico){
 var _oq=openQuiz;
 openQuiz=function(){
-APRE=true;
+APRE=true;QORIG=window.__nccQuizOrigine||null;window.__nccQuizOrigine=null;
 try{document.body.classList.add('qz-avvio');}catch(e){}
 var hs=document.getElementById('homeScreen'),prima=hs?hs.style.display:null;
 var r;try{r=_oq.apply(this,arguments);}finally{APRE=false;}
@@ -11698,4 +11711,29 @@ return r;}}catch(e){}
 return _sv.apply(this,arguments);};
 window.nccSezVai.__norme=true;
 }catch(e){}},1300);
+})();
+
+/* ═══ Statistiche: il piano si apre senza Home di passaggio e torna alla pagina ═══ */
+(function(){
+'use strict';
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function allaStat(){try{nccSez('stat');var s=document.getElementById('scnOv');
+if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}}
+window.nccStatPiano=function(){
+try{window.__nccTieniPagina=true;nccHmStat();window.__hmDaStat=true;
+requestAnimationFrame(function(){window.__nccTieniPagina=false;if(pag()==='stat')nccSezChiudi(true);});}catch(e){window.__nccTieniPagina=false;}
+};
+/* torno alla pagina Statistiche e, per un istante, controllo che resti aperta (qualcuno potrebbe richiuderla) */
+function controlla(){try{if(!window.__hmDaStat)return;var h=document.getElementById('homeScreen');
+if(!h||h.classList.contains('hm-stat'))return;
+if(!window.__hmT)window.__hmT=Date.now();
+if(pag()!=='stat'&&!document.getElementById('pfOv'))allaStat();
+if(Date.now()-window.__hmT>900){window.__hmDaStat=false;window.__hmT=0;}else setTimeout(controlla,150);
+}catch(e){}}
+setTimeout(function(){try{
+var _e=window.nccHmStatEsci;if(typeof _e!=='function'||_e.__stat)return;
+window.nccHmStatEsci=function(){var r=_e.apply(this,arguments);requestAnimationFrame(controlla);setTimeout(controlla,200);return r;};window.nccHmStatEsci.__stat=true;
+}catch(e){}},1500);
+window.addEventListener('popstate',function(){if(window.__hmDaStat){requestAnimationFrame(controlla);[150,400].forEach(function(ms){setTimeout(controlla,ms);});}},true);
+document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))window.__hmDaStat=false;}catch(e){}},true);
 })();
