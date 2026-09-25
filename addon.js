@@ -11179,7 +11179,7 @@ if(o.querySelector('#pzList'))return 'elenco';if(o.querySelector('#pzMetro'))ret
 if(o.querySelector('.pz-ver'))return 'verifica';if(o.querySelector('.pz-fine'))return 'risultato';return 'altro';}
 function nessunaPiazza(){return !ov()&&!document.getElementById('pzMapOv')&&!document.getElementById('scOv')&&!document.getElementById('pzqOv');}
 /* entri nelle piazze da un altro posto: l'origine vecchia non vale piu' */
-function entrata(){if(nessunaPiazza()&&Date.now()-NAV.sezT>2000)NAV.origine=null;}
+function entrata(){if(NAV.inChiusura)return;if(nessunaPiazza()&&Date.now()-NAV.sezT>2000)NAV.origine=null;}   /* chiudendo, l'elenco riaperto di passaggio non e' un'entrata nuova */
 function registra(id,fn){try{if(window.nccOvApri)nccOvApri(id,fn);}catch(e){}}
 /* tutto chiuso: torno da dove ero entrato */
 function allOrigine(){
@@ -11207,7 +11207,16 @@ if(typeof _sv==='function'&&!_sv.__nav){
 window.nccSezVai=function(nome,resta){
 try{var s=document.getElementById('scnOv');
 if(!resta&&s&&s.getAttribute('data-p')==='pz'){NAV.origine='sez';NAV.sezT=Date.now();
-NAV.dettaglioDa=null;NAV.dettaglioId=null;NAV.mappaAperta=false;NAV.scriviAperto=false;}}catch(e){}
+NAV.dettaglioDa=null;NAV.dettaglioId=null;NAV.mappaAperta=false;NAV.scriviAperto=false;
+/* la pagina Piazze resta ferma finche' l'esercizio e' pronto: niente Home di passaggio */
+window.__nccTieniPagina=true;var r0=_sv.call(this,nome,1),t0=Date.now();
+(function att(){try{
+if(!nessunaPiazza()){window.__nccTieniPagina=false;
+setTimeout(function(){try{var x=document.getElementById('scnOv');if(x&&x.getAttribute('data-p')==='pz')nccSezChiudi(true);}catch(e){}},260);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;NAV.origine=null;            /* non si e' aperto niente: resto sulla pagina */
+}catch(e){}})();
+return r0;}}catch(e){}
 return _sv.apply(this,arguments);};
 window.nccSezVai.__nav=true;
 }
@@ -11256,9 +11265,9 @@ return _pm.apply(this,arguments);
 var _pmc=window.pzMapChiudi;
 window.pzMapChiudi=function(){
 var da=NAV.mappaDa;NAV.mappaAperta=false;
-if(da==='dettaglio'){NAV.ritorno=true;return _pmc.apply(this,arguments);}
+if(da==='dettaglio'){NAV.ritorno=true;NAV.inChiusura=true;try{return _pmc.apply(this,arguments);}finally{NAV.inChiusura=false;}}
 NAV.saltaApri=Date.now();               /* chiudendo, la mappa non riapre la piazza */
-var r=_pmc.apply(this,arguments);       /* toglie la mappa e mostra l'elenco */
+var r;NAV.inChiusura=true;try{r=_pmc.apply(this,arguments);}finally{NAV.inChiusura=false;}       /* toglie la mappa e mostra l'elenco */
 if(da!=='elenco'){chiudiPiazze();allOrigine();}
 return r;
 };
@@ -11276,7 +11285,7 @@ return _ps.apply(this,arguments);
 var _psc=window.pzScriviChiudi;
 window.pzScriviChiudi=function(){
 var da=NAV.scriviDa;NAV.scriviAperto=false;
-var r=_psc.apply(this,arguments);       /* toglie Scrivi e mostra l'elenco */
+var r;NAV.inChiusura=true;try{r=_psc.apply(this,arguments);}finally{NAV.inChiusura=false;}       /* toglie Scrivi e mostra l'elenco */
 if(da==='dettaglio'&&NAV.scriviDet!=null){NAV.ritorno=true;try{pzApri(NAV.scriviDet);}catch(e){NAV.ritorno=false;}}
 else if(da!=='elenco'){chiudiPiazze();allOrigine();}
 return r;
@@ -11320,6 +11329,14 @@ ev.stopPropagation();ev.preventDefault();indietroPiazza();
 setTimeout(installa,500);
 setTimeout(installa,1600);
 window.nccPzNav=function(){return JSON.parse(JSON.stringify(NAV));};
+setTimeout(function(){try{
+if(typeof window.pzTrovaMarker!=='function'||window.pzTrovaMarker.__nav)return;
+var _tm=window.pzTrovaMarker;
+window.pzTrovaMarker=function(){var r=_tm.apply(this,arguments);
+try{if(document.getElementById('pzGeoP'))registra('pzGeoP',function(){try{pzFermaMarker();}catch(e){}var d=document.getElementById('pzGeoP');if(d)d.remove();});}catch(e){}
+return r;};
+window.pzTrovaMarker.__nav=true;
+}catch(e){}},1600);
 })();
 
 /* ═══════════════════════════════════════════════════
@@ -11513,4 +11530,108 @@ return r;};
 qRenderRun.__su=true;
 }
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ‹ TOPOGRAFIA: DA DOVE VIENI, LI' TORNI (e nessuna home di passaggio)
+   · tocchi una riga della pagina Topografia: la pagina resta ferma finche'
+     la mappa o la finestra e' pronta; se non si apre niente, resti li'
+   · indietro (‹ della mappa, chiusura delle finestre, Annulla del nuovo
+     percorso, tasto del telefono, anche da Correggi e Senza marker)
+     riporta alla pagina Topografia, non alla Home
+   · Ordina le vie senza un percorso aperto usa l'ultimo studiato
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var T={orig:false,indietro:0,nuovo:false,via:'',sotto:false,tab:false,torna:false};
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function su(id){var e=document.getElementById(id);if(!e)return false;
+if(e.classList.contains('modal')||id==='addModal'||id==='wrModal'||id==='mgrModal')return e.classList.contains('open');
+var c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden';}
+function aperto(){return document.body.classList.contains('on-topo')||su('mgOv')||su('ipOv')||su('addModal')||su('wrModal')||su('mgrModal');}
+function allaPagina(){
+T.orig=false;T.nuovo=false;T.torna=false;
+try{nccSez('topo');var s=document.getElementById('scnOv');
+if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}
+}
+function segnaIndietro(){T.indietro=Date.now();}
+/* i tasti che vogliono dire "indietro" */
+function ricontrolla(){requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){setTimeout(controlla,ms);});}
+document.addEventListener('click',function(ev){try{var t=ev.target;if(!t||!t.closest)return;
+if(t.closest('#tabbar')){T.tab=true;T.orig=false;T.torna=false;return;}
+if(t.closest('#tpBack,.mhdr-close,.bcn,#mgOv .mg-b[title="Esci"],.ip-x,#ordModal button')){segnaIndietro();ricontrolla();}}catch(e){}},true);
+/* il tasto del telefono: dalle sotto-pagine torni alla pagina Topografia */
+/* un controllo solo, subito prima che lo schermo si ridisegni: la Home non si vede mai di passaggio */
+function controlla(){
+try{
+if(T.sotto){T.sotto=false;
+var sp=document.getElementById('scnOv');
+/* la sotto-pagina sta scorrendo via: per me e' gia' chiusa */
+if(sp&&(sp.classList.contains('fuori')||!sp.classList.contains('dentro'))){try{sp.remove();}catch(e){}}
+if(!pag()){allaPagina();return;}}
+if(pag()==='topo'){T.orig=false;T.torna=false;return;}
+if(!T.orig){if(T.torna&&!pag()&&!aperto()&&Date.now()-T.indietro<1500)allaPagina();return;}
+if(pag())return;
+var recente=Date.now()-T.indietro<1500;
+if((T.via==='t0'&&!su('addModal')&&recente)||(T.via==='t7'&&!su('ordModal')&&recente)){T.via='';segnaIndietro();try{goHome();}catch(e){}if(!pag())allaPagina();return;}
+if(!aperto())allaPagina();
+}catch(e){}
+}
+window.addEventListener('popstate',function(){try{
+segnaIndietro();
+var p=pag();if(p==='correggi'||p==='senza')T.sotto=true;
+ricontrolla();
+}catch(e){}},true);
+function installa(){
+try{
+/* entrata: la pagina resta finche' la destinazione e' pronta */
+var _sv=window.nccSezVai;
+if(typeof _sv==='function'&&!_sv.__topo){
+window.nccSezVai=function(nome,resta){
+try{
+if(!resta&&pag()==='topo'){
+window.__nccTieniPagina=true;T.orig=true;T.torna=true;T.nuovo=(nome==='t0');T.via=nome;
+var r=_sv.call(this,nome,1),t0=Date.now();
+(function att(){try{
+if(aperto()){window.__nccTieniPagina=false;var fin=document.body.classList.contains('on-topo')&&!su('addModal')&&!su('ordModal')?0:260;   /* le finestre sfumano: la pagina resta sotto finche' sono piene */
+setTimeout(function(){try{if(pag()==='topo')nccSezChiudi(true);}catch(e){}},fin);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;T.orig=false;T.nuovo=false;      /* non si e' aperto niente: resto sulla pagina */
+}catch(e){}})();
+return r;}
+}catch(e){}
+return _sv.apply(this,arguments);};
+window.nccSezVai.__topo=true;
+}
+/* indietro dalla mappa (e da chi passa per la Home): torno alla pagina */
+if(typeof goHome==='function'&&!goHome.__topo){
+var _gh=goHome;
+goHome=function(){var torna=T.orig&&!T.tab;T.tab=false;var r=_gh.apply(this,arguments);
+if(torna)allaPagina();else T.orig=false;return r;};
+goHome.__topo=true;
+}
+/* finestre che si chiudono senza passare dalla Home */
+['closeWr','closeMgr','nccImpChiudi','nccMappaGrandeChiudi','closeAdd'].forEach(function(n){
+var o=window[n];if(typeof o!=='function'||o.__topo)return;
+var w=function(){var r=o.apply(this,arguments);
+try{if(T.orig&&Date.now()-T.indietro<1500)ricontrolla();}catch(e){}
+return r;};
+w.__topo=true;window[n]=w;
+});
+/* salvare un percorso nuovo non e' "indietro": resti sulla mappa col percorso */
+if(typeof savRoute==='function'&&!savRoute.__topo){var _sr=savRoute;savRoute=function(){T.nuovo=false;T.via='';T.indietro=0;return _sr.apply(this,arguments);};savRoute.__topo=true;}
+/* Ordina le vie senza un percorso aperto: l'ultimo studiato (con almeno 6 vie) */
+if(typeof ordinaVie==='function'&&!ordinaVie.__topo){
+var _ov=ordinaVie;
+ordinaVie=function(){
+try{if(typeof cur==='undefined'||!cur||!cur.steps||cur.steps.length<6){
+var buoni=(routes||[]).filter(function(x){return x.steps&&x.steps.length>=6;}),id=lg('lRId',null);
+var r=buoni.filter(function(x){return String(x.id)===String(id);})[0]||buoni[0];
+if(r){try{goTopografia();}catch(e){}try{selectRoute(r);}catch(e){}}}}catch(e){}
+return _ov.apply(this,arguments);};
+ordinaVie.__topo=true;
+}
+}catch(e){}
+}
+setTimeout(installa,1200);
 })();
