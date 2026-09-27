@@ -2535,9 +2535,109 @@ html.ncc-subito *,html.ncc-subito *::before,html.ncc-subito *::after{transition:
 #rgOv .rg-hd small{grid-column:2;grid-row:2;margin-top:2px;}
 #rgOv .rg-hd .rg-x{position:static!important;grid-column:1;grid-row:1/3;}
 #rgOv .rg-hd .t-info-in{position:static!important;transform:none!important;grid-column:3;grid-row:1/3;}
+/* ══ iPad: le pagine al centro, allineate con la testata; su schermo largo i gruppi in colonne ══
+   sotto i 720 px (telefono) non cambia niente */
+.dc-col{min-width:0;}
+.dc-due.dc-griglia{display:grid;grid-template-columns:repeat(var(--n,1),minmax(0,1fr));align-items:start;}
+/* ══ iPad in orizzontale: la piazza con le vie a sinistra e la mappa a destra ══ */
+#pzOv.pz-lato>.pz-body{width:50%;}
+#pzOv.pz-lato>.pz-modi4,#pzOv.pz-lato>.pz-foot{max-width:min(560px,calc(50% - 24px))!important;margin-left:max(12px,calc(25% - 280px))!important;margin-right:0!important;}
+#pzLato{position:absolute;right:0;bottom:0;width:50%;top:var(--pzl-top,64px);border-left:1.5px solid var(--bd);background:var(--bg);z-index:2;}
+#pzLatoMap{position:absolute;inset:12px;border-radius:16px;overflow:hidden;border:1.5px solid var(--bd);}
+.pzl-ic{background:none!important;border:none!important;}
+.pzl-ic span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;box-sizing:border-box;border-radius:50%;
+background:#fff;border:2.5px solid #2447D6;color:#2447D6;font:800 13px/1 -apple-system,system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.pzl-ic.nas span{border-color:#8a93a6;color:#8a93a6;}
+.pzl-ic.att span{background:#2447D6;color:#fff;transform:scale(1.22);}
+.pzl-ic.pzl-c span{width:30px;height:30px;background:#0E9AA7;border-color:#fff;color:#fff;font-size:15px;}
+.pzl-vuota{position:absolute;inset:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+text-align:center;padding:24px;border-radius:16px;z-index:500;background:color-mix(in srgb,var(--bg) 86%,transparent);}
+.pzl-vuota[hidden]{display:none;}
+.pzl-vuota b{font-size:17px;font-weight:800;color:var(--tx);}
+.pzl-vuota button{border:none;border-radius:999px;background:var(--a,#2447D6);color:#fff;font:inherit;font-size:15px;font-weight:800;padding:12px 20px;cursor:pointer;}
+.pzl-conta{position:absolute;left:24px;bottom:24px;z-index:500;background:var(--card);border:1.5px solid var(--bd);border-radius:999px;
+padding:6px 12px;font-size:13px;font-weight:700;color:var(--mu);}
+.pzl-conta:empty{display:none;}
+/* ══ Scrivi le vie su iPad: un riquadro grande per ogni via, si scrive con la Pencil ══ */
+#scOv.sc-penna #scSlots{display:none;}
+#scOv.sc-penna .sc-foot #scIn,#scOv.sc-penna .sc-foot .sc-ok{display:none;}
+#scOv.sc-penna .sc-foot{justify-content:flex-end;}
+#scOv.sc-penna .sc-wrap{flex-direction:column;}
+#scOv.sc-penna .sc-mappa{width:auto;height:30%;min-height:180px;}
+#scOv.sc-penna .sc-lato{width:auto;padding:14px 18px 24px;}
+@media(min-width:1000px){#scOv.sc-penna .sc-wrap{flex-direction:row;}
+#scOv.sc-penna .sc-mappa{width:50%;height:auto;min-height:0;}#scOv.sc-penna .sc-lato{width:50%;}}
+#scPenna{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.scp-tit{font-size:14px;font-weight:700;color:var(--mu);margin:0 2px 2px;}
+.scp-r{display:flex;align-items:center;gap:12px;min-height:66px;padding:5px 8px 5px 14px;box-sizing:border-box;
+border:2px solid var(--bd);border-radius:16px;background:var(--card);transition:border-color .2s,box-shadow .2s;}
+.scp-r.att{border-color:var(--a,#2447D6);box-shadow:0 0 0 4px color-mix(in srgb,var(--a,#2447D6) 14%,transparent);}
+.scp-ic{flex-shrink:0;width:28px;text-align:center;font-size:20px;color:var(--mu);}
+.scp-in{flex:1;min-width:0;height:54px;border:none;outline:none;background:transparent;color:var(--tx);
+font:600 22px/1.2 -apple-system,system-ui,sans-serif;padding:0;}
+.scp-in::placeholder{color:var(--mu);opacity:.55;font-weight:500;}
+.scp-ok{flex-shrink:0;width:48px;height:48px;border:none;border-radius:14px;background:var(--fill2);color:var(--tx);
+font-size:20px;font-weight:800;cursor:pointer;}
+.scp-r.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--card));}
+.scp-n{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--ok);color:#fff;
+display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:850;}
+.scp-v{flex:1;min-width:0;font-size:20px;font-weight:750;color:var(--tx);line-height:1.25;}
+.scp-s{flex-shrink:0;font-size:13px;font-weight:800;color:var(--warn);}
+@media(min-width:720px){
+#scnOv,#pfOv{--col:680px;}
+#scnOv.dc-largo,#pfOv.dc-largo{--col:min(1100px,calc(100% - 48px));}
+#scnOv.dc-largo .pf-body>*,#pfOv.dc-largo .pf-body>*{max-width:none;}
+#scnOv .pf-body,#pfOv .pf-body{padding-left:calc((100% - var(--col))/2)!important;padding-right:calc((100% - var(--col))/2)!important;}
+#scnOv .t-hd,#pfOv .t-hd{padding-left:calc((100% - var(--col))/2 + 16px);padding-right:calc((100% - var(--col))/2 + 16px);}
+}
 `;
 }catch(e){}
 })();
+
+/* le colonne delle pagine: i gruppi restano interi e in ordine; sul telefono una colonna sola.
+   Quante colonne dipende dalla larghezza (iPad in orizzontale 3, iPad grande in verticale 2):
+   ruotando l'iPad i gruppi si ridistribuiscono senza ridisegnare la pagina */
+window.nccBlocchi=function(blocchi,max){
+try{
+return '<div class="dc-due" data-max="'+(max||3)+'"><div class="dc-col">'
++blocchi.map(function(b){return '<div class="dc-bl" data-w="'+(+b.w||1)+'">'+b.h+'</div>';}).join('')+'</div></div>';
+}catch(e){return blocchi.map(function(b){return b.h;}).join('');}
+};
+function dcDividi(w,k){
+/* taglio in k pezzi consecutivi, il piu' alto il piu' basso possibile */
+var n=w.length,best=null,bm=Infinity;
+function somma(a,b){var t=0;for(var i=a;i<b;i++)t+=w[i];return t;}
+function prova(inizio,resti,tagli){
+if(resti===1){var t=tagli.concat([n]),m=0,a=0;t.forEach(function(e){m=Math.max(m,somma(a,e));a=e;});if(m<bm){bm=m;best=t;}return;}
+for(var i=inizio+1;i<=n-resti+1;i++)prova(i,resti-1,tagli.concat([i]));
+}
+prova(0,k,[]);
+return best||[n];
+}
+/* larghezza e altezza della finestra lette solo all'avvio e quando cambiano:
+   leggerle mentre una pagina sta entrando la faceva partire da destra (e si vedeva la Home) */
+window.__nccVW=window.innerWidth||0;window.__nccVH=window.innerHeight||0;
+function dcMisura(){try{window.__nccVW=window.innerWidth||0;window.__nccVH=window.innerHeight||0;}catch(e){}}
+window.nccColonne=function(root){
+try{
+var W=window.__nccVW||0;
+var n=W>=1100?3:(W>=960?2:1);
+(root||document).querySelectorAll('.dc-due').forEach(function(box){
+var bl=[].slice.call(box.querySelectorAll('.dc-bl'));if(!bl.length)return;
+var k=Math.max(1,Math.min(n,bl.length,+box.getAttribute('data-max')||3));
+var ov=box.closest('#scnOv,#pfOv');if(ov)ov.classList.toggle('dc-largo',k>1);
+if(box.__k===k&&box.children.length===k)return;
+var tagli=dcDividi(bl.map(function(b){return +b.getAttribute('data-w')||1;}),k),a=0,cols=[];
+tagli.forEach(function(e){var c=document.createElement('div');c.className='dc-col';
+for(var i=a;i<e;i++)c.appendChild(bl[i]);a=e;cols.push(c);});
+while(box.firstChild)box.removeChild(box.firstChild);
+cols.forEach(function(c){box.appendChild(c);});
+box.style.setProperty('--n',k);box.classList.toggle('dc-griglia',k>1);box.__k=k;   /* una colonna: blocchi normali, gli spazi restano quelli di prima */
+});
+}catch(e){}
+};
+(function(){var t=null;function su(){dcMisura();clearTimeout(t);t=setTimeout(function(){try{dcMisura();nccColonne();}catch(e){}},120);}
+try{window.addEventListener('resize',su);window.addEventListener('orientationchange',su);}catch(e){}})();
 
 (function(){
 'use strict';
@@ -7719,7 +7819,8 @@ function aggancia(){
 [['openPiazze','pzOv','pzChiudi'],
  ['pzMappa','pzMapOv','pzMapChiudi'],
  ['pzScrivi','scOv','pzScriviChiudi'],
- ['openNorme','nmOv','nmChiudi']].forEach(function(t){
+ ['openNorme','nmOv','nmChiudi'],
+ ['nmQuiz','nmOv','nmChiudi']].forEach(function(t){   /* anche il Quiz sulle norme aperto dalla pagina: l'indietro del telefono lo chiude */
 if(fatti[t[0]])return;
 if(lega(t[0],t[1],t[2]))fatti[t[0]]=1;
 });
@@ -9449,9 +9550,11 @@ try{
 var o=document.getElementById('pfOv');if(!o)return;
 var h=nccTestata('Profilo','nccProfiloChiudi()','profilo')
 +'<div class="pf-body" id="pfBody">';
+var blocchi=[],h0=h;
 righe().forEach(function(g){
 var vis=g.v.filter(function(r){return f(r.f);});
 if(!vis.length)return;
+h='';
 if(g.t)h+='<div class="pf-sez">'+((window.nccEmoSez&&nccEmoSez[g.t])?nccEmoSez[g.t]+' ':'')+E(g.t)+'</div>';
 h+='<div class="pf-gr">';
 vis.forEach(function(r,i){
@@ -9465,9 +9568,12 @@ h+='<button class="pf-r'+(r.rosso?' rosso':'')+'" onclick="nccPfTocca(\''+r.f+'\
 +'</button>';
 });
 h+='</div>';
+blocchi.push({h:h,w:vis.length+(g.t?0.7:0.3)});
 });
+h=h0+(window.nccBlocchi?nccBlocchi(blocchi,2):blocchi.map(function(x){return x.h;}).join(''));
 h+='<div class="pf-piede">NCC Milano</div></div>';
 o.innerHTML=h;
+try{o.classList.remove('dc-largo');if(window.nccColonne)nccColonne(o);}catch(e){}
 /* il titolo grande si fa piccolo scorrendo, come in iOS */
 var b=document.getElementById('pfBody'),n=document.getElementById('pfNav');
 if(b&&n)b.onscroll=function(){n.classList.toggle('pieno',b.scrollTop>38);};
@@ -9952,6 +10058,7 @@ var nuovo=!o;
 if(nuovo){o=document.createElement('div');o.id='scnOv';o.className='rd';document.body.appendChild(o);}
 o.innerHTML=nccTestata(titolo,(indietro||'nccSezChiudi()'),id)
 +'<div class="pf-body" id="scnBody">'+corpo+'</div>';
+try{o.classList.remove('dc-largo');if(window.nccColonne)nccColonne(o);}catch(e){}   /* iPad: i gruppi in colonne prima del primo disegno */
 var b=document.getElementById('scnBody'),nv=document.getElementById('scnNav');
 if(b&&nv)b.onscroll=function(){nv.classList.toggle('pieno',b.scrollTop>38);};
 if(nuovo){
@@ -10001,10 +10108,11 @@ n6:['Avvia','Gli importi delle tariffe, a memoria.']};
 var LINK={q4:1,t0:1,t9:1,t10:1,t11:1,t12:1,p7:1,n1:1,n2:1,n3:1,n5:1};
 
 function righeHTML(gruppi){
-var h='',nn={};
+var h='',nn={},blocchi=[];
 try{nn=conti();}catch(e){}
 gruppi.forEach(function(g){
 var col=COLG[g.t]||'#2447D6';
+h='';
 if(g.t)h+='<div class="pf-sez">'+((window.nccEmoSez&&nccEmoSez[g.t])?nccEmoSez[g.t]+' ':'')+E(g.t)+'</div>';
 h+='<div class="qc-gr">';
 g.v.forEach(function(r){
@@ -10023,8 +10131,9 @@ h+='<div class="qc qc-riga" role="button" tabindex="0" style="--qc:'+col+'" oncl
 +'<span class="qc-ch">\u203a</span></div>';
 });
 h+='</div>';
+blocchi.push({h:h,w:g.v.length+(g.t?0.7:0.3)});
 });
-return h;
+return window.nccBlocchi?nccBlocchi(blocchi,3):blocchi.map(function(b){return b.h;}).join('');
 }
 window.nccSezInfo=function(a){
 try{var r=AZR[a];if(!r)return;var ex=EX[a]||['Apri',r.s||''];
@@ -12097,4 +12206,248 @@ return;}
 
 /* la home viene ridisegnata subito: la sezione c'e' gia' al primo sguardo */
 try{if(typeof window.nccHomeRiquadri==='function')nccHomeRiquadri();}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🗺️ LA PIAZZA SU IPAD IN ORIZZONTALE
+   Le vie a sinistra, la mappa a destra, come nei percorsi.
+   Sulla mappa: la piazza, le sue vie numerate e il filo che le unisce;
+   in Cieco le vie non ancora scoperte restano grigie col punto di domanda,
+   quella a cui sei arrivato si accende. Il telefono e l'iPad in verticale
+   non cambiano. Niente marker automatici: si mettono solo a mano.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var OV=null,OBS=null,MAP=null,LAY=null,PID=null,PRIMA=true,tmr=null;
+function LS(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function largo(){var w=window.__nccVW||0,h=window.__nccVH||0;return w>=960&&w>h;}
+function piazza(id){try{return (typeof window.pzTutte==='function'?pzTutte():[]).filter(function(p){return String(p.id)===String(id);})[0]||null;}catch(e){return null;}}
+/* la piazza aperta: dal tasto Mappa dello schermo */
+function idAperta(){
+try{var b=OV&&OV.querySelector('.pz-modi4 .pz-m[onclick^="pzMappa"]');
+var m=b&&/pzMappa\('([^']+)'\)/.exec(b.getAttribute('onclick')||'');return m?m[1]:null;}catch(e){return null;}
+}
+function posiziona(){
+try{var d=document.getElementById('pzLato');if(!d||!OV)return;
+var h=OV.querySelector('.pz-hd');
+var t=h?Math.round(h.getBoundingClientRect().bottom-OV.getBoundingClientRect().top):64;
+d.style.setProperty('--pzl-top',t+'px');}catch(e){}
+}
+function smonta(){
+try{if(MAP)MAP.remove();}catch(e){}
+MAP=null;LAY=null;PID=null;
+try{var d=document.getElementById('pzLato');if(d)d.remove();}catch(e){}
+try{if(OV)OV.classList.remove('pz-lato');}catch(e){}
+}
+function disegna(){
+try{
+var LF=window.L;if(!MAP||!LAY||!LF)return;
+var p=piazza(PID);if(!p)return;
+var co=LS('pzCoords',{})||{},righe=OV?OV.querySelectorAll('#pzMetro .mx-st'):[];
+LAY.clearLayers();
+var c=co[p.id],pts=[],att=null,messi=0;
+if(c&&isFinite(c.lat)&&isFinite(c.lon))pts.push([c.lat,c.lon]);else c=null;
+p.v.forEach(function(v,i){
+var q=co[p.id+'_'+i];if(!q||!isFinite(q.lat)||!isFinite(q.lon))return;
+messi++;
+var r=righe[i],nas=!!(r&&r.classList.contains('nas')),a=!!(r&&r.classList.contains('att'));
+if(c)LF.polyline([[c.lat,c.lon],[q.lat,q.lon]],{color:a?'#2447D6':'#8a93a6',weight:a?4:2,opacity:.85,dashArray:nas?'4 6':null,interactive:false}).addTo(LAY);
+LF.marker([q.lat,q.lon],{icon:LF.divIcon({className:'pzl-ic'+(nas?' nas':'')+(a?' att':''),
+html:'<span>'+(nas?'?':(i+1))+'</span>',iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:a?1000:0,interactive:false}).addTo(LAY);
+pts.push([q.lat,q.lon]);if(a)att=[q.lat,q.lon];
+});
+if(c)LF.marker([c.lat,c.lon],{icon:LF.divIcon({className:'pzl-ic pzl-c',html:'<span>◉</span>',iconSize:[30,30],iconAnchor:[15,15]}),
+zIndexOffset:2000,interactive:false}).addTo(LAY);
+var vu=document.getElementById('pzLatoVuota');if(vu)vu.hidden=pts.length>0;
+var ct=document.getElementById('pzLatoConta');
+if(ct)ct.textContent=(pts.length&&messi<p.v.length)?('📍 '+messi+'/'+p.v.length+' vie sulla mappa'):'';
+if(PRIMA&&pts.length){PRIMA=false;if(pts.length===1)MAP.setView(pts[0],17);else MAP.fitBounds(pts,{padding:[40,40],maxZoom:18});}
+else if(att){try{if(!MAP.getBounds().contains(att))MAP.panTo(att);}catch(e){}}
+}catch(e){}
+}
+function monta(){
+try{
+var LF=window.L;
+if(!OV||!document.getElementById('pzMetro')||!largo()||!LF||!LF.map){smonta();return;}
+var id=idAperta();if(!id){smonta();return;}
+if(PID===id&&document.getElementById('pzLato')){posiziona();disegna();return;}
+smonta();
+PID=id;PRIMA=true;
+var d=document.createElement('div');d.id='pzLato';
+d.innerHTML='<div id="pzLatoMap"></div>'
++'<div class="pzl-vuota" id="pzLatoVuota" hidden><b>Questa piazza non ha ancora i marker</b>'
++'<button onclick="pzMappa(\''+id+'\')">📍 Mettili sulla mappa</button></div>'
++'<div class="pzl-conta" id="pzLatoConta"></div>';
+OV.appendChild(d);OV.classList.add('pz-lato');posiziona();
+MAP=LF.map('pzLatoMap',{zoomControl:true,attributionControl:false}).setView([45.4642,9.19],15);
+try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,maxNativeZoom:19}).addTo(MAP);}catch(e){}
+LAY=LF.layerGroup().addTo(MAP);
+disegna();
+setTimeout(function(){try{if(MAP){MAP.invalidateSize();disegna();}}catch(e){}},80);
+}catch(e){}
+}
+function pianifica(){
+clearTimeout(tmr);
+tmr=setTimeout(function(){try{
+if(!OV||!document.body.contains(OV)){smonta();return;}
+if(document.getElementById('pzMetro')&&largo())monta();else smonta();
+}catch(e){}},40);
+}
+/* toccando una via nell'elenco la mappa va li' */
+function tocco(ev){
+try{
+var r=ev.target&&ev.target.closest&&ev.target.closest('#pzMetro .mx-st');if(!r||!MAP)return;
+var rows=[].slice.call(OV.querySelectorAll('#pzMetro .mx-st')),i=rows.indexOf(r);if(i<0)return;
+var p=piazza(PID),q=p&&(LS('pzCoords',{})||{})[p.id+'_'+i];
+if(q&&isFinite(q.lat))MAP.panTo([q.lat,q.lon]);
+}catch(e){}
+}
+function guarda(){
+try{
+var o=document.getElementById('pzOv');
+if(o!==OV){
+if(OBS){try{OBS.disconnect();}catch(e){}OBS=null;}
+if(OV){try{OV.removeEventListener('click',tocco,true);}catch(e){}}
+smonta();OV=o;
+if(OV){
+OBS=new MutationObserver(function(muts){
+var lato=document.getElementById('pzLato');
+for(var i=0;i<muts.length;i++){var t=muts[i].target;if(!lato||!(lato===t||lato.contains(t))){pianifica();return;}}
+});
+OBS.observe(OV,{childList:true,subtree:true});
+OV.addEventListener('click',tocco,true);
+}
+}
+pianifica();
+}catch(e){}
+}
+try{
+new MutationObserver(function(){if(document.getElementById('pzOv')!==OV)guarda();}).observe(document.body,{childList:true});
+window.addEventListener('resize',function(){pianifica();setTimeout(function(){try{if(MAP){posiziona();MAP.invalidateSize();}}catch(e){}},150);});
+guarda();
+}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ✏️ SCRIVI LE VIE CON LA PENCIL (iPad)
+   Al posto della riga piccola in fondo: un riquadro grande per ogni via.
+   Scrivi a mano (Scribble dell'iPad trasforma la scrittura in testo):
+   appena quello che hai scritto e' una via di questa piazza, il riquadro
+   diventa verde col suo numero e si accende quello dopo. Se non e' giusta
+   non dice niente finche' non tocchi ✓ (cosi' non ti interrompe mentre scrivi).
+   Con la tastiera: Invio controlla e passa al riquadro dopo.
+   Sul telefono resta la riga di prima.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var OV=null,OBS=null,P=null,tm=null,ULT=null;
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function attiva(){return (window.__nccVW||0)>=700;}
+/* la piazza dell'esercizio: quella chiesta a pzScrivi, o dal titolo */
+function piazza(){
+try{
+var T=(typeof window.pzTutte==='function')?pzTutte():[];
+if(ULT){var u=T.filter(function(x){return String(x.id)===String(ULT);})[0];if(u)return u;}
+var t=OV&&OV.querySelector('.sc-ti'),n=t?t.textContent:'',sl=OV?OV.querySelectorAll('#scSlots .sc-slot').length:0;
+var c=T.filter(function(x){return x.n===n;});
+if(c.length>1)c=c.filter(function(x){return x.v.length===sl;});
+return c[0]||null;
+}catch(e){return null;}
+}
+function trovate(){var r={};try{[].forEach.call(OV.querySelectorAll('#scSlots .sc-slot'),function(s,i){if(s.classList.contains('ok'))r[i]=1;});}catch(e){}return r;}
+function prossima(daTastiera){
+try{
+var box=document.getElementById('scPenna');if(!box)return;
+[].forEach.call(box.querySelectorAll('.scp-r.att'),function(r){r.classList.remove('att');});
+var inp=box.querySelector('.scp-r:not(.ok) .scp-in');if(!inp)return;
+var r=inp.closest('.scp-r');r.classList.add('att');
+try{r.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}
+if(daTastiera)try{inp.focus();}catch(e){}      /* con la Pencil non apro la tastiera: si scrive direttamente nel riquadro */
+}catch(e){}
+}
+function accetta(inp,j){
+var r=inp.closest('.scp-r');if(!r||!P)return;
+r.className='scp-r ok';
+r.innerHTML='<span class="scp-n">'+(j+1)+'</span><span class="scp-v">'+E(P.v[j])+'</span>';
+}
+function prova(inp,esplicito,daTastiera){
+try{
+if(!P||!inp||!inp.isConnected)return;
+var t=(inp.value||'').trim();if(!t)return;
+var tr=trovate();
+if(!esplicito){
+/* da solo controllo soltanto quando e' gia' giusta: niente errori a meta' parola */
+var va=false;
+for(var j=0;j<P.v.length;j++){if(!tr[j]&&typeof window.pzConfronta==='function'&&pzConfronta(t,P.v[j])){va=true;break;}}
+if(!va)return;
+}
+var core=document.getElementById('scIn');if(!core||typeof window.pzScriviInvia!=='function')return;
+core.value=t;
+pzScriviInvia();
+var dopo=trovate(),nuova=-1;
+Object.keys(dopo).forEach(function(k){if(!tr[k])nuova=+k;});
+if(nuova>=0){accetta(inp,nuova);prossima(daTastiera);}
+else{
+var es=document.getElementById('scEsito');
+if(es&&/gi.\s*scritta/i.test(es.textContent||''))inp.value='';
+}
+try{core.value='';}catch(e){}
+}catch(e){}
+}
+function monta(){
+try{
+if(!OV||!attiva()){smonta();return;}
+var lato=OV.querySelector('.sc-lato'),slots=OV.querySelector('#scSlots');if(!lato||!slots){smonta();return;}   /* schermata finale: niente riquadri */
+var p=piazza();if(!p){smonta();return;}
+var box=document.getElementById('scPenna');
+if(box&&box.__pid===p.id&&OV.classList.contains('sc-penna'))return;
+if(box)box.remove();
+P=p;OV.classList.add('sc-penna');
+box=document.createElement('div');box.id='scPenna';box.__pid=p.id;
+var tr=trovate(),h='<div class="scp-tit">✏️ Una via per riquadro: scrivila con la Pencil</div>';
+Object.keys(tr).forEach(function(j){h+='<div class="scp-r ok"><span class="scp-n">'+(+j+1)+'</span><span class="scp-v">'+E(p.v[+j])+'</span></div>';});
+for(var k=Object.keys(tr).length;k<p.v.length;k++){
+h+='<div class="scp-r"><span class="scp-ic">✎</span>'
++'<input class="scp-in" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" '
++'placeholder="Scrivi qui una via…" aria-label="Via">'
++'<button class="scp-ok" type="button" aria-label="Controlla">✓</button></div>';
+}
+box.innerHTML=h;
+lato.insertBefore(box,slots);
+[].forEach.call(box.querySelectorAll('.scp-in'),function(inp){
+inp.addEventListener('input',function(){clearTimeout(inp.__t);inp.__t=setTimeout(function(){prova(inp,false,false);},650);});
+inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();clearTimeout(inp.__t);prova(inp,true,true);}ev.stopPropagation();});
+});
+[].forEach.call(box.querySelectorAll('.scp-ok'),function(b){
+b.addEventListener('click',function(){var inp=b.parentNode.querySelector('.scp-in');if(inp){clearTimeout(inp.__t);prova(inp,true,false);}});
+});
+prossima(false);
+}catch(e){}
+}
+function smonta(){
+try{var b=document.getElementById('scPenna');if(b)b.remove();}catch(e){}
+try{if(OV)OV.classList.remove('sc-penna');}catch(e){}
+P=null;
+}
+function pianifica(){clearTimeout(tm);tm=setTimeout(function(){try{if(OV&&document.body.contains(OV))monta();}catch(e){}},30);}
+function guarda(){
+try{
+var o=document.getElementById('scOv');
+if(o!==OV){
+if(OBS){try{OBS.disconnect();}catch(e){}OBS=null;}
+OV=o;P=null;
+if(OV){OBS=new MutationObserver(function(muts){
+for(var i=0;i<muts.length;i++){if(muts[i].target===OV){pianifica();return;}}   /* la schermata ridisegnata da capo (piazza nuova) */
+});OBS.observe(OV,{childList:true});pianifica();}
+}
+}catch(e){}
+}
+try{
+/* quale piazza: la prendo da chi apre l'esercizio */
+var _ps=window.pzScrivi;
+if(typeof _ps==='function'){window.pzScrivi=function(id){ULT=id||null;return _ps.apply(this,arguments);};}
+new MutationObserver(function(){if(document.getElementById('scOv')!==OV)guarda();}).observe(document.body,{childList:true});
+window.addEventListener('resize',function(){if(!OV)return;if(attiva())pianifica();else smonta();});
+guarda();
+}catch(e){}
 })();
