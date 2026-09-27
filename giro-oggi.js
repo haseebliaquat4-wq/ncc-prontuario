@@ -56,8 +56,22 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   for(let k=0;k<2;k++){await p.evaluate(()=>{const it=Q.items[Q.idx];document.querySelectorAll('#qRunAns .qans')[it.correct].click();});await p.waitForTimeout(1900);}
   await p.evaluate(()=>document.querySelector('.qrun-x').click());await conferma();f=await film(1300);ok(f[f.length-1]==='home','errori: uscendo non torna in home');
   await p.waitForTimeout(400);r=await riga("'e'");console.log('   riga errori:',r.n);ok(r.n==='2/6','errori: il conteggio non e’ 2/6 ma '+r.n);
-  /* ── D · piazze: la prima di oggi, verificata fino in fondo ── */
+  /* ── D0 · solo piazze e percorsi completati (tutti i marker) ── */
+  r=await riga("'pz'");console.log('   piazze senza marker:',r.t.slice(0,70));ok(r.n===''&&/tutti i marker/.test(r.t),'piazze: senza piazze completate la riga non lo dice ('+r.t+')');
+  const pr0=await p.evaluate(()=>nccOggiStato().pr);console.log('   percorsi scelti:',pr0.join(','));
+  ok(pr0.length===2&&pr0.every(id=>id==='r2'||id==='r4'),'percorsi: scelti anche quelli non completati '+pr0.join(','));
+  /* 6 piazze complete, una con una via senza marker, una con la sola piazza: e una scelta vecchia non completa */
+  const comp=await p.evaluate(()=>{const T=pzTutte(),co={},ok=[],no=[];
+    T.slice(0,6).forEach((q,k)=>{co[q.id]={lat:45.46+k/200,lon:9.19};q.v.forEach((v,i)=>co[q.id+'_'+i]={lat:45.46+k/200+i/2000,lon:9.19+i/2000});ok.push(q.id);});
+    const a=T[6],c=T[7];co[a.id]={lat:45.5,lon:9.2};a.v.slice(1).forEach((v,i)=>co[a.id+'_'+(i+1)]={lat:45.5,lon:9.2+i/1000});co[c.id]={lat:45.51,lon:9.21};no.push(a.id,c.id);
+    localStorage.setItem('pzCoords',JSON.stringify(co));
+    const st=nccOggiStato();st.pz=[a.id,ok[0]];localStorage.setItem('oggiNcc',JSON.stringify(st));   /* come se stamattina fosse uscita una piazza incompleta */
+    return {ok,no};});
+  await p.waitForTimeout(500);
   const st0=await p.evaluate(()=>nccOggiStato());
+  console.log('   piazze scelte:',st0.pz.join(','),'| complete',comp.ok.join(','),'| incomplete',comp.no.join(','));
+  ok(st0.pz.length===3&&st0.pz.every(id=>comp.ok.includes(id)),'piazze: fra le scelte ce n’e’ una non completata '+st0.pz.join(','));
+  ok(st0.pz[0]===comp.ok[0],'piazze: la scelta completata di stamattina non resta al suo posto');
   await tocca("'pz'");f=await film(1000);console.log('piazza entra'.padEnd(18),f.join(' → '));pulito(f,'piazza entra');ok(f[f.length-1]==='piazza','piazze: non si apre la piazza');
   const tit=await p.evaluate(()=>(document.querySelector('#pzOv .pz-ti')||{}).textContent);
   const nome1=await p.evaluate(id=>pzTutte().find(x=>x.id===id).n,st0.pz[0]);ok(tit===nome1,'piazze: si apre '+tit+' invece di '+nome1);
@@ -94,13 +108,13 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   ok(!Object.keys(g.n.q).length&&!Object.keys(g.n.e).length,'giorno dopo: i conteggi non ripartono da zero');
   const hd2=await p.evaluate(()=>document.querySelector('#hmOggi .og-tot').textContent);ok(!/Tutto fatto/.test(hd2),'giorno dopo: la sezione resta «tutto fatto»');
   /* ── H · sincronizzazione: stesso giorno si sommano, giorno vecchio ignorato ── */
-  const sy=await p.evaluate(()=>{const st=nccOggiStato();
-    const stesso=JSON.stringify({d:st.d,t:st.t-5000,q:{'700':1,'701':1},e:{},e0:9,pz:['pzA','pzB','pzC'],pr:['r1']});
+  const sy=await p.evaluate(ok=>{const st=nccOggiStato();
+    const stesso=JSON.stringify({d:st.d,t:st.t-5000,q:{'700':1,'701':1},e:{},e0:9,pz:ok.slice(0,3),pr:['r4']});
     nccSyncUnisci({oggiNcc:stesso});const a=nccOggiStato();
     nccSyncUnisci({oggiNcc:JSON.stringify({d:'2020-01-01',t:1,q:{'900':1},e:{},e0:1,pz:[],pr:[]})});const b2=nccOggiStato();
-    return {q:Object.keys(a.q).length,pz:a.pz.join(','),e0:a.e0,vecchio:Object.keys(b2.q).includes('900')};});
+    return {q:Object.keys(a.q).length,pz:a.pz.join(','),pr:a.pr.join(','),e0:a.e0,vecchio:Object.keys(b2.q).includes('900')};},comp.ok);
   console.log('sincronizzazione',JSON.stringify(sy));
-  ok(sy.q===2&&sy.pz==='pzA,pzB,pzC'&&sy.e0===9,'sync stesso giorno non unisce');ok(!sy.vecchio,'sync: un giorno vecchio sovrascrive');
+  ok(sy.q===2&&sy.pz===comp.ok.slice(0,3).join(',')&&sy.pr.indexOf('r4')===0&&sy.e0===9,'sync stesso giorno non unisce');ok(!sy.vecchio,'sync: un giorno vecchio sovrascrive');
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

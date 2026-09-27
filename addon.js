@@ -11878,8 +11878,9 @@ document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.close
    Quattro righe, niente di complicato:
    · 30 domande nuove (mai viste in questo giro)
    · gli errori in scadenza stamattina (al massimo 40)
-   · 3 piazze: prima quelle da ripassare, poi le nuove
-   · 2 percorsi fra quelli con tutti i marker, prima i meno ripassati
+   · 3 piazze fra quelle completate (la piazza e tutte le vie col marker),
+     prima quelle da ripassare, poi le mai fatte, poi le meno recenti
+   · 2 percorsi fra quelli completati (ogni tappa col marker), prima i meno ripassati
    Tocchi la riga e parte; fatta, si spunta. Il giorno dopo arrivano
    quelle nuove: le piazze e i percorsi di ieri non si ripetono.
    Le domande e gli errori fatti oggi viaggiano col cloud; piazze e
@@ -11925,37 +11926,53 @@ var a=ids.filter(function(id){return ieri.indexOf(id)<0;}).slice(0,n);
 ids.forEach(function(id){if(a.length<n&&a.indexOf(id)<0)a.push(id);});
 return a;
 }
-function scegliPiazze(ieri){
-var sr=L('pzSR',{})||{},st=L('pzStats',{})||{},ora=Date.now(),scad=[],mai=[],resto=[];
-piazze().forEach(function(p){var s=sr[p.id];
+/* completata = tutti i marker messi: la piazza e ogni sua via; il percorso, ogni tappa */
+function pzCompleta(p,co){
+if(!p||!p.v||!p.v.length||!co[p.id])return false;
+for(var i=0;i<p.v.length;i++){if(!co[p.id+'_'+i])return false;}
+return true;
+}
+function prCompleto(r){return !!(r&&r.steps&&r.steps.length>=2&&segnati(r)===r.steps.length);}
+function scegliPiazze(ieri,gia){
+gia=gia||[];
+var co=L('pzCoords',{})||{},sr=L('pzSR',{})||{},st=L('pzStats',{})||{},ora=Date.now(),scad=[],mai=[],resto=[];
+piazze().forEach(function(p){
+if(gia.indexOf(p.id)>=0||!pzCompleta(p,co))return;
+var s=sr[p.id];
 if(s&&s.due&&s.due<=ora)scad.push(p);else if(!s&&!st[p.id])mai.push(p);else resto.push(p);});
 scad.sort(function(a,b){return sr[a.id].due-sr[b.id].due;});
 resto.sort(function(a,b){return ((sr[a.id]||{}).last||0)-((sr[b.id]||{}).last||0);});
-return prendi(scad.concat(mai,resto).map(function(p){return p.id;}),PIAZZE,ieri);
+return prendi(scad.concat(mai,resto).map(function(p){return p.id;}),Math.max(0,PIAZZE-gia.length),ieri);
 }
-function scegliPercorsi(ieri){
-var rs=[];try{rs=(routes||[]).filter(function(r){return r&&r.steps&&r.steps.length>=2;});}catch(e){}
-var finiti=rs.filter(function(r){return segnati(r)===r.steps.length;});
-if(!finiti.length)finiti=rs.filter(function(r){return segnati(r)>0;});   /* nessuno finito: quelli iniziati */
+function scegliPercorsi(ieri,gia){
+gia=gia||[];
+var rs=[];try{rs=(routes||[]).filter(function(r){return prCompleto(r)&&gia.indexOf(String(r.id))<0;});}catch(e){}
 var log=L('rDoneLog',{})||{},ora=Date.now(),rsr={};
 try{rsr=(typeof rSR!=='undefined'&&rSR)?rSR:(L('rSR',{})||{});}catch(e){}
 function scad(r){var x=rsr[r.id];return (x&&x.due&&x.due<=ora)?0:1;}
-finiti.sort(function(a,b){var d=scad(a)-scad(b);if(d)return d;return (+log[a.id]||0)-(+log[b.id]||0);});
-return prendi(finiti.map(function(r){return String(r.id);}),PERCORSI,ieri);
+rs.sort(function(a,b){var d=scad(a)-scad(b);if(d)return d;return (+log[a.id]||0)-(+log[b.id]||0);});
+return prendi(rs.map(function(r){return String(r.id);}),Math.max(0,PERCORSI-gia.length),ieri);
 }
 function stato(){
 var oggi=giorno(),st=L(K,null);
 if(!st||typeof st!=='object'||st.d!==oggi){
 var prima=(st&&typeof st==='object')?st:{};
-st={d:oggi,t:Date.now(),q:{},e:{},e0:Math.min(ERRMAX,errDue()),
-pz:scegliPiazze(prima.pz||[]),pr:scegliPercorsi(prima.pr||[])};
+var ieri={pz:(prima.pz||[]).slice(),pr:(prima.pr||[]).slice()};
+st={d:oggi,t:Date.now(),q:{},e:{},e0:Math.min(ERRMAX,errDue()),ieri:ieri,
+pz:scegliPiazze(ieri.pz),pr:scegliPercorsi(ieri.pr)};
 S(K,st);
 }
 var cambio=false;
 st.q=st.q||{};st.e=st.e||{};
-/* stamattina non c'era niente da scegliere, ora si': riempio */
-if(!(st.pz&&st.pz.length)){st.pz=scegliPiazze([]);if(st.pz.length)cambio=true;}
-if(!(st.pr&&st.pr.length)){st.pr=scegliPercorsi([]);if(st.pr.length)cambio=true;}
+/* solo quelle completate: una scelta che non lo e' (e non e' gia' fatta oggi) lascia il posto;
+   se nel frattempo ne completi altre, la lista si riempie */
+var t0=inizio(),ie=st.ieri||{},co=L('pzCoords',{})||{},sr=L('pzSR',{})||{},plog=L('pzDoneLog',{})||{},rlog=L('rDoneLog',{})||{};
+var pz=(st.pz||[]).filter(function(id){var p=trovaPz(id);return !!p&&(pzCompleta(p,co)||pzFatta(id,t0,sr,plog));});
+if(pz.length<PIAZZE)pz=pz.concat(scegliPiazze(ie.pz||[],pz));
+if(pz.join('|')!==(st.pz||[]).join('|')){st.pz=pz;cambio=true;}
+var pr=(st.pr||[]).filter(function(id){var r=trovaR(id);return !!r&&(prCompleto(r)||prFatto(id,t0,rlog));});
+if(pr.length<PERCORSI)pr=pr.concat(scegliPercorsi(ie.pr||[],pr));
+if(pr.join('|')!==(st.pr||[]).join('|')){st.pr=pr;cambio=true;}
 if(cambio)S(K,st);
 return st;
 }
@@ -11989,6 +12006,8 @@ var npz=pz.filter(function(p){return pzFatta(p.id,t0,sr,plog);}).length,okp=npz>
 compiti++;if(okp)fatti++;
 h+=riga('pz','#0E9AA7',okp,pz.length+(pz.length===1?' piazza':' piazze'),
 pz.map(function(p){return (pzFatta(p.id,t0,sr,plog)?'✓ ':'')+bello(p.n);}).join(' · '),npz+'/'+pz.length);
+}else{
+h+=riga('pz','#0E9AA7',false,'Piazze','Nessuna piazza con tutti i marker','');
 }
 /* percorsi */
 var rlog=L('rDoneLog',{})||{};
@@ -11999,7 +12018,7 @@ compiti++;if(okr)fatti++;
 h+=riga('pr','#2447D6',okr,pr.length+(pr.length===1?' percorso':' percorsi'),
 pr.map(function(r){return (prFatto(r.id,t0,rlog)?'✓ ':'')+bello(r.title);}).join(' · '),npr+'/'+pr.length);
 }else{
-h+=riga('pr','#2447D6',false,'Percorsi','Metti i marker a un percorso per averlo qui','');
+h+=riga('pr','#2447D6',false,'Percorsi','Nessun percorso con tutti i marker','');
 }
 var tutto=fatti>=compiti;
 return '<div class="og-hd"><h2>Oggi</h2><span class="og-tot'+(tutto?' ok':'')+'">'
@@ -12024,7 +12043,7 @@ try{
 var _si=Storage.prototype.setItem;
 Storage.prototype.setItem=function(k){
 var r=_si.apply(this,arguments);
-if(k===K||k==='pzSR'||k==='pzDoneLog'||k==='rDoneLog'||k==='qtStats'||k==='routes'||k==='coords')aggiorna();
+if(k===K||k==='pzSR'||k==='pzDoneLog'||k==='rDoneLog'||k==='qtStats'||k==='routes'||k==='coords'||k==='pzCoords'||k==='pzEdit'||k==='pzUser')aggiorna();
 return r;};
 }catch(e){}
 /* passata la mezzanotte (o riaprendo l'app il giorno dopo) arrivano i compiti nuovi */
@@ -12063,6 +12082,7 @@ window.__nccQuizOrigine='home';nccAvvio(function(){try{buildQuiz();qStartCat('er
 if(k==='pz'){
 var sr=L('pzSR',{})||{},plog=L('pzDoneLog',{})||{};
 var id=(st.pz||[]).filter(function(x){return trovaPz(x)&&!pzFatta(x,t0,sr,plog);})[0];
+if(!(st.pz||[]).length){nccSez('pz');return;}          /* nessuna completata: la pagina Piazze */
 if(id&&typeof pzApri==='function')pzApri(id);else if(typeof pzRandom==='function')pzRandom();
 return;}
 if(k==='pr'){
