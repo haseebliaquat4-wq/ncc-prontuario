@@ -1,7 +1,8 @@
 /* LE DOMANDE DI «OGGI» SI SALVANO E IL GIORNO DOPO SONO NUOVE.
    Giorno 1: 12 risposte, poi il telefono chiude Safari di colpo (nessun evento di uscita).
-   Riapro: le 12 devono essere salvate e non tornare. Finisco le 30 ed esco.
-   Giorno 2: 0/30 e 30 domande tutte diverse da quelle fatte ieri. */
+   Riapro: le 12 devono essere salvate e non tornare. Finisco il primo quiz (1/2),
+   poi il secondo: altre 30 mai viste, e la riga si spunta (2/2).
+   Giorno 2: 0/2 e 30 domande tutte diverse dalle 60 fatte ieri. */
 const {launch,seed,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
@@ -19,7 +20,7 @@ async function apri(b,dati,quando){
   return {ctx,p,errs};
 }
 const foto=p=>p.evaluate(()=>{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);o[k]=localStorage.getItem(k);}return o;});
-const riga=p=>p.evaluate(()=>{const r=document.querySelector('#hmOggi .og-r[onclick*="\'q\'"]');return r?{n:(r.querySelector('.og-n')||{}).textContent,ok:r.classList.contains('ok')}:null;});
+const riga=p=>p.evaluate(()=>{const r=document.querySelector('#hmOggi .og-r[onclick*="\'q\'"]');return r?{n:(r.querySelector('.og-n')||{}).textContent,s:(r.querySelector('.og-t span')||{}).textContent||'',ok:r.classList.contains('ok')}:null;});
 const sessione=p=>p.evaluate(()=>Q&&Q.items?Q.items.map(i=>i.id):[]);
 async function rispondi(p,n){const fatte=[];
   for(let k=0;k<n;k++){
@@ -43,27 +44,36 @@ async function esci(p){await p.evaluate(()=>document.querySelector('.qrun-x').cl
   /* ── riapro lo stesso giorno ── */
   let B=await apri(b,dopoKill,G1+20*60000);
   const salv=await B.p.evaluate(ids=>{const s=qtStats.seenIds||{};return ids.filter(id=>s[id]).length;},prime);
-  let r=await riga(B.p);console.log('dopo la chiusura di colpo: salvate',salv,'di 12 | riga quiz',r&&r.n);
-  ok(salv===12,'chiusura di colpo: salvate solo '+salv+' risposte su 12');ok(r&&r.n==='12/30','riga quiz dopo la chiusura: '+(r&&r.n));
+  let r=await riga(B.p);console.log('dopo la chiusura di colpo: salvate',salv,'di 12 | riga quiz',r&&r.n,'·',r&&r.s);
+  ok(salv===12,'chiusura di colpo: salvate solo '+salv+' risposte su 12');ok(r&&r.n==='0/2'&&r.s==='Primo quiz: 12 di 30','riga quiz dopo la chiusura: '+(r&&r.n)+' · '+(r&&r.s));
   await B.p.evaluate(()=>document.querySelector('#hmOggi .og-r[onclick*="\'q\'"]').click());await B.p.waitForTimeout(1200);
   const s2=await sessione(B.p);const rip=s2.filter(id=>prime.includes(id)).length;
   console.log('nuova sessione: '+s2.length+' domande, gia’ fatte che ritornano: '+rip);ok(rip===0,'le domande gia’ risposte tornano come nuove: '+rip);
   const altre=await rispondi(B.p,18);await esci(B.p);
   r=await riga(B.p);const tutte=prime.concat(altre);
   const salv2=await B.p.evaluate(ids=>{const s=qtStats.seenIds||{};const m=JSON.parse(localStorage.getItem('qtStats')).seenIds||{};return {mem:ids.filter(id=>s[id]).length,disco:ids.filter(id=>m[id]).length};},tutte);
-  console.log('fine giorno 1: riga quiz',r&&r.n,r&&r.ok?'✓':'','| salvate',JSON.stringify(salv2),'di 30');
-  ok(r&&r.n==='30/30'&&r.ok,'giorno 1: la riga non arriva a 30/30 ✓ ('+(r&&r.n)+')');ok(salv2.disco===30,'giorno 1: salvate su disco solo '+salv2.disco+' di 30');
+  console.log('primo quiz finito: riga quiz',r&&r.n,'·',r&&r.s,'| salvate',JSON.stringify(salv2),'di 30');
+  ok(r&&r.n==='1/2'&&!r.ok&&/ora il secondo/.test(r.s),'primo quiz: la riga non dice 1/2 «ora il secondo» ('+(r&&r.n)+' · '+(r&&r.s)+')');ok(salv2.disco===30,'giorno 1: salvate su disco solo '+salv2.disco+' di 30');
   const conti=await B.p.evaluate(()=>{const c=JSON.parse(localStorage.getItem('qtStats')).cat||{};let s=0;Object.keys(c).forEach(k=>s+=c[k].seen||0);return {viste:s,sospese:localStorage.getItem('qLedPend')};});
   console.log('statistiche: risposte contate',conti.viste,'| in sospeso',conti.sospese);
   ok(conti.viste===30,'statistiche: le risposte contate sono '+conti.viste+' invece di 30 (doppioni?)');ok(conti.sospese===null,'resta qualcosa in sospeso dopo l’uscita');
+  /* ── il secondo quiz dello stesso giorno ── */
+  await B.p.evaluate(()=>document.querySelector('#hmOggi .og-r[onclick*="\'q\'"]').click());await B.p.waitForTimeout(1200);
+  const s2b=await sessione(B.p);const rip1=s2b.filter(id=>tutte.includes(id)).length;
+  console.log('secondo quiz: '+s2b.length+' domande, del primo che ritornano: '+rip1);ok(s2b.length===30&&rip1===0,'secondo quiz: tornano '+rip1+' domande del primo');
+  const seconde=await rispondi(B.p,30);await esci(B.p);r=await riga(B.p);tutte.push(...seconde);
+  console.log('fine giorno 1: riga quiz',r&&r.n,r&&r.ok?'✓':'','·',r&&r.s);
+  ok(r&&r.n==='2/2'&&r.ok&&/60 domande nuove/.test(r.s),'giorno 1: la riga non arriva a 2/2 ✓ ('+(r&&r.n)+' · '+(r&&r.s)+')');
+  const conti2=await B.p.evaluate(()=>{const c=JSON.parse(localStorage.getItem('qtStats')).cat||{};let s=0;Object.keys(c).forEach(k=>s+=c[k].seen||0);return s;});
+  ok(conti2===60,'statistiche dopo due quiz: '+conti2+' invece di 60');
   const fine1=await foto(B.p);B.errs.forEach(e=>fails.push('JS giorno1b '+e));await B.ctx.close();
   /* ── giorno 2 ── */
   let C=await apri(b,fine1,G2);
-  r=await riga(C.p);console.log('giorno 2: riga quiz',r&&r.n);ok(r&&r.n==='0/30'&&!r.ok,'giorno 2: la riga non riparte da 0/30 ('+(r&&r.n)+')');
+  r=await riga(C.p);console.log('giorno 2: riga quiz',r&&r.n,'·',r&&r.s);ok(r&&r.n==='0/2'&&!r.ok,'giorno 2: la riga non riparte da 0/2 ('+(r&&r.n)+')');
   await C.p.evaluate(()=>document.querySelector('#hmOggi .og-r[onclick*="\'q\'"]').click());await C.p.waitForTimeout(1200);
   const s3=await sessione(C.p);const rip2=s3.filter(id=>tutte.includes(id)).length;
   console.log('giorno 2: '+s3.length+' domande, di ieri che ritornano: '+rip2);ok(s3.length===30&&rip2===0,'giorno 2: tornano '+rip2+' domande di ieri');
-  const g2=await rispondi(C.p,5);await esci(C.p);r=await riga(C.p);console.log('giorno 2 dopo 5 risposte:',r&&r.n);ok(r&&r.n==='5/30','giorno 2: conteggio '+(r&&r.n));
+  const g2=await rispondi(C.p,5);await esci(C.p);r=await riga(C.p);console.log('giorno 2 dopo 5 risposte:',r&&r.n,'·',r&&r.s);ok(r&&r.n==='0/2'&&r.s==='Primo quiz: 5 di 30','giorno 2: conteggio '+(r&&r.n)+' · '+(r&&r.s));
   C.errs.forEach(e=>fails.push('JS giorno2 '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

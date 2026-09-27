@@ -41,13 +41,13 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   const tocca=k=>p.evaluate(k=>document.querySelector('#hmOggi .og-r[onclick*="'+k+'"]').click(),k);
   const pulito=(seq,nome)=>{if(seq.some(x=>/^vuoto|^quiz:dash|^pagina/.test(x)))fails.push(nome+': schermo sbagliato di passaggio '+seq.join(' → '));};
   const conferma=async()=>{await p.waitForTimeout(350);await p.evaluate(()=>{const b=document.querySelector('#popOv .pop-b[data-i="0"]');b&&b.click();});};
-  /* ── B · 30 domande nuove ── */
+  /* ── B · i due quiz di domande nuove ── */
   let f;
   await tocca("'q'");f=await film(1500);console.log('quiz entra'.padEnd(18),f.join(' → '));pulito(f,'quiz entra');ok(f[f.length-1]==='quiz:run','quiz: non parte');
   for(let k=0;k<3;k++){await p.evaluate(()=>{const it=Q.items[Q.idx];document.querySelectorAll('#qRunAns .qans')[it.correct].click();});await p.waitForTimeout(1900);}
   await p.evaluate(()=>document.querySelector('.qrun-x').click());await conferma();f=await film(1300);
   console.log('quiz esci'.padEnd(18),f.join(' → '));pulito(f.filter(x=>x!=='popup'),'quiz esci');ok(f[f.length-1]==='home','quiz: uscendo non torna in home ma a '+f[f.length-1]);
-  await p.waitForTimeout(400);let r=await riga("'q'");console.log('   riga quiz:',r.n);ok(r.n==='3/30','quiz: il conteggio non e’ 3/30 ma '+r.n);
+  await p.waitForTimeout(400);let r=await riga("'q'");console.log('   riga quiz:',r.n,'|',r.t);ok(r.n==='0/2'&&/Primo quiz: 3 di 30/.test(r.t),'quiz: il conteggio non e’ 0/2 con «Primo quiz: 3 di 30» ma '+r.n+' '+r.t);
   /* ── C · errori in scadenza ── */
   r=await riga("'e'");ok(r.n==='0/6','errori: all’inizio non e’ 0/6 ma '+r.n);
   await tocca("'e'");f=await film(1800);console.log('errori entra'.padEnd(18),f.join(' → '));
@@ -60,17 +60,17 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   r=await riga("'pz'");console.log('   piazze senza marker:',r.t.slice(0,70));ok(r.n===''&&/tutti i marker/.test(r.t),'piazze: senza piazze completate la riga non lo dice ('+r.t+')');
   const pr0=await p.evaluate(()=>nccOggiStato().pr);console.log('   percorsi scelti:',pr0.join(','));
   ok(pr0.length===2&&pr0.every(id=>id==='r2'||id==='r4'),'percorsi: scelti anche quelli non completati '+pr0.join(','));
-  /* 6 piazze complete, una con una via senza marker, una con la sola piazza: e una scelta vecchia non completa */
+  /* 12 piazze complete, una con una via senza marker, una con la sola piazza: e una scelta vecchia non completa */
   const comp=await p.evaluate(()=>{const T=pzTutte(),co={},ok=[],no=[];
-    T.slice(0,6).forEach((q,k)=>{co[q.id]={lat:45.46+k/200,lon:9.19};q.v.forEach((v,i)=>co[q.id+'_'+i]={lat:45.46+k/200+i/2000,lon:9.19+i/2000});ok.push(q.id);});
-    const a=T[6],c=T[7];co[a.id]={lat:45.5,lon:9.2};a.v.slice(1).forEach((v,i)=>co[a.id+'_'+(i+1)]={lat:45.5,lon:9.2+i/1000});co[c.id]={lat:45.51,lon:9.21};no.push(a.id,c.id);
+    T.slice(0,12).forEach((q,k)=>{co[q.id]={lat:45.46+k/200,lon:9.19};q.v.forEach((v,i)=>co[q.id+'_'+i]={lat:45.46+k/200+i/2000,lon:9.19+i/2000});ok.push(q.id);});
+    const a=T[12],c=T[13];co[a.id]={lat:45.5,lon:9.2};a.v.slice(1).forEach((v,i)=>co[a.id+'_'+(i+1)]={lat:45.5,lon:9.2+i/1000});co[c.id]={lat:45.51,lon:9.21};no.push(a.id,c.id);
     localStorage.setItem('pzCoords',JSON.stringify(co));
     const st=nccOggiStato();st.pz=[a.id,ok[0]];localStorage.setItem('oggiNcc',JSON.stringify(st));   /* come se stamattina fosse uscita una piazza incompleta */
     return {ok,no};});
   await p.waitForTimeout(500);
   const st0=await p.evaluate(()=>nccOggiStato());
   console.log('   piazze scelte:',st0.pz.join(','),'| complete',comp.ok.join(','),'| incomplete',comp.no.join(','));
-  ok(st0.pz.length===3&&st0.pz.every(id=>comp.ok.includes(id)),'piazze: fra le scelte ce n’e’ una non completata '+st0.pz.join(','));
+  ok(st0.pz.length===6&&st0.pz.every(id=>comp.ok.includes(id)),'piazze: fra le scelte ce n’e’ una non completata '+st0.pz.join(','));
   ok(st0.pz[0]===comp.ok[0],'piazze: la scelta completata di stamattina non resta al suo posto');
   await tocca("'pz'");f=await film(1000);console.log('piazza entra'.padEnd(18),f.join(' → '));pulito(f,'piazza entra');ok(f[f.length-1]==='piazza','piazze: non si apre la piazza');
   const tit=await p.evaluate(()=>(document.querySelector('#pzOv .pz-ti')||{}).textContent);
@@ -80,7 +80,10 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
     if(fatto)break;await p.waitForTimeout(60);}
   await p.waitForTimeout(300);await p.evaluate(()=>document.querySelector('#pzOv .pz-hd2 .pz-x').click());f=await film(1100);
   console.log('piazza esci'.padEnd(18),f.join(' → '));ok(f[f.length-1]==='home','piazze: finita la verifica, ‹ non torna in home ma a '+f[f.length-1]);
-  await p.waitForTimeout(400);r=await riga("'pz'");console.log('   riga piazze:',r.n,'|',r.t.slice(0,80));ok(r.n==='1/3'&&/✓/.test(r.t),'piazze: non si spunta la piazza fatta ('+r.n+')');
+  await p.waitForTimeout(400);r=await riga("'pz'");console.log('   riga piazze:',r.n,'|',r.t.slice(0,90));
+  const sotto=await p.evaluate(()=>document.querySelector('#hmOggi .og-r[onclick*="\'pz\'"] .og-t span').textContent);
+  const corto1=nome1.toLowerCase().replace(/^piazza\s+(?:(?:di|del|dello|della|dei|degli|delle)\s+|d['’])?/,'').replace(/\s*\(.*$/,'');
+  ok(r.n==='1/6'&&sotto.split(' · ').length===5&&sotto.toLowerCase().indexOf(corto1)<0,'piazze: la piazza fatta non si spunta o resta nella lista ('+r.n+' · '+sotto+')');
   /* ── E · percorsi: il primo di oggi, fino all'ultima tappa ── */
   await tocca("'pr'");f=await film(1300);console.log('percorso entra'.padEnd(18),f.join(' → '));pulito(f,'percorso entra');
   const cid=await p.evaluate(()=>cur&&String(cur.id));ok(cid===st0.pr[0],'percorsi: si apre '+cid+' invece di '+st0.pr[0]);
@@ -91,7 +94,7 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   await p.screenshot({path:__dirname+'/oggi-dopo.png'});
   /* ── F · tutto fatto ── */
   const tutto=await p.evaluate(()=>{const st=nccOggiStato();buildQuiz();
-    QUIZ_ALL.slice(300,330).forEach(it=>st.q[it.id]=1);Object.keys(qtStats.err).slice(0,st.e0).forEach(id=>st.e[id]=1);
+    QUIZ_ALL.slice(300,360).forEach(it=>st.q[it.id]=1);Object.keys(qtStats.err).slice(0,st.e0).forEach(id=>st.e[id]=1);
     const sr=JSON.parse(localStorage.getItem('pzSR')||'{}');st.pz.forEach(id=>{sr[id]=Object.assign(sr[id]||{box:1,due:Date.now()+86400000},{last:Date.now()});});
     const lg=JSON.parse(localStorage.getItem('rDoneLog')||'{}');st.pr.forEach(id=>lg[id]=Date.now());
     localStorage.setItem('pzSR',JSON.stringify(sr));localStorage.setItem('rDoneLog',JSON.stringify(lg));localStorage.setItem('oggiNcc',JSON.stringify(st));return true;});
@@ -104,7 +107,7 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
     const n=nccOggiStato();return {ieri,n};});
   await p.waitForTimeout(500);
   console.log('giorno dopo: piazze',g.ieri.pz.join(','),'→',g.n.pz.join(','),'| percorsi',g.ieri.pr.join(','),'→',g.n.pr.join(','));
-  ok(g.n.pz.length===3&&!g.n.pz.some(x=>g.ieri.pz.includes(x)),'giorno dopo: le piazze si ripetono');
+  ok(g.n.pz.length===6&&!g.n.pz.some(x=>g.ieri.pz.includes(x)),'giorno dopo: le piazze si ripetono');
   ok(!Object.keys(g.n.q).length&&!Object.keys(g.n.e).length,'giorno dopo: i conteggi non ripartono da zero');
   const hd2=await p.evaluate(()=>document.querySelector('#hmOggi .og-tot').textContent);ok(!/Tutto fatto/.test(hd2),'giorno dopo: la sezione resta «tutto fatto»');
   /* ── H · sincronizzazione: stesso giorno si sommano, giorno vecchio ignorato ── */
@@ -112,9 +115,9 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
     const stesso=JSON.stringify({d:st.d,t:st.t-5000,q:{'700':1,'701':1},e:{},e0:9,pz:ok.slice(0,3),pr:['r4']});
     nccSyncUnisci({oggiNcc:stesso});const a=nccOggiStato();
     nccSyncUnisci({oggiNcc:JSON.stringify({d:'2020-01-01',t:1,q:{'900':1},e:{},e0:1,pz:[],pr:[]})});const b2=nccOggiStato();
-    return {q:Object.keys(a.q).length,pz:a.pz.join(','),pr:a.pr.join(','),e0:a.e0,vecchio:Object.keys(b2.q).includes('900')};},comp.ok);
+    return {q:Object.keys(a.q).length,pz:a.pz.slice(0,3).join(','),n:a.pz.length,pr:a.pr.join(','),e0:a.e0,vecchio:Object.keys(b2.q).includes('900')};},comp.ok);
   console.log('sincronizzazione',JSON.stringify(sy));
-  ok(sy.q===2&&sy.pz===comp.ok.slice(0,3).join(',')&&sy.pr.indexOf('r4')===0&&sy.e0===9,'sync stesso giorno non unisce');ok(!sy.vecchio,'sync: un giorno vecchio sovrascrive');
+  ok(sy.q===2&&sy.pz===comp.ok.slice(0,3).join(',')&&sy.n===6&&sy.pr.indexOf('r4')===0&&sy.e0===9,'sync stesso giorno non unisce');ok(!sy.vecchio,'sync: un giorno vecchio sovrascrive');
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});
