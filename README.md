@@ -11,6 +11,7 @@ Non fanno parte dell'app: il sito non li carica mai.
 
 | Script | Cosa controlla |
 |---|---|
+| `giro-oggi.js` | la sezione «Oggi» della home: c'e' dal primo fotogramma, ogni riga parte e torna in home, si spunta, il giorno dopo cambia, i conteggi si uniscono fra dispositivi |
 | `avvio-film.js` | i primi 3,5 secondi dell'avvio: nessuna home vecchia, nessun salto |
 | `quiz-film2.js` | passaggi pagina Quiz ↔ esercizio, argomenti, popup, coach |
 | `giro-quiz.js` | tutti i tasti della schermata del quiz: risposte, ‹ ›, pallini, Ascolta, ☆, ⚐, Termina, ✕, simulazione |

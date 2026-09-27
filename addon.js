@@ -2499,6 +2499,34 @@ background:var(--card)!important;color:var(--tx)!important;border:1.5px solid va
 #qRun .qrun-top{position:sticky;top:0;z-index:3;background:var(--ios-bg);}
 #qRun .qrun-body{flex:1 0 auto;overflow:visible;}
 .qrun-meta .cell[style*="none"] + .sep{display:none;}
+
+/* ══════════ OGGI: i compiti del giorno ══════════ */
+.og{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:var(--t-r,18px);
+padding:12px 14px 3px;margin:0 0 22px;box-sizing:border-box;}
+.og-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 3px;}
+.og-hd h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.2px;color:var(--ios-lbl);}
+.og-tot{font-size:13px;font-weight:700;color:var(--ios-lbl2);font-variant-numeric:tabular-nums;}
+.og-tot.ok{color:var(--t-verde);}
+.og-r{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:9px 0;margin:0;
+border:none;border-top:1px solid var(--ios-sep);border-radius:0;background:none;box-shadow:none;
+font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.og-hd+.og-r{border-top:none;}
+.og-r:active{opacity:.55;}
+.og-c{flex:0 0 26px;width:26px;height:26px;box-sizing:border-box;border-radius:50%;
+border:2.5px solid var(--c);display:flex;align-items:center;justify-content:center;color:#fff;}
+.og-c svg{width:14px;height:14px;display:none;}
+.og-r.ok .og-c{background:var(--t-verde);border-color:var(--t-verde);}
+.og-r.ok .og-c svg{display:block;}
+.og-t{flex:1;min-width:0;}
+.og-t b{display:block;font-size:15.5px;font-weight:700;color:var(--ios-lbl);line-height:1.25;}
+.og-t span{display:block;font-size:13px;color:var(--ios-lbl2);line-height:1.3;margin-top:2px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.og-n{flex-shrink:0;font-size:15px;font-weight:800;color:var(--ios-lbl2);font-variant-numeric:tabular-nums;}
+.og-r.ok .og-n{color:var(--t-verde);}
+.og-ch{flex-shrink:0;font-size:24px;line-height:1;color:var(--ios-lbl3);}
+/* schermi larghi: due colonne, la sezione resta bassa */
+@media(min-width:700px){#hmOggi{display:grid;grid-template-columns:1fr 1fr;column-gap:32px;}
+#hmOggi .og-hd{grid-column:1/-1;}#hmOggi .og-hd+.og-r+.og-r{border-top:none;}}
 `;
 }catch(e){}
 })();
@@ -9655,7 +9683,7 @@ var h='<div class="hm-top"><h1 class="hm-ciao">'+E(saluto())+'</h1>'
 +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">'
 +'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button></div>';
 /* il coach: l'unico posto dei suggerimenti, un messaggio alla volta */
-h+=coach(n)+'<div class="hm-griglia">';
+h+=coach(n)+(typeof window.nccOggiHTML==='function'?nccOggiHTML():'')+'<div class="hm-griglia">';
 riquadri(n).forEach(function(r){
 h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
 +'<span class="hm-rq-top"><span class="hm-rq-ic">'+icona(r.k)+'</span>'
@@ -10923,7 +10951,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente'];
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','oggiNcc'];
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -10940,6 +10968,15 @@ if(!ncc||ncc[k]==null)return;
 var loc=localStorage.getItem(k),cl=ncc[k];
 if(loc==null||loc===''||loc==='{}'||loc==='[]'){localStorage.setItem(k,cl);n++;return;}
 if(k==='nomeUtente'||k==='pencilGeo')return;       /* quelli del dispositivo vincono */
+/* i compiti di oggi: vince il giorno piu' recente; nello stesso giorno si sommano le cose fatte
+   e restano le scelte fatte per prime (piazze e percorsi uguali su tutti i dispositivi) */
+if(k==='oggiNcc'){try{var oa=JSON.parse(loc),ob=JSON.parse(cl);
+if(!ob||!ob.d||!oa||!oa.d)return;
+if(ob.d>oa.d){localStorage.setItem(k,cl);n++;return;}
+if(ob.d<oa.d)return;
+var ch=0;['q','e'].forEach(function(f){if(!ob[f])return;oa[f]=oa[f]||{};Object.keys(ob[f]).forEach(function(id){if(!oa[f][id]){oa[f][id]=1;ch++;}});});
+if((+ob.t||0)&&(+ob.t||0)<(+oa.t||Infinity)){oa.t=ob.t;oa.pz=ob.pz||oa.pz;oa.pr=ob.pr||oa.pr;if(ob.e0!=null)oa.e0=ob.e0;ch++;}
+if(ch){localStorage.setItem(k,JSON.stringify(oa));n+=ch;}}catch(e){}return;}
 try{var a=JSON.parse(loc),b=JSON.parse(cl);
 if(a&&b&&typeof a==='object'&&!Array.isArray(a)){
 var agg=0;Object.keys(b).forEach(function(id){
@@ -11465,7 +11502,7 @@ try{
 document.body.classList.remove('qz-avvio');window.__nccTieniPagina=false;window.__qzHome=null;
 closeQuiz();
 try{goHome();}catch(e){}
-nccSez(QORIG||'quiz');QORIG=null;
+if(QORIG==='home')QORIG=null;else{nccSez(QORIG||'quiz');QORIG=null;}
 var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
@@ -11736,4 +11773,210 @@ window.nccHmStatEsci=function(){var r=_e.apply(this,arguments);requestAnimationF
 }catch(e){}},1500);
 window.addEventListener('popstate',function(){if(window.__hmDaStat){requestAnimationFrame(controlla);[150,400].forEach(function(ms){setTimeout(controlla,ms);});}},true);
 document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))window.__hmDaStat=false;}catch(e){}},true);
+})();
+
+/* ═══════════════════════════════════════════════════
+   ✅ OGGI — i compiti del giorno, nella home sotto il coach
+   Quattro righe, niente di complicato:
+   · 30 domande nuove (mai viste in questo giro)
+   · gli errori in scadenza stamattina (al massimo 40)
+   · 3 piazze: prima quelle da ripassare, poi le nuove
+   · 2 percorsi fra quelli con tutti i marker, prima i meno ripassati
+   Tocchi la riga e parte; fatta, si spunta. Il giorno dopo arrivano
+   quelle nuove: le piazze e i percorsi di ieri non si ripetono.
+   Le domande e gli errori fatti oggi viaggiano col cloud; piazze e
+   percorsi si riconoscono dal loro registro, che sincronizza gia'.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var QUIZ=30,PIAZZE=3,PERCORSI=2,ERRMAX=40,K='oggiNcc';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function due2(n){return (n<10?'0':'')+n;}
+function giorno(d){d=d||new Date();return d.getFullYear()+'-'+due2(d.getMonth()+1)+'-'+due2(d.getDate());}
+function inizio(){var d=new Date();d.setHours(0,0,0,0);return d.getTime();}
+function conta(o){return o?Object.keys(o).length:0;}
+/* "PIAZZA DEL DUOMO" -> "Piazza del Duomo" */
+function bello(s){
+return String(s||'').toLowerCase()
+.replace(/(^|[\s\-\/('’])([a-zà-ù])/g,function(m,a,b){return a+b.toUpperCase();})
+.replace(/(\s)(Di|Del|Della|Dello|Dei|Degli|Delle|E|Al|Alla|Da|In)(?=\s)/g,function(m,a,b){return a+b.toLowerCase();});
+}
+
+/* ── i dati: senza aspettare piazze.js, cosi' la sezione c'e' dal primo istante ── */
+function piazze(){
+try{if(typeof window.pzTutte==='function'){var t=window.pzTutte();if(t&&t.length)return t;}}catch(e){}
+try{var ed=L('pzEdit',{})||{},u=L('pzUser',[]);
+return (window.__PIAZZE__||[]).concat(Array.isArray(u)?u:[]).filter(function(p){return p&&p.id&&p.n&&!(ed[p.id]&&ed[p.id].del);})
+.map(function(p){return (ed[p.id]&&ed[p.id].n)?{id:p.id,n:ed[p.id].n,v:p.v}:p;});}catch(e){return [];}
+}
+function trovaPz(id){var a=piazze();for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+function trovaR(id){try{return (routes||[]).filter(function(r){return String(r.id)===String(id);})[0]||null;}catch(e){return null;}}
+function segnati(r){var n=0;try{for(var i=0;i<r.steps.length;i++)if(coords[r.id+'_'+i])n++;}catch(e){}return n;}
+function pzFatta(id,t0,sr,log){var s=sr[id];return !!((s&&(+s.last||0)>=t0)||((+log[id]||0)>=t0));}
+function prFatto(id,t0,log){return (+log[id]||0)>=t0;}
+function errDue(){var n=0,ora=Date.now();try{Object.keys(qtStats.err||{}).forEach(function(id){if(srDue(id)<=ora)n++;});}catch(e){}return n;}
+function viste(){try{var g=qtStats.giro;return (g&&g.n>1)?(g.viste||{}):(qtStats.seenIds||{});}catch(e){return {};}}
+
+/* ── le scelte del giorno: diverse da quelle di ieri, se ce ne sono abbastanza ── */
+function prendi(ids,n,ieri){
+ieri=ieri||[];
+var a=ids.filter(function(id){return ieri.indexOf(id)<0;}).slice(0,n);
+ids.forEach(function(id){if(a.length<n&&a.indexOf(id)<0)a.push(id);});
+return a;
+}
+function scegliPiazze(ieri){
+var sr=L('pzSR',{})||{},st=L('pzStats',{})||{},ora=Date.now(),scad=[],mai=[],resto=[];
+piazze().forEach(function(p){var s=sr[p.id];
+if(s&&s.due&&s.due<=ora)scad.push(p);else if(!s&&!st[p.id])mai.push(p);else resto.push(p);});
+scad.sort(function(a,b){return sr[a.id].due-sr[b.id].due;});
+resto.sort(function(a,b){return ((sr[a.id]||{}).last||0)-((sr[b.id]||{}).last||0);});
+return prendi(scad.concat(mai,resto).map(function(p){return p.id;}),PIAZZE,ieri);
+}
+function scegliPercorsi(ieri){
+var rs=[];try{rs=(routes||[]).filter(function(r){return r&&r.steps&&r.steps.length>=2;});}catch(e){}
+var finiti=rs.filter(function(r){return segnati(r)===r.steps.length;});
+if(!finiti.length)finiti=rs.filter(function(r){return segnati(r)>0;});   /* nessuno finito: quelli iniziati */
+var log=L('rDoneLog',{})||{},ora=Date.now(),rsr={};
+try{rsr=(typeof rSR!=='undefined'&&rSR)?rSR:(L('rSR',{})||{});}catch(e){}
+function scad(r){var x=rsr[r.id];return (x&&x.due&&x.due<=ora)?0:1;}
+finiti.sort(function(a,b){var d=scad(a)-scad(b);if(d)return d;return (+log[a.id]||0)-(+log[b.id]||0);});
+return prendi(finiti.map(function(r){return String(r.id);}),PERCORSI,ieri);
+}
+function stato(){
+var oggi=giorno(),st=L(K,null);
+if(!st||typeof st!=='object'||st.d!==oggi){
+var prima=(st&&typeof st==='object')?st:{};
+st={d:oggi,t:Date.now(),q:{},e:{},e0:Math.min(ERRMAX,errDue()),
+pz:scegliPiazze(prima.pz||[]),pr:scegliPercorsi(prima.pr||[])};
+S(K,st);
+}
+var cambio=false;
+st.q=st.q||{};st.e=st.e||{};
+/* stamattina non c'era niente da scegliere, ora si': riempio */
+if(!(st.pz&&st.pz.length)){st.pz=scegliPiazze([]);if(st.pz.length)cambio=true;}
+if(!(st.pr&&st.pr.length)){st.pr=scegliPercorsi([]);if(st.pr.length)cambio=true;}
+if(cambio)S(K,st);
+return st;
+}
+
+/* ── la sezione ── */
+var SPUNTA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function riga(k,c,ok,titolo,sotto,conto){
+return '<button class="og-r'+(ok?' ok':'')+'" style="--c:'+c+'" onclick="nccOggiVai(\''+k+'\')">'
++'<span class="og-c">'+SPUNTA+'</span>'
++'<span class="og-t"><b>'+E(titolo)+'</b>'+(sotto?'<span>'+E(sotto)+'</span>':'')+'</span>'
++(conto?'<span class="og-n">'+E(conto)+'</span>':'')
++'<span class="og-ch">›</span></button>';
+}
+function corpo(){
+var st=stato(),t0=inizio(),fatti=0,compiti=0,h='';
+/* quiz */
+var nq=conta(st.q),okq=nq>=QUIZ;
+compiti++;if(okq)fatti++;
+h+=riga('q','#F39C12',okq,QUIZ+' domande nuove','Quiz · mai viste in questo giro',Math.min(nq,QUIZ)+'/'+QUIZ);
+/* errori */
+var ne=conta(st.e),e0=+st.e0||0,oke=(e0===0)||ne>=e0||errDue()===0;   /* niente piu' in scadenza: fatto */
+if(oke&&e0)ne=e0;
+compiti++;if(oke)fatti++;
+h+=riga('e','#C62828',oke,e0?('Ripassa '+e0+(e0===1?' errore':' errori')):'Errori',
+e0?'In scadenza stamattina':'Nessuno in scadenza oggi',e0?(Math.min(ne,e0)+'/'+e0):'');
+/* piazze */
+var sr=L('pzSR',{})||{},plog=L('pzDoneLog',{})||{};
+var pz=(st.pz||[]).map(trovaPz).filter(Boolean);
+if(pz.length){
+var npz=pz.filter(function(p){return pzFatta(p.id,t0,sr,plog);}).length,okp=npz>=pz.length;
+compiti++;if(okp)fatti++;
+h+=riga('pz','#0E9AA7',okp,pz.length+(pz.length===1?' piazza':' piazze'),
+pz.map(function(p){return (pzFatta(p.id,t0,sr,plog)?'✓ ':'')+bello(p.n);}).join(' · '),npz+'/'+pz.length);
+}
+/* percorsi */
+var rlog=L('rDoneLog',{})||{};
+var pr=(st.pr||[]).map(trovaR).filter(Boolean);
+if(pr.length){
+var npr=pr.filter(function(r){return prFatto(r.id,t0,rlog);}).length,okr=npr>=pr.length;
+compiti++;if(okr)fatti++;
+h+=riga('pr','#2447D6',okr,pr.length+(pr.length===1?' percorso':' percorsi'),
+pr.map(function(r){return (prFatto(r.id,t0,rlog)?'✓ ':'')+bello(r.title);}).join(' · '),npr+'/'+pr.length);
+}else{
+h+=riga('pr','#2447D6',false,'Percorsi','Metti i marker a un percorso per averlo qui','');
+}
+var tutto=fatti>=compiti;
+return '<div class="og-hd"><h2>Oggi</h2><span class="og-tot'+(tutto?' ok':'')+'">'
++(tutto?'✓ Tutto fatto':(fatti+' di '+compiti))+'</span></div>'+h;
+}
+window.nccOggiHTML=function(){
+try{return '<section id="hmOggi" class="og" aria-label="I compiti di oggi">'+corpo()+'</section>';}catch(e){return '';}
+};
+window.nccOggiStato=function(){try{return JSON.parse(JSON.stringify(stato()));}catch(e){return null;}};
+
+/* ── aggiornamento: solo la sezione, e solo se e' cambiata ── */
+var tmA=null,ultimoGiorno=giorno();
+function aggiorna(){
+clearTimeout(tmA);
+tmA=setTimeout(function(){try{
+var el=document.getElementById('hmOggi');if(!el)return;
+var h=corpo();if(el.__h!==h&&el.innerHTML!==h){el.innerHTML=h;}el.__h=h;
+}catch(e){}},200);
+}
+window.nccOggiAggiorna=aggiorna;
+try{
+var _si=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k){
+var r=_si.apply(this,arguments);
+if(k===K||k==='pzSR'||k==='pzDoneLog'||k==='rDoneLog'||k==='qtStats'||k==='routes'||k==='coords')aggiorna();
+return r;};
+}catch(e){}
+/* passata la mezzanotte (o riaprendo l'app il giorno dopo) arrivano i compiti nuovi */
+function giornoNuovo(){if(giorno()!==ultimoGiorno){ultimoGiorno=giorno();aggiorna();}}
+setInterval(giornoNuovo,60000);
+try{document.addEventListener('visibilitychange',function(){if(!document.hidden){giornoNuovo();aggiorna();}});}catch(e){}
+
+/* ── le risposte di oggi: domande nuove ed errori in scadenza ── */
+try{
+if(typeof qPick==='function'&&!qPick.__oggi){
+var _qp=qPick;
+qPick=function(i){
+var it=null,idx=-1,prima=null,nuova=false,err=false;
+try{if(typeof Q!=='undefined'&&Q&&Q.items&&!Q._locked){idx=Q.idx;it=Q.items[idx];prima=Q.ans[idx];
+nuova=!viste()[it.id];err=!!(qtStats.err&&qtStats.err[it.id]!==undefined)&&srDue(it.id)<=Date.now();}}catch(e){}
+var r=_qp.apply(this,arguments);
+try{
+if(it&&(prima==null||prima<0)&&(nuova||err)&&Q&&Q.items&&Q.items[idx]===it&&Q.ans[idx]!=null&&Q.ans[idx]>=0){
+var st=stato();if(nuova)st.q[it.id]=1;if(err)st.e[it.id]=1;S(K,st);
+}
+}catch(e){}
+return r;};
+qPick.__oggi=true;
+}
+}catch(e){}
+
+/* ── i tocchi ── */
+window.nccOggiVai=function(k){
+try{hap();}catch(e){}
+try{
+var st=stato(),t0=inizio();
+if(k==='q'){window.__nccQuizOrigine='home';nccAvvio(function(){try{buildQuiz();qStartNew();}catch(e){}});return;}
+if(k==='e'){
+if(!conta(qtStats.err)){if(typeof toast2==='function')toast2('✅ Nessun errore da ripassare',2200);return;}
+window.__nccQuizOrigine='home';nccAvvio(function(){try{buildQuiz();qStartCat('errata');}catch(e){}});return;}
+if(k==='pz'){
+var sr=L('pzSR',{})||{},plog=L('pzDoneLog',{})||{};
+var id=(st.pz||[]).filter(function(x){return trovaPz(x)&&!pzFatta(x,t0,sr,plog);})[0];
+if(id&&typeof pzApri==='function')pzApri(id);else if(typeof pzRandom==='function')pzRandom();
+return;}
+if(k==='pr'){
+var rlog=L('rDoneLog',{})||{};
+var r=(st.pr||[]).map(trovaR).filter(function(x){return x&&!prFatto(x.id,t0,rlog);})[0];
+if(!r&&!(st.pr||[]).length){nccSez('topo');return;}
+goTopografia();
+setTimeout(function(){try{if(r)selectRoute(r);else rndRoute();}catch(e){}},320);
+return;}
+}catch(e){}
+};
+
+/* la home viene ridisegnata subito: la sezione c'e' gia' al primo sguardo */
+try{if(typeof window.nccHomeRiquadri==='function')nccHomeRiquadri();}catch(e){}
 })();

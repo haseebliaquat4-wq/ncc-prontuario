@@ -5,7 +5,7 @@ const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8');
 const MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const BASE=process.env.NCC_BASE||'http://localhost:8765/';
 
-/* dati di prova: tre percorsi con marker veri (Milano) + il percorso di default */
+/* dati di prova: quattro percorsi con marker veri (Milano) */
 function seed(){
   const routes=[
     {id:'r1',title:'DUOMO - CENTRALE',steps:['P.ZA DUOMO','VIA MAZZINI','VIA TORINO','CORSO MAGENTA','VIA CARDUCCI','VIALE DI PORTA VERCELLINA','PIAZZALE BARACCA','VIA BOCCACCIO']},
@@ -40,21 +40,22 @@ async function boot(browser,opt){
     return route.abort();
   });
   const s=opt.seed===false?null:seed();
-  await ctx.addInitScript(s=>{
+  await ctx.addInitScript(a=>{
     try{
-      if(s&&!sessionStorage.getItem('__seeded')){
+      if(a.s&&!sessionStorage.getItem('__seeded')){
         localStorage.clear();
-        localStorage.setItem('routes',JSON.stringify(s.routes));
-        localStorage.setItem('coords',JSON.stringify(s.coords));
+        localStorage.setItem('routes',JSON.stringify(a.s.routes));
+        localStorage.setItem('coords',JSON.stringify(a.s.coords));
         localStorage.setItem('ob1','true');
+        Object.keys(a.extra||{}).forEach(k=>localStorage.setItem(k,typeof a.extra[k]==='string'?a.extra[k]:JSON.stringify(a.extra[k])));
         sessionStorage.setItem('__seeded','1');
       }
     }catch(e){}
-  },s);
+  },{s,extra:opt.extra||null});
   const page=await ctx.newPage();
   page.on('pageerror',e=>errors.push('pageerror: '+(e&&e.message)+' @ '+String(e&&e.stack||'').split('\n').slice(0,3).join(' | ')));
   page.on('console',m=>{if(m.type()==='error'){const t=m.text();if(!/Failed to load resource|net::ERR|favicon/.test(t))errors.push('console: '+t);}});
-  if(opt.clock!==false)await page.clock.install();
+  if(opt.clock!==false)await page.clock.install(opt.now?{time:opt.now}:undefined);
   await page.goto(BASE+'index.html',{waitUntil:'load'});
   if(opt.clock!==false)await page.clock.runFor(opt.bootMs||7000);
   else await page.waitForTimeout(opt.bootMs||6500);
