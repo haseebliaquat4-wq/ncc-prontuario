@@ -12,6 +12,7 @@ Non fanno parte dell'app: il sito non li carica mai.
 | Script | Cosa controlla |
 |---|---|
 | `giro-ipad.js` | su iPad: pagine al centro e in colonne (tutto in uno schermo in orizzontale, si ridistribuiscono ruotando), la piazza con la mappa accanto, «Scrivi le vie» con un riquadro per via per la Pencil; sul telefono niente cambia |
+| `giro-pencil.js` | Disegna a memoria (Pencil lungo il percorso: tutte le tappe e nell'ordine; meta' percorso; un altro; col dito sul telefono) e Mappa muta (dieci tocchi, giudizi, riepilogo, rigioca); entrata e uscita senza Home di passaggio |
 | `giro-oggi.js` | la sezione «Oggi» della home: c'e' dal primo fotogramma, piazze e percorsi solo fra quelli completati (tutti i marker), ogni riga parte e torna in home, si spunta, il giorno dopo cambia, i conteggi si uniscono fra dispositivi |
 | `oggi-giorni.js` | le domande di «Oggi» su due giorni: risposte salvate anche se Safari si chiude di colpo a meta' quiz, il giorno dopo 30 domande tutte nuove, niente conteggi doppi |
 | `giro-indietro.js` | indietro su iPhone, ogni frame: in Safari la pagina non resta mai a meta', dopo il gesto sparisce al volo, con la freccia ‹ di Safari scorre via; nell'app sulla Home il trascinamento torna a posto; popup, carta di Cosa & Dove, testate con la (i) |

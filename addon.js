@@ -2583,6 +2583,62 @@ font-size:20px;font-weight:800;cursor:pointer;}
 display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:850;}
 .scp-v{flex:1;min-width:0;font-size:20px;font-weight:750;color:var(--tx);line-height:1.25;}
 .scp-s{flex-shrink:0;font-size:13px;font-weight:800;color:var(--warn);}
+/* ══ Fase 2 iPad: Disegna a memoria e Mappa muta (mappe senza nomi) ══ */
+#dmOv,#mmOv{position:fixed;inset:0;z-index:8970;background:var(--ios-bg);display:flex;flex-direction:column;overflow:hidden;
+transform:translateX(100%);transition:transform .42s var(--ios-spring);}
+#dmOv.dentro,#mmOv.dentro{transform:none;}
+#dmOv.fuori,#mmOv.fuori{transform:translateX(100%);}
+.dm-top,.mm-q{display:flex;align-items:center;gap:12px;padding:2px 16px 12px;flex-shrink:0;}
+.dm-tt,.mm-tt{flex:1;min-width:0;}
+.dm-tt b,.mm-tt b{display:block;font-size:18px;font-weight:800;color:var(--ios-lbl);letter-spacing:-.2px;line-height:1.25;}
+.dm-tt span,.mm-tt span{display:block;font-size:14px;color:var(--ios-lbl2);margin-top:3px;line-height:1.35;}
+.dm-tt i,.dm-leg i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+color:#fff;font-size:11px;font-weight:900;vertical-align:1px;margin:0 2px;}
+.dm-ia{background:#0E9F6E;}.dm-ib{background:#E5484D;}
+.mm-n{flex-shrink:0;min-width:54px;text-align:center;padding:7px 10px;border-radius:999px;background:var(--ios-card);border:1.5px solid var(--ios-sep);
+font-size:14px;font-weight:800;color:var(--ios-lbl2);font-variant-numeric:tabular-nums;}
+.dm-alt{flex-shrink:0;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--ios-sep);background:var(--ios-card);font-size:20px;cursor:pointer;}
+.dm-area,.mm-area{position:relative;flex:1;min-height:0;margin:0 12px;border-radius:16px;overflow:hidden;border:1.5px solid var(--ios-sep);touch-action:none;}
+#dmMap,#mmMap{position:absolute;inset:0;}
+#dmCanvas{position:absolute;inset:0;z-index:650;pointer-events:none;}
+.dm-aiuto{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:660;max-width:calc(100% - 90px);box-sizing:border-box;
+background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;
+color:var(--ios-lbl2);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dm-barra,.mm-barra{display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));flex-shrink:0;}
+.dm-b{height:50px;min-width:50px;padding:0 14px;border-radius:14px;border:1.5px solid var(--ios-sep);background:var(--ios-card);
+color:var(--ios-lbl);font:inherit;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.dm-b.on{border-color:var(--a,#2447D6);color:var(--a,#2447D6);}
+.dm-go,.mm-go{flex:1;height:50px;border:none;border-radius:999px;background:var(--a,#2447D6);color:#fff;font:inherit;font-size:16px;
+font-weight:800;cursor:pointer;}
+.dm-go[disabled]{opacity:.45;}
+.mm-go[hidden],.dm-res[hidden],.mm-res[hidden]{display:none;}
+.mm-esito{flex:1;min-width:0;font-size:16px;font-weight:700;color:var(--ios-lbl2);line-height:1.3;}
+.mm-esito b{color:var(--ios-lbl);}
+.mm-go{flex:0 0 auto;padding:0 26px;}
+.dmk{background:none!important;border:none!important;}
+.dmk span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;box-sizing:border-box;border-radius:50%;border:2.5px solid #fff;
+color:#fff;font:900 12px/1 -apple-system,system-ui,sans-serif;box-shadow:0 2px 7px rgba(0,0,0,.3);background:#2447D6;}
+.dmk-a span{background:#0E9F6E;width:32px;height:32px;font-size:14px;}
+.dmk-b span{background:#E5484D;width:32px;height:32px;font-size:14px;}
+.dmk-ok span{background:#0E9F6E;}
+.dmk-ko span{background:#E5484D;}
+.dmk-tu span{background:#F39C12;width:22px;height:22px;}
+.dmk-qui span{background:#0E9F6E;width:26px;height:26px;}
+.dm-res,.mm-res{position:absolute;left:12px;right:12px;bottom:12px;z-index:700;max-height:62%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);}
+.dm-voto,.mm-voto{font-size:26px;font-weight:900;color:var(--ios-lbl);letter-spacing:-.4px;}
+.dm-sub,.mm-sub{font-size:15px;color:var(--ios-lbl2);margin:4px 0 12px;line-height:1.4;}
+.dm-el,.mm-el{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.dm-el div,.mm-el div{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--ios-lbl);}
+.dm-el em,.mm-el em{font-style:normal;flex-shrink:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+color:#fff;font-size:12px;font-weight:900;}
+.dm-el .si em{background:#0E9F6E;}.dm-el .no em{background:#E5484D;}
+.mm-el span{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ios-lbl2);font-weight:700;}
+.dm-az,.mm-az{display:flex;gap:10px;}
+.dm-az button,.mm-az button{flex:1;height:48px;border-radius:999px;border:1.5px solid var(--ios-sep);background:var(--ios-card);
+color:var(--ios-lbl);font:inherit;font-size:15px;font-weight:800;cursor:pointer;}
+.dm-az button.pieno,.mm-az button.pieno{background:var(--a,#2447D6);border-color:var(--a,#2447D6);color:#fff;}
+@media(min-width:900px){.dm-res,.mm-res{left:auto;width:380px;top:12px;bottom:auto;max-height:calc(100% - 24px);}}
 @media(min-width:720px){
 #scnOv,#pfOv{--col:680px;}
 #scnOv.dc-largo,#pfOv.dc-largo{--col:min(1100px,calc(100% - 48px));}
@@ -9245,6 +9301,7 @@ rndRoute=function(){
 try{
 var pool=percorsiPronti();
 if(pool.length<2)return _rr.apply(this,arguments);
+try{if(typeof cur!=='undefined'&&cur){var al=pool.filter(function(x){return String(x.id)!==String(cur.id);});if(al.length)pool=al;}}catch(e){}   /* mai lo stesso che hai gia' davanti */
 var s=window.nccPesca?window.nccPesca(pool):pool[Math.floor(Math.random()*pool.length)];
 if(!s)return _rr.apply(this,arguments);
 selectRoute(s);
@@ -10016,6 +10073,7 @@ g:[
 {ic:'\u270d\ufe0f',c:C.rosso,n:'Quiz vie',s:'Le scrivi tu, i refusi non contano',a:az('t5',topo('q'))},
 {ic:'\ud83c\udfb2',c:C.viola,n:'Percorso a caso',s:'Fra quelli che hai preparato',a:az('t6',function(){try{goTopografia();setTimeout(function(){rndRoute();},340);}catch(e){}})},
 {ic:'\ud83e\udde9',c:C.teal,n:'Ordina le vie',s:'Rimetti in fila le tappe',a:az('t7',function(){ordinaVie();})},
+{ic:'\ud83d\udd8a\ufe0f',c:C.arancio,n:'Disegna a memoria',s:'Traccia il percorso sulla mappa senza nomi',a:az('t13',function(){nccDisegnaPercorso();}),resta:true},
 {ic:'\ud83d\udd01',c:C.rosa,n:'Vie da ripassare',s:'Quelle che sbagli nel Quiz vie',d:n.vie?String(n.vie):'',a:az('t8',function(){openWrong();})}]},
 {t:'I TUOI PERCORSI',v:[
 {ic:'\u2795',c:C.verde,n:'Nuovo percorso',s:'Scrivi le tappe di un percorso tuo',a:az('t0',function(){try{goTopografia();setTimeout(function(){openAdd();},340);}catch(e){}})},
@@ -10034,6 +10092,7 @@ g:[
 {t:'QUIZ',v:[
 {ic:'\u2753',c:C.verde,n:'Quali vie sboccano',s:'Ti do la piazza, scegli le vie',a:az('p4',function(){pzQuizVie();})},
 {ic:'\ud83d\udd04',c:C.blu,n:'Dove sbocca una via',s:'Ti do la via, trova la piazza',a:az('p5',function(){pzQuizInv();})},
+{ic:'\ud83e\udded',c:C.indaco,n:'Mappa muta',s:'Tocca dove si trova la piazza',a:az('p8',function(){nccMappaMuta();}),resta:true},
 {ic:'\u2705',c:C.viola,n:'Verifica',s:'Tutte le vie di una piazza, a memoria',a:az('p6',function(){try{var p=pzPescaPiazza();if(p){openPiazze();setTimeout(function(){pzApri(p.id);setTimeout(function(){pzVerifica(p.id);},200);},200);}}catch(e){}})}]},
 {t:'ELENCO',v:[
 {ic:'\ud83d\udcda',c:C.grigio,n:'Tutte le piazze',s:'91 piazze, con la ricerca',d:n.pzTot?String(n.pzTot):'',a:az('p7',function(){openPiazze();})}]}
@@ -10103,6 +10162,8 @@ p3:['Scrivi','Scrivi a memoria le vie che sboccano nella piazza.'],
 p4:['Avvia','Ti do la piazza, scegli le vie che ci sboccano.'],
 p5:['Avvia','Ti do la via, trova la piazza dove sbocca.'],
 p6:['Avvia','Tutte le vie di una piazza, a memoria, senza aiuti.'],
+p8:['Gioca','Ti dico una piazza e tu tocchi sulla mappa senza nomi dove si trova: vedi di quanti metri hai sbagliato. Dieci di fila, fra le piazze completate.'],
+t13:['Disegna','Sulla mappa senza nomi tracci il percorso da A a B, con la Pencil o col dito. Poi vedi il percorso giusto e quante tappe hai preso.'],
 n4:['Avvia','41 domande sul regolamento comunale.'],
 n6:['Avvia','Gli importi delle tariffe, a memoria.']};
 var LINK={q4:1,t0:1,t9:1,t10:1,t11:1,t12:1,p7:1,n1:1,n2:1,n3:1,n5:1};
@@ -10142,10 +10203,10 @@ nccPopup({icona:r.ic,titolo:r.n,testo:ex[1]||r.s||'',azioni:[
 };
 function dividiTopo(P){
 try{var st=P.g.filter(function(g){return g.t==='STUDIA';})[0];if(!st)return;
-var rip=st.v.filter(function(r){return r.a==='t6'||r.a==='t7'||r.a==='t8';});
+var rip=st.v.filter(function(r){return r.a==='t6'||r.a==='t7'||r.a==='t8'||r.a==='t13';});
 st.v=st.v.filter(function(r){return rip.indexOf(r)<0;});
 var i=P.g.indexOf(st);P.g.splice(i+1,0,{t:'RIPASSO',v:[rip.filter(function(r){return r.a==='t8';})[0],
-rip.filter(function(r){return r.a==='t6';})[0],rip.filter(function(r){return r.a==='t7';})[0]].filter(Boolean)});}catch(e){}
+rip.filter(function(r){return r.a==='t6';})[0],rip.filter(function(r){return r.a==='t7';})[0],rip.filter(function(r){return r.a==='t13';})[0]].filter(Boolean)});}catch(e){}
 }
 
 window.nccPagina=function(id,t,c,ind){pagina(id,t,c,ind);};
@@ -12450,4 +12511,396 @@ new MutationObserver(function(){if(document.getElementById('scOv')!==OV)guarda()
 window.addEventListener('resize',function(){if(!OV)return;if(attiva())pianifica();else smonta();});
 guarda();
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🖊️ DISEGNA A MEMORIA  ·  🧭 MAPPA MUTA   (fase 2 iPad)
+   Due esercizi sulla mappa senza i nomi delle vie.
+   · Disegna a memoria: il percorso da A a B lo tracci tu, con la Pencil
+     o col dito. Controlla: compare quello giusto, le tappe prese in verde,
+     quelle mancate in rosso, e se le hai fatte nell'ordine giusto.
+   · Mappa muta: ti dico una piazza, tocchi dove si trova e vedi di
+     quanti metri hai sbagliato. Dieci di fila, fra le piazze completate.
+   Solo percorsi e piazze con tutti i marker: la risposta giusta sono
+   i tuoi marker, messi a mano.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var TILE='https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png';
+function LS(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function SS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function bello(s){
+return String(s||'').toLowerCase()
+.replace(/(^|[\s\-\/('’])([a-zà-ù])/g,function(m,a,b){return a+b.toUpperCase();})
+.replace(/(\s)(Di|Del|Della|Dello|Dei|Degli|Delle|E|Al|Alla|Da|In)(?=\s)/g,function(m,a,b){return a+b.toLowerCase();});
+}
+function ll(c){return c?[+c.lat,+(c.lon!=null?c.lon:c.lng)]:null;}
+function metri(a,b){var la=(a[0]+b[0])/2*Math.PI/180,dx=(b[1]-a[1])*Math.cos(la)*111320,dy=(b[0]-a[0])*110540;return Math.sqrt(dx*dx+dy*dy);}
+function fmt(d){return d>=1000?(Math.round(d/100)/10).toString().replace('.',',')+' km':Math.round(d)+' m';}
+function hp(){try{hap();}catch(e){}}
+function avviso(t){try{if(typeof toast2==='function')toast2(t,2200);}catch(e){}}
+
+/* ── la schermata: entra da destra, indietro del telefono la chiude ── */
+function apriOv(id,html,chiudi){
+var o=document.getElementById(id),nuovo=!o;
+if(nuovo){o=document.createElement('div');o.id=id;o.className='rd';document.body.appendChild(o);}
+o.innerHTML=html;
+if(nuovo){
+requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('dentro');});});
+try{if(window.nccOvApri)nccOvApri(id,chiudi);}catch(e){}
+}
+return o;
+}
+function chiudiOv(id){
+var o=document.getElementById(id);if(!o)return;
+try{if(window.nccOvChiuso)nccOvChiuso(id);}catch(e){}
+o.classList.remove('dentro');o.classList.add('fuori');
+setTimeout(function(){try{o.remove();}catch(e){}},440);
+}
+/* la (i) di questi due esercizi */
+var INFO2={disegna:['🖊️','Disegna a memoria','Sulla mappa senza nomi traccia il percorso da A a B: con la Pencil (il dito sposta la mappa) oppure col dito. Poi tocca Controlla: compare il percorso giusto, le tappe prese in verde e quelle mancate in rosso.'],
+muta:['🧭','Mappa muta','Ti dico una piazza e tu tocchi sulla mappa senza nomi dove si trova: vedi subito di quanti metri hai sbagliato. Dieci di fila, fra le piazze che hai completato. Le prime a uscire sono quelle che non hai mai fatto e quelle dove sbagli di piu’.']};
+try{
+var _ni=window.nccInfo;
+window.nccInfo=function(k){
+if(INFO2[k]){var i=INFO2[k];try{nccPopup({icona:i[0],titolo:i[1],testo:i[2],azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){}return;}
+return _ni?_ni.apply(this,arguments):null;
+};
+}catch(e){}
+
+/* ═════════ DISEGNA A MEMORIA ═════════ */
+var DM={r:null,map:null,cv:null,ctx:null,tratti:[],cur:null,ult:null,dito:true,penna:false,fatto:false,strato:null};
+function completi(){
+try{return (routes||[]).filter(function(r){
+if(!r||!r.steps||r.steps.length<2)return false;
+for(var i=0;i<r.steps.length;i++){if(!coords[r.id+'_'+i])return false;}
+return true;});}catch(e){return [];}
+}
+window.nccDisegnaPercorso=function(id){
+try{
+var pool=completi();
+if(!pool.length){nccPopup({icona:'🖊️',titolo:'Disegna a memoria',
+testo:'Serve un percorso con il marker su ogni tappa. Completalo sulla mappa e poi lo disegni a memoria.',azioni:[{t:'Ho capito',stile:'pieno'}]});return;}
+var r=null;
+if(id!=null)r=pool.filter(function(x){return String(x.id)===String(id);})[0]||null;
+if(!r){var altri=DM.r?pool.filter(function(x){return String(x.id)!==String(DM.r.id);}):pool;if(!altri.length)altri=pool;
+r=window.nccPesca?nccPesca(altri):altri[Math.floor(Math.random()*altri.length)];}
+dmApri(r);hp();
+}catch(e){}
+};
+function ditoEtichetta(){
+var b=document.getElementById('dmDito');if(!b)return;
+b.textContent=DM.dito?'☝️ Disegni col dito':'✋ Il dito sposta';
+b.classList.toggle('on',DM.dito);
+}
+function dmApri(r){
+var n=r.steps.length;
+var html=nccTestata('Disegna a memoria','nccDisegnaChiudi()','disegna')
++'<div class="dm-top"><div class="dm-tt"><b>'+E(bello(r.title))+'</b>'
++'<span>Da <i class="dm-ia">A</i> '+E(bello(r.steps[0]))+' a <i class="dm-ib">B</i> '+E(bello(r.steps[n-1]))+' · '+n+' tappe</span></div>'
++'<button class="dm-alt" onclick="nccDisegnaPercorso()" aria-label="Un altro percorso">🎲</button></div>'
++'<div class="dm-area" id="dmArea"><div id="dmMap"></div><canvas id="dmCanvas"></canvas>'
++'<div class="dm-aiuto" id="dmAiuto">✏️ Traccia il percorso da A a B</div>'
++'<div class="dm-res" id="dmRes" hidden></div></div>'
++'<div class="dm-barra">'
++'<button class="dm-b" id="dmDito" onclick="nccDisegnaDito()"></button>'
++'<button class="dm-b" onclick="nccDisegnaAnnulla()" aria-label="Annulla l’ultimo tratto">↶</button>'
++'<button class="dm-b" onclick="nccDisegnaRicomincia()" aria-label="Ricomincia">🗑</button>'
++'<button class="dm-go" id="dmGo" onclick="nccDisegnaControlla()">✓ Controlla</button></div>';
+var vecchia=DM.map;DM.map=null;
+DM.r=r;DM.tratti=[];DM.cur=null;DM.ult=null;DM.fatto=false;DM.strato=null;
+apriOv('dmOv',html,function(){nccDisegnaChiudi();});
+try{if(vecchia)vecchia.remove();}catch(e){}
+ditoEtichetta();
+setTimeout(dmMappa,60);
+}
+function puntiR(r){return r.steps.map(function(s,i){return ll(coords[r.id+'_'+i]);});}
+function dmMappa(){
+try{
+var LF=window.L;if(!LF||!LF.map||!DM.r||!document.getElementById('dmMap'))return;
+var pts=puntiR(DM.r);
+DM.map=LF.map('dmMap',{zoomControl:true,attributionControl:false,tap:false,minZoom:11,maxZoom:18});
+try{document.getElementById('dmMap').__mappa=DM.map;}catch(e){}   /* per i giri di prova */
+try{LF.tileLayer(TILE,{subdomains:'abcd',maxZoom:19}).addTo(DM.map);}catch(e){}
+DM.map.fitBounds(pts,{padding:[70,70]});
+DM.strato=LF.layerGroup().addTo(DM.map);
+segnaAB();
+try{DM.map.on('move zoom viewreset resize',dmRidisegna);}catch(e){}
+dmTela();dmInput();
+setTimeout(function(){try{if(DM.map){DM.map.invalidateSize();DM.map.fitBounds(pts,{padding:[70,70]});}}catch(e){}dmTela();},220);
+}catch(e){}
+}
+function segnaAB(){
+try{
+var LF=window.L,r=DM.r,n=r.steps.length,a=ll(coords[r.id+'_0']),b=ll(coords[r.id+'_'+(n-1)]);
+DM.strato.clearLayers();
+LF.marker(a,{icon:LF.divIcon({className:'dmk dmk-a',html:'<span>A</span>',iconSize:[32,32],iconAnchor:[16,16]}),interactive:false,zIndexOffset:900}).addTo(DM.strato);
+LF.marker(b,{icon:LF.divIcon({className:'dmk dmk-b',html:'<span>B</span>',iconSize:[32,32],iconAnchor:[16,16]}),interactive:false,zIndexOffset:900}).addTo(DM.strato);
+}catch(e){}
+}
+function dmTela(){
+try{
+var cv=document.getElementById('dmCanvas');if(!cv)return;
+var a=cv.parentElement.getBoundingClientRect(),d=window.devicePixelRatio||1;
+cv.width=Math.round(a.width*d);cv.height=Math.round(a.height*d);cv.style.width=a.width+'px';cv.style.height=a.height+'px';
+DM.cv=cv;DM.ctx=cv.getContext('2d');DM.ctx.setTransform(d,0,0,d,0,0);DM.ctx.lineCap='round';DM.ctx.lineJoin='round';
+dmRidisegna();
+}catch(e){}
+}
+function aSchermo(g){try{var p=DM.map.latLngToContainerPoint({lat:g.lat,lng:g.lng});return {x:p.x,y:p.y};}catch(e){return null;}}
+function daSchermo(x,y){try{var q=DM.map.containerPointToLatLng({x:x,y:y});return {lat:q.lat,lng:q.lng};}catch(e){return null;}}
+function dmRidisegna(){
+try{
+if(!DM.ctx||!DM.cv||!DM.map)return;
+DM.ctx.clearRect(0,0,DM.cv.width,DM.cv.height);
+DM.ctx.strokeStyle='#F39C12';DM.ctx.lineWidth=5;
+DM.tratti.forEach(function(t){
+if(!t||!t.p||t.p.length<2)return;
+var a=aSchermo(t.p[0]);if(!a)return;DM.ctx.beginPath();DM.ctx.moveTo(a.x,a.y);
+for(var i=1;i<t.p.length;i++){var b=aSchermo(t.p[i]);if(b)DM.ctx.lineTo(b.x,b.y);}
+DM.ctx.stroke();});
+}catch(e){}
+}
+function dmInput(){
+try{
+var area=document.getElementById('dmArea');if(!area||area.__in)return;area.__in=true;
+function xy(ev){var r=area.getBoundingClientRect();return {x:ev.clientX-r.left,y:ev.clientY-r.top};}
+function fuori(t){return !!(t&&t.closest&&t.closest('.leaflet-control,.dm-res'));}
+function disegno(ev){
+if(ev.pointerType==='pen'){if(!DM.penna){DM.penna=true;DM.dito=false;ditoEtichetta();}return true;}
+return DM.dito;
+}
+area.addEventListener('pointerdown',function(ev){
+if(DM.fatto||fuori(ev.target))return;
+if(!disegno(ev))return;
+ev.preventDefault();ev.stopPropagation();
+if(DM.cur)return;                       /* un secondo dito mentre disegni: lo ignoro */
+try{area.setPointerCapture(ev.pointerId);}catch(e){}
+var q=xy(ev),g=daSchermo(q.x,q.y);if(!g)return;
+DM.ult=q;DM.cur={p:[g],id:ev.pointerId};DM.tratti.push(DM.cur);
+var ai=document.getElementById('dmAiuto');if(ai)ai.style.display='none';
+},true);
+area.addEventListener('pointermove',function(ev){
+if(!DM.cur||ev.pointerId!==DM.cur.id)return;
+ev.preventDefault();ev.stopPropagation();
+var q=xy(ev);if(DM.ult&&Math.abs(q.x-DM.ult.x)<1.5&&Math.abs(q.y-DM.ult.y)<1.5)return;
+var g=daSchermo(q.x,q.y);if(!g)return;
+DM.cur.p.push(g);
+if(DM.ctx&&DM.ult){DM.ctx.strokeStyle='#F39C12';DM.ctx.lineWidth=5;DM.ctx.beginPath();DM.ctx.moveTo(DM.ult.x,DM.ult.y);DM.ctx.lineTo(q.x,q.y);DM.ctx.stroke();}
+DM.ult=q;
+},true);
+function fine(ev){
+if(!DM.cur||(ev&&ev.pointerId!==DM.cur.id))return;
+if(ev)ev.stopPropagation();
+if(DM.cur.p.length<2)DM.tratti.pop();
+DM.cur=null;DM.ult=null;
+}
+area.addEventListener('pointerup',fine,true);
+area.addEventListener('pointercancel',fine,true);
+/* la Pencil su Safari manda anche i tocchi, e col dito che disegna la mappa sta ferma */
+['touchstart','touchmove'].forEach(function(t){
+area.addEventListener(t,function(ev){
+if(DM.fatto||fuori(ev.target))return;
+var s=ev.touches&&ev.touches[0];
+if((s&&s.touchType==='stylus')||DM.dito){ev.stopPropagation();if(ev.cancelable)ev.preventDefault();}
+},{capture:true,passive:false});});
+}catch(e){}
+}
+window.nccDisegnaDito=function(){
+DM.dito=!DM.dito;ditoEtichetta();hp();
+avviso(DM.dito?'Col dito disegni: la mappa sta ferma (zoom coi tasti + e −)':'Il dito sposta la mappa, la Pencil disegna');
+};
+window.nccDisegnaAnnulla=function(){if(DM.fatto)return;DM.tratti.pop();dmRidisegna();hp();};
+window.nccDisegnaRicomincia=function(){
+try{
+DM.tratti=[];DM.cur=null;DM.ult=null;DM.fatto=false;
+if(DM.strato)segnaAB();
+var res=document.getElementById('dmRes');if(res){res.hidden=true;res.innerHTML='';}
+var go=document.getElementById('dmGo');if(go)go.disabled=false;
+var ai=document.getElementById('dmAiuto');if(ai)ai.style.display='';
+dmRidisegna();hp();
+}catch(e){}
+};
+/* distanza di un punto da un segmento, in metri; t = dove cade lungo il segmento */
+function seg(p,a,b){var dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy,t=l2?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l2:0;
+t=Math.max(0,Math.min(1,t));var qx=a[0]+t*dx,qy=a[1]+t*dy;return {d:Math.sqrt((p[0]-qx)*(p[0]-qx)+(p[1]-qy)*(p[1]-qy)),t:t,l:Math.sqrt(l2)};}
+window.nccDisegnaControlla=function(){
+try{
+if(!DM.r||!DM.map||DM.fatto)return;
+var tr=DM.tratti.filter(function(t){return t&&t.p&&t.p.length>1;});
+if(!tr.length){avviso('✏️ Prima traccia il percorso da A a B');return;}
+var r=DM.r,n=r.steps.length,pts=puntiR(r);
+var lat0=pts[0][0],lon0=pts[0][1],cs=Math.cos(lat0*Math.PI/180);
+function xy(q){return [(q[1]-lon0)*cs*111320,(q[0]-lat0)*110540];}
+var P=pts.map(xy),T=tr.map(function(t){return t.p.map(function(g){return xy([g.lat,g.lng]);});});
+var z=(DM.map.getZoom&&DM.map.getZoom())||15,mpp=156543.03*cs/Math.pow(2,z);
+var soglia=Math.max(80,18*mpp);                /* quanto vicino devi passare a una tappa */
+function vicino(p){
+var best=Infinity,pos=0,acc=0;
+T.forEach(function(L){for(var i=1;i<L.length;i++){var s=seg(p,L[i-1],L[i]);if(s.d<best){best=s.d;pos=acc+s.t*s.l;}acc+=s.l;}acc+=1e7;});
+return {d:best,pos:pos};
+}
+var es=P.map(vicino),ok=es.map(function(e){return e.d<=soglia;}),prese=ok.filter(Boolean).length;
+var seq=es.filter(function(e,i){return ok[i];}).map(function(e){return e.pos;}),cresc=0;
+for(var i=1;i<seq.length;i++)if(seq[i]>=seq[i-1])cresc++;
+var ordine=seq.length<3?null:(cresc/(seq.length-1)>=0.8);
+function dPerc(q){var m=Infinity;for(var i=1;i<P.length;i++){var s=seg(q,P[i-1],P[i]);if(s.d<m)m=s.d;}return m;}
+var tot=0,sul=0;
+T.forEach(function(L){for(var i=1;i<L.length;i++){var a=L[i-1],b=L[i],sl=Math.sqrt((b[0]-a[0])*(b[0]-a[0])+(b[1]-a[1])*(b[1]-a[1])),k=Math.max(1,Math.ceil(sl/15));
+for(var j=0;j<k;j++){var t=(j+0.5)/k,q=[a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])];tot+=sl/k;if(dPerc(q)<=soglia)sul+=sl/k;}}});
+var pct=tot?Math.round(sul/tot*100):0;
+/* il percorso giusto, con le tappe prese in verde e quelle mancate in rosso */
+var LF=window.L;
+try{DM.strato.clearLayers();}catch(e){}   /* A e B lasciano il posto alle tappe numerate */
+try{LF.polyline(pts,{color:'#2447D6',weight:5,opacity:.75,interactive:false}).addTo(DM.strato);}catch(e){}
+pts.forEach(function(p,i){try{LF.marker(p,{icon:LF.divIcon({className:'dmk '+(ok[i]?'dmk-ok':'dmk-ko'),html:'<span>'+(i+1)+'</span>',
+iconSize:[28,28],iconAnchor:[14,14]}),interactive:false,zIndexOffset:ok[i]?500:600}).addTo(DM.strato);}catch(e){}});
+DM.fatto=true;
+var res=document.getElementById('dmRes');
+if(res){
+res.innerHTML='<div class="dm-voto">'+prese+' su '+n+' tappe</div>'
++'<div class="dm-sub">'+(ordine===null?'':(ordine?'Nell’ordine giusto ✓ · ':'Ordine da rivedere · '))
++'Il tuo tratto sta sul percorso per il '+pct+'%</div>'
++'<div class="dm-el">'+r.steps.map(function(s,i){return '<div class="'+(ok[i]?'si':'no')+'"><em>'+(i+1)+'</em>'+E(bello(s))+'</div>';}).join('')+'</div>'
++'<div class="dm-az"><button onclick="nccDisegnaRicomincia()">↻ Riprova</button><button class="pieno" onclick="nccDisegnaPercorso()">🎲 Un altro</button></div>';
+res.hidden=false;res.scrollTop=0;
+/* il percorso giusto nella parte di mappa che il riquadro non copre */
+try{var ar=document.getElementById('dmArea').getBoundingClientRect(),rr=res.getBoundingClientRect(),largo=rr.width<ar.width*0.8;
+DM.map.fitBounds(pts,largo?{paddingTopLeft:[40,40],paddingBottomRight:[Math.round(rr.width)+36,40]}:{paddingTopLeft:[40,40],paddingBottomRight:[40,Math.round(rr.height)+24]});}catch(e){}
+}
+var go=document.getElementById('dmGo');if(go)go.disabled=true;
+var st=LS('dmStats',{})||{},x=st[r.id]||{n:0,best:0};
+x.n=(x.n||0)+1;x.ult=Math.round(prese/n*100);x.best=Math.max(x.best||0,x.ult);x.last=Date.now();st[r.id]=x;SS('dmStats',st);
+window.__nccDmEsito={prese:prese,tot:n,ordine:ordine,pct:pct,soglia:Math.round(soglia)};
+hp();
+}catch(e){}
+};
+window.nccDisegnaChiudi=function(){
+var m=DM.map;DM.map=null;DM.r=null;DM.ctx=null;DM.cv=null;DM.cur=null;
+chiudiOv('dmOv');
+setTimeout(function(){try{if(m)m.remove();}catch(e){}},460);
+};
+
+/* ═════════ MAPPA MUTA ═════════ */
+var MM={pool:[],dom:[],i:0,ris:[],map:null,strato:null,risposto:false,vista:null};
+function piazzeComplete(){
+try{
+var co=LS('pzCoords',{})||{},T=(typeof window.pzTutte==='function')?pzTutte():[];
+return T.filter(function(p){
+if(!p||!p.v||!p.v.length||!co[p.id])return false;
+for(var i=0;i<p.v.length;i++){if(!co[p.id+'_'+i])return false;}
+return true;}).map(function(p){return {id:p.id,n:p.n,c:ll(co[p.id])};});
+}catch(e){return [];}
+}
+/* prima quelle mai fatte, poi quelle dove sbagli di piu'; l'ordine poi si mescola */
+function scegli(pool,n){
+var st=LS('mmStats',{})||{};
+var a=pool.map(function(p){var x=st[p.id];return {p:p,k:(x&&x.n)?(x.somma/x.n):1e9,r:Math.random()};});
+a.sort(function(x,y){return (y.k-x.k)||(x.r-y.r);});
+var sel=a.slice(0,Math.min(n,a.length)).map(function(x){return x.p;});
+for(var i=sel.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=sel[i];sel[i]=sel[j];sel[j]=t;}
+return sel;
+}
+window.nccMappaMuta=function(){
+try{
+var pool=piazzeComplete();
+if(!pool.length){nccPopup({icona:'🧭',titolo:'Mappa muta',
+testo:'Serve almeno una piazza con tutti i marker (la piazza e le sue vie). Completala sulla mappa e poi giochi.',azioni:[{t:'Ho capito',stile:'pieno'}]});return;}
+MM.pool=pool;MM.dom=scegli(pool,10);MM.i=0;MM.ris=[];
+mmApri();hp();
+}catch(e){}
+};
+function mmApri(){
+var html=nccTestata('Mappa muta','nccMappaMutaChiudi()','muta')
++'<div class="mm-q"><div class="mm-tt"><span>Dov’è</span><b id="mmNome"></b></div><div class="mm-n" id="mmN"></div></div>'
++'<div class="mm-area" id="mmArea"><div id="mmMap"></div><div class="mm-res" id="mmRes" hidden></div></div>'
++'<div class="mm-barra"><div class="mm-esito" id="mmEsito"></div>'
++'<button class="mm-go" id="mmGo" hidden onclick="nccMappaMutaAvanti()">Avanti ▶</button></div>';
+var vecchia=MM.map;MM.map=null;MM.strato=null;
+apriOv('mmOv',html,function(){nccMappaMutaChiudi();});
+try{if(vecchia)vecchia.remove();}catch(e){}
+mmDomanda();
+setTimeout(mmMappa,60);
+}
+/* la vista di partenza: tutte le piazze del gioco, almeno 2-3 km di lato (non suggerisce dove guardare) */
+function limiti(cs){
+var la=cs.map(function(c){return c[0];}),lo=cs.map(function(c){return c[1];});
+var a=Math.min.apply(null,la),b=Math.max.apply(null,la),c=Math.min.apply(null,lo),d=Math.max.apply(null,lo);
+var mla=(a+b)/2,mlo=(c+d)/2,hla=Math.max((b-a)/2,0.012),hlo=Math.max((d-c)/2,0.017);
+return [[mla-hla,mlo-hlo],[mla+hla,mlo+hlo]];
+}
+function mmMappa(){
+try{
+var LF=window.L;if(!LF||!LF.map||!document.getElementById('mmMap'))return;
+MM.map=LF.map('mmMap',{zoomControl:true,attributionControl:false,tap:false,minZoom:11,maxZoom:18});
+try{LF.tileLayer(TILE,{subdomains:'abcd',maxZoom:19}).addTo(MM.map);}catch(e){}
+MM.strato=LF.layerGroup().addTo(MM.map);
+MM.vista=limiti(MM.pool.map(function(p){return p.c;}));
+MM.map.fitBounds(MM.vista,{padding:[30,30]});
+MM.map.on('click',function(e){try{mmTocca([e.latlng.lat,e.latlng.lng]);}catch(x){}});
+setTimeout(function(){try{if(MM.map){MM.map.invalidateSize();MM.map.fitBounds(MM.vista,{padding:[30,30]});}}catch(e){}},220);
+}catch(e){}
+}
+function mmDomanda(){
+var p=MM.dom[MM.i];if(!p)return;
+MM.risposto=false;
+var nm=document.getElementById('mmNome');if(nm)nm.textContent=bello(p.n)+'?';
+var nn=document.getElementById('mmN');if(nn)nn.textContent=(MM.i+1)+'/'+MM.dom.length;
+var es=document.getElementById('mmEsito');if(es)es.textContent='Tocca la mappa dove si trova';
+var go=document.getElementById('mmGo');if(go)go.hidden=true;
+try{if(MM.strato)MM.strato.clearLayers();}catch(e){}
+}
+function mmTocca(q){
+if(MM.risposto||!MM.map)return;
+var p=MM.dom[MM.i];if(!p)return;
+MM.risposto=true;
+var LF=window.L,d=Math.round(metri(q,p.c));
+try{LF.polyline([q,p.c],{color:'#8a93a6',weight:3,dashArray:'6 6',interactive:false}).addTo(MM.strato);
+LF.marker(q,{icon:LF.divIcon({className:'dmk dmk-tu',html:'<span></span>',iconSize:[22,22],iconAnchor:[11,11]}),interactive:false}).addTo(MM.strato);
+LF.marker(p.c,{icon:LF.divIcon({className:'dmk dmk-qui',html:'<span>✓</span>',iconSize:[26,26],iconAnchor:[13,13]}),interactive:false,zIndexOffset:900}).addTo(MM.strato);}catch(e){}
+var voto=d<=120?'🎯 Preciso!':(d<=350?'👍 Vicino':(d<=800?'Quasi':'Lontano'));
+MM.ris.push({p:p,d:d});
+var es=document.getElementById('mmEsito');if(es)es.innerHTML='<b>'+voto+'</b> · '+fmt(d);
+var go=document.getElementById('mmGo');if(go){go.hidden=false;go.textContent=(MM.i>=MM.dom.length-1)?'Risultato ▶':'Avanti ▶';}
+var st=LS('mmStats',{})||{},x=st[p.id]||{n:0,somma:0};
+x.n=(x.n||0)+1;x.somma=(x.somma||0)+d;x.ult=d;x.last=Date.now();st[p.id]=x;SS('mmStats',st);
+try{var bb=MM.map.getBounds();if(bb&&bb.contains&&!bb.contains(p.c))MM.map.fitBounds([q,p.c],{padding:[60,60]});}catch(e){}
+hp();
+}
+window.nccMappaMutaTocca=function(lat,lng){mmTocca([lat,lng]);};
+window.nccMappaMutaAvanti=function(){
+if(!MM.risposto)return;
+if(MM.i>=MM.dom.length-1){mmFine();return;}
+MM.i++;mmDomanda();
+try{if(MM.vista&&MM.map)MM.map.fitBounds(MM.vista,{padding:[30,30]});}catch(e){}   /* di nuovo la vista di partenza */
+hp();
+};
+function mmFine(){
+var r=MM.ris,n=r.length,media=n?r.reduce(function(a,x){return a+x.d;},0)/n:0;
+var prec=r.filter(function(x){return x.d<=120;}).length,vic=r.filter(function(x){return x.d>120&&x.d<=350;}).length;
+var el=r.slice().sort(function(a,b){return b.d-a.d;}).map(function(x){
+return '<div><em style="background:'+(x.d<=120?'#0E9F6E':(x.d<=350?'#F39C12':'#E5484D'))+'"></em>'+E(bello(x.p.n))+'<span>'+fmt(x.d)+'</span></div>';}).join('');
+var res=document.getElementById('mmRes');
+if(res){
+res.innerHTML='<div class="mm-voto">Errore medio '+fmt(media)+'</div>'
++'<div class="mm-sub">🎯 '+prec+' precise · 👍 '+vic+' vicine · su '+n+'</div>'
++'<div class="mm-el">'+el+'</div>'
++'<div class="mm-az"><button onclick="nccMappaMutaChiudi()">Chiudi</button><button class="pieno" onclick="nccMappaMuta()">↻ Rigioca</button></div>';
+res.hidden=false;res.scrollTop=0;
+}
+var go=document.getElementById('mmGo');if(go)go.hidden=true;
+var es=document.getElementById('mmEsito');if(es)es.innerHTML='<b>Finito</b> · '+n+(n===1?' piazza':' piazze');
+window.__nccMmEsito={n:n,media:Math.round(media),precise:prec};
+hp();
+}
+window.nccMappaMutaChiudi=function(){
+var m=MM.map;MM.map=null;MM.strato=null;
+chiudiOv('mmOv');
+setTimeout(function(){try{if(m)m.remove();}catch(e){}},460);
+};
+try{window.addEventListener('resize',function(){setTimeout(function(){
+try{if(DM.map&&document.getElementById('dmOv')){DM.map.invalidateSize();dmTela();}}catch(e){}
+try{if(MM.map&&document.getElementById('mmOv'))MM.map.invalidateSize();}catch(e){}
+},150);});}catch(e){}
 })();
