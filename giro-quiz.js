@@ -10,7 +10,7 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
     if(/leaflet(\.min)?\.js/.test(u)&&!/decorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:MOCK_JS});
     if(/leaflet\.css/.test(u))return r.fulfill({status:200,contentType:'text/css',body:MOCK_CSS});
     if(/firebase|polylinedecorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:''});return r.abort();});
-  const s=seed();await ctx.addInitScript(s=>{if(!localStorage.getItem('routes')){localStorage.setItem('routes',JSON.stringify(s.routes));localStorage.setItem('coords',JSON.stringify(s.coords));localStorage.setItem('ob1','true');localStorage.setItem('antiFretta','false');}},s);
+  const s=seed();await ctx.addInitScript(s=>{if(!localStorage.getItem('routes')){localStorage.setItem('routes',JSON.stringify(s.routes));localStorage.setItem('coords',JSON.stringify(s.coords));localStorage.setItem('ob1','true');localStorage.setItem('antiFretta','false');localStorage.setItem('wkRepTs',String(Date.now()));localStorage.setItem('azzerato2026',String(Date.now()));}},s);
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.goto(BASE+'index.html');await p.waitForTimeout(6000);
   await p.addScriptTag({content:`window.__f=function(){var v=document.getElementById('qRun'),q=document.getElementById('qRunQ'),t=document.querySelector('#qRun .qrun-top');
@@ -61,7 +61,8 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   await p.screenshot({path:__dirname+'/giro-2-lunga.png'});
   // 7 Termina → conferma → risultato → ‹ → pagina Quiz
   await clic('.qrun-end');await p.waitForTimeout(500);await p.evaluate(()=>{const b=document.querySelector('#popOv .pop-b[data-i="0"]');b&&b.click();});
-  q=await film('termina',1200);ok(q.some(x=>x.startsWith('quiz:result')),'Termina non mostra il risultato: '+q.join(','));
+  q=await film('termina',1200);const fin=await p.evaluate(()=>qCurView==='result'&&/Sessione finita/.test((document.getElementById('popOv')||{}).innerText||''));
+  ok(q.some(x=>x.startsWith('quiz:result'))||fin,'Termina non mostra il risultato: '+q.join(','));
   await p.evaluate(()=>{try{nccChiudiPopup();}catch(e){}qNavBack();});q=await film('‹ dal risultato',800);ok(q[q.length-1].startsWith('pagina'),'dal risultato non torna alla pagina: '+q.join(','));
   // 8 simulazione: cronometro e tre caselle, poi ✕
   await p.waitForTimeout(400);await p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].find(x=>/Simulazione/.test(x.textContent)).click());

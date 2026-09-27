@@ -2527,6 +2527,14 @@ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* schermi larghi: due colonne, la sezione resta bassa */
 @media(min-width:700px){#hmOggi{display:grid;grid-template-columns:1fr 1fr;column-gap:32px;}
 #hmOggi .og-hd{grid-column:1/-1;}#hmOggi .og-hd+.og-r+.og-r{border-top:none;}}
+/* indietro col gesto di iPhone: Safari ha gia' fatto scorrere lo schermo, qui si chiude al volo */
+html.ncc-subito *,html.ncc-subito *::before,html.ncc-subito *::after{transition:none!important;}
+/* scheda Tariffe: ‹ a sinistra, titolo, (i) a destra, come nelle altre testate */
+#rgOv .rg-hd{display:grid;grid-template-columns:40px minmax(0,1fr) 38px;column-gap:12px;align-items:center;padding:14px 14px 12px;}
+#rgOv .rg-hd b{grid-column:2;grid-row:1;padding-right:0;font-size:18px;line-height:1.2;}
+#rgOv .rg-hd small{grid-column:2;grid-row:2;margin-top:2px;}
+#rgOv .rg-hd .rg-x{position:static!important;grid-column:1;grid-row:1/3;}
+#rgOv .rg-hd .t-info-in{position:static!important;transform:none!important;grid-column:3;grid-row:1/3;}
 `;
 }catch(e){}
 })();
@@ -2813,9 +2821,15 @@ _wr(force);
 (function(){
 'use strict';
 var _led=[],_ledDone=false;
+/* ogni risposta resta scritta in memoria finche' non entra nelle statistiche:
+   se l'iPhone chiude Safari a meta' quiz (senza nessun evento di uscita),
+   alla riapertura le risposte si recuperano invece di andare perse */
+function segna(){try{if(_led.length&&!_ledDone)localStorage.setItem('qLedPend',JSON.stringify({t:Date.now(),led:_led}));else localStorage.removeItem('qLedPend');}catch(e){}}
 try{
 var _sqL=startQuiz;
-startQuiz=function(items,opts){_led=[];_ledDone=false;_wrongRunL=0;_sqL(items,opts);};
+startQuiz=function(items,opts){
+try{if(!_ledDone&&_led.length)window.applyLedger();}catch(e){}   /* una sessione lasciata a meta' non si butta */
+_led=[];_ledDone=false;_wrongRunL=0;segna();_sqL(items,opts);};
 }catch(e){}
 var _wrongRunL=0;
 try{
@@ -2830,9 +2844,11 @@ if(Q.ans[idx0]!==i)return; /* la risposta non è passata (lock) */
 var ok=(i===it.correct);
 if(prev!==-1){ /* esame: risposta CAMBIATA → aggiorna la voce esistente */
 for(var li=_led.length-1;li>=0;li--){if(_led[li].id===it.id){_led[li].ok=ok;break;}}
+segna();
 return;
 }
 _led.push({id:it.id,cat:it.cat,ok:ok});
+segna();
 if(Q.mode==='study'&&qCurView==='run'){
 if(ok)_wrongRunL=0;
 else{_wrongRunL++;if(_wrongRunL===4&&!Q._bail){Q._bail=true;showBail();}}
@@ -2845,7 +2861,7 @@ var _qfL=qFinish;
 qFinish=function(t){
 try{if(typeof Q!=='undefined'&&Q&&Q._finished)return;if(Q)Q._finished=true;}catch(e){}
 _qfL(t);
-if(qCurView==='result'){_ledDone=true;_led=[];}
+if(qCurView==='result'){_ledDone=true;_led=[];segna();}
 };
 }catch(e){}
 window.applyLedger=function(){
@@ -2864,6 +2880,7 @@ srMark(r.id,r.ok);
 _led=[];
 try{bumpDaily(n);}catch(e){}
 try{qtSave();}catch(e){}
+segna();
 try{updateTabBadge();renderSeenCount();}catch(e){}
 try{flushNow();}catch(e){}/*[FIX] su chiusura brusca il flush del core parte PRIMA del registro: rispediamo subito*/
 setTimeout(function(){toast2('💾 Progresso salvato: '+n+' rispost'+(n===1?'a':'e'));},400);
@@ -2876,6 +2893,31 @@ var _gtL=goTopografia;goTopografia=function(){applyLedger();_gtL();};
 var _osL=openStudy;openStudy=function(){applyLedger();_osL();};
 window.addEventListener('pagehide',function(){try{applyLedger();}catch(e){}});
 }catch(e){}
+/* all'avvio: risposte rimaste in sospeso da un quiz chiuso di colpo */
+(function recupera(){
+try{
+var raw=localStorage.getItem('qLedPend');if(!raw)return;
+var p=JSON.parse(raw),L=(p&&Array.isArray(p.led))?p.led:[];
+if(!L.length||typeof qtStats==='undefined'||!qtStats){localStorage.removeItem('qLedPend');return;}
+qtStats.seenIds=qtStats.seenIds||{};qtStats.cat=qtStats.cat||{};
+var g=(qtStats.giro&&qtStats.giro.n>1)?qtStats.giro:null;
+L.forEach(function(r){
+try{
+if(!r||r.id===undefined)return;
+qtStats.seenIds[r.id]=1;
+if(g){g.viste=g.viste||{};g.viste[r.id]=1;}
+qtStats.cat[r.cat]=qtStats.cat[r.cat]||{seen:0,ok:0};
+qtStats.cat[r.cat].seen++;
+if(r.ok){qtStats.cat[r.cat].ok++;qtStats.lastOk=qtStats.lastOk||{};qtStats.lastOk[r.id]=p.t||Date.now();}
+srMark(r.id,!!r.ok);
+}catch(e){}
+});
+try{var d0=new Date(p.t||0),d1=new Date();if(d0.toDateString()===d1.toDateString())bumpDaily(L.length);}catch(e){}
+try{qtSave();}catch(e){}
+localStorage.removeItem('qLedPend');
+setTimeout(function(){try{toast2('💾 Recuperate '+L.length+' rispost'+(L.length===1?'a':'e')+' del quiz interrotto');}catch(e){}},2600);
+}catch(e){try{localStorage.removeItem('qLedPend');}catch(e2){}}
+})();
 try{
 var _qscE=qStartCat;
 qStartCat=function(cid){
@@ -7289,7 +7331,7 @@ return '<div class="rg-cell"><small>'+esc(x.lab)+'</small><b>'+eur(x.v)+'</b></d
 +'<div class="rg-r fo"><span>Minimo aeroporti</span><b>'+eur(t.minAero)+'</b></div></div>';
 }
 var o=document.createElement('div');o.id='rgOv';
-o.innerHTML='<div class="rg-card"><div class="rg-hd"><b>\ud83d\udcd0 Tariffe e regolamenti</b>'
+o.innerHTML='<div class="rg-card"><div class="rg-hd"><b>Tariffe e regolamenti</b>'
 +'<small>Comune di Milano \u00b7 '+esc(r.agg)+'</small><button class="rg-x">\u2715</button></div>'
 +'<div class="rg-body">'
 +tar(r.t1)+tar(r.tc)
@@ -7597,6 +7639,52 @@ PILA.splice(k,PILA.length-k);
 }
 window.nccOvApri=apri;
 window.nccOvChiuso=chiuso;
+/* iPhone/iPad dentro Safari (non l'app sulla Home): il gesto dal bordo e' di Safari */
+window.nccSwipeNativo=function(){
+try{
+var ios=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+var app=navigator.standalone===true||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
+return ios&&!app;
+}catch(e){return false;}
+};
+/* Quando l'indietro arriva dal gesto, Safari ha gia' mostrato lo scorrimento:
+   la pagina si chiude al volo, senza rifare la stessa animazione una seconda volta.
+   hasUAVisualTransition lo dice Safari; sugli iPhone piu' vecchi guardo il dito sul bordo. */
+var bordoT=0,bordoVivo=false;
+document.addEventListener('touchstart',function(e){
+try{var t=e.touches&&e.touches[0];if(!t)return;
+bordoVivo=(t.clientX<=24||t.clientX>=window.innerWidth-24);if(bordoVivo)bordoT=Date.now();}catch(x){}
+},{passive:true,capture:true});
+['touchend','touchcancel'].forEach(function(ev){
+document.addEventListener(ev,function(){if(bordoVivo)bordoT=Date.now();},{passive:true,capture:true});
+});
+var subitoT=null;
+window.addEventListener('popstate',function(e){
+try{
+var ua=e&&e.hasUAVisualTransition;
+var gesto=(ua===true)||(ua===undefined&&bordoVivo&&Date.now()-bordoT<4000);
+bordoVivo=false;
+if(!gesto)return;
+var h=document.documentElement;h.classList.add('ncc-subito');
+clearTimeout(subitoT);
+subitoT=setTimeout(function(){try{void document.body.offsetWidth;h.classList.remove('ncc-subito');}catch(x){}},900);
+}catch(x){}
+},true);
+/* la carta di Cosa & Dove: se il telefono si prende il dito a meta' trascinamento,
+   la carta torna al centro (restava storta e il tocco dopo contava come una risposta) */
+var cartaX=null,cartaY=0;
+document.addEventListener('touchstart',function(e){
+try{var t=e.touches[0];cartaX=(t&&e.target&&e.target.closest&&e.target.closest('#sdCard'))?t.clientX:null;cartaY=t?t.clientY:0;}catch(x){cartaX=null;}
+},{passive:true,capture:true});
+document.addEventListener('touchend',function(){cartaX=null;},{passive:true,capture:true});
+document.addEventListener('touchcancel',function(){
+if(cartaX===null)return;
+var x=cartaX,y=cartaY;cartaX=null;
+try{var ev=new Event('touchend',{bubbles:true});
+Object.defineProperty(ev,'changedTouches',{value:[{clientX:x,clientY:y}]});
+Object.defineProperty(ev,'touches',{value:[]});
+document.dispatchEvent(ev);}catch(x2){}
+},{passive:true,capture:true});
 window.addEventListener('popstate',function(){
 try{
 if(ignora>0){ignora--;return;}
@@ -7664,7 +7752,7 @@ var viste={};
 CHIAVI.forEach(function(k){viste[k]=1;});
 for(var i=0;i<localStorage.length;i++){
 var k=localStorage.key(i);
-if(!k)continue;
+if(!k||k==='qLedPend')continue;   /* le risposte in sospeso restano sul telefono, non nella copia */
 if(!viste[k]&&!/^(ncc|pz|nm|q|r)/.test(k))continue;
 var v=localStorage.getItem(k);
 if(v===null)continue;
@@ -9452,13 +9540,22 @@ if(h)h.classList.toggle('on',!on);
 }catch(e){}
 }
 
-/* trascinando dal bordo sinistro si torna indietro, come in iOS */
+/* trascinando dal bordo sinistro si torna indietro, come in iOS.
+   In Safari su iPhone quel gesto e' gia' di Safari: il mio non parte, cosi' la pagina
+   non resta mai ferma a meta' (i due gesti insieme la lasciavano spostata). */
 function bordo(o){
 try{
+if(window.nccSwipeNativo&&nccSwipeNativo())return;
 var x0=null,y0=null,dx=0,attivo=false;
+function rilascia(chiudi){
+if(x0===null)return;
+x0=null;o.style.transition='';
+o.style.transform='';           /* riparte dal punto del dito: la classe fa il resto */
+if(chiudi)nccProfiloChiudi();
+}
 o.addEventListener('touchstart',function(e){
 var t=e.touches[0];
-if(t.clientX>28){x0=null;return;}
+if(!t||t.clientX>28||e.touches.length>1){x0=null;return;}
 x0=t.clientX;y0=t.clientY;dx=0;attivo=false;
 },{passive:true});
 o.addEventListener('touchmove',function(e){
@@ -9468,13 +9565,9 @@ if(!attivo&&Math.abs(t.clientY-y0)>Math.abs(dx))return;
 if(dx>8){attivo=true;o.style.transition='none';
 o.style.transform='translateX('+Math.max(0,dx)+'px)';}
 },{passive:true});
-o.addEventListener('touchend',function(){
-if(x0===null)return;
-o.style.transition='';
-if(attivo&&dx>window.innerWidth*0.33){nccProfiloChiudi();}
-else{o.style.transform='';}
-x0=null;
-},{passive:true});
+o.addEventListener('touchend',function(){rilascia(attivo&&dx>window.innerWidth*0.33);},{passive:true});
+/* il telefono si prende il dito a meta' gesto: la pagina torna al suo posto */
+o.addEventListener('touchcancel',function(){rilascia(false);},{passive:true});
 }catch(e){}
 }
 
@@ -10017,16 +10110,19 @@ setTimeout(function(){try{o.remove();}catch(e){}},320);
 }catch(e){}
 };
 
+/* come il profilo: in Safari su iPhone il gesto e' di Safari, qui non parte */
 function bordo(o){
 try{
+if(window.nccSwipeNativo&&nccSwipeNativo())return;
 var x0=null,y0=null,dx=0,attivo=false;
+function rilascia(chiudi){if(x0===null)return;x0=null;o.style.transition='';o.style.transform='';if(chiudi)nccSezChiudi();}
 o.addEventListener('touchstart',function(e){var t=e.touches[0];
-if(t.clientX>28){x0=null;return;}x0=t.clientX;y0=t.clientY;dx=0;attivo=false;},{passive:true});
+if(!t||t.clientX>28||e.touches.length>1){x0=null;return;}x0=t.clientX;y0=t.clientY;dx=0;attivo=false;},{passive:true});
 o.addEventListener('touchmove',function(e){if(x0===null)return;var t=e.touches[0];dx=t.clientX-x0;
 if(!attivo&&Math.abs(t.clientY-y0)>Math.abs(dx))return;
 if(dx>8){attivo=true;o.style.transition='none';o.style.transform='translateX('+Math.max(0,dx)+'px)';}},{passive:true});
-o.addEventListener('touchend',function(){if(x0===null)return;o.style.transition='';
-if(attivo&&dx>window.innerWidth*0.33)nccSezChiudi();else o.style.transform='';x0=null;},{passive:true});
+o.addEventListener('touchend',function(){rilascia(attivo&&dx>window.innerWidth*0.33);},{passive:true});
+o.addEventListener('touchcancel',function(){rilascia(false);},{passive:true});
 }catch(e){}
 }
 
@@ -10567,6 +10663,8 @@ box.addEventListener('touchmove',function(e){if(y0===null)return;dy=Math.max(0,e
 box.style.transform='translateY('+dy+'px)';},{passive:true});
 box.addEventListener('touchend',function(){if(y0===null)return;box.style.transition='';
 if(dy>90)chiudi(o.annulla);else box.style.transform='';y0=null;},{passive:true});
+/* il telefono si prende il dito: il riquadro torna su, mai a meta' */
+box.addEventListener('touchcancel',function(){if(y0===null)return;box.style.transition='';box.style.transform='';y0=null;},{passive:true});
 requestAnimationFrame(function(){v.classList.add('su');});
 try{if(window.nccOvApri)nccOvApri('popOv',function(){chiudi(o.annulla);});}catch(e){}
 return {chiudi:chiudi};

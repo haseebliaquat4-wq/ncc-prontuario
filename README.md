@@ -12,6 +12,9 @@ Non fanno parte dell'app: il sito non li carica mai.
 | Script | Cosa controlla |
 |---|---|
 | `giro-oggi.js` | la sezione «Oggi» della home: c'e' dal primo fotogramma, ogni riga parte e torna in home, si spunta, il giorno dopo cambia, i conteggi si uniscono fra dispositivi |
+| `oggi-giorni.js` | le domande di «Oggi» su due giorni: risposte salvate anche se Safari si chiude di colpo a meta' quiz, il giorno dopo 30 domande tutte nuove, niente conteggi doppi |
+| `giro-indietro.js` | indietro su iPhone, ogni frame: in Safari la pagina non resta mai a meta', dopo il gesto sparisce al volo, con la freccia ‹ di Safari scorre via; nell'app sulla Home il trascinamento torna a posto; popup, carta di Cosa & Dove, testate con la (i) |
+| `tariffe-domande.js` | le domande sulle tariffe senza anno hanno gli importi di luglio 2024, quelle con la delibera e l'anno restano com'erano; fatte davvero nel quiz e cercate con Cerca |
 | `avvio-film.js` | i primi 3,5 secondi dell'avvio: nessuna home vecchia, nessun salto |
 | `quiz-film2.js` | passaggi pagina Quiz ↔ esercizio, argomenti, popup, coach |
 | `giro-quiz.js` | tutti i tasti della schermata del quiz: risposte, ‹ ›, pallini, Ascolta, ☆, ⚐, Termina, ✕, simulazione |
