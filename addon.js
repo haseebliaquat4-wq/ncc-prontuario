@@ -2646,6 +2646,22 @@ color:var(--ios-lbl);font:inherit;font-size:15px;font-weight:800;cursor:pointer;
 #scnOv .pf-body,#pfOv .pf-body{padding-left:calc((100% - var(--col))/2)!important;padding-right:calc((100% - var(--col))/2)!important;}
 #scnOv .t-hd,#pfOv .t-hd{padding-left:calc((100% - var(--col))/2 + 16px);padding-right:calc((100% - var(--col))/2 + 16px);}
 }
+/* ══ Tariffe: una pagina intera, con la testata unica ‹ · titolo · (i) ══ */
+#rgOv.rd{background:var(--ios-bg);-webkit-backdrop-filter:none;backdrop-filter:none;display:flex;flex-direction:column;
+align-items:stretch;justify-content:flex-start;padding:0;overflow:hidden;transform:translateX(100%);
+transition:transform .42s var(--ios-spring);box-shadow:-8px 0 24px rgba(0,0,0,.08);will-change:transform;}
+#rgOv.rd.dentro{transform:none;}
+#rgOv.rd.fuori{transform:translateX(100%);}
+#rgOv .rg-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+padding:4px 16px calc(28px + env(safe-area-inset-bottom,0px))!important;}
+#rgOv .rg-agg{font-size:14px;color:var(--ios-lbl2);margin-bottom:14px;padding:0 4px;box-sizing:border-box;}
+#rgOv .rg-sez{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:18px;padding:14px 16px;margin-bottom:16px;box-sizing:border-box;}
+#rgOv .rg-st{font-size:12px;letter-spacing:.07em;margin-bottom:8px;}
+#rgOv .rg-d{font-size:13px;}
+#rgOv .rg-r{font-size:15px;}
+#rgOv .rg-cell b{font-size:18px;}
+#rgOv .rg-quiz{display:block;width:100%;margin-top:4px;margin-bottom:0;padding:16px;border-radius:999px;font-size:16px;}
+@media(min-width:720px){#rgOv .t-hd{padding-left:calc((100% - 680px)/2 + 16px);padding-right:calc((100% - 680px)/2 + 16px);}}
 `;
 }catch(e){}
 })();
@@ -2963,16 +2979,30 @@ setTimeout(initPill,700);
 })();
 (function(){
 'use strict';
+/* il report della domenica esce solo quando sei davvero sulla Home: niente pagine,
+   profilo, piazze, popup o schede sopra, niente quiz o mappa. Se sei altrove aspetta
+   e compare appena torni alla Home (prima usciva sopra la pagina in cui eri) */
+function sullaHome(){
+try{
+var hs=document.getElementById('homeScreen');
+if(!hs||hs.style.display==='none'||hs.classList.contains('hm-stat'))return false;
+var b=document.body;
+if(b.classList.contains('on-topo')||b.classList.contains('qz-avvio')||b.classList.contains('in-sessione'))return false;
+if(document.querySelector('.modal.open'))return false;
+var w=window.innerWidth||0,h=window.innerHeight||0;
+var e=document.elementFromPoint(Math.round(w/2),Math.round(h*0.45));
+return !!(e&&hs.contains(e));
+}catch(x){return false;}
+}
+window.nccSullaHome=sullaHome;
 try{
 var _wr=weeklyReport;
 weeklyReport=function(force){
-if(!force){
-var hs=document.getElementById('homeScreen');
-if(hs&&hs.style.display==='none')return;
-}
+if(!force&&!sullaHome())return;
 _wr(force);
 };
 }catch(e){}
+setInterval(function(){try{if(!document.hidden&&sullaHome())weeklyReport();}catch(e){}},5000);
 })();
 (function(){
 'use strict';
@@ -7453,7 +7483,7 @@ if(!giusto){var gg=d.querySelector('.pzq-o[data-id="'+p.id+'"]');if(gg)gg.classL
 segna(p.id,giusto);
 try{hap(giusto?'':'m');}catch(e){}
 d.querySelectorAll('.pzq-o').forEach(function(x){x.disabled=true;});
-setTimeout(function(){d.remove();pzQuizInv();},1100);
+setTimeout(function(){if(!document.body.contains(d))return;d.remove();pzQuizInv();},1100);   /* chiuso nel frattempo: resta chiuso */
 };
 });
 }catch(e){}
@@ -7471,7 +7501,8 @@ function eur(v){return '\u20ac\u00a0'+Number(v).toFixed(2).replace('.',',');}
 window.openRegole=function(){
 try{
 var r=R();if(!r){toast2('Dati tariffe non caricati');return;}
-if(document.getElementById('rgOv'))return;
+var gia=document.getElementById('rgOv');
+if(gia){if(gia.classList.contains('fuori'))gia.remove();else return;}   /* quella che sta scorrendo via non conta */
 function tar(t){
 return '<div class="rg-sez"><div class="rg-st">'+esc(t.nome)+'</div>'
 +'<div class="rg-d">'+esc(t.desc)+'</div>'
@@ -7486,10 +7517,12 @@ return '<div class="rg-cell"><small>'+esc(x.lab)+'</small><b>'+eur(x.v)+'</b></d
 +(t.prog2.note?('<div class="rg-n">'+esc(t.prog2.note)+'</div>'):'')
 +'<div class="rg-r fo"><span>Minimo aeroporti</span><b>'+eur(t.minAero)+'</b></div></div>';
 }
-var o=document.createElement('div');o.id='rgOv';
-o.innerHTML='<div class="rg-card"><div class="rg-hd"><b>Tariffe e regolamenti</b>'
-+'<small>Comune di Milano \u00b7 '+esc(r.agg)+'</small><button class="rg-x">\u2715</button></div>'
-+'<div class="rg-body">'
+/* una pagina intera come le altre: entra da destra, testata \u2039 \u00b7 titolo \u00b7 (i).
+   Aperta dalla pagina Norme le resta sopra: chiudendola la pagina e' gia' li' sotto */
+var o=document.createElement('div');o.id='rgOv';o.className='rd';
+o.innerHTML=nccTestata('Tariffe','nccRegoleChiudi()','tariffe')
++'<div class="pf-body rg-body" id="rgBody">'
++'<div class="rg-agg">Comune di Milano \u00b7 '+esc(r.agg)+'</div>'
 +tar(r.t1)+tar(r.tc)
 +'<div class="rg-sez"><div class="rg-st">Tariffe fisse (predeterminate)</div>'
 +r.fisse.map(function(f){
@@ -7500,14 +7533,40 @@ return '<div class="rg-r"><span>'+esc(f.da)+' \u2194 '+esc(f.a)+'</span><b>\u20a
 return '<div class="rg-norma"><b>'+esc(n.t)+'</b><span>'+esc(n.d)+'</span></div>';}).join('')+'</div>'
 +'<div class="rg-sez"><div class="rg-st">Uffici</div>'
 +'<div class="rg-n">'+esc(r.uffici.sede)+'<br>'+r.uffici.tel.join(' \u00b7 ')+'</div></div>'
-+'</div>'
-+'<button class="rg-quiz" id="rgQuizBtn">\ud83c\udfaf Mettimi alla prova sulle tariffe</button></div>';
-o.addEventListener('click',function(e){if(e.target===o)o.remove();});
++'<button class="rg-quiz" id="rgQuizBtn">\ud83c\udfaf Mettimi alla prova sulle tariffe</button>'
++'</div>';
 document.body.appendChild(o);
-o.querySelector('.rg-x').onclick=function(){o.remove();};
-document.getElementById('rgQuizBtn').onclick=function(){o.remove();regQuiz();};
+requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('dentro');});});
+/* il quiz sulle tariffe si apre sopra la pagina: chiudendolo sei di nuovo qui */
+document.getElementById('rgQuizBtn').onclick=function(){
+window.__nccTieniPagina=true;try{regQuiz();}catch(e){}window.__nccTieniPagina=false;};
+bordoRg(o);
 }catch(e){}
 };
+window.nccRegoleChiudi=function(subito){
+try{
+var o=document.getElementById('rgOv');if(!o)return;
+try{if(window.nccOvChiuso)nccOvChiuso('rgOv');}catch(e){}
+if(subito){o.remove();return;}
+o.classList.remove('dentro');o.classList.add('fuori');
+setTimeout(function(){try{o.remove();}catch(e){}},440);
+}catch(e){}
+};
+/* nell'app sulla Home: trascinando dal bordo sinistro si torna indietro, come nelle altre pagine */
+function bordoRg(o){
+try{
+if(window.nccSwipeNativo&&nccSwipeNativo())return;
+var x0=null,y0=null,dx=0,attivo=false;
+function rilascia(chiudi){if(x0===null)return;x0=null;o.style.transition='';o.style.transform='';if(chiudi)nccRegoleChiudi();}
+o.addEventListener('touchstart',function(e){var t=e.touches[0];
+if(!t||t.clientX>28||e.touches.length>1){x0=null;return;}x0=t.clientX;y0=t.clientY;dx=0;attivo=false;},{passive:true});
+o.addEventListener('touchmove',function(e){if(x0===null)return;var t=e.touches[0];dx=t.clientX-x0;
+if(!attivo&&Math.abs(t.clientY-y0)>Math.abs(dx))return;
+if(dx>8){attivo=true;o.style.transition='none';o.style.transform='translateX('+Math.max(0,dx)+'px)';}},{passive:true});
+o.addEventListener('touchend',function(){rilascia(attivo&&dx>window.innerWidth*0.33);},{passive:true});
+o.addEventListener('touchcancel',function(){rilascia(false);},{passive:true});
+}catch(e){}
+}
 
 /* domande generate dai dati, così restano sempre allineate */
 function domande(){
@@ -7585,7 +7644,8 @@ if(!giusto){var g=d.querySelector('.pzq-o[data-v="'+q.a.replace(/"/g,'&quot;')+'
 if(giusto)st.ok++;
 try{hap(giusto?'':'m');}catch(e){}
 d.querySelectorAll('.pzq-o').forEach(function(x){x.disabled=true;});
-setTimeout(function(){st.i++;dis();},giusto?700:1500);
+/* chiuso nel frattempo (Chiudi o tasto indietro): non si riapre da solo con la domanda dopo */
+setTimeout(function(){if(!document.body.contains(d))return;st.i++;dis();},giusto?700:1500);
 };});
 }
 dis();
@@ -7795,6 +7855,71 @@ PILA.splice(k,PILA.length-k);
 }
 window.nccOvApri=apri;
 window.nccOvChiuso=chiuso;
+/* il segno in cima alla pila e' gia' di questo riquadro? (chi si ridisegna non ne lascia un altro) */
+window.nccOvInCima=function(id){return !!(PILA.length&&PILA[PILA.length-1].id===id&&vivo(id));};
+/* un riquadro conta solo se si vede davvero: esiste, non sta scorrendo via, non e' dentro
+   qualcosa di nascosto (una scheda .modal senza "open" e' chiusa anche se resta nella pagina) */
+function vivo(id){
+try{
+var e=document.getElementById(id);if(!e)return false;
+if(e.classList.contains('modal')&&!e.classList.contains('open'))return false;
+if(e.classList.contains('fuori'))return false;
+return e.getClientRects().length>0;
+}catch(x){return false;}
+}
+/* il livello di un riquadro: lo z-index del suo contenitore piu' esterno */
+function livello(e){
+try{var t=e;while(t.parentElement&&t.parentElement!==document.body)t=t.parentElement;
+var z=parseInt(getComputedStyle(t).zIndex,10);return isNaN(z)?0:z;}catch(x){return 0;}
+}
+/* il riquadro aperto piu' in alto; i segni di quelli gia' chiusi si buttano */
+function cima(){
+while(PILA.length&&!vivo(PILA[PILA.length-1].id))PILA.pop();
+return PILA.length?PILA[PILA.length-1]:null;
+}
+/* una scheda del nucleo aperta sopra quel riquadro (e fuori dalla pila): la chiude il nucleo */
+function schedaSopra(o){
+try{
+var z=livello(document.getElementById(o.id)),m=document.querySelectorAll('.modal.open');
+for(var i=0;i<m.length;i++){
+var id=m[i].id;
+if(id&&PILA.some(function(x){return x.id===id;}))continue;
+if(livello(m[i])>=z)return true;
+}
+}catch(x){}
+return false;
+}
+/* il quiz in corso: indietro esce subito, senza "Vuoi uscire?" (le risposte date sono gia' salvate) */
+function esciQuiz(){
+try{if(Q&&Q.timer){clearInterval(Q.timer);Q.timer=null;}}catch(x){}
+try{Q=null;}catch(x){}
+try{qStopSpeak();}catch(x){}
+try{renderDash();}catch(x){}
+try{showQView('dash');}catch(x){}
+}
+function quizInCorso(){
+try{var qa=document.getElementById('quizApp');
+return !!(qa&&qa.classList.contains('open')&&typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&Q);}catch(x){return false;}
+}
+/* UN SOLO GESTORE per il tasto indietro.
+   Prima c'erano due ascoltatori sullo stesso evento: quello dell'app (schede, quiz,
+   mappa) e questo della pila. Se il primo apriva qualcosa (la pagina Topografia al
+   ritorno dalla mappa, la domanda "Vuoi uscire?"), il secondo lo richiudeva subito,
+   e se il primo chiudeva una scheda del profilo il secondo chiudeva anche il profilo.
+   Ora decide uno solo: il riquadro aperto piu' in alto, poi il quiz, poi il resto. */
+var unico=false;
+try{
+if(typeof appBack==='function'&&!appBack.__pila){
+var _ab=appBack;
+appBack=function(){
+var o=cima();
+if(o&&!schedaSopra(o)){PILA.pop();try{o.fn();}catch(e){}return false;}
+if(quizInCorso()){esciQuiz();return true;}
+return _ab.apply(this,arguments);
+};
+appBack.__pila=true;unico=true;
+}
+}catch(e){}
 /* iPhone/iPad dentro Safari (non l'app sulla Home): il gesto dal bordo e' di Safari */
 window.nccSwipeNativo=function(){
 try{
@@ -7841,13 +7966,12 @@ Object.defineProperty(ev,'changedTouches',{value:[{clientX:x,clientY:y}]});
 Object.defineProperty(ev,'touches',{value:[]});
 document.dispatchEvent(ev);}catch(x2){}
 },{passive:true,capture:true});
+/* di riserva, solo se l'app non avesse il suo gestore: la pila fa da sola */
 window.addEventListener('popstate',function(){
 try{
+if(unico)return;
 if(ignora>0){ignora--;return;}
-while(PILA.length){
-var o=PILA.pop();
-if(document.getElementById(o.id)){try{o.fn();}catch(e){}return;}
-}
+var o=cima();if(o){PILA.pop();try{o.fn();}catch(e){}}
 }catch(e){}
 });
 /* aggancio ai riquadri quando i moduli sono pronti */
@@ -9184,8 +9308,11 @@ try{
 if(!('speechSynthesis' in window)){
 if(typeof toast2==='function')toast2('\ud83d\udd07 Sintesi vocale non disponibile',2600);return;}
 disegna(true);                       /* intanto mostro "sto cercando" */
-if(window.nccCaricaVoci)nccCaricaVoci(function(){disegna();});
-else setTimeout(function(){disegna();},400);
+/* le voci arrivano dopo: ridisegno solo se il pannello e' ancora aperto
+   (chiuso nel frattempo col tasto indietro, si riapriva da solo sopra il profilo) */
+var ancora=function(){if(document.getElementById('vcOv'))disegna();};
+if(window.nccCaricaVoci)nccCaricaVoci(ancora);
+else setTimeout(ancora,400);
 }catch(e){}
 };
 function disegna(attesa){
@@ -9193,7 +9320,7 @@ try{
 var l=window.nccVociIt?nccVociIt():[];
 var tutte=window.nccTutteLeVoci?nccTutteLeVoci():[];
 var sel='';try{sel=localStorage.getItem('vocePreferita')||'';}catch(e){}
-var o=document.getElementById('vcOv');
+var o=document.getElementById('vcOv'),gia=!!o;
 if(o)o.remove();
 o=document.createElement('div');o.id='vcOv';o.className='rd';
 var h='<div class="vc-box"><div class="vc-t">\ud83c\udf99 Scegli la voce</div>';
@@ -9237,7 +9364,8 @@ h+='<div class="vc-nota">Se suonano tutte metalliche, scaricane una <b>Avanzata<
 h+='<button class="vc-x" onclick="nccChiudiVoce()">Chiudi</button></div>';
 o.innerHTML=h;
 document.body.appendChild(o);
-try{if(window.nccOvApri)nccOvApri('vcOv',function(){nccChiudiVoce();});}catch(e){}
+/* un segno solo per il tasto indietro: il ridisegno con le voci non ne aggiunge un altro */
+if(!gia)try{if(window.nccOvApri)nccOvApri('vcOv',function(){nccChiudiVoce();});}catch(e){}
 }catch(e){}
 }
 window.nccChiudiVoce=function(){try{var o=document.getElementById('vcOv');if(o)o.remove();
@@ -9663,7 +9791,6 @@ window.__nccTieniProfilo=false;
 var registra=function(){try{
 document.querySelectorAll('.modal.open').forEach(function(m){if(!m.id||primaAperte[m.id])return;primaAperte[m.id]=1;
 if(window.nccOvApri)nccOvApri(m.id,function(){var b=m.querySelector('.mhdr-close');if(b)b.click();else m.classList.remove('open');});});
-var v=document.getElementById('vcOv');if(v&&!primaAperte.vcOv){primaAperte.vcOv=1;if(window.nccOvApri)nccOvApri('vcOv',function(){var e=document.getElementById('vcOv');if(e)e.remove();});}
 ['wkModal','stModal'].forEach(function(id){var e=document.getElementById(id);if(!e||primaAperte[id])return;var c=getComputedStyle(e);
 if(c.display==='none'||c.visibility==='hidden')return;primaAperte[id]=1;
 if(window.nccOvApri)nccOvApri(id,function(){var x=document.getElementById(id);if(!x)return;var b=x.querySelector('.mhdr-close,[class$="-x"]');if(b)b.click();else x.remove();});});
@@ -11159,10 +11286,14 @@ else nccPagina('stat','Statistiche',corpo,'nccSezChiudi()');
 }catch(e){}
 }
 window.nccStat=function(){TAB='pan';disegna();try{hap();}catch(e){}};
+/* il ritorno alla pagina (dal piano, da una simulazione, da un tema): stessa scheda di prima */
+window.nccStatTorna=function(){disegna();};
 window.nccStatTab=function(t){TAB=t;disegna();try{hap();}catch(e){}};
 window.nccStatSim=function(){try{window.__nccTieniPagina=true;window.__nccQuizOrigine='stat';nccAvvio(function(){try{buildQuiz();qStartExam();}catch(e){}});}catch(e){}};
+/* Allenati su un tema: come la simulazione, la pagina resta finche' il quiz e' pronto
+   (prima si chiudeva subito e passava la Home) e alla fine si torna qui */
 window.nccStatTema=function(sub){
-try{nccSezChiudi(true);nccAvvio(function(){try{buildQuiz();
+try{window.__nccTieniPagina=true;window.__nccQuizOrigine='stat';nccAvvio(function(){try{buildQuiz();
 var pool=QUIZ_ALL.filter(function(x){return String(x.sub)===String(sub);});
 var lab=(SUBS.filter(function(s){return String(s.sub)===String(sub);})[0]||{}).label||'Argomento';
 startQuiz((typeof qShuffle==='function'?qShuffle(pool):pool).slice(0,12),{mode:'study',title:lab});}catch(e){}});}catch(e){}
@@ -11775,7 +11906,8 @@ try{
 document.body.classList.remove('qz-avvio');window.__nccTieniPagina=false;window.__qzHome=null;
 closeQuiz();
 try{goHome();}catch(e){}
-if(QORIG==='home')QORIG=null;else{nccSez(QORIG||'quiz');QORIG=null;}
+/* Statistiche non e' una pagina di nccSez: si riapre con la sua funzione (prima si finiva in Home) */
+if(QORIG==='home')QORIG=null;else{if(QORIG==='stat'&&window.nccStatTorna)nccStatTorna();else nccSez(QORIG||'quiz');QORIG=null;}
 var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
@@ -11999,10 +12131,17 @@ if(x){ricontrolla();return;}
 if(t.closest('#rgOv .rg-x,#rgqOv button[class$="-x"],#rgqOv .rq-x'))ricontrolla();
 }catch(e){}},true);
 window.addEventListener('popstate',function(){try{if(N.torna)ricontrolla();}catch(e){}},true);
-/* prontuario e quiz tariffe: registrati per il tasto indietro del telefono quando compaiono */
+/* prontuario e quiz tariffe: registrati per il tasto indietro del telefono quando compaiono.
+   Il quiz ridisegna la sua finestra a ogni domanda: un segno solo, non uno per domanda
+   (dopo dodici domande servivano dodici "indietro" a vuoto) */
 try{new MutationObserver(function(ms){ms.forEach(function(m){[].forEach.call(m.addedNodes||[],function(n){
 if(!n||!n.id||(n.id!=='rgOv'&&n.id!=='rgqOv'))return;
-var id=n.id;try{if(window.nccOvApri)nccOvApri(id,function(){var e=document.getElementById(id);if(e)e.remove();ricontrolla();});}catch(e){}
+var id=n.id;
+if(window.nccOvInCima&&nccOvInCima(id))return;
+try{if(window.nccOvApri)nccOvApri(id,function(){
+if(id==='rgOv'&&window.nccRegoleChiudi)nccRegoleChiudi();          /* la pagina scorre via */
+else{var e=document.getElementById(id);if(e)e.remove();}
+ricontrolla();});}catch(e){}
 });});}).observe(document.body,{childList:true});}catch(e){}
 /* entrata dalla pagina Norme: la pagina resta finche' la finestra e' pronta */
 setTimeout(function(){try{
@@ -12013,6 +12152,9 @@ window.__nccTieniPagina=true;N.torna=true;N.firma='';N.primo=false;
 var r=_sv.call(this,nome,1),t0=Date.now();
 (function att(){try{
 if(aperto()){window.__nccTieniPagina=false;
+/* le Tariffe sono una pagina che entra sopra questa: la pagina Norme resta sotto,
+   chiudendo le Tariffe e' gia' li' (niente da riaprire) */
+if(vis('rgOv')){N.torna=false;return;}
 setTimeout(function(){try{if(pag()==='norme')nccSezChiudi(true);}catch(e){}},260);return;}
 if(Date.now()-t0<1300){setTimeout(att,50);return;}
 window.__nccTieniPagina=false;N.torna=false;                /* non si e' aperto niente: resto sulla pagina */
@@ -12027,7 +12169,7 @@ window.nccSezVai.__norme=true;
 (function(){
 'use strict';
 function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
-function allaStat(){try{nccSez('stat');var s=document.getElementById('scnOv');
+function allaStat(){try{nccStatTorna();var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}}
 window.nccStatPiano=function(){
 try{window.__nccTieniPagina=true;nccHmStat();window.__hmDaStat=true;
@@ -12042,7 +12184,7 @@ if(Date.now()-window.__hmT>900){window.__hmDaStat=false;window.__hmT=0;}else set
 }catch(e){}}
 setTimeout(function(){try{
 var _e=window.nccHmStatEsci;if(typeof _e!=='function'||_e.__stat)return;
-window.nccHmStatEsci=function(){var r=_e.apply(this,arguments);requestAnimationFrame(controlla);setTimeout(controlla,200);return r;};window.nccHmStatEsci.__stat=true;
+window.nccHmStatEsci=function(){var r=_e.apply(this,arguments);controlla();requestAnimationFrame(controlla);setTimeout(controlla,200);return r;};window.nccHmStatEsci.__stat=true;   /* subito: la Home non resta scoperta nemmeno un istante */
 }catch(e){}},1500);
 window.addEventListener('popstate',function(){if(window.__hmDaStat){requestAnimationFrame(controlla);[150,400].forEach(function(ms){setTimeout(controlla,ms);});}},true);
 document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))window.__hmDaStat=false;}catch(e){}},true);

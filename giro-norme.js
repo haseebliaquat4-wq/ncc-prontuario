@@ -47,6 +47,23 @@ const fails=[];
   await p.evaluate(()=>{const x=document.querySelector('#nmOv .nm-x');if(x)x.click();});const f2=await film(900);
   console.log('articolo → ‹ → ‹',art,f1.join(' → '),'|',f2.join(' → '));
   if(f1[f1.length-1]!=='nmOv')fails.push('dall\u2019articolo ‹ non torna all\u2019indice');if(f2[f2.length-1]!=='pagina:norme')fails.push('dall\u2019indice ‹ non torna alla pagina');
+  /* Tariffe: pagina intera sopra la pagina Norme; il telefono torna alla pagina; il quiz tariffe torna alle Tariffe */
+  await home();await p.evaluate(()=>nccSez('norme'));await p.waitForTimeout(800);
+  const tar=()=>p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].find(r=>/prontuario/i.test(r.textContent)).click());
+  await tar();let g=await film(900);
+  const hd=await p.evaluate(()=>{const h=document.querySelector('#rgOv .t-hd');if(!h)return null;const q=s=>{const e=h.querySelector(s);return e?Math.round(e.getBoundingClientRect().left):null;};
+    return {b:q('.t-back'),t:q('.t-tit'),i:q('.t-info'),tit:(h.querySelector('.t-tit')||{}).textContent,largo:Math.round(document.getElementById('rgOv').getBoundingClientRect().width)};});
+  console.log('Tariffe entra',g.join(' → '),'| testata',JSON.stringify(hd));
+  if(!hd||!(hd.b<hd.t&&hd.t<hd.i)||hd.largo!==390)fails.push('Tariffe: non e’ una pagina intera con ‹ titolo (i) '+JSON.stringify(hd));
+  if(g.some(x=>/^vuoto/.test(x)||x==='homeScreen'))fails.push('Tariffe: Home di passaggio entrando ('+g.join(' → ')+')');
+  await p.evaluate(()=>history.back());g=await film(900);console.log('Tariffe · telefono',g.join(' → '));
+  if(g[g.length-1]!=='pagina:norme'||g.some(x=>x==='homeScreen'))fails.push('Tariffe: il telefono non torna alla pagina Norme ('+g.join(' → ')+')');
+  await tar();await p.waitForTimeout(700);await p.evaluate(()=>document.getElementById('rgQuizBtn').click());await p.waitForTimeout(500);
+  for(let k=0;k<3;k++){await p.evaluate(()=>{const o=document.querySelector('#rgqOv .pzq-o');o&&o.click();});await p.waitForTimeout(1400);}
+  await p.evaluate(()=>history.back());g=await film(800);console.log('quiz tariffe · telefono',g.join(' → '));
+  if(g[g.length-1]!=='rgOv')fails.push('quiz tariffe: il telefono non torna alle Tariffe ma a '+g[g.length-1]);
+  await p.evaluate(()=>history.back());g=await film(900);console.log('Tariffe · telefono',g.join(' → '));
+  if(g[g.length-1]!=='pagina:norme')fails.push('dopo il quiz tariffe il telefono non torna alla pagina Norme ma a '+g[g.length-1]);
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(f=>console.log(' - '+f));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

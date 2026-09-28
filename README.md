@@ -20,11 +20,11 @@ Non fanno parte dell'app: il sito non li carica mai.
 | `tariffe-domande.js` | le domande sulle tariffe senza anno hanno gli importi di luglio 2024, quelle con la delibera e l'anno restano com'erano; fatte davvero nel quiz e cercate con Cerca |
 | `avvio-film.js` | i primi 3,5 secondi dell'avvio: nessuna home vecchia, nessun salto |
 | `quiz-film2.js` | passaggi pagina Quiz ↔ esercizio, argomenti, popup, coach |
-| `giro-quiz.js` | tutti i tasti della schermata del quiz: risposte, ‹ ›, pallini, Ascolta, ☆, ⚐, Termina, ✕, simulazione |
-| `giro-topo.js` | ogni riga della pagina Topografia: entrata senza Home di passaggio, indietro che torna alla pagina |
+| `giro-quiz.js` | tutti i tasti della schermata del quiz: risposte, ‹ ›, pallini, Ascolta, ☆, ⚐, Termina, ✕, simulazione; indietro del telefono a meta' quiz: esce subito, senza «Vuoi uscire?», risposte salvate |
+| `giro-topo.js` | ogni riga della pagina Topografia: entrata senza Home di passaggio, indietro che torna alla pagina; dalla mappa (Studio, Cieco, Quiz vie, Percorso a caso) anche il tasto del telefono torna alla pagina |
 | `giro-piazze.js` | ogni riga della pagina Piazze, con una sosta realistica: entrata senza Home di passaggio, ritorno alla pagina |
-| `giro-norme.js` | ogni riga di Norme e tariffe: entrata senza Home, ‹ dalla schermata di partenza alla pagina, passo interno articolo → indice |
-| `giro-profilo.js` | pagina Statistiche (ogni tasto) e ogni riga del Profilo; le righe che cancellano solo fino alla conferma |
+| `giro-norme.js` | ogni riga di Norme e tariffe: entrata senza Home, ‹ dalla schermata di partenza alla pagina, passo interno articolo → indice; Tariffe pagina intera con ‹ · titolo · (i), il telefono torna alla pagina Norme, il quiz tariffe torna alle Tariffe |
+| `giro-profilo.js` | pagina Statistiche (ogni tasto delle due schede, si torna sulla stessa scheda; simulazione e piano tornano alla pagina) e ogni riga del Profilo (il report settimanale torna al Profilo); le righe che cancellano solo fino alla conferma; il pannello della voce non si riapre da solo; il report della domenica esce solo sulla Home |
 | `giro-mappa.js` | i tasti della mappa: ◀ ▶, Studio/Cieco/Quiz vie, Scopri, ▶ riproduci, Linea, 🔀, ✏️ Correggi, (i), ‹ |
 
 Mappa e cloud sono simulati (`leaflet-mock.js`): la grafica vera della mappa va guardata sul telefono.

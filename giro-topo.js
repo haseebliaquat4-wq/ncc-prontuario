@@ -39,6 +39,16 @@ const fails=[];
     if(torna.some(x=>/^vuoto/.test(x)||x==='homeScreen'))fails.push(nome+': schermo vuoto o Home di passaggio tornando ('+torna.join(' → ')+')');
     if(fine!=='pagina:topo')fails.push(nome+': indietro non torna alla pagina Topografia ma a '+fine);
   }
+  /* il tasto indietro del telefono (o il gesto di Safari) dalla mappa: torna alla pagina, mai alla Home */
+  for(const nome of ['Studio','Cieco','Quiz vie','Percorso a caso']){
+    const n=righe.find(x=>x.indexOf(nome)===0);if(!n){fails.push('manca la riga '+nome);continue;}
+    await home();await p.evaluate(()=>nccSez('topo'));await p.waitForTimeout(800);
+    await p.evaluate(n=>[...document.querySelectorAll('#scnOv .qc-riga')].find(r=>r.querySelector('.qc-lt b').textContent.trim()===n).click(),n);
+    await film(1500);await p.evaluate(()=>history.back());const t=await film(1300);
+    console.log(('» '+nome+' · telefono').padEnd(30),t.join(' → '));
+    if(t.some(x=>/^vuoto/.test(x)||x==='homeScreen'))fails.push(nome+', telefono: Home di passaggio ('+t.join(' → ')+')');
+    if(t[t.length-1]!=='pagina:topo')fails.push(nome+', telefono: non torna alla pagina Topografia ma a '+t[t.length-1]);
+  }
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(f=>console.log(' - '+f));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

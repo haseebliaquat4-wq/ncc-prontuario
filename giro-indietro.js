@@ -87,7 +87,7 @@ const inMezzo=(f,w)=>f.filter(x=>x.x!==null&&x.x>2&&x.x<w-2).length;
   ok(!carta.tr&&carta.i1===carta.i0,'carta: resta storta o il tocco dopo conta come risposta '+JSON.stringify(carta));
   await p.evaluate(()=>{try{sdExit&&sdExit();}catch(e){}try{goHome();}catch(e){}});await p.waitForTimeout(600);
   /* g · testata Tariffe e le altre con la (i): niente tasti uno sopra l'altro */
-  const testate=[['openRegole()','#rgOv .rg-x'],['openNorme()','#nmOv .nm-x'],['openPiazze()','#pzOv .pz-x'],['nccApriCerca()','#cxOv .cx-x']];
+  const testate=[['openRegole()','#rgOv .t-back'],['openNorme()','#nmOv .nm-x'],['openPiazze()','#pzOv .pz-x'],['nccApriCerca()','#cxOv .cx-x']];
   for(const [apriF,sel] of testate){
     await p.evaluate(f=>{try{eval(f);}catch(e){}},apriF);await p.waitForTimeout(900);
     const g=await p.evaluate(sel=>{const x=document.querySelector(sel);if(!x)return null;const i=x.parentElement.querySelector('.t-info');
@@ -97,8 +97,8 @@ const inMezzo=(f,w)=>f.filter(x=>x.x!==null&&x.x>2&&x.x<w-2).length;
       return {sopra,x:Math.round(a.left),i:c?Math.round(c.left):null,tit:tb?Math.round(tb.left):null,righe:tb?Math.round(tb.height):null};},sel);
     console.log('testata',sel.padEnd(14),JSON.stringify(g));
     ok(g&&!g.sopra,'testata '+sel+': la (i) copre il tasto ‹');
-    if(sel==='#rgOv .rg-x'){ok(g&&g.x<g.tit&&g.i>g.tit,'Tariffe: ordine ‹ titolo (i) sbagliato '+JSON.stringify(g));await p.screenshot({path:__dirname+'/tariffe-testata.png',clip:{x:0,y:0,width:390,height:260}});}
-    await p.evaluate(()=>{['#rgOv','#nmOv','#pzOv','#cxOv'].forEach(s=>{const o=document.querySelector(s);if(!o)return;const b=o.querySelector('.rg-x,.nm-x,.pz-x,.cx-x');if(b)b.click();});});await p.waitForTimeout(700);
+    if(sel==='#rgOv .t-back'){ok(g&&g.x<g.tit&&g.i>g.tit,'Tariffe: ordine ‹ titolo (i) sbagliato '+JSON.stringify(g));await p.screenshot({path:__dirname+'/tariffe-testata.png',clip:{x:0,y:0,width:390,height:260}});}
+    await p.evaluate(()=>{['#rgOv','#nmOv','#pzOv','#cxOv'].forEach(s=>{const o=document.querySelector(s);if(!o)return;const b=o.querySelector('.t-back,.nm-x,.pz-x,.cx-x');if(b)b.click();});});await p.waitForTimeout(700);
   }
   errs.forEach(e=>fails.push('JS Safari '+e));await ctx.close();
   /* ════ 2 · APP SULLA HOME (standalone): il trascinamento nostro ════ */

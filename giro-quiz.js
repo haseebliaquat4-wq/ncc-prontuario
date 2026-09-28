@@ -73,6 +73,15 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
   await p.screenshot({path:__dirname+'/giro-3-simulazione.png'});
   await clic('.qrun-x');await p.waitForTimeout(500);await p.evaluate(()=>{const b=document.querySelector('#popOv .pop-b[data-i="0"]');b&&b.click();});
   q=await film('✕ esci',900);ok(q[q.length-1].startsWith('pagina'),'✕ non torna alla pagina: '+q.join(','));
+  // 9 tasto indietro del telefono (o gesto di Safari) a meta' quiz: esce subito, niente «Vuoi uscire?», risposte salvate
+  await p.waitForTimeout(400);await p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].find(x=>/Domande nuove/.test(x.textContent)).click());
+  q=await film('entro di nuovo',1300,vuoto);
+  const visteA=await p.evaluate(()=>Object.keys(qtStats.seenIds||{}).length);
+  for(let k=0;k<2;k++){await p.evaluate(()=>{const it=Q.items[Q.idx];document.querySelectorAll('#qRunAns .qans')[it.correct].click();});await p.waitForTimeout(1900);}
+  await p.evaluate(()=>history.back());q=await film('indietro del telefono',1000);
+  ok(!q.some(x=>x.startsWith('popup'))&&q[q.length-1].startsWith('pagina'),'indietro a meta’ quiz: non esce dritto alla pagina Quiz ('+q.join(' → ')+')');
+  const visteB=await p.evaluate(()=>Object.keys(qtStats.seenIds||{}).length);ok(visteB===visteA+2,'indietro a meta’ quiz: salvate '+(visteB-visteA)+' risposte su 2');
+  ok(await p.evaluate(()=>typeof Q==='undefined'||!Q),'indietro a meta’ quiz: il quiz resta aperto sotto');
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(f=>console.log(' - '+f));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

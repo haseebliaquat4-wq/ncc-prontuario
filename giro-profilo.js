@@ -1,6 +1,8 @@
-/* GIRO DELLA TOPOGRAFIA, fotogramma per fotogramma, a tempo reale.
-   Per ogni riga della pagina Topografia: tocco, filmo cosa c'e' al centro dello schermo ogni ~30 ms,
-   poi premo il tasto indietro visibile (o quello del telefono) e guardo dove torno. */
+/* GIRO DI STATISTICHE E PROFILO, fotogramma per fotogramma, a tempo reale.
+   Statistiche: ogni tasto delle due schede (Panoramica, Argomenti): tocco, filmo cosa c'e' al centro
+   ogni ~30 ms, poi indietro del telefono (o chiudo il popup) e guardo dove torno, con la scheda di prima.
+   Profilo: ogni riga, e le righe che cancellano solo fino alla conferma. Poi il pannello della voce
+   che non si riapre da solo e il report della domenica che esce solo sulla Home. */
 const {launch,seed,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];
@@ -10,7 +12,7 @@ const fails=[];
     if(/leaflet(\.min)?\.js/.test(u)&&!/decorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:MOCK_JS});
     if(/leaflet\.css/.test(u))return r.fulfill({status:200,contentType:'text/css',body:MOCK_CSS});
     if(/firebase|polylinedecorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:''});return r.abort();});
-  const s=seed();await ctx.addInitScript(s=>{if(!localStorage.getItem('routes')){localStorage.setItem('routes',JSON.stringify(s.routes));localStorage.setItem('coords',JSON.stringify(s.coords));localStorage.setItem('ob1','true');}},s);
+  const s=seed();await ctx.addInitScript(s=>{if(!localStorage.getItem('routes')){localStorage.setItem('routes',JSON.stringify(s.routes));localStorage.setItem('coords',JSON.stringify(s.coords));localStorage.setItem('ob1','true');localStorage.setItem('wkRepTs',String(Date.now()));}},s);
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.goto(BASE+'index.html');await p.waitForTimeout(6000);
   /* cosa c'e' davvero al centro: il primo antenato fisso con un id, oppure la home o la mappa */
@@ -27,17 +29,27 @@ const fails=[];
   let f=await film(1200);console.log('» Statistiche'.padEnd(26),f.join(' → '));if(f[f.length-1]!=='pagina:stat')fails.push('la tessera Statistiche non apre la pagina: '+f.join(' → '));
   const segna=()=>p.evaluate(()=>[...document.querySelectorAll('#scnOv [onclick]')].filter(e=>!e.closest('.t-hd')).map((e,i)=>{e.setAttribute('data-giro',i);
     return ((e.querySelector('b')||e).textContent||'').trim().replace(/\s+/g,' ').slice(0,26);}));
-  const tasti=await segna();console.log('tasti nella pagina Statistiche:',tasti.length);
-  for(let k=0;k<tasti.length;k++){
-    await p.evaluate(()=>{if(!document.getElementById('scnOv')||document.getElementById('scnOv').getAttribute('data-p')!=='stat'){try{goHome();}catch(e){}nccStat();}});await p.waitForTimeout(900);await segna();
-    const ok=await p.evaluate(k=>{const e=document.querySelector('#scnOv [data-giro="'+k+'"]');if(!e)return false;e.click();return true;},k);if(!ok)continue;
-    const g=await film(1300);const fine=g[g.length-1];let come='',t=[];
-    if(fine!=='pagina:stat'){if(/popOv|popup/.test(fine)){await p.evaluate(()=>{try{nccChiudiPopup();}catch(e){}});come='chiudo il popup';}
-      else{await p.evaluate(()=>history.back());come='indietro del telefono';}
-      await new Promise(r=>setTimeout(r,150));t=await film(1100);}
-    console.log(('   · '+tasti[k]).padEnd(34),g.join(' → '),come?'| '+come+' → '+t.join(' → '):'');
-    if(g.some(x=>/^vuoto|^home$/.test(x)))fails.push('Statistiche, '+tasti[k]+': schermo sbagliato '+g.join(' → '));
-    if(come&&t[t.length-1]!=='pagina:stat')fails.push('Statistiche, '+tasti[k]+': non si torna alla pagina ma a '+t[t.length-1]);
+  const scheda=()=>p.evaluate(()=>{const t=document.querySelector('#scnOv .sx-tab.on');return t?t.textContent.trim():'';});
+  /* le due schede: ogni tasto (in Argomenti bastano i primi due Allenati), la pagina riaperta sulla stessa scheda */
+  for(const tab of ['pan','arg']){
+    await p.evaluate(t=>{try{goHome();}catch(e){}nccStat();nccStatTab(t);},tab);await p.waitForTimeout(900);
+    const tutti=await segna();const tasti=tab==='arg'?tutti.slice(0,4):tutti;const nomeTab=await scheda();
+    console.log('tasti nella scheda '+nomeTab+':',tutti.length,tab==='arg'?'(provo i primi 4)':'');
+    for(let k=0;k<tasti.length;k++){
+      await p.evaluate(t=>{const s=document.getElementById('scnOv');if(!s||s.getAttribute('data-p')!=='stat'){try{goHome();}catch(e){}nccStat();}nccStatTab(t);},tab);await p.waitForTimeout(900);
+      const lab=await segna();const nome=lab[k]||tasti[k];
+      const ok=await p.evaluate(k=>{const e=document.querySelector('#scnOv [data-giro="'+k+'"]');if(!e)return false;e.click();return true;},k);if(!ok)continue;
+      const g=await film(1300);const fine=g[g.length-1];let come='',t=[];
+      if(fine!=='pagina:stat'){if(/popOv|popup/.test(fine)){await p.evaluate(()=>{try{nccChiudiPopup();}catch(e){}});come='chiudo il popup';}
+        else{await p.evaluate(()=>history.back());come='indietro del telefono';}
+        await new Promise(r=>setTimeout(r,150));t=await film(1100);}
+      console.log(('   · '+nome).padEnd(34),g.join(' → '),come?'| '+come+' → '+t.join(' → '):'');
+      if(g.some(x=>/^vuoto|^home$/.test(x)))fails.push('Statistiche, '+nome+': schermo sbagliato '+g.join(' → '));
+      if(g.includes('popOv')&&/quizApp/.test(fine))fails.push('Statistiche, '+nome+': il popup compare e sparisce');
+      if(come&&t[t.length-1]!=='pagina:stat')fails.push('Statistiche, '+nome+': non si torna alla pagina ma a '+t[t.length-1]);
+      if(come&&t[t.length-1]==='pagina:stat'){const sc=await scheda();if(sc!==nomeTab&&!/^(Panoramica|Argomenti)$/.test(nome))fails.push('Statistiche, '+nome+': si torna sulla scheda '+sc+' invece di '+nomeTab);}
+      if(/quizApp/.test(t.join(' '))||/popOv/.test(t.join(' ')))fails.push('Statistiche, '+nome+': indietro dal quiz passa per il quiz o il popup ('+t.join(' → ')+')');
+    }
   }
   errA();
   await p.evaluate(()=>{try{goHome();}catch(e){}nccStat();});await p.waitForTimeout(700);await p.evaluate(()=>history.back());await new Promise(r=>setTimeout(r,100));f=await film(800);
@@ -68,6 +80,18 @@ const fails=[];
   }
   await apriProfilo();await p.waitForTimeout(600);await p.evaluate(()=>history.back());await new Promise(r=>setTimeout(r,120));f=await film(800);
   console.log('» telefono dal Profilo'.padEnd(26),f.join(' → '));if(f[f.length-1]!=='home')fails.push('dal Profilo il tasto del telefono non torna alla Home');
+  /* la voce: chiusa subito col tasto indietro (prima che arrivino le voci) non deve riaprirsi da sola */
+  await apriProfilo();await p.waitForTimeout(600);
+  await p.evaluate(()=>{const r=[...document.querySelectorAll('#pfOv .pf-r')].find(x=>/Voce del quiz/.test(x.textContent));r&&r.click();});await p.waitForTimeout(150);
+  await p.evaluate(()=>history.back());await p.waitForTimeout(3200);f=await film(500);
+  console.log('» voce chiusa subito'.padEnd(26),f.join(' → '));if(f[f.length-1]!=='pfOv')fails.push('il pannello della voce si riapre da solo ('+f.join(' → ')+')');
+  /* il report della domenica: sopra il profilo no, appena torni sulla Home si */
+  await p.evaluate(()=>{const k=_dayKey(new Date());qtStats.daily=qtStats.daily||{};qtStats.daily[k]=(qtStats.daily[k]||0)+5;qtSave();
+    localStorage.setItem('wkRepTs',String(Date.now()-8*86400000));try{weeklyReport();}catch(e){}});
+  await p.waitForTimeout(6000);const sopra=await p.evaluate(()=>!!document.querySelector('#wkModal.open'));
+  await p.evaluate(()=>history.back());await p.waitForTimeout(6000);const inHome=await p.evaluate(()=>!!document.querySelector('#wkModal.open'));
+  console.log('» report della domenica'.padEnd(26),'sopra il profilo:',sopra,'· sulla Home:',inHome);
+  if(sopra)fails.push('il report della domenica esce sopra il Profilo');if(!inHome)fails.push('il report della domenica non esce tornando sulla Home');
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(f=>console.log(' - '+f));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});
