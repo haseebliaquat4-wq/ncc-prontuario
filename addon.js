@@ -1766,8 +1766,19 @@ border:1.5px solid var(--bd);border-radius:var(--r-md);background:var(--bg);
 color:var(--tx);font-size:17px;font-weight:750;cursor:pointer;font-family:inherit;}
 .ip-ti{font-size:17px;font-weight:850;letter-spacing:-.02em;color:var(--tx);}
 .ip-su{font-size:12px;font-weight:650;color:var(--mu);margin-top:2px;}
-.ip-tools{display:flex;gap:7px;padding:10px 14px;flex-shrink:0;
+.ip-tools{display:flex;flex-direction:column;gap:8px;padding:10px 14px;flex-shrink:0;
 background:var(--card);border-bottom:1.5px solid var(--sep2);}
+.ip-tools>*{box-sizing:border-box;width:100%;max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
+.ip-bt{display:flex;gap:7px;}
+.ip-cerca{display:block;padding:11px 14px;border:1.5px solid var(--bd);border-radius:var(--r-md);
+background:var(--bg);color:var(--tx);font-family:inherit;font-size:16px;font-weight:650;
+outline:none;-webkit-appearance:none;appearance:none;}
+.ip-cerca:focus{border-color:var(--a);}
+.ip-cerca::placeholder{color:var(--mu);font-weight:600;}
+.ip-sez{font-size:11px;font-weight:800;color:var(--mu);letter-spacing:.05em;text-transform:uppercase;
+margin-top:4px;margin-bottom:9px;}
+.ip-sez~.ip-sez{margin-top:20px;}
+.ip-nota{display:block;font-size:11.5px;font-weight:750;color:var(--a);margin-top:3px;}
 .ip-tools button{flex:1;min-height:38px;padding:9px 6px;border:1.5px solid var(--bd);
 border-radius:var(--r-md);background:var(--bg);color:var(--tx);
 font-family:inherit;font-size:12px;font-weight:750;cursor:pointer;}
@@ -1797,6 +1808,10 @@ background:var(--card);border-top:1.5px solid var(--sep2);}
 border-radius:var(--r-lg);background:var(--a);color:#fff;
 font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
 .ip-go.off{background:var(--fill2);color:var(--mu);}
+.ip-foot>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
+body.dark #ipOv{--bg:var(--ios-bg);--card:var(--ios-card);--tx:var(--ios-lbl);--mu:var(--ios-lbl2);
+--bd:rgba(255,255,255,.14);--sep2:var(--ios-sep);--fill2:rgba(255,255,255,.1);--fill3:rgba(255,255,255,.06);}
+body.dark #ipOv .ip-nota{color:#8AA0FF;}
 
 
 /* ── il menu ⋯ deve poter scorrere ──
@@ -8758,9 +8773,14 @@ try{var _rp=renderPlan;renderPlan=function(){var r=_rp.apply(this,arguments);set
 
 /* ═══════════════════════════════════════════════════
    📥 IMPORTA I PERCORSI DEL PDF
-   198 percorsi estratti dal PDF della scuola. Quelli che hai
-   già li riconosco dal titolo e li salto. Gli altri li scegli
-   tu uno per uno. I marker restano vuoti: li metti tu.
+   Tutti i percorsi del documento della scuola, con tutte le vie:
+   in ogni tabella prima la colonna di sinistra, poi quella di destra.
+   · quelli che hai già uguali (stesse tappe) non li mostro
+   · se hai un percorso con lo stesso nome ma tappe diverse (magari
+     a metà) lo scrivo sotto, con quante tappe ha il tuo
+   · il nuovo si aggiunge accanto: il tuo non lo tocco mai
+   · scegli tu cosa aggiungere, poi tieni o cancelli tu
+   I marker restano vuoti: li metti tu dalla mappa.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -8768,23 +8788,70 @@ function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
 return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function norm(s){return String(s||'').toUpperCase()
 .replace(/[^A-Z0-9]/g,'');}
-var SEL={},APERTO={};
+/* il nome senza il "(pag. 17)" che aggiungo io quando il nome c'e' gia' */
+function normT(s){return norm(String(s||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,''));}
+function normS(st){return (st||[]).map(norm).join('|');}
+var SEL={},APERTO={},CERCA='',VIS=[];
 
-function gia(){
-try{
-var R=(typeof routes!=='undefined'&&routes)?routes:[];
-var m={};R.forEach(function(r){m[norm(r.title)]=1;});
-return m;
-}catch(e){return {};}
-}
 function dati(){try{return window.__PERCORSI_PDF__||[];}catch(e){return [];}}
+function mie(){try{return (typeof routes!=='undefined'&&Array.isArray(routes))?routes:[];}catch(e){return [];}}
+
+/* per ogni percorso del PDF: ce l'hai gia' uguale? ne hai uno con lo stesso nome? */
+function conta(){
+var perS={},perId={},perT={};
+mie().forEach(function(r){
+if(!r||!Array.isArray(r.steps))return;
+perS[normS(r.steps)]=1;
+if(r.pdf)perId[r.pdf]=1;
+var k=normT(r.title);(perT[k]=perT[k]||[]).push(r.steps.length);
+});
+var gia=0,omo=[],nuovi=[];
+dati().forEach(function(p){
+if(perId[p.id]||perS[normS(p.s)]){gia++;return;}
+var o=perT[normT(p.t)];
+if(o)omo.push({p:p,o:o});else nuovi.push({p:p,o:null});
+});
+return {gia:gia,omo:omo,nuovi:nuovi};
+}
+/* la ricerca: un pezzo del nome, una via, oppure il numero di pagina */
+function passa(p){
+var q=String(CERCA||'').trim();if(!q)return true;
+var n=q.replace(/^pag(ina)?\.?\s*/i,'');
+if(/^\d+$/.test(n))return p.p===+n||!!(p.pp&&p.pp.indexOf(+n)>=0);
+var k=norm(q);if(!k)return true;
+if(norm(p.t).indexOf(k)>=0)return true;
+for(var i=0;i<p.s.length;i++)if(norm(p.s[i]).indexOf(k)>=0)return true;
+return false;
+}
+function pagine(p){return 'pag. '+(p.pp?p.pp.join(' e '):p.p);}
+function tuoi(o){return o.length===1?('Il tuo: '+o[0]+' tappe')
+:('I tuoi: '+o.slice(0,-1).join(', ')+' e '+o[o.length-1]+' tappe');}
+function dettaglio(p){
+/* la cornice si allinea alla riga (anche sull'iPad), le vie rientrano sotto il nome */
+var h='<div class="ip-dw" id="ipd_'+p.id+'"><div class="ip-det">';
+p.s.forEach(function(v,i){h+='<div><span>'+(i+1)+'</span>'+E(v)+'</div>';});
+return h+'</div></div>';
+}
+function riga(x){
+var p=x.p,s=!!SEL[p.id];
+var h='<div class="ip-r'+(s?' sel':'')+'" id="ipr_'+p.id+'">'
++'<button class="ip-chk" onclick="nccImpTog(\''+p.id+'\')">'+(s?'✓':'')+'</button>'
++'<button class="ip-tx" onclick="nccImpApri(\''+p.id+'\')">'
++'<b>'+E(p.t)+'</b>'
++'<i>'+p.s.length+' tappe'+(p.ck?' · <em>da controllare</em>':'')+' · '+pagine(p)+'</i>'
++(x.o?'<span class="ip-nota">'+tuoi(x.o)+'</span>':'')
++'</button></div>';
+if(APERTO[p.id])h+=dettaglio(p);
+return h;
+}
 
 window.nccImportaPercorsi=function(){
 try{
 var D=dati();
-if(!D.length){if(typeof toast2==='function')toast2('\u26a0\ufe0f percorsi-data.js non caricato',2800);return;}
-SEL={};APERTO={};
-disegna();
+if(!D.length){if(typeof toast2==='function')toast2('⚠️ percorsi-data.js non caricato',2800);return;}
+SEL={};APERTO={};CERCA='';
+var i=document.getElementById('ipCerca');if(i)i.value='';
+disegna(true);
 try{hap();}catch(e){}
 }catch(e){}
 };
@@ -8792,90 +8859,127 @@ window.nccImpChiudi=function(){
 try{var o=document.getElementById('ipOv');if(o)o.remove();}catch(e){}
 };
 
-function disegna(){
-try{
-var D=dati(),avuti=gia();
-var nuovi=D.filter(function(p){return !avuti[norm(p.t)];});
-var scelti=Object.keys(SEL).filter(function(k){return SEL[k];}).length;
+/* la finestra si costruisce una volta sola: poi cambia solo l'elenco,
+   cosi' la ricerca non perde la tastiera e l'elenco non torna in cima */
+function scheletro(){
 var o=document.getElementById('ipOv');
-if(!o){o=document.createElement('div');o.id='ipOv';o.className='rd';document.body.appendChild(o);
-try{if(window.nccOvApri)nccOvApri('ipOv',function(){nccImpChiudi();});}catch(e){}}
-var h='<div class="ip-hd">'
-+'<button class="ip-x" onclick="nccImpChiudi()">\u2715</button>'
+if(o)return o;
+o=document.createElement('div');o.id='ipOv';o.className='rd';
+o.innerHTML='<div class="ip-hd">'
++'<button class="ip-x" onclick="nccImpChiudi()">✕</button>'
 +'<div class="ip-ti">Percorsi dal PDF</div>'
-+'<div class="ip-su">'+nuovi.length+' nuovi su '+D.length+' \u00b7 '+(D.length-nuovi.length)+' li hai gi\u00e0</div>'
++'<div class="ip-su" id="ipSu"></div>'
 +'</div>'
 +'<div class="ip-tools">'
++'<input id="ipCerca" class="ip-cerca" type="search" autocomplete="off" autocorrect="off" '
++'autocapitalize="off" spellcheck="false" enterkeyhint="search" '
++'placeholder="Cerca nome, via o pagina">'
++'<div class="ip-bt">'
 +'<button onclick="nccImpTutti(1)">Scegli tutti</button>'
 +'<button onclick="nccImpTutti(0)">Nessuno</button>'
 +'<button onclick="nccImpPuliti()">Solo i puliti</button>'
-+'</div>'
-+'<div class="ip-body">';
-nuovi.forEach(function(p){
-var s=!!SEL[p.id],ap=!!APERTO[p.id];
-h+='<div class="ip-r'+(s?' sel':'')+'">'
-+'<button class="ip-chk" onclick="nccImpTog(\''+p.id+'\')">'+(s?'\u2713':'')+'</button>'
-+'<button class="ip-tx" onclick="nccImpApri(\''+p.id+'\')">'
-+'<b>'+E(p.t)+'</b>'
-+'<i>'+p.s.length+' tappe'+(p.ck?' \u00b7 <em>da controllare</em>':'')+' \u00b7 pag. '+p.p+'</i>'
-+'</button></div>';
-if(ap){
-h+='<div class="ip-det">';
-p.s.forEach(function(v,i){h+='<div><span>'+(i+1)+'</span>'+E(v)+'</div>';});
-h+='</div>';
++'</div></div>'
++'<div class="ip-body" id="ipBody"></div>'
++'<div class="ip-foot" id="ipFoot"></div>';
+document.body.appendChild(o);
+var i=document.getElementById('ipCerca'),t=null;
+i.oninput=function(){clearTimeout(t);t=setTimeout(function(){CERCA=i.value||'';disegna(true);},160);};
+i.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();clearTimeout(t);CERCA=i.value||'';disegna(true);try{i.blur();}catch(e){}}};
+try{if(window.nccOvApri)nccOvApri('ipOv',function(){nccImpChiudi();});}catch(e){}
+return o;
 }
-});
-if(!nuovi.length)h+='<div class="ip-vuoto">Li hai gi\u00e0 tutti.</div>';
-h+='</div>'
-+'<div class="ip-foot">'
-+'<button class="ip-go'+(scelti?'':' off')+'" onclick="nccImpAggiungi()">'
-+(scelti?('\u2795 Aggiungi '+scelti+(scelti===1?' percorso':' percorsi')):'Scegli quali aggiungere')
-+'</button></div>';
-o.innerHTML=h;
+
+function disegna(daCapo){
+try{
+scheletro();
+var b=document.getElementById('ipBody'),st=b.scrollTop,c=conta();
+var omo=c.omo.filter(function(x){return passa(x.p);}),nuovi=c.nuovi.filter(function(x){return passa(x.p);});
+VIS=omo.concat(nuovi).map(function(x){return x.p;});
+var h='';
+if(omo.length){h+='<div class="ip-sez">Hai già un percorso con lo stesso nome · '+omo.length+'</div>';
+omo.forEach(function(x){h+=riga(x);});}
+if(nuovi.length){h+='<div class="ip-sez">Nuovi · '+nuovi.length+'</div>';
+nuovi.forEach(function(x){h+=riga(x);});}
+if(!VIS.length)h+='<div class="ip-vuoto">'+(String(CERCA).trim()
+?('Nessun percorso con «'+E(String(CERCA).trim())+'».'):'Li hai già tutti.')+'</div>';
+b.innerHTML=h;
+b.scrollTop=daCapo?0:st;
+var D=dati();
+document.getElementById('ipSu').textContent=D.length+' percorsi · '
++(c.gia?(c.gia+(c.gia===1?' lo hai già':' li hai già')):'tutte le vie delle pagine');
+piede();
 }catch(e){}
 }
-window.nccImpTog=function(id){SEL[id]=!SEL[id];disegna();try{hap();}catch(e){}};
-window.nccImpApri=function(id){APERTO[id]=!APERTO[id];disegna();};
-window.nccImpTutti=function(v){
+function scelti(){return dati().filter(function(p){return SEL[p.id];});}
+function piede(){
 try{
-var avuti=gia();
-dati().forEach(function(p){if(!avuti[norm(p.t)])SEL[p.id]=!!v;});
-disegna();try{hap();}catch(e){}
+var f=document.getElementById('ipFoot');if(!f)return;
+var n=scelti().length;
+f.innerHTML='<button class="ip-go'+(n?'':' off')+'" onclick="nccImpAggiungi()">'
++(n?('➕ Aggiungi '+n+(n===1?' percorso':' percorsi')):'Scegli quali aggiungere')
++'</button>';
+}catch(e){}
+}
+/* toccare una riga cambia solo quella riga: l'elenco resta dov'e' */
+function segna(id){
+var r=document.getElementById('ipr_'+id);if(!r)return;
+r.classList.toggle('sel',!!SEL[id]);
+var c=r.querySelector('.ip-chk');if(c)c.textContent=SEL[id]?'✓':'';
+}
+window.nccImpTog=function(id){
+try{SEL[id]=!SEL[id];segna(id);piede();try{hap();}catch(e){}}catch(e){}
+};
+window.nccImpApri=function(id){
+try{
+APERTO[id]=!APERTO[id];
+var d=document.getElementById('ipd_'+id);if(d)d.remove();
+var r=document.getElementById('ipr_'+id);
+if(APERTO[id]&&r){var p=dati().filter(function(x){return x.id===id;})[0];
+if(p)r.insertAdjacentHTML('afterend',dettaglio(p));}
 }catch(e){}
 };
+/* i tre tasti valgono per quelli che vedi (anche dopo una ricerca) */
+window.nccImpTutti=function(v){
+try{VIS.forEach(function(p){SEL[p.id]=!!v;segna(p.id);});piede();try{hap();}catch(e){}}catch(e){}
+};
 window.nccImpPuliti=function(){
-try{
-var avuti=gia();
-SEL={};
-dati().forEach(function(p){if(!avuti[norm(p.t)]&&!p.ck)SEL[p.id]=true;});
-disegna();try{hap();}catch(e){}
-}catch(e){}
+try{VIS.forEach(function(p){SEL[p.id]=!p.ck;segna(p.id);});piede();try{hap();}catch(e){}}catch(e){}
 };
 window.nccImpAggiungi=function(){
 try{
-var D=dati(),scelti=D.filter(function(p){return SEL[p.id];});
-if(!scelti.length)return;
-if(!confirm('Aggiungo '+scelti.length+' percorsi.\n\n'
+var c=conta(),ok={};
+c.omo.concat(c.nuovi).forEach(function(x){ok[x.p.id]=1;});
+var sc=scelti().filter(function(p){return ok[p.id];});
+if(!sc.length)return;
+/* un nome che hai gia' (o che nel PDF c'e' su piu' pagine) prende la pagina */
+var nomi={},doc={};
+mie().forEach(function(r){if(r)nomi[normT(r.title)]=1;});
+dati().forEach(function(p){var k=normT(p.t);doc[k]=(doc[k]||0)+1;});
+function col(p){var k=normT(p.t);return !!(nomi[k]||doc[k]>1);}
+var es=sc.filter(col)[0];
+if(!confirm('Aggiungo '+sc.length+(sc.length===1?' percorso':' percorsi')+', con tutte le vie del PDF.\n\n'
++(es?('Se il nome c’è già, al nuovo aggiungo la pagina: «'+es.t+' (pag. '+es.p+')».\n'):'')
++'I tuoi percorsi restano come sono.\n\n'
 +'I marker restano vuoti: li posizioni tu dalla mappa.\n\nProcedo?'))return;
-var n=0;
-scelti.forEach(function(p){
+var n=0,nomiNuovi=sc.map(function(p){return col(p)?(p.t+' (pag. '+p.p+')'):p.t;});
+sc.forEach(function(p,i){
 try{
-var id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-routes.push({id:id,title:p.t,steps:p.s.slice()});
+var id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+i;
+routes.push({id:id,title:nomiNuovi[i],steps:p.s.slice(),pdf:p.id});
 n++;
 }catch(e){}
 });
 try{save();autoSave();}catch(e){}
 try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
 try{if(typeof buildList==='function')buildList();}catch(e){}
-alert('\u2705 Aggiunti '+n+' percorsi.\n\n'
-+'Li trovi nell\u2019elenco dei percorsi. I marker sono da mettere:\n'
+SEL={};APERTO={};
+if(document.getElementById('ipOv'))disegna();
+alert('✅ Aggiunti '+n+(n===1?' percorso':' percorsi')+'.\n\n'
++'Li trovi fra i percorsi salvati. I marker sono da mettere:\n'
 +'apri il percorso, tocca una tappa e poi il punto sulla mappa.');
-SEL={};
-nccImpChiudi();
 try{hap();}catch(e){}
 }catch(e){
-try{alert('\u26a0\ufe0f Non sono riuscito ad aggiungerli.');}catch(e2){}
+try{alert('⚠️ Non sono riuscito ad aggiungerli.');}catch(e2){}
 }
 };
 })();
@@ -10265,7 +10369,7 @@ g:[
 {ic:'\ud83d\udccb',c:C.grigio,n:'Percorsi salvati',s:'Modifica, rinomina, cancella',d:n.perc?String(n.perc):'',a:az('t9',function(){openMgr();})},
 {ic:'\u270f\ufe0f',c:C.arancio,n:'Correggi le tappe',s:'Rinomina, correggi, sposta, aggiungi',a:az('t12',function(){nccCorreggiElenco();}),resta:true},
 {ic:'\ud83d\udccd',c:C.rosso,n:'Senza marker',s:'Da completare sulla mappa',d:n.senza?String(n.senza):'0',a:az('t10',function(){nccSenzaMarker();}),resta:true},
-{ic:'\ud83d\udce5',c:C.teal,n:'Importa dal PDF',s:'I percorsi della scuola',a:az('t11',function(){nccImportaPercorsi();})}]}
+{ic:'\ud83d\udce5',c:C.teal,n:'Importa dal PDF',s:'Tutti i percorsi, con tutte le vie',a:az('t11',function(){nccImportaPercorsi();})}]}
 ]},
 pz:{t:'Piazze',c:C.teal,
 testa:(n.pzTot?{t:'Ne sai '+(n.pz||0)+' su '+n.pzTot,p:pct(n.pz||0,n.pzTot)}:null),
@@ -10932,13 +11036,13 @@ try{hap();}catch(e){}
 /* ── l'elenco da cui scegliere, con i "da controllare" in cima ── */
 window.nccCorreggiElenco=function(){
 try{
-var pdf={};
-try{(window.__PERCORSI_PDF__||[]).forEach(function(x){if(x.ck)pdf[String(x.t).toUpperCase().replace(/[^A-Z0-9]/g,'')]=1;});}catch(e){}
+/* da controllare: le tappe hanno ancora le alternative del PDF (OPPURE, ECC.) */
+var ALT=/\bOPPURE\b|\bECC\b/i;
 var l=(routes||[]).map(function(r){
-return {r:r,ck:!!pdf[String(r.title).toUpperCase().replace(/[^A-Z0-9]/g,'')]};});
+return {r:r,ck:(r.steps||[]).some(function(s){return ALT.test(String(s));})};});
 l.sort(function(a,b){return (b.ck?1:0)-(a.ck?1:0);});
 var nck=l.filter(function(x){return x.ck;}).length;
-var corpo='<div class="sc-nota">'+(nck?('<b>'+nck+'</b> percorsi importati dal PDF sono da controllare: li trovi in cima. '):'')
+var corpo='<div class="sc-nota">'+(nck?('<b>'+nck+'</b> '+(nck===1?'percorso ha':'percorsi hanno')+' ancora le alternative del PDF (OPPURE, ECC.): li trovi in cima. '):'')
 +'Tocca un percorso per correggerne le tappe.</div><div class="pf-gr">';
 l.forEach(function(x){
 corpo+='<button class="pf-r sc-r" onclick="nccEdDaElenco(\''+String(x.r.id).replace(/'/g,'')+'\')">'

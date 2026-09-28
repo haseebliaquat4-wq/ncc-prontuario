@@ -11,6 +11,7 @@ Non fanno parte dell'app: il sito non li carica mai.
 
 | Script | Cosa controlla |
 |---|---|
+| `giro-importa.js` | Importa dal PDF: tutti i 208 percorsi del documento con tutte le vie (pag. 17: prima la colonna di sinistra, poi quella di destra), quelli che hai già uguali nascosti, lo stesso nome con le tappe del tuo, la ricerca (nome, via, pagina) che tiene la tastiera, una riga in fondo che non riporta l'elenco in cima, Aggiungi (il nome con la pagina, il vecchio percorso e i suoi marker intatti, il nuovo senza marker, dopo un ricarico restano), Correggi le tappe con in cima quelli con OPPURE, iPad in orizzontale col tema scuro |
 | `giro-ipad3.js` | iPad, fase 3: Norme con l'elenco a sinistra e l'articolo a destra (ogni voce, quiz coi tasti 1-4, girando l'iPad, ‹ torna da dove sei venuto), quiz in orizzontale con domanda e risposte affiancate e la tastiera (il perche' dell'errore), quiz in verticale compatto, Home in verticale coi riquadri grandi; Split View da 320 a 1024 punti senza niente che scorre di lato; telefono invariato |
 | `giro-ipad.js` | su iPad: pagine al centro e in colonne (tutto in uno schermo in orizzontale, si ridistribuiscono ruotando), la piazza con la mappa accanto, «Scrivi le vie» con un riquadro per via per la Pencil; sul telefono niente cambia |
 | `giro-pencil.js` | Disegna a memoria (Pencil lungo il percorso: tutte le tappe e nell'ordine; meta' percorso; un altro; col dito sul telefono) e Mappa muta (dieci tocchi, giudizi, riepilogo, rigioca); entrata e uscita senza Home di passaggio |
