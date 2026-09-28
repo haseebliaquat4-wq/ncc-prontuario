@@ -2057,7 +2057,11 @@ box-shadow:-8px 0 24px rgba(0,0,0,.08);
 font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;}
 #scnOv.dentro{transform:none;}
 #scnOv.fuori{transform:translateX(100%);}
-#scnOv.sc-indietro:not(.dentro):not(.fuori){transform:translateX(-24%);}
+/* tornando a una pagina: la pagina e' subito al suo posto (sotto non si vede la Home,
+   nemmeno di lato sull'iPad) e il contenuto arriva appena da sinistra */
+#scnOv.sc-indietro:not(.dentro):not(.fuori){transform:none;}
+#scnOv.sc-indietro:not(.dentro):not(.fuori) .pf-body{transform:translateX(-28px);opacity:.55;}
+#scnOv.sc-indietro .pf-body{transition:transform .42s var(--ios-spring),opacity .3s ease;}
 
 
 
@@ -2662,6 +2666,54 @@ padding:4px 16px calc(28px + env(safe-area-inset-bottom,0px))!important;}
 #rgOv .rg-cell b{font-size:18px;}
 #rgOv .rg-quiz{display:block;width:100%;margin-top:4px;margin-bottom:0;padding:16px;border-radius:999px;font-size:16px;}
 @media(min-width:720px){#rgOv .t-hd{padding-left:calc((100% - 680px)/2 + 16px);padding-right:calc((100% - 680px)/2 + 16px);}}
+/* ══ iPad, fase 3 ══ */
+/* Norme sull'iPad largo: l'elenco a sinistra, l'articolo a destra */
+#nmOv.nm-due{flex-direction:row;}
+#nmOv.nm-due>.nm-sx{flex:0 0 360px;width:360px;display:flex;flex-direction:column;min-height:0;border-right:1.5px solid var(--sep2);}
+#nmOv.nm-due>.nm-dx{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;min-height:0;}
+#nmOv.nm-due .nm-sx .nm-body>*{max-width:none;}
+#nmOv.nm-due .nm-dx .nm-body>*{max-width:700px;}
+#nmOv.nm-due .nm-dx .nm-hd .nm-x{display:none!important;}
+#nmOv.nm-due .nm-sx .nm-row.on{border-color:var(--a);background:color-mix(in srgb,var(--a) 9%,var(--card));}
+#nmOv.nm-due .nm-sx .nm-go.on{box-shadow:0 0 0 3px color-mix(in srgb,var(--a) 30%,transparent);}
+#nmOv.nm-due .nm-sx .nm-go2.on{border-color:var(--a);color:var(--a);}
+/* Norme: il testo piu' grande sull'iPad */
+@media(min-width:700px){
+#nmOv .nm-p{font-size:17px;line-height:1.55;padding:16px 18px;gap:14px;}
+#nmOv .nm-n{width:26px;height:26px;font-size:13px;}
+#nmOv .nm-t{font-size:15px;}
+#nmOv .nm-m{font-size:12.5px;}
+#nmOv .nm-art{font-size:11.5px;}
+#nmOv .nm-num b{font-size:21px;min-width:112px;}
+#nmOv .nm-num span{font-size:16px;}
+#nmOv .nm-ch b{font-size:18px;}
+#nmOv .nm-ch span{font-size:14px;}
+#nmOv .nm-cls li{font-size:16px;}
+#nmOv .nm-rv i,#nmOv .nm-rv em{font-size:15px;}
+}
+/* quiz sull'iPad in orizzontale: la domanda a sinistra, le risposte a destra */
+@media(min-width:960px) and (orientation:landscape){
+#qRun.qview-run{flex-direction:row;flex-wrap:wrap;align-content:flex-start;}
+#qRun #qTimeBar,#qRun .qrun-top{flex:0 0 100%;}
+#qRun .qrun-body{flex:1 1 0!important;min-width:0;max-width:none!important;width:auto!important;margin:0!important;box-sizing:border-box;
+padding:24px 28px 28px max(32px,calc((100% - 1160px)/2))!important;justify-content:center;min-height:calc(100vh - 150px);}
+#qRun #qRunAns{flex:1 1 0!important;min-width:0;max-width:none!important;width:auto!important;margin:0!important;box-sizing:border-box;
+padding:24px max(32px,calc((100% - 1160px)/2)) 28px 8px!important;justify-content:center;min-height:calc(100vh - 150px);}
+}
+/* Home sull'iPad in verticale: riquadri piu' grandi, lo schermo si riempie */
+@media(min-width:700px) and (orientation:portrait) and (min-height:960px){
+.hm-rq{min-height:clamp(150px,calc((100vh - 600px)/2),250px);padding:18px 18px 20px;border-radius:26px;}
+.hm-rq-ic{width:48px;height:48px;border-radius:14px;}
+.hm-rq-ic svg{width:26px;height:26px;}
+.hm-rq-t{font-size:22px;}
+.hm-rq-s{font-size:14px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.hm-rq-b{font-size:14px;padding:5px 12px;}
+}
+/* quiz sull'iPad in verticale: le risposte subito sotto la domanda, insieme al centro dello schermo */
+@media(min-width:700px) and (orientation:portrait) and (min-height:900px){
+#qRun .qrun-body{flex:0 0 auto!important;margin-top:auto!important;}
+#qRun #qRunAns{margin-bottom:auto!important;}
+}
 `;
 }catch(e){}
 })();
@@ -6845,6 +6897,11 @@ return p;
 }catch(e){}
 
 /* ── 2 · applicare quello che arriva dal cloud ── */
+/* queste si FONDONO altrove, voce per voce (la spirale dei percorsi nel nucleo, le altre
+   in nccFondiPrefs): se qui le sovrascrivessi con la copia del cloud, quello fatto su
+   questo dispositivo e non ancora salito sparirebbe (es. i percorsi completati oggi) */
+var FUSE=['rSR','qNotes','rifVie','chronSusp','promosse','errBal','rDoneLog','mixRound',
+'coldHist','checkupHist','coldDone','checkupDone','lapDone'];
 window.nccApplicaPrefs=function(prefs,cloudPiuRecente){
 try{
 if(!prefs||typeof prefs!=='object')return 0;
@@ -6853,14 +6910,15 @@ EXTRA.forEach(function(k){
 try{
 var v=prefs[k];
 if(v===undefined||v===null)return;
+if(FUSE.indexOf(k)>=0)return;
+/* il report della domenica: vale il piu' recente (una copia vecchia lo farebbe riuscire) */
+if(k==='wkRepTs'&&(+v||0)<=(+lg(k,0)||0))return;
 /* i dati di studio arrivano sempre; le impostazioni solo se il cloud è più recente */
 var impostazione=(k==='dark'||k==='sndOn'||k==='vibOn'||k==='antiFretta'||k==='mapSat'||k==='lMode'||k==='berlina'||k==='qRecall');
 if(impostazione&&!cloudPiuRecente)return;
 ls(k,v);n++;
 }catch(e){}
 });
-/* la spirale dei percorsi vive anche in memoria: va aggiornata lì */
-try{if(prefs.rSR&&typeof prefs.rSR==='object'&&typeof rSR!=='undefined')rSR=prefs.rSR;}catch(e){}
 return n;
 }catch(e){return 0;}
 };
@@ -7517,7 +7575,7 @@ return '<div class="rg-cell"><small>'+esc(x.lab)+'</small><b>'+eur(x.v)+'</b></d
 +(t.prog2.note?('<div class="rg-n">'+esc(t.prog2.note)+'</div>'):'')
 +'<div class="rg-r fo"><span>Minimo aeroporti</span><b>'+eur(t.minAero)+'</b></div></div>';
 }
-/* una pagina intera come le altre: entra da destra, testata \u2039 \u00b7 titolo \u00b7 (i).
+/* una pagina intera come le altre: entra da destra, testata ‹ · titolo · (i).
    Aperta dalla pagina Norme le resta sopra: chiudendola la pagina e' gia' li' sotto */
 var o=document.createElement('div');o.id='rgOv';o.className='rd';
 o.innerHTML=nccTestata('Tariffe','nccRegoleChiudi()','tariffe')
@@ -11404,18 +11462,75 @@ setTimeout(function(){
 try{if(typeof getPrefs!=='function')return;var _g=getPrefs;
 getPrefs=function(){var p=_g.apply(this,arguments)||{};try{p.ncc=raccogli();}catch(e){}return p;};}catch(e){}
 },3000);
-/* quando cambia una di queste, lo segnalo all'app (con calma: 3 secondi) */
-var tm=null;
+/* il mio ramo nel cloud, letto chiave per chiave (i tratti della Pencil no: sono tanti
+   e restano del dispositivo) */
+var LEGGI=CHIAVI.filter(function(k){return k!=='pencilGeo';});
+function ramo(){try{return (typeof fbRef!=='undefined'&&fbRef&&fbRef.child)?fbRef.child('prefs').child('ncc'):null;}catch(e){return null;}}
+function leggi(chiavi,cb){
+var r=ramo();if(!r||!chiavi.length){cb(null);return;}
+var o={},manca=chiavi.length,fatto=false;
+function fine(){if(fatto)return;fatto=true;cb(o);}
+setTimeout(fine,8000);                  /* rete lenta: vado avanti con quello che e' arrivato */
+chiavi.forEach(function(k){
+try{r.child(k).once('value',function(s){try{var v=s&&s.val?s.val():null;if(v!=null)o[k]=v;}catch(e){}if(--manca<=0)fine();},
+function(){if(--manca<=0)fine();});}catch(e){if(--manca<=0)fine();}
+});
+}
+/* mentre unisco quello che arriva non parte un invio per ogni chiave toccata */
+var zitto=false;
+function unisciZitto(o){var n=0;zitto=true;try{n=unisci(o);}catch(e){}zitto=false;
+if(n){try{nccHomeRiquadri();}catch(e){}}return n;}
+/* quando cambia una di queste (con calma: 3 secondi) la mando su, ma PRIMA leggo quella
+   del cloud e la unisco: cosi' non cancello quello che ha appena scritto l'altro dispositivo.
+   Scrivo solo le chiavi cambiate, non tutto il ramo */
+var tm=null,cambiate={};
+function invia(){
+var ks=Object.keys(cambiate);cambiate={};
+if(!ks.length||!ramo())return;
+leggi(ks.filter(function(k){return LEGGI.indexOf(k)>=0;}),function(o){
+if(o)unisciZitto(o);
+var r=ramo(),loc=raccogli();if(!r)return;
+ks.forEach(function(k){try{if(loc[k]!=null)r.child(k).set(loc[k]);}catch(e){}});
+try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}
+});
+}
 try{
 var _si=Storage.prototype.setItem;
 Storage.prototype.setItem=function(k,v){
 var r=_si.apply(this,arguments);
-if(CHIAVI.indexOf(k)>=0){clearTimeout(tm);tm=setTimeout(function(){
-/* scrivo solo il mio ramo: prefs/ncc. Niente data, niente altri dati toccati */
-try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.child)fbRef.child('prefs').child('ncc').set(raccogli());}catch(e){}
-try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}},3000);}
+if(!zitto&&CHIAVI.indexOf(k)>=0){cambiate[k]=1;clearTimeout(tm);tm=setTimeout(invia,3000);}
 return r;};
 }catch(e){}
+function inQuiz(){try{return typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&!!Q;}catch(e){return false;}}
+/* tornando sull'app (o passando da un dispositivo all'altro) prendo le novita' del mio ramo
+   anche se il resto del cloud non e' cambiato: prima arrivavano solo al riavvio */
+var ripresa=0;
+function riprendi(){
+try{
+if(document.hidden||inQuiz()||!ramo())return;
+if(Date.now()-ripresa<15000)return;
+ripresa=Date.now();
+leggi(LEGGI,function(o){if(o)unisciZitto(o);});
+}catch(e){}
+}
+try{
+document.addEventListener('visibilitychange',function(){if(!document.hidden)riprendi();});
+window.addEventListener('focus',riprendi);
+}catch(e){}
+window.nccSyncRiprendi=function(){ripresa=0;riprendi();};
+/* prima di ogni salvataggio completo (che riscrive tutte le preferenze) unisco il mio ramo
+   del cloud: il salvataggio non cancella quello che l'altro dispositivo ha appena mandato */
+setTimeout(function(){
+try{
+var _as=window.autoSave;if(typeof _as!=='function'||_as.__ncc)return;
+var prima=0;
+window.autoSave=function(){
+try{if(ramo()&&Date.now()-prima>20000){prima=Date.now();leggi(LEGGI,function(o){if(o)unisciZitto(o);});}}catch(e){}
+return _as.apply(this,arguments);
+};
+window.autoSave.__ncc=true;
+}catch(e){}
+},3100);
 /* ricezione: dopo la sincronizzazione dell'app, leggo il pacchetto e aggiungo */
 setTimeout(function(){
 try{if(typeof syncFromCloud!=='function')return;var _s=syncFromCloud;
@@ -12126,7 +12241,8 @@ if(!N.torna)return;
 var x=t.closest('#nmOv .nm-x');
 /* la schermata di partenza e' quella in cui fai il primo tocco (o quella in cui sei, se non hai toccato niente) */
 if(!x&&t.closest('#nmOv')&&!N.primo){N.primo=true;N.firma=firma();}
-if(x&&(!N.primo||firma()===N.firma)){ev.stopPropagation();ev.preventDefault();try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}ricontrolla();return;}
+if(x&&(!N.primo||firma()===N.firma)){ev.stopPropagation();ev.preventDefault();try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}
+controlla();ricontrolla();return;}   /* la pagina torna nello stesso istante: fra le due non c'e' mai la Home */
 if(x){ricontrolla();return;}
 if(t.closest('#rgOv .rg-x,#rgqOv button[class$="-x"],#rgqOv .rq-x'))ricontrolla();
 }catch(e){}},true);
@@ -13094,4 +13210,42 @@ try{window.addEventListener('resize',function(){setTimeout(function(){
 try{if(DM.map&&document.getElementById('dmOv')){DM.map.invalidateSize();dmTela();}}catch(e){}
 try{if(MM.map&&document.getElementById('mmOv'))MM.map.invalidateSize();}catch(e){}
 },150);});}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   ⌨️ LA TASTIERA DELL'IPAD NEI QUIZ
+   Il quiz risponde gia' con 1-4 / A-D e va avanti e indietro con le
+   frecce (lo fa l'app). In piu':
+   · dopo un errore 1, 2, 3 scelgono il perche', Invio o spazio vanno avanti
+   · 1-4 / A-D rispondono anche nei quiz sulle norme, sulle tariffe e sulle piazze
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function scrive(t){return !!(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable));}
+function indice(k){if(/^[1-9]$/.test(k))return +k-1;var c=String(k||'').toLowerCase();return (c.length===1&&c>='a'&&c<='f')?c.charCodeAt(0)-97:-1;}
+function vis(el){try{return el.getClientRects().length>0;}catch(e){return false;}}
+document.addEventListener('keydown',function(e){
+try{
+if(e.metaKey||e.ctrlKey||e.altKey||scrive(e.target))return;
+if(document.getElementById('popOv'))return;                 /* un popup aperto: prima quello */
+var k=e.key,qa=document.getElementById('quizApp');
+/* il quiz: il perche' dell'errore. Ascolto PRIMA dell'app (fase di cattura): cosi' il
+   tasto che ha dato la risposta sbagliata non sceglie anche il perche' */
+if(qa&&qa.classList.contains('open')){
+var bar=document.querySelector('#qRunAns .why-bar');
+if(!bar||typeof qCurView==='undefined'||qCurView!=='run')return;
+var bs=bar.querySelectorAll('button'),i=indice(k);
+if(i>=0&&i<3&&bs[i]){e.preventDefault();e.stopPropagation();bs[i].click();return;}
+if(k==='Enter'||k===' '){e.preventDefault();e.stopPropagation();var x=bar.querySelector('[data-w="x"]');if(x)x.click();}
+return;}
+/* norme, tariffe, piazze: le risposte con i tasti */
+var sel=['#rgqOv .pzq-o','#pzqOv .pzq-o','#nmOv .nm-o'];
+for(var s=0;s<sel.length;s++){
+var os=[].filter.call(document.querySelectorAll(sel[s]),vis);
+if(!os.length)continue;
+var j=indice(k);
+if(j>=0&&j<os.length&&!os[j].disabled){e.preventDefault();os[j].click();}
+return;}
+}catch(x){}
+},true);
 })();
