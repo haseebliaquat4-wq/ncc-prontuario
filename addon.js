@@ -12423,6 +12423,10 @@ document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.close
    del giorno: iPhone e iPad scelgono le stesse.
    Tocchi la riga e parte; fatta, si spunta. Un percorso disegnato a
    memoria con almeno il 60% delle tappe conta come fatto.
+   Nel conto entrano TUTTI i percorsi e le piazze fatti oggi, anche
+   quelli fuori dalla lista: i nomi della riga sono solo il consiglio
+   (prima chi faceva altri percorsi restava a 0/5 e sembrava che non
+   si salvassero).
    Le domande e gli errori fatti oggi viaggiano col cloud; piazze e
    percorsi si riconoscono dal loro registro, che sincronizza gia'.
    ═══════════════════════════════════════════════════ */
@@ -12456,6 +12460,7 @@ function trovaPz(id){var a=piazze();for(var i=0;i<a.length;i++)if(a[i].id===id)r
 function trovaR(id){try{return (routes||[]).filter(function(r){return String(r.id)===String(id);})[0]||null;}catch(e){return null;}}
 function segnati(r){var n=0;try{for(var i=0;i<r.steps.length;i++)if(coords[r.id+'_'+i])n++;}catch(e){}return n;}
 function pzFatta(id,t0,sr,log){var s=sr[id];return !!((s&&(+s.last||0)>=t0)||((+log[id]||0)>=t0));}
+function fattaIl(id,sr,log){var s=sr[id];return Math.max(+(s&&s.last)||0,+log[id]||0);}
 function prFatto(id,t0,log){return (+log[id]||0)>=t0;}
 /* quando e' stato fatto ogni percorso: dal registro, oppure disegnato a memoria con almeno il 60% delle tappe */
 function logPr(){
@@ -12572,26 +12577,32 @@ if(oke&&e0)ne=e0;
 compiti++;if(oke)fatti++;
 h+=riga('e','#C62828',oke,e0?('Ripassa '+e0+(e0===1?' errore':' errori')):'Errori',
 e0?'In scadenza stamattina':'Nessuno in scadenza oggi',e0?(Math.min(ne,e0)+'/'+e0):'');
-/* piazze */
+/* piazze: contano TUTTE quelle fatte oggi, anche fuori dalla lista (i nomi sono il consiglio):
+   prima contavano solo le sei scelte e chi ne faceva altre restava a 0/6 */
 var sr=L('pzSR',{})||{},plog=L('pzDoneLog',{})||{};
 var pz=(st.pz||[]).map(trovaPz).filter(Boolean);
 if(pz.length){
-/* sotto: quelle ancora da fare, la prossima per prima (e' quella che si apre toccando) */
-var pzDa=pz.filter(function(p){return !pzFatta(p.id,t0,sr,plog);}),npz=pz.length-pzDa.length,okp=!pzDa.length;
+var pzOggi=[];try{pzOggi=piazze().filter(function(p){return pzFatta(p.id,t0,sr,plog);});}catch(e){}
+pzOggi.sort(function(a,b){return fattaIl(a.id,sr,plog)-fattaIl(b.id,sr,plog);});
+/* sotto: quelle ancora da fare (quante ne mancano), la prossima per prima: e' quella che si apre toccando */
+var pzDa=pz.filter(function(p){return !pzFatta(p.id,t0,sr,plog);}),npz=Math.min(pz.length,pzOggi.length),okp=npz>=pz.length;
 compiti++;if(okp)fatti++;
 h+=riga('pz','#0E9AA7',okp,pz.length+(pz.length===1?' piazza':' piazze'),
-(okp?pz:pzDa).map(function(p){return corto(p.n);}).join(' · '),npz+'/'+pz.length);
+(okp?pzOggi.slice(0,pz.length):pzDa.slice(0,pz.length-npz)).map(function(p){return corto(p.n);}).join(' · '),npz+'/'+pz.length);
 }else{
 h+=riga('pz','#0E9AA7',false,'Piazze','Nessuna piazza con tutti i marker','');
 }
-/* percorsi */
+/* percorsi: contano TUTTI quelli finiti oggi (ultima tappa in Studio o Cieco, Quiz vie finito,
+   Disegna a memoria col 60%), anche fuori dalla lista: i nomi sono il consiglio */
 var rlog=logPr();
 var pr=(st.pr||[]).map(trovaR).filter(Boolean);
 if(pr.length){
-var prDa=pr.filter(function(r){return !prFatto(r.id,t0,rlog);}),npr=pr.length-prDa.length,okr=!prDa.length;
+var prOggi=[];try{prOggi=(routes||[]).filter(function(r){return prFatto(r.id,t0,rlog);});}catch(e){}
+prOggi.sort(function(a,b){return (+rlog[a.id]||0)-(+rlog[b.id]||0);});
+var prDa=pr.filter(function(r){return !prFatto(r.id,t0,rlog);}),npr=Math.min(pr.length,prOggi.length),okr=npr>=pr.length;
 compiti++;if(okr)fatti++;
 h+=riga('pr','#2447D6',okr,pr.length+(pr.length===1?' percorso':' percorsi'),
-(okr?pr:prDa).map(function(r){return bello(r.title);}).join(' · '),npr+'/'+pr.length);
+(okr?prOggi.slice(0,pr.length):prDa.slice(0,pr.length-npr)).map(function(r){return bello(r.title);}).join(' · '),npr+'/'+pr.length);
 }else{
 h+=riga('pr','#2447D6',false,'Percorsi','Nessun percorso con tutti i marker','');
 }
