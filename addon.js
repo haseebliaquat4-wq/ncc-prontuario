@@ -2718,6 +2718,11 @@ color:var(--ios-lbl);font:inherit;font-size:15px;font-weight:800;cursor:pointer;
 #pfOv.dc-largo .pf-gr{gap:8px!important;margin-bottom:18px!important;}
 #pfOv.dc-largo .pf-piede{display:none;}
 }
+/* le pagine sull'iPad in orizzontale: la barra in cima su una riga sola, cosi' Topografia (con La cartina) sta in uno schermo */
+@media (orientation:landscape) and (max-height:900px){
+#scnOv.dc-largo .sc-testa{flex-wrap:nowrap;padding:12px 16px!important;margin-bottom:20px;}
+#scnOv.dc-largo .sc-tt{flex:0 0 auto;margin-right:6px;}
+}
 #scnOv .pf-body,#pfOv .pf-body{padding-left:calc((100% - var(--col))/2)!important;padding-right:calc((100% - var(--col))/2)!important;}
 #scnOv .t-hd,#pfOv .t-hd{padding-left:calc((100% - var(--col))/2 + 16px);padding-right:calc((100% - var(--col))/2 + 16px);}
 }
@@ -2784,6 +2789,74 @@ padding:24px max(32px,calc((100% - 1160px)/2)) 28px 8px!important;justify-conten
 @media(min-width:700px) and (orientation:portrait) and (min-height:900px){
 #qRun .qrun-body{flex:0 0 auto!important;margin-top:auto!important;}
 #qRun #qRunAns{margin-bottom:auto!important;}
+}
+/* ══════════ 🏙️ LA CARTINA DI MILANO (v148) ══════════ */
+#ctOv{position:fixed;inset:0;z-index:8980;background:var(--ios-bg);display:flex;flex-direction:column;overflow:hidden;
+transform:translateX(100%);transition:transform .42s var(--ios-spring);}
+#ctOv.dentro{transform:none;}
+#ctOv.fuori{transform:translateX(100%);}
+.ct-area{position:relative;flex:1;min-height:0;margin:0 12px;border-radius:16px;overflow:hidden;border:1.5px solid var(--ios-sep);
+background:#ECE8DF;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;}
+.ct-area.tira{cursor:grabbing;}
+body.dark .ct-area{background:#1C1C1E;}
+.ct-tela{position:absolute;left:0;top:0;transform-origin:0 0;}
+.ct-tela img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none;-webkit-touch-callout:none;}
+.ct-svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+.ct-svg .ct-ev{mix-blend-mode:multiply;}
+#ctLive{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;}
+#ctLive.ev{mix-blend-mode:multiply;}
+.ct-zoom{position:absolute;right:10px;bottom:10px;z-index:3;display:flex;flex-direction:column;gap:8px;}
+.ct-zb{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--ios-lbl);
+font:inherit;font-size:22px;font-weight:700;line-height:1;padding:0;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);-webkit-tap-highlight-color:transparent;}
+.ct-zb:active{transform:scale(.93);}
+.ct-aiuto{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:3;max-width:calc(100% - 40px);box-sizing:border-box;
+background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;
+color:var(--ios-lbl2);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .45s;}
+.ct-aiuto.via{opacity:0;}
+.ct-vuota{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+padding:24px;text-align:center;background:var(--ios-bg);overflow:auto;touch-action:auto;}
+.ct-vuota[hidden],.ct-att[hidden]{display:none;}
+.ct-vi{font-size:54px;line-height:1;}
+.ct-vuota b{font-size:20px;font-weight:800;color:var(--ios-lbl);letter-spacing:-.2px;}
+.ct-vuota span{max-width:420px;font-size:15px;line-height:1.45;color:var(--ios-lbl2);}
+.ct-vuota small{font-size:13px;color:var(--ios-lbl2);}
+.ct-sc{margin:8px 0 2px;min-height:52px;padding:0 26px;border:none;border-radius:999px;background:var(--a,#2447D6);color:#fff;
+font:inherit;font-size:16px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ct-sc:active{transform:scale(.97);}
+.ct-att{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700;color:var(--ios-lbl2);}
+.ct-att i{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ios-sep);border-top-color:var(--a,#2447D6);animation:ctGira .8s linear infinite;}
+@keyframes ctGira{to{transform:rotate(360deg)}}
+.ct-barra{position:relative;display:flex;align-items:center;gap:8px;flex-shrink:0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));}
+#ctOv.ct-senza .ct-barra,#ctOv.ct-senza .ct-zoom{visibility:hidden;}
+.ct-barra .dm-b{flex-shrink:0;}
+.ct-sp{flex:1;}
+.ct-colb{padding:0;width:50px;display:inline-flex;align-items:center;justify-content:center;}
+.ct-colb i{display:block;width:26px;height:26px;border-radius:50%;background:var(--c,#2447D6);box-shadow:inset 0 0 0 2px rgba(0,0,0,.1);}
+.ct-colb.evc i{border-radius:7px;width:20px;height:28px;}
+.ct-colb.gomma i{background:none;box-shadow:none;width:auto;height:auto;font-style:normal;}
+.ct-colb.gomma i::before{content:'🧽';font-size:22px;}
+.ct-pal{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ct-c{width:32px;height:32px;flex-shrink:0;border-radius:50%;border:2.5px solid var(--ios-card);background:var(--c);padding:0;cursor:pointer;
+box-shadow:0 0 0 1.5px var(--ios-sep);-webkit-tap-highlight-color:transparent;}
+.ct-c.ct-evc{border-radius:8px;width:24px;height:34px;}
+.ct-c.on{box-shadow:0 0 0 2.5px var(--ios-lbl);transform:scale(1.08);}
+body.dark .ct-c:not(.on){box-shadow:0 0 0 1.5px rgba(255,255,255,.4);}
+.ct-gomma{height:40px;padding:0 12px;border-radius:12px;border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--ios-lbl);
+font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.ct-gomma.on{border-color:var(--a,#2447D6);color:var(--a,#2447D6);background:color-mix(in srgb,var(--a,#2447D6) 8%,var(--ios-card));}
+@media(min-width:700px){.ct-colb{display:none!important;}}
+@media(max-width:699.98px){
+.ct-pal{position:absolute;left:12px;bottom:calc(100% - 4px);z-index:6;background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:18px;
+padding:10px 12px;box-shadow:0 10px 28px rgba(0,0,0,.18);opacity:0;transform:translateY(8px) scale(.97);transform-origin:left bottom;
+pointer-events:none;transition:opacity .18s,transform .22s var(--ios-spring);}
+.ct-pal.aperta{opacity:1;transform:none;pointer-events:auto;}
+}
+@media(max-width:430px){.ct-lb{display:none;}.ct-barra{gap:6px;}}
+/* La mappa: sui telefoni stretti la barra non taglia l'ultimo tasto (e sotto i 372 punti scorre) */
+@media(max-width:430px){
+.mg-barra{gap:5px;padding-left:10px;padding-right:10px;overflow-x:auto;scrollbar-width:none;}
+.mg-barra::-webkit-scrollbar{display:none;}
+.mg-barra .mg-b{min-width:40px;min-height:40px;}
 }
 `;
 }catch(e){}
@@ -10451,7 +10524,8 @@ topo:{t:'Topografia',c:C.blu,
 testa:(n.perc?{t:n.perc+' percorsi \u00b7 '+(n.perc-(n.senza||0))+' con i marker',p:pct(n.perc-(n.senza||0),n.perc)}:null),
 g:[
 {t:'MAPPA',v:[
-{ic:'\ud83d\uddfa\ufe0f',c:C.blu,n:'La mappa',s:'Grande, pulita, con la Pencil pronta',a:az('t1',function(){nccMappaGrande();})}]},
+{ic:'\ud83d\uddfa\ufe0f',c:C.blu,n:'La mappa',s:'Grande, pulita, con la Pencil pronta',a:az('t1',function(){nccMappaGrande();})},
+{ic:'\ud83c\udfd9\ufe0f',c:C.indaco,n:'La cartina',s:'Quella di carta, in HD',a:az('t14',function(){nccCartina();}),resta:true}]},
 {t:'STUDIA',v:[
 {ic:'\ud83d\udcd6',c:C.verde,n:'Studio',s:'Tutte le vie in vista',a:az('t3',topo('s'))},
 {ic:'\ud83d\ude48',c:C.arancio,n:'Cieco',s:'Le vie coperte, le scopri una a una',a:az('t4',topo('c'))},
@@ -10535,6 +10609,7 @@ q8:['Ripassa','Le domande che scambi con un\u2019altra simile. Le vedi vicine, c
 q9:['Verifica','Domande che sapevi da settimane: se le sai ancora, restano; se no, tornano in ripasso.'],
 q10:['Apri','Le domande che hai salvato col segnalibro.'],
 t1:['Apri','Milano a tutto schermo, a livello strada. La Pencil disegna, il dito sposta e zooma.'],
+t14:['Apri','La cartina stampata di Milano a tutto schermo, in alta definizione: con due dita ingrandisci e sposti, la Pencil ci scrive sopra (penna, evidenziatore, gomma). La scegli una volta dalle foto o dai file e resta su questo dispositivo, anche senza rete.'],
 t3:['Studia','Il percorso con tutte le vie in vista: lo leggi tappa per tappa sulla mappa.'],
 t4:['Allenati','Le vie sono coperte: le scopri una alla volta e vedi se te le ricordi.'],
 t5:['Scrivi','Scrivi tu ogni via a memoria. I refusi non contano, il suggerimento \u00e8 a un tocco.'],
@@ -13627,6 +13702,7 @@ var h='<div class="kb-l">'
 +'<div class="kb-g"><b>Mappa</b>'+riga(['←','→'],'tappa prima e dopo')+riga(['spazio'],'scopri la via (Cieco)')+riga(['S','C','V'],'Studio, Cieco, Quiz vie')
 +riga(['L'],'la linea')+riga(['A'],'ascolta il percorso')+riga(['R'],'un percorso a caso')+riga(['Tab'],'suggerimento mentre scrivi la via')+'</div>'
 +'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
++'<div class="kb-g"><b>Cartina</b>'+riga(['+','−'],'più vicino, più lontano')+riga(['0'],'tutta la cartina')+riga(['←','↑','→','↓'],'sposta')+riga(['⌘','Z'],'annulla il segno')+'</div>'
 +'<div class="kb-g"><b>Piazze</b>'+riga(['←','→'],'via prima e dopo')+riga(['spazio'],'scopri la via')+riga(['1','2'],'Mi verifico: non la sapevo, la sapevo')+'</div>'
 +'</div>';
 nccPopup({icona:'⌨️',titolo:'Comandi da tastiera',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
@@ -14549,4 +14625,594 @@ azioni:[{t:'Entra adesso',stile:'pieno',fn:function(){window.nccProteggi();}},{t
 }
 setTimeout(controlla,6000);
 try{document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(controlla,1500);});}catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🏙️ LA CARTINA DI MILANO (v148)
+   La cartina di carta (una foto o una scansione) a tutto schermo, in alta definizione.
+   · due dita: ingrandisci e sposti; un dito la trascina (con lo slancio);
+     doppio tocco: piu' vicino; + e − in basso, «Tutta» per vederla intera;
+     sul PC la rotella, i tasti + − 0 e le frecce
+   · la Pencil ci scrive sopra: penna in quattro colori, evidenziatore giallo,
+     gomma che toglie un segno intero, ↶ annulla. Il dito intanto sposta;
+     col tasto ✋/☝️ disegna anche il dito (iPhone). I segni sono attaccati
+     alla cartina: ingrandendo restano sulle vie giuste
+   · la scegli una volta dalle foto o dai file: resta su questo dispositivo
+     (anche senza rete) e non finisce sul sito pubblico. Riaprendo torni
+     dove eri, coi tuoi segni
+   · nitida a ogni ingrandimento: finito il gesto il browser la ridisegna
+     alla risoluzione giusta (durante il gesto la muove la scheda grafica)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg';
+var COLORI=[['#2447D6','blu'],['#E5484D','rosso'],['#0E9F6E','verde'],['#111827','nero'],['#FFD60A','evidenziatore']];
+var MAXPX=40e6;                        /* oltre i 40 milioni di pixel l'iPhone rischia di chiudere l'app */
+var C={W:0,H:0,s:1,x:0,y:0,min:1,max:3,aw:0,ah:0,dpr:1,id:'',url:null,
+area:null,tela:null,svg:null,img:null,live:null,lctx:null,box:null,
+tratti:[],azioni:[],cur:null,gm:null,dito:false,penna:false,col:0,gomma:false,
+ptr:{},gesto:null,campioni:[],anim:0,tap:null,tap0:null,raf:0,vw:0,tw:0,ts:0,tv:0,ta:0};
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function hp(t){try{hap(t);}catch(e){}}
+function avviso(t,ms){try{if(typeof toast2==='function')toast2(t,ms||2200);}catch(e){}}
+function LS(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function SS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+/* ── la memoria del dispositivo (IndexedDB): la cartina e i segni. Mai nel cloud ── */
+var dbp=null;
+function db(){
+if(dbp)return dbp;
+dbp=new Promise(function(ok,ko){
+try{var r=indexedDB.open('nccCartina',1);
+r.onupgradeneeded=function(){try{r.result.createObjectStore('k');}catch(e){}};
+r.onsuccess=function(){ok(r.result);};r.onerror=function(){ko(r.error);};r.onblocked=function(){ko(new Error('bloccato'));};
+}catch(e){ko(e);}
+});
+dbp.catch(function(){dbp=null;});
+return dbp;
+}
+function leggi(k){return db().then(function(d){return new Promise(function(ok,ko){
+try{var q=d.transaction('k','readonly').objectStore('k').get(k);q.onsuccess=function(){ok(q.result==null?null:q.result);};q.onerror=function(){ko(q.error);};}catch(e){ko(e);}});});}
+function metti(k,v){return db().then(function(d){return new Promise(function(ok,ko){
+try{var t=d.transaction('k','readwrite');t.objectStore('k').put(v,k);t.oncomplete=function(){ok(true);};t.onerror=function(){ko(t.error);};t.onabort=function(){ko(t.error);};}catch(e){ko(e);}});});}
+
+/* ── la schermata: entra da destra come le altre, indietro del telefono la chiude ── */
+function apriOv(id,html,chiudi){
+var o=document.getElementById(id),nuovo=!o;
+if(nuovo){o=document.createElement('div');o.id=id;o.className='rd';document.body.appendChild(o);}
+o.innerHTML=html;
+if(nuovo){
+requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('dentro');});});
+try{if(window.nccOvApri)nccOvApri(id,chiudi);}catch(e){}
+}
+return o;
+}
+function chiudiOv(id){
+var o=document.getElementById(id);if(!o)return;
+try{if(window.nccOvChiuso)nccOvChiuso(id);}catch(e){}
+o.classList.remove('dentro');o.classList.add('fuori');
+setTimeout(function(){try{o.remove();}catch(e){}},440);
+}
+
+window.nccCartina=function(){
+try{
+if(document.getElementById('ctOv'))return;
+var pal=COLORI.map(function(c,i){return '<button type="button" class="ct-c'+(i===4?' ct-evc':'')+'" data-i="'+i+'" style="--c:'+c[0]
++'" onclick="nccCartinaColore('+i+')" aria-label="'+c[1]+'"></button>';}).join('')
++'<button type="button" class="ct-gomma" id="ctGomma" onclick="nccCartinaGomma()">🧽 Gomma</button>';
+var html=nccTestata('Cartina di Milano','nccCartinaChiudi()','cartina')
++'<div class="ct-area" id="ctArea">'
++'<div class="ct-tela" id="ctTela"><img id="ctImg" alt="La cartina di Milano" draggable="false">'
++'<svg class="ct-svg" id="ctSvg" xmlns="'+NS+'" preserveAspectRatio="none"></svg></div>'
++'<canvas id="ctLive"></canvas>'
++'<div class="ct-zoom"><button type="button" class="ct-zb" onclick="nccCartinaZoom(1)" aria-label="Più vicino">+</button>'
++'<button type="button" class="ct-zb" onclick="nccCartinaZoom(-1)" aria-label="Più lontano">−</button></div>'
++'<div class="ct-aiuto via" id="ctAiuto"></div>'
++'<div class="ct-vuota" id="ctVuota" hidden><div class="ct-vi">🏙️</div><b>La tua cartina di Milano</b>'
++'<span>Scegli la foto o la scansione della cartina: si apre qui grande, in alta definizione, e ci scrivi sopra con la Pencil.</span>'
++'<button type="button" class="ct-sc" onclick="nccCartinaScegli()">📷 Scegli la cartina</button>'
++'<small>Resta solo su questo dispositivo, anche senza rete.</small></div>'
++'<div class="ct-att" id="ctAtt" hidden><i></i>Apro la cartina…</div>'
++'</div>'
++'<div class="ct-barra" id="ctBarra">'
++'<button type="button" class="dm-b ct-colb" id="ctColB" onclick="nccCartinaPalette()" aria-label="Colore e gomma"><i></i></button>'
++'<div class="ct-pal" id="ctPal">'+pal+'</div>'
++'<button type="button" class="dm-b" onclick="nccCartinaAnnulla()" aria-label="Annulla l’ultimo segno">↶</button>'
++'<button type="button" class="dm-b" id="ctDito" onclick="nccCartinaDito()"></button>'
++'<div class="ct-sp"></div>'
++'<button type="button" class="dm-b" onclick="nccCartinaTutta()" aria-label="Tutta la cartina">⤢<span class="ct-lb"> Tutta</span></button>'
++'</div>'
++'<input type="file" id="ctFile" accept="image/*" hidden>';
+var o=apriOv('ctOv',html,function(){nccCartinaChiudi();});
+o.classList.add('ct-senza');
+C.area=document.getElementById('ctArea');C.tela=document.getElementById('ctTela');C.svg=document.getElementById('ctSvg');
+C.img=document.getElementById('ctImg');C.live=document.getElementById('ctLive');
+C.W=C.H=0;C.id='';C.tratti=[];C.azioni=[];C.cur=null;C.gm=null;C.ptr={};C.gesto=null;C.gomma=false;
+strumenti();
+document.getElementById('ctFile').addEventListener('change',scelto);
+input();
+carica();
+hp();
+}catch(e){}
+};
+
+/* ── stati: aspetto, vuota (da scegliere), pronta ── */
+function stato(k){
+var o=document.getElementById('ctOv');if(!o)return;
+o.classList.toggle('ct-senza',k!=='ok');
+var v=document.getElementById('ctVuota'),a=document.getElementById('ctAtt');
+if(v)v.hidden=(k!=='vuota');
+if(a){clearTimeout(C.ta);a.hidden=true;if(k==='att')C.ta=setTimeout(function(){if(document.getElementById('ctOv')&&!C.W)a.hidden=false;},250);}
+}
+function carica(){
+stato('att');
+leggi('cartina').then(function(r){
+if(!document.getElementById('ctOv'))return;
+if(!r||!r.buf){stato('vuota');return;}
+mostra(r);
+}).catch(function(){if(document.getElementById('ctOv'))stato('vuota');});
+}
+function mostra(r){
+try{
+var img=C.img;if(!img)return;
+var url=URL.createObjectURL(new Blob([r.buf],{type:r.type||'image/jpeg'}));
+var vecchio=C.url;C.url=url;
+var fatto=false;
+function pronta(){
+if(fatto)return;fatto=true;
+if(!document.getElementById('ctOv')||C.url!==url)return;
+try{if(vecchio&&vecchio!==url)URL.revokeObjectURL(vecchio);}catch(e){}
+C.id=String(r.id||'');C.W=img.naturalWidth||+r.W||0;C.H=img.naturalHeight||+r.H||0;
+if(!C.W||!C.H){stato('vuota');return;}
+prepara();
+}
+img.onerror=function(){if(fatto)return;fatto=true;stato('vuota');avviso('⚠️ Non riesco ad aprire la cartina: sceglila di nuovo',3000);};
+img.onload=pronta;
+img.src=url;
+if(img.decode)img.decode().then(pronta,function(){});
+}catch(e){stato('vuota');}
+}
+function misura(){
+if(!C.area)return;
+C.aw=C.area.clientWidth;C.ah=C.area.clientHeight;C.dpr=window.devicePixelRatio||1;
+C.min=Math.min(C.aw/C.W,C.ah/C.H);
+C.max=Math.max(C.min*6,2);
+try{C.live.width=Math.round(C.aw*C.dpr);C.live.height=Math.round(C.ah*C.dpr);C.lctx=C.live.getContext('2d');}catch(e){C.lctx=null;}
+}
+function prepara(){
+C.tela.style.width=C.W+'px';C.tela.style.height=C.H+'px';
+C.svg.setAttribute('viewBox','0 0 '+C.W+' '+C.H);
+misura();
+var v=LS('cartinaVista',null);
+if(v&&v.id===C.id&&isFinite(v.cx)&&isFinite(v.cy)&&isFinite(v.s)){C.s=lim(v.s);centra(v.cx,v.cy);}
+else{C.s=C.min;centra(C.W/2,C.H/2);}
+limita();applica();
+stato('ok');
+leggi('tratti').then(function(t){
+if(!document.getElementById('ctOv'))return;
+C.tratti=(t&&t.id===C.id&&Array.isArray(t.t))?t.t.filter(function(x){return x&&Array.isArray(x.p)&&x.p.length>=2;}):[];
+C.tratti.forEach(bbox);disegnaTutti();
+}).catch(function(){});
+aiuto();
+}
+function lim(s){return Math.max(C.min,Math.min(C.max,s));}
+function centra(cx,cy){C.x=C.aw/2-cx*C.s;C.y=C.ah/2-cy*C.s;}
+/* mai spazio vuoto oltre i bordi; piu' piccola dello schermo: al centro */
+function limita(){
+var w=C.W*C.s,h=C.H*C.s;
+if(w<=C.aw)C.x=(C.aw-w)/2;else C.x=Math.min(0,Math.max(C.aw-w,C.x));
+if(h<=C.ah)C.y=(C.ah-h)/2;else C.y=Math.min(0,Math.max(C.ah-h,C.y));
+}
+function applica(){if(C.tela)C.tela.style.transform='translate('+C.x.toFixed(2)+'px,'+C.y.toFixed(2)+'px) scale('+C.s.toFixed(5)+')';}
+function ridisegna(){if(C.raf)return;C.raf=requestAnimationFrame(function(){C.raf=0;applica();});}
+/* durante il gesto la muove la scheda grafica; finito, torna nitida alla risoluzione giusta */
+function muovo(){
+if(!C.tela)return;
+if(!C.vw){C.vw=1;C.tela.style.willChange='transform';}
+clearTimeout(C.tw);
+C.tw=setTimeout(function(){C.vw=0;if(C.tela)C.tela.style.willChange='auto';salvaVista();},220);
+}
+function salvaVista(){
+if(!C.W||!C.id)return;
+SS('cartinaVista',{id:C.id,cx:+((C.aw/2-C.x)/C.s).toFixed(1),cy:+((C.ah/2-C.y)/C.s).toFixed(1),s:+C.s.toFixed(5)});
+}
+/* ── le animazioni: zoom coi tasti, doppio tocco, «Tutta», lo slancio ── */
+function fermaAnim(){if(C.anim){cancelAnimationFrame(C.anim);C.anim=0;}}
+function vaiA(s1,x1,y1,dur){
+fermaAnim();
+var s0=C.s,x0=C.x,y0=C.y,t0=performance.now(),d=dur||260;
+var sv=C.s,xv=C.x,yv=C.y;C.s=s1;C.x=x1;C.y=y1;limita();x1=C.x;y1=C.y;C.s=sv;C.x=xv;C.y=yv;
+function passo(t){
+var k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);
+C.s=Math.exp(Math.log(s0)+(Math.log(s1)-Math.log(s0))*e);C.x=x0+(x1-x0)*e;C.y=y0+(y1-y0)*e;
+applica();muovo();
+if(k<1)C.anim=requestAnimationFrame(passo);else{C.anim=0;C.s=s1;C.x=x1;C.y=y1;applica();}
+}
+C.anim=requestAnimationFrame(passo);
+}
+function zoomVerso(s,ax,ay,dur){
+s=lim(s);var ix=(ax-C.x)/C.s,iy=(ay-C.y)/C.s;
+vaiA(s,ax-ix*s,ay-iy*s,dur);
+}
+function slancio(){
+var c=C.campioni;if(c.length<2)return;
+var a=c[0],b=c[c.length-1],dt=b.t-a.t;
+if(dt<=0||performance.now()-b.t>90)return;
+var vx=(b.x-a.x)/dt,vy=(b.y-a.y)/dt;if(Math.hypot(vx,vy)<0.25)return;
+fermaAnim();
+var tp=performance.now();
+function passo(t){
+var dt2=Math.min(40,t-tp);tp=t;
+C.x+=vx*dt2;C.y+=vy*dt2;
+var f=Math.pow(0.94,dt2/16);vx*=f;vy*=f;
+var ox=C.x,oy=C.y;limita();if(C.x!==ox)vx=0;if(C.y!==oy)vy=0;
+applica();muovo();
+if(Math.hypot(vx,vy)>0.02)C.anim=requestAnimationFrame(passo);else C.anim=0;
+}
+C.anim=requestAnimationFrame(passo);
+}
+function doppio(x,y){
+if(C.s<C.max*0.7)zoomVerso(Math.min(C.max,C.s*2.2),x,y,300);
+else vaiA(C.min,(C.aw-C.W*C.min)/2,(C.ah-C.H*C.min)/2,300);
+hp();
+}
+
+/* ── i gesti: la Pencil (o il dito, se lo scegli) disegna; dita e mouse spostano e ingrandiscono ── */
+function xy(ev){var r=C.box||C.area.getBoundingClientRect();return {x:ev.clientX-r.left,y:ev.clientY-r.top};}
+function inImg(q){return {x:(q.x-C.x)/C.s,y:(q.y-C.y)/C.s};}
+function nDita(){return Object.keys(C.ptr).length;}
+function iniziaGesto(){
+var ids=Object.keys(C.ptr);C.campioni=[];
+if(ids.length===1){var p=C.ptr[ids[0]];C.gesto={tipo:1,px:p.x,py:p.y,x0:C.x,y0:C.y};}
+else if(ids.length>=2){var a=C.ptr[ids[0]],b=C.ptr[ids[1]],mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+C.gesto={tipo:2,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:C.s,ix:(mx-C.x)/C.s,iy:(my-C.y)/C.s};C.centro={x:mx,y:my};}
+else C.gesto=null;
+}
+function input(){
+var a=C.area;if(!a||a.__ct)return;a.__ct=true;
+a.addEventListener('pointerdown',giu,{passive:false});
+a.addEventListener('pointermove',muovi,{passive:false});
+a.addEventListener('pointerup',su);
+a.addEventListener('pointercancel',su);
+a.addEventListener('lostpointercapture',su);
+a.addEventListener('wheel',rotella,{passive:false});
+/* Safari: il pizzico non deve ingrandire la pagina, ne' il tocco lungo aprire il menu */
+['gesturestart','gesturechange'].forEach(function(t){a.addEventListener(t,function(e){if(e.cancelable)e.preventDefault();},{passive:false});});
+a.addEventListener('contextmenu',function(e){if(C.W)e.preventDefault();});
+a.addEventListener('touchmove',function(e){if(e.cancelable&&!(e.target&&e.target.closest&&e.target.closest('.ct-vuota')))e.preventDefault();},{passive:false});
+}
+function fuori(t){return !!(t&&t.closest&&t.closest('.ct-zoom,.ct-vuota,.ct-att'));}
+function giu(ev){
+if(!C.W||fuori(ev.target))return;
+if(ev.pointerType==='mouse'&&ev.button!==0)return;
+chiudiPal();fermaAnim();nascondiAiuto();
+C.box=C.area.getBoundingClientRect();
+var q=xy(ev),pen=ev.pointerType==='pen';
+if(pen&&!C.penna){C.penna=true;if(C.dito){C.dito=false;etichetta();}}
+if(pen||(C.dito&&!nDita()&&!C.cur&&!C.gm)){
+if(C.cur||C.gm)return;                               /* sto gia' scrivendo: un altro tocco (il palmo) non conta */
+if(pen&&nDita()){C.ptr={};C.gesto=null;}             /* la Pencil vince sul palmo appoggiato */
+ev.preventDefault();
+try{C.area.setPointerCapture(ev.pointerId);}catch(e){}
+if(C.gomma)inizioGomma(ev,q);else inizioTratto(ev,q);
+return;
+}
+if((C.cur&&C.cur.pen)||(C.gm&&C.gm.pen))return;      /* mentre la Pencil scrive, il palmo non sposta */
+if(C.cur||C.gm){                                      /* il dito disegnava e ne arriva un altro: se era appena partito, e' uno zoom */
+var cc=C.cur||C.gm;
+if(Date.now()-cc.t0>320)return;
+var ultimo=cc.last;
+if(C.cur)annullaTratto();else fineGomma(true);
+C.ptr[cc.id]={x:ultimo.x,y:ultimo.y};
+}
+ev.preventDefault();
+try{C.area.setPointerCapture(ev.pointerId);}catch(e){}
+C.ptr[ev.pointerId]={x:q.x,y:q.y};
+iniziaGesto();
+C.tap0=(nDita()===1)?{t:Date.now(),x:q.x,y:q.y,mosso:false}:null;
+if(ev.pointerType==='mouse')C.area.classList.add('tira');
+}
+function muovi(ev){
+if(C.cur&&ev.pointerId===C.cur.id){ev.preventDefault();segueTratto(ev);return;}
+if(C.gm&&ev.pointerId===C.gm.id){ev.preventDefault();segueGomma(ev);return;}
+var p=C.ptr[ev.pointerId];if(!p||!C.gesto)return;
+ev.preventDefault();
+var q=xy(ev);p.x=q.x;p.y=q.y;
+if(C.tap0&&Math.hypot(q.x-C.tap0.x,q.y-C.tap0.y)>10)C.tap0.mosso=true;
+var ids=Object.keys(C.ptr),g=C.gesto;
+if(g.tipo===1&&ids.length===1){
+C.x=g.x0+(q.x-g.px);C.y=g.y0+(q.y-g.py);
+C.campioni.push({t:performance.now(),x:q.x,y:q.y});if(C.campioni.length>6)C.campioni.shift();
+}else if(g.tipo===2&&ids.length>=2){
+var a=C.ptr[ids[0]],b=C.ptr[ids[1]],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+var s=g.s0*d/g.d0;s=Math.max(C.min*0.8,Math.min(C.max*1.15,s));   /* un po' oltre i limiti, poi torna */
+C.s=s;C.x=mx-g.ix*s;C.y=my-g.iy*s;C.centro={x:mx,y:my};
+}
+limita();muovo();ridisegna();
+}
+function su(ev){
+if(C.cur&&ev.pointerId===C.cur.id){fineTratto();return;}
+if(C.gm&&ev.pointerId===C.gm.id){fineGomma();return;}
+if(!C.ptr[ev.pointerId])return;
+var g=C.gesto,uno=(nDita()===1),q=xy(ev);
+delete C.ptr[ev.pointerId];
+C.area.classList.remove('tira');
+if(nDita()>0){iniziaGesto();C.tap0=null;return;}   /* da due dita a una: si continua a spostare da dove sei */
+C.gesto=null;
+var tap=C.tap0;C.tap0=null;
+if(uno&&tap&&!tap.mosso&&Date.now()-tap.t<300){
+if(C.tap&&Date.now()-C.tap.t<330&&Math.hypot(q.x-C.tap.x,q.y-C.tap.y)<40){C.tap=null;doppio(q.x,q.y);return;}
+C.tap={t:Date.now(),x:q.x,y:q.y};
+}
+/* il pizzico era andato un po' oltre: torna al limite, dolcemente */
+if(C.s<C.min-1e-9||C.s>C.max+1e-9){var c=C.centro||q;zoomVerso(lim(C.s),c.x,c.y,220);return;}
+if(uno&&g&&g.tipo===1)slancio();
+}
+function rotella(ev){
+if(!C.W)return;
+ev.preventDefault();fermaAnim();nascondiAiuto();
+C.box=C.area.getBoundingClientRect();
+var q=xy(ev),f=Math.exp(-ev.deltaY*(ev.ctrlKey?0.012:0.0025));
+var s=lim(C.s*f),ix=(q.x-C.x)/C.s,iy=(q.y-C.y)/C.s;
+C.s=s;C.x=q.x-ix*s;C.y=q.y-iy*s;limita();muovo();ridisegna();
+}
+
+/* ── i segni: nella cartina (coordinate dell'immagine), cosi' restano sulle vie giuste ── */
+function r1(v){return Math.round(v*10)/10;}
+function larghezza(t,ev){
+if(t.e)return 18;                                   /* evidenziatore: largo, in pixel dello schermo */
+var p=(ev&&ev.pointerType==='pen'&&ev.pressure>0)?ev.pressure:0.5;
+return 1.6+p*2.6;
+}
+function inizioTratto(ev,q){
+var i=inImg(q),t={c:COLORI[C.col][0],w:0,p:[r1(i.x),r1(i.y)]};
+if(C.col===4)t.e=1;
+var pr=(ev.pointerType==='pen'&&ev.pressure>0)?ev.pressure:0.5;
+C.cur={id:ev.pointerId,t:t,pen:ev.pointerType==='pen',t0:Date.now(),last:q,pr:pr,n:1};
+t.w=+(larghezza(t,ev)/C.s).toFixed(3);
+if(C.live)C.live.classList.toggle('ev',!!t.e);
+vivo();
+}
+function segueTratto(ev){
+var c=C.cur,evs=(ev.getCoalescedEvents&&ev.getCoalescedEvents())||[];if(!evs.length)evs=[ev];
+var cambia=false;
+evs.forEach(function(e){
+var q=xy(e),L=c.last;if(Math.abs(q.x-L.x)<1.2&&Math.abs(q.y-L.y)<1.2)return;
+var i=inImg(q);c.t.p.push(r1(i.x),r1(i.y));c.last=q;cambia=true;
+if(c.pen&&e.pressure>0){c.pr+=e.pressure;c.n++;}
+});
+if(!cambia)return;
+if(c.pen&&!c.t.e)c.t.w=+((1.6+(c.pr/c.n)*2.6)/C.s).toFixed(3);   /* la pressione media della Pencil */
+vivo();
+}
+function fineTratto(){
+var c=C.cur;C.cur=null;pulisciVivo();if(!c)return;
+bbox(c.t);C.tratti.push(c.t);C.azioni.push({a:'+',t:c.t});
+aggiungiPath(c.t);salvaPoi();
+}
+function annullaTratto(){C.cur=null;pulisciVivo();}
+/* il tratto che stai facendo: su una tela sopra, veloce; finito, entra nella cartina */
+function vivo(){
+var ctx=C.lctx,c=C.cur;if(!ctx||!c)return;
+ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,C.live.width,C.live.height);
+ctx.setTransform(C.dpr*C.s,0,0,C.dpr*C.s,C.dpr*C.x,C.dpr*C.y);
+ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=c.t.c;ctx.lineWidth=c.t.w;ctx.globalAlpha=c.t.e?0.42:1;
+ctx.beginPath();traccia(ctx,c.t.p);ctx.stroke();ctx.globalAlpha=1;
+}
+function pulisciVivo(){try{var ctx=C.lctx;if(ctx){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,C.live.width,C.live.height);}}catch(e){}}
+function traccia(ctx,p){
+var n=p.length/2;ctx.moveTo(p[0],p[1]);
+if(n===1){ctx.lineTo(p[0]+0.01,p[1]);return;}
+for(var i=1;i<n-1;i++){var x=p[2*i],y=p[2*i+1];ctx.quadraticCurveTo(x,y,(x+p[2*i+2])/2,(y+p[2*i+3])/2);}
+ctx.lineTo(p[2*n-2],p[2*n-1]);
+}
+function dPath(p){
+var n=p.length/2,d='M'+p[0]+' '+p[1];
+if(n===1)return d+'l0.01 0';
+for(var i=1;i<n-1;i++){var x=p[2*i],y=p[2*i+1];d+='Q'+x+' '+y+' '+r1((x+p[2*i+2])/2)+' '+r1((y+p[2*i+3])/2);}
+return d+'L'+p[2*n-2]+' '+p[2*n-1];
+}
+function pathDi(t){
+var el=document.createElementNS(NS,'path');
+el.setAttribute('d',dPath(t.p));el.setAttribute('fill','none');el.setAttribute('stroke',t.c);
+el.setAttribute('stroke-width',t.w);el.setAttribute('stroke-linecap','round');el.setAttribute('stroke-linejoin','round');
+if(t.e){el.setAttribute('stroke-opacity','0.42');el.setAttribute('class','ct-ev');}
+return el;
+}
+function aggiungiPath(t){try{if(C.svg)C.svg.appendChild(pathDi(t));}catch(e){}}
+function disegnaTutti(){
+try{if(!C.svg)return;var f=document.createDocumentFragment();C.tratti.forEach(function(t){f.appendChild(pathDi(t));});
+C.svg.textContent='';C.svg.appendChild(f);}catch(e){}
+}
+function bbox(t){
+var p=t.p,b=[Infinity,Infinity,-Infinity,-Infinity];
+for(var j=0;j+1<p.length;j+=2){if(p[j]<b[0])b[0]=p[j];if(p[j+1]<b[1])b[1]=p[j+1];if(p[j]>b[2])b[2]=p[j];if(p[j+1]>b[3])b[3]=p[j+1];}
+t.b=b;return t;
+}
+/* la gomma: toglie il segno intero che tocchi (↶ lo rimette) */
+function inizioGomma(ev,q){C.gm={id:ev.pointerId,via:[],pen:ev.pointerType==='pen',t0:Date.now(),last:q};cancellaA(q);}
+function segueGomma(ev){var q=xy(ev);C.gm.last=q;cancellaA(q);}
+function fineGomma(zitto){
+var g=C.gm;C.gm=null;pulisciVivo();
+if(g&&g.via.length){C.azioni.push({a:'-',v:g.via});salvaPoi();if(!zitto)hp();}
+}
+function dSeg(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy,u=l?((px-ax)*dx+(py-ay)*dy)/l:0;u=Math.max(0,Math.min(1,u));
+return Math.hypot(px-(ax+u*dx),py-(ay+u*dy));}
+function toccato(t,x,y,R){
+var b=t.b||bbox(t).b,r=R+t.w/2;
+if(x<b[0]-r||x>b[2]+r||y<b[1]-r||y>b[3]+r)return false;
+var p=t.p;if(p.length<4)return Math.hypot(x-p[0],y-p[1])<=r;
+for(var j=0;j+3<p.length;j+=2){if(dSeg(x,y,p[j],p[j+1],p[j+2],p[j+3])<=r)return true;}
+return false;
+}
+function cancellaA(q){
+var i=inImg(q),R=14/C.s,tolti=false;
+for(var k=C.tratti.length-1;k>=0;k--){var t=C.tratti[k];if(toccato(t,i.x,i.y,R)){C.tratti.splice(k,1);C.gm.via.push({t:t,i:k});tolti=true;}}
+if(tolti)disegnaTutti();
+/* il cerchio della gomma sotto la punta */
+var ctx=C.lctx;if(ctx){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,C.live.width,C.live.height);
+ctx.setTransform(C.dpr,0,0,C.dpr,0,0);ctx.beginPath();ctx.arc(q.x,q.y,14,0,Math.PI*2);ctx.lineWidth=1.5;
+ctx.strokeStyle='rgba(17,24,39,.55)';ctx.fillStyle='rgba(255,255,255,.35)';ctx.fill();ctx.stroke();}
+}
+function salvaPoi(){clearTimeout(C.ts);C.ts=setTimeout(salvaOra,500);}
+function salvaOra(){
+clearTimeout(C.ts);if(!C.id)return;
+var t=C.tratti.map(function(x){var o={c:x.c,w:x.w,p:x.p};if(x.e)o.e=1;return o;});
+metti('tratti',{id:C.id,t:t}).catch(function(){});
+}
+
+/* ── gli strumenti ── */
+function strumenti(){
+try{
+var pal=document.getElementById('ctPal');
+if(pal)[].forEach.call(pal.querySelectorAll('.ct-c'),function(b){b.classList.toggle('on',!C.gomma&&+b.getAttribute('data-i')===C.col);});
+var g=document.getElementById('ctGomma');if(g)g.classList.toggle('on',C.gomma);
+var cb=document.getElementById('ctColB');
+if(cb){cb.classList.toggle('gomma',C.gomma);cb.style.setProperty('--c',COLORI[C.col][0]);cb.classList.toggle('evc',C.col===4);}
+etichetta();
+}catch(e){}
+}
+function etichetta(){
+var b=document.getElementById('ctDito');if(!b)return;
+b.innerHTML=C.dito?'☝️<span class="ct-lb"> Disegni col dito</span>':'✋<span class="ct-lb"> Il dito sposta</span>';
+b.classList.toggle('on',C.dito);
+b.setAttribute('aria-label',C.dito?'Il dito disegna':'Il dito sposta la cartina');
+}
+function chiudiPal(){var p=document.getElementById('ctPal');if(p)p.classList.remove('aperta');}
+window.nccCartinaPalette=function(){var p=document.getElementById('ctPal');if(p)p.classList.toggle('aperta');hp();};
+window.nccCartinaColore=function(i){C.col=i;C.gomma=false;strumenti();chiudiPal();hp();};
+window.nccCartinaGomma=function(){
+C.gomma=!C.gomma;strumenti();chiudiPal();hp();
+avviso(C.gomma?'🧽 Gomma: passa sopra un segno per toglierlo':'✏️ Di nuovo la penna',1800);
+};
+window.nccCartinaDito=function(){
+C.dito=!C.dito;etichetta();hp();
+avviso(C.dito?'☝️ Col dito disegni: con due dita sposti e ingrandisci':'✋ Il dito sposta la cartina, la Pencil scrive',2400);
+};
+window.nccCartinaTutta=function(){if(!C.W)return;vaiA(C.min,(C.aw-C.W*C.min)/2,(C.ah-C.H*C.min)/2,300);hp();};
+window.nccCartinaZoom=function(d){if(!C.W)return;zoomVerso(C.s*(d>0?1.8:1/1.8),C.aw/2,C.ah/2,260);hp();};
+window.nccCartinaAnnulla=function(){
+try{
+if(!C.W)return;
+var a=C.azioni.pop();
+if(!a){if(!C.tratti.length)return;a={a:'+',t:C.tratti[C.tratti.length-1]};}   /* i segni delle volte prima: l'ultimo */
+if(a.a==='+'){var i=C.tratti.lastIndexOf(a.t);if(i>=0)C.tratti.splice(i,1);}
+else a.v.slice().sort(function(x,y){return x.i-y.i;}).forEach(function(v){C.tratti.splice(Math.min(v.i,C.tratti.length),0,v.t);});
+disegnaTutti();salvaPoi();hp();
+}catch(e){}
+};
+function sposta(dx,dy){vaiA(C.s,C.x+dx,C.y+dy,200);}
+
+/* ── scegliere la cartina: dalle foto o dai file, una volta per dispositivo ── */
+window.nccCartinaScegli=function(){try{var f=document.getElementById('ctFile');if(f){f.value='';f.click();}}catch(e){}};
+function buffer(f){
+if(f.arrayBuffer)return f.arrayBuffer();
+return new Promise(function(ok,ko){var r=new FileReader();r.onload=function(){ok(r.result);};r.onerror=function(){ko(r.error);};r.readAsArrayBuffer(f);});
+}
+function scelto(ev){
+var f=ev.target.files&&ev.target.files[0];if(!f)return;
+if(!/^image\//.test(f.type||'')&&!/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name||'')){avviso('⚠️ Scegli una foto o un’immagine (JPG o PNG)',3000);return;}
+var prima=C.W?'ok':'vuota';
+stato('att');
+buffer(f).then(function(buf){
+var tipo=f.type||'image/jpeg',url=URL.createObjectURL(new Blob([buf],{type:tipo})),im=new Image();
+im.onload=function(){
+var W=im.naturalWidth,H=im.naturalHeight;try{URL.revokeObjectURL(url);}catch(e){}
+if(!W||!H){stato(prima);avviso('⚠️ Non riesco ad aprire questa immagine',3000);return;}
+if(W*H>MAXPX){stato(prima);avviso('⚠️ È enorme ('+Math.round(W*H/1e6)+' milioni di pixel): scegline una fino a 40',4000);return;}
+var usa=function(){
+var rec={buf:buf,type:tipo,nome:f.name||'',W:W,H:H,id:String(Date.now())};
+metti('cartina',rec).then(function(){
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+C.tratti=[];C.azioni=[];disegnaTutti();metti('tratti',{id:rec.id,t:[]}).catch(function(){});
+try{localStorage.removeItem('cartinaVista');}catch(e){}
+C.W=0;mostra(rec);
+setTimeout(function(){avviso('✅ Cartina pronta: resta su questo dispositivo',2600);},350);
+}).catch(function(){
+C.tratti=[];C.azioni=[];disegnaTutti();C.W=0;mostra(rec);
+setTimeout(function(){avviso('⚠️ Non c’è posto per salvarla sul dispositivo: la vedi solo adesso',3600);},350);
+});
+};
+if(C.tratti.length){
+stato(prima);
+nccConferma('Uso questa cartina? I segni che hai fatto su quella di prima si cancellano.',function(){stato('att');usa();},{si:'Usa questa',icona:'🏙️'});
+}else usa();
+};
+im.onerror=function(){try{URL.revokeObjectURL(url);}catch(e){}stato(prima);avviso('⚠️ Non riesco ad aprire questa immagine',3000);};
+im.src=url;
+}).catch(function(){stato(prima);avviso('⚠️ Non riesco a leggere il file',3000);});
+}
+
+/* ── il suggerimento in alto, per qualche secondo ── */
+function aiuto(){
+try{
+var a=document.getElementById('ctAiuto');if(!a)return;
+var fine=window.matchMedia&&matchMedia('(any-pointer:fine)').matches,largo=Math.min(innerWidth,innerHeight)>=700;
+a.textContent=(!fine||largo)?(largo?'✏️ La Pencil scrive · due dita per ingrandire':'Due dita per ingrandire')
+:'Rotella per ingrandire · trascina per spostare';
+a.classList.remove('via');clearTimeout(C.tv);C.tv=setTimeout(nascondiAiuto,3800);
+}catch(e){}
+}
+function nascondiAiuto(){var a=document.getElementById('ctAiuto');if(a)a.classList.add('via');}
+
+/* ── la (i): come si usa, cambiare cartina, cancellare i segni ── */
+window.nccCartinaInfo=function(){
+try{
+var az=[];
+if(C.W)az.push({t:'🖼️ Cambia cartina',stile:'pieno',subito:true,fn:function(){nccCartinaScegli();}});
+if(C.tratti.length)az.push({t:'🗑 Cancella i segni',stile:'rosso',fn:function(){
+nccConferma('Cancello tutti i segni che hai fatto sulla cartina?\n\nCon ↶ li rimetti.',function(){
+var via=C.tratti.map(function(t,i){return {t:t,i:i};});C.tratti=[];C.azioni.push({a:'-',v:via});disegnaTutti();salvaOra();
+avviso('Segni cancellati: ↶ li rimette',2200);});}});
+az.push({t:'Ho capito',stile:C.W?'vuoto':'pieno'});
+nccPopup({icona:'🏙️',titolo:'La cartina di Milano',
+testo:'Due dita: ingrandisci e sposti. Doppio tocco: più vicino; «Tutta» la vedi intera.\n\n'
++'La Pencil ci scrive sopra (penna, evidenziatore, gomma) mentre il dito sposta; col tasto ✋ scrive anche il dito.\n\n'
++'La cartina resta solo su questo dispositivo, anche senza rete: su ogni dispositivo la scegli una volta.',azioni:az});
+}catch(e){}
+};
+try{
+var _ni=window.nccInfo;
+window.nccInfo=function(k){if(k==='cartina'){nccCartinaInfo();return;}return _ni?_ni.apply(this,arguments):null;};
+}catch(e){}
+
+window.nccCartinaChiudi=function(){
+try{
+if(C.cur)fineTratto();if(C.gm)fineGomma(true);
+salvaOra();salvaVista();fermaAnim();clearTimeout(C.tv);clearTimeout(C.ta);
+chiudiOv('ctOv');
+var u=C.url;C.url=null;setTimeout(function(){try{if(u)URL.revokeObjectURL(u);}catch(e){}},700);
+C.area=C.tela=C.svg=C.img=C.live=C.lctx=null;C.W=C.H=0;C.ptr={};C.gesto=null;
+}catch(e){}
+};
+/* girando l'iPad (o in Split View) resta lo stesso punto al centro */
+window.addEventListener('resize',function(){
+try{
+if(!C.W||!C.area||!document.getElementById('ctOv'))return;
+var cx=(C.aw/2-C.x)/C.s,cy=(C.ah/2-C.y)/C.s,tutta=Math.abs(C.s-C.min)<1e-6;
+misura();C.s=tutta?C.min:lim(C.s);centra(cx,cy);limita();applica();
+}catch(e){}
+});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&C.W){salvaOra();salvaVista();}});
+/* la tastiera (iPad, PC): + − 0, le frecce, ⌘Z. Esc esce come ovunque */
+window.addEventListener('keydown',function(e){
+try{
+if(!C.W||!document.getElementById('ctOv')||document.getElementById('popOv'))return;
+var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+var k=e.key,fatto=true;
+if((e.metaKey||e.ctrlKey)&&(k==='z'||k==='Z'))nccCartinaAnnulla();
+else if(e.metaKey||e.ctrlKey||e.altKey)return;
+else if(k==='+'||k==='=')nccCartinaZoom(1);
+else if(k==='-'||k==='_')nccCartinaZoom(-1);
+else if(k==='0')nccCartinaTutta();
+else if(k==='ArrowLeft'||k==='ArrowRight'||k==='ArrowUp'||k==='ArrowDown'){
+var d=Math.round(Math.min(C.aw,C.ah)*0.2);
+sposta(k==='ArrowLeft'?d:(k==='ArrowRight'?-d:0),k==='ArrowUp'?d:(k==='ArrowDown'?-d:0));}
+else fatto=false;
+if(fatto){e.preventDefault();e.stopPropagation();}
+}catch(x){}
+},true);
+/* per i giri di prova */
+window.nccCartinaStato=function(){return {W:C.W,H:C.H,s:C.s,x:C.x,y:C.y,min:C.min,max:C.max,aw:C.aw,ah:C.ah,n:C.tratti.length,
+dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
 })();
