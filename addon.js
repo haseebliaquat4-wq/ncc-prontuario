@@ -1831,6 +1831,24 @@ border-radius:999px;border:1.5px solid var(--bd,rgba(0,0,0,.15));background:tran
 font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
 .mg-dp.on{background:var(--a,#2447D6);border-color:var(--a,#2447D6);color:#fff;}
 .rim .mg-pag{font-weight:700;opacity:.85;}
+.rab.mg-tieni{background:var(--a,#2447D6)!important;color:#fff!important;font-weight:800;}
+/* nei Doppi il nome si legge intero (sono nomi quasi uguali): i tasti vanno sotto, a destra */
+#mgrList.mg-doppi .ri{flex-wrap:wrap;row-gap:10px;}
+#mgrList.mg-doppi .rii{flex:1 1 100%;}
+#mgrList.mg-doppi .rit{white-space:normal;overflow:visible;line-height:1.25;}
+#mgrList.mg-doppi .ria{margin-left:auto;}
+/* ▶ Il prossimo, in cima a «Senza marker» */
+.sm-prossimo{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:0 16px 14px;padding:14px 16px;
+border:none;border-radius:var(--t-r,18px);background:var(--ios-blue,#2447D6);color:#fff;font-family:inherit;
+font-size:15px;font-weight:800;text-align:left;cursor:pointer;box-shadow:0 6px 16px rgba(36,71,214,.25);}
+.sm-prossimo span{flex:1;min-width:0;}
+.sm-prossimo small{display:block;font-size:12.5px;font-weight:650;opacity:.9;margin-top:2px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sm-prossimo:active{transform:scale(.98);}
+/* 🔊 Ascolta il percorso: il bottone acceso mentre legge */
+#ascBtn.on{background:var(--a,#2447D6);color:#fff;border-color:var(--a,#2447D6);}
+/* sull'iPhone col pannello ridotto sta con Linea e Correggi: compare tirando su il pannello (li' c'e' posto) */
+#panel.pnl-mini #ascBtn{display:none!important;}
 
 
 /* ── il menu ⋯ deve poter scorrere ──
@@ -2353,6 +2371,16 @@ font-size:15px;font-weight:800;padding:11px 22px;cursor:pointer;-webkit-tap-high
 border:1.5px solid var(--ios-sep);border-radius:14px;background:var(--ios-bg);color:var(--ios-lbl);
 font:inherit;font-size:16px;font-weight:700;}
 .es-in{margin:0 0 16px;}
+#popOv .es-in+.es-in{margin-top:-6px;}
+.au-reg{font-family:ui-monospace,Menlo,Consolas,monospace!important;font-size:11px!important;font-weight:500!important;
+line-height:1.35;min-height:128px;white-space:pre;overflow:auto;resize:none;}
+/* Proteggi i dati: l'errore sotto i campi, i tasti fermi mentre aspetta */
+.au-err{margin:-6px 4px 14px;text-align:left;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--t-rosso);}
+.au-err:empty{display:none;}
+.au-err.scuoti{animation:auScuoti .36s ease;}
+@keyframes auScuoti{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.es-in.ko{border-color:var(--t-rosso);}
+#popOv .pop-b[disabled]{opacity:.55;pointer-events:none;}
 /* Statistiche: i suggerimenti doppi se ne vanno, parla solo il coach */
 #homeScreen.hm-stat>#vgCard,#homeScreen.hm-stat>.smart-btn,#homeScreen.hm-stat>#coachCard{display:none!important;}
 
@@ -5571,15 +5599,31 @@ var ans=risposte(qtStats);
    flushNow le riscriveva con update(), il set successivo le ricancellava:
    una corsa infinita. Ecco perché i dispositivi divergevano. */
 var pr={};try{pr=getPrefs()||{};}catch(e){}
+/* (v147) si scrive tutto: il cloud diventa uguale a questo dispositivo (marker in sospeso compresi) */
+var fot=null;try{if(window.nccCloudPrima)fot=nccCloudPrima();}catch(e){}
 fbRef.set({routes:routes,coords:coords,qStats:qStats,done:done,qtStats:qtStats,
 studyProg:studyProg,qExamHist:qExamHist,prefs:pr,ts:ts,dev:dev,ans:ans})
 .then(function(){
 ls('syncTs',ts);ls('lastDev',dev);ls('lastAns',ans);
+try{if(window.nccCloudDopo)nccCloudDopo(fot,true);}catch(e){}
 try{showInd();}catch(e){}
 try{if(typeof nccSnapshot==='function')nccSnapshot();}catch(e){}
 })
-.catch(function(){});
+.catch(function(){try{if(window.nccCloudDopo)nccCloudDopo(fot,false);}catch(e){}});
 }catch(e){}
+}
+/* (v147) i marker delle piazze viaggiano a parte e senza cambiare l'ora del cloud:
+   anche quando il cloud "non e' cambiato" li leggo prima di riscriverli tutti */
+function pzPrima(poi){
+var via=false;function vai(){if(via)return;via=true;try{poi();}catch(e){}}
+try{
+if(!fbRef.child){vai();return;}
+setTimeout(vai,5000);
+fbRef.child('prefs').child('ncc').child('pzCoords').once('value',function(s){
+try{var v=s&&s.val?s.val():null;if(typeof v==='string'&&window.nccUnisciMarker)nccUnisciMarker({prefs:{ncc:{pzCoords:v}}});}catch(e){}
+vai();
+},function(){vai();});
+}catch(e){vai();}
 }
 /* ── scrittura protetta: mai sovrascrivere il lavoro di chi è più avanti ── */
 function push(){
@@ -5601,13 +5645,16 @@ ls('localTs',0);
 try{syncFromCloud();}catch(e){}
 ls('syncTs',ct);
 }else{
-scrivi();   /* siamo noi i più avanti: la nostra copia vince */
+/* siamo noi i più avanti: la nostra copia vince, ma i marker spostati dopo sull'altro
+   dispositivo (piu' recenti) entrano prima di scrivere (v147) */
+try{if(window.nccUnisciMarker)nccUnisciMarker(d);}catch(e){}
+scrivi();
 }
 }catch(e){}
 },function(){});
 return;
 }
-scrivi();
+pzPrima(scrivi);
 }catch(e){}
 });
 }catch(e){}
@@ -9914,8 +9961,9 @@ return [
 {ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
 {ic:'\ud83d\udef0',c:C.teal,n:'Vista satellite',s:(function(){try{return !!_mapSat;}catch(e){return false;}})(),f:'togSat'},
 {ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'},
-{ic:'\u2328\ufe0f',c:C.grigio,n:'Comandi da tastiera',d:'tasto ?',f:'nccTastiera'}
-]},
+{ic:'\ud83d\udd12',c:C.verde,n:'Proteggi i dati',d:(window.nccProtettoTesto?nccProtettoTesto():''),f:'nccProteggi'}
+].concat((function(){try{return (window.matchMedia&&matchMedia('(any-pointer:fine)').matches)
+?[{ic:'\u2328\ufe0f',c:C.grigio,n:'Comandi da tastiera',d:'tasto ?',f:'nccTastiera'}]:[];}catch(e){return [];}})())},
 {t:'',v:[
 {ic:'\ud83d\uddd1\ufe0f',c:C.rosso,n:'Reimposta tutto',f:'doReset',rosso:true}
 ]}
@@ -11056,7 +11104,7 @@ for(var i=0;i<r.steps.length+5;i++){var k=r.id+'_'+i;
 if(coords[k]){vecchi[i]=coords[k];delete coords[k];}}
 st.forEach(function(s,j){
 if(s.c)coords[r.id+'_'+j]={lat:s.c.lat,lon:s.c.lon};
-else if(s.o!=null&&vecchi[s.o])coords[r.id+'_'+j]=vecchi[s.o];});
+else if(s.o!=null&&vecchi[s.o])coords[r.id+'_'+j]=(s.o===j)?vecchi[s.o]:{lat:vecchi[s.o].lat,lon:vecchi[s.o].lon};});   /* tappa spostata: e' una modifica di adesso (v147) */
 }catch(e){}
 /* e anche gli errori del Quiz vie */
 try{
@@ -11161,7 +11209,8 @@ setTimeout(function(){try{v.remove();}catch(e){}if(typeof cb==='function'){try{c
 }
 v.querySelectorAll('.pop-b').forEach(function(b){b.onclick=function(){
 var a=az[+b.getAttribute('data-i')];try{hap();}catch(e){}
-if(a&&a.subito){try{a.fn();}catch(e){}chiudi();}else chiudi(a&&a.fn);};});
+/* subito: il tasto agisce col riquadro ancora aperto; se risponde false il riquadro resta (v147: un errore si corregge senza riscrivere tutto) */
+if(a&&a.subito){var resta=false;try{resta=(a.fn()===false);}catch(e){}if(!resta)chiudi();}else chiudi(a&&a.fn);};});
 v.querySelector('.pop-velo').onclick=function(){chiudi(o.annulla);};
 /* trascinando giu' si chiude */
 var box=v.querySelector('.pop-box'),y0=null,dy=0;
@@ -11608,6 +11657,10 @@ if(!(id in a)){a[id]=y;agg++;return;}
 if(!x||!y||typeof x!=='object'||typeof y!=='object')return;
 /* ripasso a spirale: vince l'ultimo ripasso fatto, su qualunque dispositivo */
 if(k==='pzSR'||k==='nmSR'){if((+y.last||+y.due||0)>(+x.last||+x.due||0)){a[id]=y;agg++;}return;}
+/* i marker delle piazze: vince quello spostato per ultimo (l'ora la mette chi lo sposta) */
+if(k==='pzCoords'){if((+y.t||0)>(+x.t||0)&&(x.lat!==y.lat||x.lon!==y.lon||(+x.t||0)!==(+y.t||0))){a[id]=y;agg++;}
+else if((+x.t||0)>(+y.t||0)&&(x.lat!==y.lat||x.lon!==y.lon))dietro.pzCoords=1;   /* qui e' piu' recente: il cloud va rimesso a posto (v147) */
+return;}
 /* Disegna a memoria e Mappa muta: vince l'ultima prova; il record e il "preso" restano i migliori */
 if(k==='dmStats'||k==='mmStats'){if((+y.last||0)>(+x.last||0)){
 if(k==='dmStats'){y.best=Math.max(+x.best||0,+y.best||0);if((+x.ok||0)>(+y.ok||0))y.ok=x.ok;}
@@ -11616,6 +11669,8 @@ a[id]=y;agg++;}return;}
 if(k==='pzStats'||k==='nmStats'){var ok=Math.max(+x.ok||0,+y.ok||0),ko=Math.max(+x.ko||0,+y.ko||0);
 if(ok!==(+x.ok||0)||ko!==(+x.ko||0)){x.ok=ok;x.ko=ko;agg++;}}
 });
+/* marker di piazze che il cloud non ha piu' (una copia vecchia li ha tolti): li rimando (v147) */
+if(k==='pzCoords')Object.keys(a).forEach(function(id){if(!(id in b)&&a[id]&&typeof a[id]==='object')dietro.pzCoords=1;});
 if(agg){localStorage.setItem(k,JSON.stringify(a));n+=agg;}}}catch(e){}
 });
 }catch(e){}
@@ -11643,6 +11698,10 @@ function(){if(--manca<=0)fine();});}catch(e){if(--manca<=0)fine();}
 }
 /* mentre unisco quello che arriva non parte un invio per ogni chiave toccata */
 var zitto=false;
+/* (v147) le chiavi dove il cloud e' rimasto indietro rispetto a questo dispositivo (per ora i marker
+   delle piazze): appena lo scopro le rimando, cosi' uno spostamento non resta perso nel cloud */
+var dietro={};
+function ripara(){var ks=Object.keys(dietro);dietro={};if(!ks.length)return;ks.forEach(function(k){cambiate[k]=1;});clearTimeout(tm);tm=setTimeout(invia,3000);}
 function unisciZitto(o){var n=0;zitto=true;try{n=unisci(o);}catch(e){}zitto=false;
 if(n){try{nccHomeRiquadri();}catch(e){}}return n;}
 /* quando cambia una di queste (con calma: 3 secondi) la mando su, ma PRIMA leggo quella
@@ -11654,6 +11713,7 @@ var ks=Object.keys(cambiate);cambiate={};
 if(!ks.length||!ramo())return;
 leggi(ks.filter(function(k){return LEGGI.indexOf(k)>=0;}),function(o){
 if(o)unisciZitto(o);
+Object.keys(dietro).forEach(function(k){if(ks.indexOf(k)<0)ks.push(k);});dietro={};
 var r=ramo(),loc=raccogli();if(!r)return;
 ks.forEach(function(k){try{if(loc[k]!=null)r.child(k).set(loc[k]);}catch(e){}});
 try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}
@@ -11666,6 +11726,20 @@ var r=_si.apply(this,arguments);
 if(!zitto&&CHIAVI.indexOf(k)>=0){cambiate[k]=1;clearTimeout(tm);tm=setTimeout(invia,3000);}
 return r;};
 }catch(e){}
+/* (v147) l'app si chiude prima dei 3 secondi: le chiavi cambiate partono subito, una per una
+   (il salvataggio veloce dell'app non porta piu' questo ramo intero, che rimetteva le copie vecchie) */
+function subito(){
+try{
+var ks=Object.keys(cambiate);if(!ks.length||!ramo()||!navigator.onLine)return;
+clearTimeout(tm);cambiate={};
+var r=ramo(),loc=raccogli();
+ks.forEach(function(k){try{if(loc[k]!=null)r.child(k).set(loc[k]);}catch(e){}});
+}catch(e){}
+}
+try{
+document.addEventListener('visibilitychange',function(){if(document.hidden)subito();});
+window.addEventListener('pagehide',subito);
+}catch(e){}
 function inQuiz(){try{return typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&!!Q;}catch(e){return false;}}
 /* tornando sull'app (o passando da un dispositivo all'altro) prendo le novita' del mio ramo
    anche se il resto del cloud non e' cambiato: prima arrivavano solo al riavvio */
@@ -11675,7 +11749,7 @@ try{
 if(document.hidden||inQuiz()||!ramo())return;
 if(Date.now()-ripresa<15000)return;
 ripresa=Date.now();
-leggi(LEGGI,function(o){if(o)unisciZitto(o);});
+leggi(LEGGI,function(o){if(o)unisciZitto(o);ripara();});
 }catch(e){}
 }
 try{
@@ -11693,7 +11767,7 @@ try{
 var _as=window.autoSave;if(typeof _as!=='function'||_as.__ncc)return;
 var prima=0;
 window.autoSave=function(){
-try{if(ramo()&&Date.now()-prima>20000){prima=Date.now();leggi(LEGGI,function(o){if(o)unisciZitto(o);});}}catch(e){}
+try{if(ramo()&&Date.now()-prima>20000){prima=Date.now();leggi(LEGGI,function(o){if(o)unisciZitto(o);ripara();});}}catch(e){}
 return _as.apply(this,arguments);
 };
 window.autoSave.__ncc=true;
@@ -11705,7 +11779,7 @@ try{if(typeof syncFromCloud!=='function')return;var _s=syncFromCloud;
 syncFromCloud=function(){var r=_s.apply(this,arguments);
 try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(snap){
 try{var d=snap&&snap.val?snap.val():null;if(d&&d.prefs&&d.prefs.ncc){
-var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}
+var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}ripara();
 /* il nome c'e' solo qui (scelto prima che viaggiasse): lo mando su, cosi' arriva agli altri */
 try{var nl=localStorage.getItem('nomeUtente');if(nl&&d.prefs.ncc.nomeUtente==null){
 cambiate.nomeUtente=1;if(localStorage.getItem('nomeTs'))cambiate.nomeTs=1;clearTimeout(tm);tm=setTimeout(invia,3000);}}catch(e){}}}catch(e){}});}catch(e){}
@@ -13551,7 +13625,7 @@ var h='<div class="kb-l">'
 +'<div class="kb-g"><b>Ovunque</b>'+riga(['Esc'],'indietro')+riga(['?'],'questa finestra')+riga(['Invio'],'conferma nei riquadri')+'</div>'
 +'<div class="kb-g"><b>Home</b>'+riga(['Q'],'quiz')+riga(['T'],'topografia')+riga(['P'],'piazze')+riga(['E'],'ripasso errori')+riga(['N'],'norme e tariffe')+riga(['/'],'cerca')+'</div>'
 +'<div class="kb-g"><b>Mappa</b>'+riga(['←','→'],'tappa prima e dopo')+riga(['spazio'],'scopri la via (Cieco)')+riga(['S','C','V'],'Studio, Cieco, Quiz vie')
-+riga(['L'],'la linea')+riga(['R'],'un percorso a caso')+riga(['Tab'],'suggerimento mentre scrivi la via')+'</div>'
++riga(['L'],'la linea')+riga(['A'],'ascolta il percorso')+riga(['R'],'un percorso a caso')+riga(['Tab'],'suggerimento mentre scrivi la via')+'</div>'
 +'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
 +'<div class="kb-g"><b>Piazze</b>'+riga(['←','→'],'via prima e dopo')+riga(['spazio'],'scopri la via')+riga(['1','2'],'Mi verifico: non la sapevo, la sapevo')+'</div>'
 +'</div>';
@@ -13684,14 +13758,64 @@ b.className='mg-dp'+(DOPPI?' on':'');
 b.innerHTML='Doppi <b>'+nd+'</b>';
 b.onclick=function(ev){try{ev.stopPropagation();}catch(x){}DOPPI=!DOPPI;try{hap();}catch(x){}renderMgr();};
 }else if(b){b.remove();}
+list.classList.toggle('mg-doppi',!!DOPPI);
 if(DOPPI){
 var vis=righe.filter(function(row){var k=row.__base;var ok=!!(k&&gr[k]&&gr[k].length>1);if(!ok)row.style.display='none';return ok&&row.style.display!=='none';});
 /* uno sotto l'altro, per nome */
 vis.sort(function(a,b2){return (a.__base<b2.__base?-1:a.__base>b2.__base?1:(a.__tit<b2.__tit?-1:a.__tit>b2.__tit?1:0));});
 vis.forEach(function(row){list.appendChild(row);});
 cnt.textContent=vis.length+(vis.length===1?' percorso con lo stesso nome di un altro':' percorsi con lo stesso nome');
+/* «Tieni»: su ogni riga, tiene quel percorso e cancella gli altri con lo stesso nome (v147) */
+vis.forEach(function(row){
+if(row.querySelector('.mg-tieni'))return;
+var id=rigaId(row),box2=row.querySelector('.ria');if(!id||!box2)return;
+var b3=document.createElement('button');b3.className='rab mg-tieni';b3.type='button';b3.textContent='Tieni';
+b3.title='Tieni questo e cancella gli altri con lo stesso nome';
+b3.onclick=function(ev){try{ev.stopPropagation();}catch(x){}tieni(id);};
+box2.insertBefore(b3,box2.firstChild);
+});
 }
 }catch(e){}
+}
+/* il nome senza «(pag. N)» o «(strada N)» */
+function pulito(t){return String(t||'').replace(/\s*\((?:pag\.?\s*\d+|strada\s*\d+)\)\s*$/i,'').trim();}
+function tieni(id){
+try{
+var R=(typeof routes!=='undefined'&&routes)?routes:[];
+var k=R.filter(function(r){return String(r.id)===String(id);})[0];if(!k)return;
+var altri=R.filter(function(r){return r!==k&&base(r.title)===base(k.title);});
+if(!altri.length)return;
+var nuovoNome=pulito(k.title);
+nccPopup({icona:'\ud83d\uddc2\ufe0f',titolo:'Tieni questo',
+testo:'Tengo \u00ab'+k.title+'\u00bb ('+k.steps.length+' tappe) e cancello '+(altri.length===1?'l\u2019altro':'gli altri '+altri.length)
++' con lo stesso nome, con i loro marker:\n'+altri.map(function(r){return '\u00b7 '+r.title+' ('+r.steps.length+' tappe)';}).join('\n')
++(nuovoNome!==k.title?('\n\nIl nome diventa \u00ab'+nuovoNome+'\u00bb.'):'')+'\n\nPuoi annullare subito dopo.',
+azioni:[{t:'Tieni questo',stile:'rosso',fn:function(){fatto(k,altri,nuovoNome);}},{t:'Annulla',stile:'vuoto'}]});
+}catch(e){}
+}
+function fatto(k,altri,nuovoNome){
+try{
+var ids={},bk={routes:[],coords:{},qStats:{},done:{},titolo:k.title};
+altri.forEach(function(r){ids[r.id]=1;bk.routes.push(r);});
+Object.keys(coords).forEach(function(c){var rid=c.slice(0,c.lastIndexOf('_'));if(ids[rid]){bk.coords[c]=coords[c];delete coords[c];}});
+Object.keys(ids).forEach(function(id){if(qStats[id]){bk.qStats[id]=qStats[id];delete qStats[id];}if(done[id]){bk.done[id]=done[id];delete done[id];}
+try{rDelMark(id);}catch(e){}});
+routes=routes.filter(function(r){return !ids[r.id];});
+k.title=nuovoNome;
+if(typeof cur!=='undefined'&&cur&&ids[cur.id]){try{cur=null;step=0;}catch(e){}}
+try{save();autoSave();}catch(e){}
+try{renderMgr();}catch(e){}
+try{hap();}catch(e){}
+undoToast('Tenuto \u00ab'+nuovoNome+'\u00bb, '+(altri.length===1?'cancellato l\u2019altro':'cancellati gli altri '+altri.length),function(){
+try{
+bk.routes.forEach(function(r){routes.push(r);try{rDelUnmark(r.id);}catch(e){}});
+Object.assign(coords,bk.coords);Object.keys(bk.qStats).forEach(function(i){qStats[i]=bk.qStats[i];});
+Object.keys(bk.done).forEach(function(i){done[i]=bk.done[i];});
+k.title=bk.titolo;
+save();autoSave();renderMgr();toast2('\u21a9\ufe0f Ripristinato');
+}catch(e){}
+});
+}catch(e){try{alert('\u26a0\ufe0f Non sono riuscito a farlo.');}catch(e2){}}
 }
 setTimeout(function(){
 try{
@@ -13786,14 +13910,47 @@ if(Array.isArray(it.choices))it.choices=it.choices.map(pulisci);
 QUIZ_ALL.__puliti=true;
 }catch(e){}
 }
+/* ── le domande che non uscivano mai (v147) ──
+   l'app scarta una riga se il TESTO della domanda c'e' gia', anche quando le risposte sono
+   diverse: cosi' 26 domande vere non uscivano mai (es. «Ai conducenti… è vietato:» con altre
+   risposte). Le aggiungo IN FONDO: le domande che c'erano tengono il loro numero (l'id e' la
+   posizione) e le statistiche restano al loro posto. Le doppie vere (stesse risposte) restano fuori. */
+function chiaveR(q,ch){return String(q==null?'':q).toLowerCase().replace(/[^a-z0-9]/g,'')+'#'
++(ch||[]).map(function(c){return String(c==null?'':c).toLowerCase().replace(/[^a-z0-9]/g,'');}).sort().join('|');}
+function aggiungi(){
+try{
+if(typeof QUIZ_ALL==='undefined'||!QUIZ_ALL||!QUIZ_ALL.length||QUIZ_ALL.__aggiunte!=null)return;
+var D=(window.__QUIZDATA__&&window.__QUIZDATA__.domande)||[],ci={},testi={},nuove=[];
+QUIZ_ALL.forEach(function(it){if(it)ci[chiaveR(it.q,it.choices)]=1;});
+D.forEach(function(r){
+if(!r||!Array.isArray(r[1])||!r[1].length||!r[0])return;
+var q=r[0];
+if(!testi[q]){testi[q]=1;return;}                  /* questa l'app l'ha tenuta */
+var k=chiaveR(q,r[1]);if(ci[k])return;              /* doppia vera: stesse risposte */
+ci[k]=1;
+var cor=r[2]|0;if(cor<0||cor>=r[1].length)cor=0;
+var sub='reg_com';try{sub=classifySub(q);}catch(e){}
+try{var b=r[3];
+if(b==='geo')sub=RX_GEOVIE.test(q)?'geo_vie':'geo_terr';
+else if(b==='norm')sub=RX_AERO.test(q)?'norm_aero':'norm_legge';
+else if(b==='reg')sub=RX_DOV.test(q)?'reg_dov':'reg_com';}catch(e){}
+var cat=sub;try{cat=SUB2ARG[sub]||cat;}catch(e){}
+nuove.push({q:pulisci(q),choices:r[1].map(pulisci),correct:cor,sub:sub,cat:cat});
+});
+var base=QUIZ_ALL.length;
+nuove.forEach(function(it,i){it.id=base+i;QUIZ_ALL.push(it);});
+QUIZ_ALL.__aggiunte=nuove.length;
+}catch(e){}
+}
+window.nccDomandeAggiunte=function(){try{return QUIZ_ALL.__aggiunte||0;}catch(e){return 0;}};
 setTimeout(function(){
 try{
 if(typeof buildQuiz==='function'&&!buildQuiz.__puliti){
 var _bq=buildQuiz;
-buildQuiz=function(){var r=_bq.apply(this,arguments);sistema();return r;};
+buildQuiz=function(){var r=_bq.apply(this,arguments);sistema();aggiungi();return r;};
 buildQuiz.__puliti=true;
 }
-sistema();
+sistema();aggiungi();
 }catch(e){}
 },3300);
 /* la stessa domanda: stesso testo e stesse risposte, a meno di spazi, maiuscole e punteggiatura */
@@ -13827,4 +13984,569 @@ return _sq.call(this,items,opts);
 startQuiz.__doppie=true;
 }catch(e){}
 },3300);
+})();
+
+/* ═══════════════════════════════════════════════════
+   📍 I MARKER SPOSTATI: VINCE L'ULTIMO (v147)
+   Un marker spostato su un dispositivo a volte tornava dov'era. Il colpevole:
+   il salvataggio veloce (fine quiz, app chiusa) mandava INTERI i marker, i
+   percorsi e le preferenze appena risultavano "da mandare", e bastava uno
+   scarico dal cloud a segnarli cosi'. Un iPhone rimasto indietro rimetteva la
+   sua copia vecchia sopra quello che avevi appena fatto sull'iPad.
+   Ora:
+   · ogni marker che metti o sposti prende l'ora (campo t); quando un marker
+     c'e' su entrambi i lati vince quello con l'ora piu' recente (percorsi e piazze)
+   · si ricorda com'era il cloud all'ultimo contatto e il salvataggio veloce
+     manda solo quello che hai cambiato qui: i marker uno per uno, le
+     preferenze voce per voce, percorsi e statistiche solo se li hai toccati
+   · un marker messo su un altro dispositivo dopo l'ultimo contatto non viene
+     cancellato da una scrittura completa; uno che hai tolto tu non torna
+   Nessun marker viene mai messo da solo: si confrontano solo quelli che hai messo tu.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function pos(c){return (c&&isFinite(c.lat)&&isFinite(c.lon))?(Math.round(c.lat*1e6)+','+Math.round(c.lon*1e6)):'';}
+function ora(c){return +(c&&c.t)||0;}
+function copia(c){var o={lat:c.lat,lon:c.lon};if(ora(c))o.t=ora(c);return o;}
+function contatto(){try{return +lg('syncTs',0)||0;}catch(e){return 0;}}
+/* ── 1 · percorsi: l'ora a ogni salvataggio, solo sui marker nuovi o spostati ──
+   P: i marker cambiati (o tolti) qui e non ancora scritti nel cloud */
+var vista={},inSync=0,P={};
+function fotografa(){vista={};try{Object.keys(coords).forEach(function(k){vista[k]={p:pos(coords[k]),t:ora(coords[k])};});}catch(e){}}
+function timbra(){
+try{
+if(inSync&&Date.now()-inSync<12000)return;          /* durante uno scarico dal cloud non si timbra */
+var t=Date.now();
+Object.keys(coords).forEach(function(k){
+var c=coords[k];if(!c||typeof c!=='object')return;
+var v=vista[k],p=pos(c);
+if(!p)return;
+if(!v||v.p!==p){if(!(ora(c)>(v?v.t:0))){c.t=t;P[k]=1;}}
+});
+Object.keys(vista).forEach(function(k){if(!coords[k]&&vista[k].p)P[k]=1;});   /* tolto qui */
+fotografa();
+}catch(e){}
+}
+try{
+if(typeof save==='function'&&!save.__marker){
+var _sv=save;
+save=function(){
+timbra();
+var r=_sv.apply(this,arguments);
+/* i marker non partono mai interi col salvataggio veloce: vanno uno per uno (sotto) */
+try{if(typeof _dirty==='object'&&_dirty)delete _dirty.coords;}catch(e){}
+return r;
+};
+save.__marker=true;
+}
+}catch(e){}
+fotografa();
+/* ── 2 · l'impronta di un dato com'e' nel cloud (chiavi in ordine, vuoti tolti) ── */
+function canon(v){
+if(v===null||v===undefined)return undefined;
+if(Array.isArray(v)){var a=v.map(canon);return a.length?a:undefined;}
+if(typeof v==='object'){var o={},n=0;Object.keys(v).sort().forEach(function(k){var x=canon(v[k]);if(x!==undefined){o[k]=x;n++;}});return n?o:undefined;}
+if(typeof v==='number'&&!isFinite(v))return undefined;
+return v;
+}
+function impr(v){
+try{var s=JSON.stringify(canon(v));if(s===undefined)return '0';
+var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return s.length+'.'+h;}catch(e){return '';}
+}
+var ult={};   /* com'era il cloud all'ultimo contatto (scarico o scrittura completa): percorso → impronta */
+function nodi(){var o={};try{o.routes=routes;}catch(e){}try{o.qStats=qStats;}catch(e){}try{o.done=done;}catch(e){}return o;}
+function prefsOra(){var p={};try{p=getPrefs()||{};}catch(e){}return p;}
+/* dopo uno scarico: segno solo quello che qui e' davvero uguale al cloud */
+function visto(d){
+try{
+if(!d||typeof d!=='object')return;
+var n=nodi();
+Object.keys(n).forEach(function(k){var a=impr(n[k]);if(a===impr(d[k]))ult[k]=a;else delete ult[k];});
+var p=prefsOra(),dp=(d.prefs&&typeof d.prefs==='object')?d.prefs:{},ks={};
+Object.keys(p).concat(Object.keys(dp)).forEach(function(k){ks[k]=1;});
+Object.keys(ks).forEach(function(k){if(k==='ncc')return;var a=impr(p[k]);if(a===impr(dp[k]))ult['prefs/'+k]=a;else delete ult['prefs/'+k];});
+}catch(e){}
+}
+/* la scrittura completa (protetta) chiama queste due: prima fotografa e prende i marker in sospeso,
+   dopo, se e' andata, il cloud e' uguale a questo dispositivo */
+window.nccCloudPrima=function(){
+var s={ult:{},P:P,dd:{}};
+try{var n=nodi(),p=prefsOra();
+Object.keys(n).forEach(function(k){s.ult[k]=impr(n[k]);});
+Object.keys(p).forEach(function(k){if(k!=='ncc')s.ult['prefs/'+k]=impr(p[k]);});}catch(e){}
+P={};
+try{if(typeof _dirty==='object'&&_dirty){s.dd=_dirty;_dirty={};}}catch(e){}
+return s;
+};
+window.nccCloudDopo=function(s,riuscita){
+try{
+if(!s)return;
+if(riuscita){ult=s.ult;return;}
+Object.keys(s.P||{}).forEach(function(k){P[k]=1;});
+try{Object.keys(s.dd||{}).forEach(function(k){_dirty[k]=1;});}catch(e){}
+}catch(e){}
+};
+/* ── 3 · il salvataggio veloce (fine quiz, app chiusa): solo quello cambiato qui ── */
+function veloce(){
+if(typeof fbOk==='undefined'||!fbOk||!fbRef)return;
+if(!navigator.onLine)return;          /* offline: resta tutto da mandare, come prima */
+var p={},ci=false,ts=Date.now(),vecchi={},sporchi=Object.keys(_dirty);
+function segna(u,a){if(!(u in vecchi))vecchi[u]=ult[u];ult[u]=a;}
+/* i marker cambiati qui, uno per uno (anche quelli tolti) */
+var mk=P;P={};
+Object.keys(mk).forEach(function(k){var c=coords[k];p['coords/'+k]=(c&&pos(c))?copia(c):null;ci=true;});
+delete _dirty.coords;
+/* percorsi, statistiche dei percorsi, fatti: interi, ma solo se cambiati qui dall'ultimo contatto */
+var n=nodi();
+['routes','qStats','done'].forEach(function(k){
+if(!_dirty[k])return;delete _dirty[k];
+var a=impr(n[k]);if(ult[k]&&ult[k]===a)return;
+p[k]=n[k];segna(k,a);ci=true;
+});
+/* le preferenze voce per voce (il ramo ncc ha il suo invio, che prima legge il cloud) */
+if(_dirty.prefs){
+delete _dirty.prefs;
+var pr=prefsOra(),ks={};
+Object.keys(pr).forEach(function(k){ks[k]=1;});
+Object.keys(ult).forEach(function(u){if(u.indexOf('prefs/')===0)ks[u.slice(6)]=1;});
+Object.keys(ks).forEach(function(k){
+if(k==='ncc')return;
+var a=impr(pr[k]);if(ult['prefs/'+k]===a)return;
+p['prefs/'+k]=(pr[k]===undefined)?null:pr[k];segna('prefs/'+k,a);ci=true;
+});
+}
+/* il resto (risposte del quiz, studio, simulazioni) come sempre */
+var all={qtStats:qtStats,studyProg:studyProg,qExamHist:qExamHist};
+Object.keys(_dirty).forEach(function(k){if(all[k]!==undefined){p[k]=all[k];ci=true;}});
+_dirty={};
+if(!ci)return;
+p.ts=ts;
+var w=fbRef.update(p);                /* parte subito: il browser la completa anche uscendo */
+/* non e' andata (per esempio il cloud protetto e l'accesso non ancora pronto): tutto torna da mandare */
+if(w&&typeof w.catch==='function')w.catch(function(){
+try{
+Object.keys(mk).forEach(function(k){P[k]=1;});
+Object.keys(vecchi).forEach(function(u){if(vecchi[u]===undefined)delete ult[u];else ult[u]=vecchi[u];});
+sporchi.forEach(function(k){if(k!=='coords')_dirty[k]=1;});   /* i marker tornano in sospeso uno per uno (sopra), mai interi */
+}catch(e){}
+});
+}
+try{
+if(typeof flushNow==='function'&&!flushNow.__marker){
+var _fl=flushNow;
+flushNow=function(){
+try{veloce();return;}catch(e){}
+try{return _fl.apply(this,arguments);}catch(e2){}
+};
+flushNow.__marker=true;
+}
+}catch(e){}
+/* ── 4 · allo scarico: per ogni marker che c'e' su entrambi i lati vince l'ora piu' recente ── */
+function riconcilia(prima,cloud,sTs){
+var cambiati=0;
+try{
+if(!cloud||typeof cloud!=='object')return 0;
+Object.keys(prima).forEach(function(k){
+var L=prima[k],C=cloud[k],X=coords[k];
+if(!L||!C||typeof L!=='object'||typeof C!=='object')return;
+var W=(ora(C)>ora(L))?C:L;
+if(W===L&&(pos(L)!==pos(C)||ora(L)!==ora(C)))P[k]=1;          /* il cloud e' indietro: questo va mandato */
+if(W===C)delete P[k];
+if(!X||pos(X)!==pos(W)||ora(X)!==ora(W)){coords[k]=copia(W);cambiati++;}
+});
+/* messi su un altro dispositivo dopo l'ultimo contatto: arrivano anche se qui i dati erano piu' recenti */
+Object.keys(cloud).forEach(function(k){
+var C=cloud[k];if(prima[k]||coords[k]||!C||typeof C!=='object'||!pos(C))return;
+if(ora(C)>sTs){coords[k]=copia(C);delete P[k];cambiati++;}
+});
+/* tolti qui e non ancora scritti: non tornano (a meno che altrove li abbiano rimessi dopo) */
+Object.keys(P).forEach(function(k){
+if(prima[k])return;
+var C=cloud[k];
+if(C&&typeof C==='object'&&ora(C)>sTs){delete P[k];return;}
+if(coords[k]){delete coords[k];cambiati++;}
+});
+}catch(e){}
+return cambiati;
+}
+(function(){
+try{
+if(typeof syncFromCloud!=='function'||syncFromCloud.__marker)return;
+var _s=syncFromCloud;
+syncFromCloud=function(){
+var prima={},sTs=contatto();try{prima=JSON.parse(JSON.stringify(coords||{}));}catch(e){}
+inSync=Date.now();
+var r=_s.apply(this,arguments);
+try{
+if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once){
+fbRef.once('value',function(sn){
+try{
+var d=sn&&sn.val?sn.val():null;
+var n=riconcilia(prima,d&&d.coords,sTs);
+inSync=0;fotografa();
+if(n){try{ls('coords',coords);}catch(e){}
+try{if(typeof autoSave==='function')autoSave();}catch(e){}
+try{if(typeof cur!=='undefined'&&cur){renderList();rebuildLines();}}catch(e){}}
+visto(d);
+}catch(e){inSync=0;}
+},function(){inSync=0;});
+}else inSync=0;
+}catch(e){inSync=0;}
+return r;
+};
+syncFromCloud.__marker=true;
+}catch(e){}
+})();   /* subito: anche lo scarico dell'avvio passa di qui */
+/* ── 5 · piazze: l'ora quando la piazza o una sua via viene messa o spostata ── */
+try{
+var _si=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k,v){
+try{
+if(k==='pzCoords'&&this===window.localStorage&&typeof v==='string'){
+var nuovo=JSON.parse(v),vecchio={};try{vecchio=JSON.parse(this.getItem('pzCoords')||'{}')||{};}catch(e){}
+if(nuovo&&typeof nuovo==='object'){
+var t=Date.now(),ch=0;
+Object.keys(nuovo).forEach(function(id){
+var c=nuovo[id],o=vecchio[id];if(!c||typeof c!=='object'||!pos(c))return;
+if(!o||pos(o)!==pos(c)){if(!(ora(c)>ora(o))){c.t=t;ch++;}}
+});
+if(ch)v=JSON.stringify(nuovo);
+}
+}
+}catch(e){}
+return _si.call(this,k,v);
+};
+}catch(e){}
+window.nccMarkerOra=function(k){try{return ora(coords[k]);}catch(e){return 0;}};   /* per i test */
+window.nccMarkerInSospeso=function(){return Object.keys(P);};                      /* per i test */
+/* ── 6 · prima di una scrittura completa (chi scrive ha la sua copia): i marker che nel cloud
+   sono piu' recenti, e quelli messi altrove dopo l'ultimo contatto ── */
+window.nccUnisciMarker=function(d){
+var n=0,sTs=contatto();
+try{
+var cc=d&&d.coords;
+if(cc&&typeof cc==='object'){
+Object.keys(coords).forEach(function(k){var L=coords[k],C=cc[k];if(!L||!C||typeof L!=='object'||typeof C!=='object')return;
+if(ora(C)>ora(L)&&(pos(C)!==pos(L)||ora(C)!==ora(L))){coords[k]=copia(C);delete P[k];n++;}});
+Object.keys(cc).forEach(function(k){var C=cc[k];if(coords[k]||!C||typeof C!=='object'||!pos(C))return;
+if(ora(C)>sTs){coords[k]=copia(C);delete P[k];n++;}});
+if(n){fotografa();try{ls('coords',coords);}catch(e){}try{if(typeof cur!=='undefined'&&cur){renderList();rebuildLines();}}catch(e){}}
+}
+var pz=d&&d.prefs&&d.prefs.ncc&&d.prefs.ncc.pzCoords;
+if(typeof pz==='string'){
+var C2=JSON.parse(pz)||{},L2=JSON.parse(localStorage.getItem('pzCoords')||'{}')||{},m=0;
+Object.keys(C2).forEach(function(k){var a=L2[k],b=C2[k];if(!b||typeof b!=='object'||!pos(b))return;
+if(!a||typeof a!=='object'){if(ora(b)>sTs){L2[k]=b;m++;}return;}
+if(ora(b)>ora(a)&&(pos(a)!==pos(b)||ora(a)!==ora(b))){L2[k]=b;m++;}});
+if(m){localStorage.setItem('pzCoords',JSON.stringify(L2));n+=m;}
+}
+}catch(e){}
+return n;
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   ▶ IL PROSSIMO in «Senza marker» e 🔊 ASCOLTA IL PERCORSO (v147)
+   · in cima a «Senza marker»: «Il prossimo» apre l'editor di sempre sul primo
+     percorso ancora senza marker; chiuso l'editor, l'elenco si aggiorna e il
+     tasto passa al prossimo. I marker li metti tu, uno per uno.
+   · 🔊 Ascolta, sulla mappa accanto a Linea: la voce legge le vie dalla tappa
+     dove sei fino all'ultima, e la mappa segue. In Cieco dice il numero della
+     tappa, aspetta 3 secondi, poi scopre e dice la via. Ritocchi per fermare
+     (anche col tasto A). Le sigle si leggono per intero: P.ZA → piazza.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* ── ▶ Il prossimo ── */
+function primo(){
+try{var b=document.querySelector('#scnOv[data-p="senza"] .sc-r[onclick^="nccApriPerMarker"]');if(!b)return null;
+var m=(b.getAttribute('onclick')||'').match(/'([^']+)'/);if(!m)return null;
+var r=(routes||[]).filter(function(x){return String(x.id)===m[1];})[0];return r||null;}catch(e){return null;}
+}
+function metti(){
+try{
+var sc=document.getElementById('scnOv');if(!sc||sc.getAttribute('data-p')!=='senza')return;
+var body=document.getElementById('scnBody');if(!body||body.querySelector('.sm-prossimo'))return;
+var r=primo();if(!r)return;
+var b=document.createElement('button');b.type='button';b.className='sm-prossimo';
+b.innerHTML='<span>▶ Il prossimo<small>'+E(r.title)+' · '+r.steps.length+' tappe</small></span><b>›</b>';
+b.onclick=function(){try{hap();}catch(e){}try{nccModificaPercorso(r.id);}catch(e){}};
+var nota=body.querySelector('.sc-nota');
+if(nota&&nota.parentNode)nota.parentNode.insertBefore(b,nota.nextSibling);else body.insertBefore(b,body.firstChild);
+}catch(e){}
+}
+window.nccSenzaProssimo=function(){var r=primo();if(r){try{nccModificaPercorso(r.id);}catch(e){}}};
+setTimeout(function(){
+try{
+var _sm=window.nccSenzaMarker;
+if(typeof _sm==='function'&&!_sm.__pross){
+window.nccSenzaMarker=function(){var x=_sm.apply(this,arguments);metti();return x;};window.nccSenzaMarker.__pross=true;}
+/* chiuso l'editor: se sotto c'e' «Senza marker», l'elenco si rifa' (e il tasto passa al prossimo) */
+['closeAdd','savRoute'].forEach(function(n){
+var o=window[n];if(typeof o!=='function'||o.__pross)return;
+var w=function(){var x=o.apply(this,arguments);
+setTimeout(function(){try{var sc=document.getElementById('scnOv');var ad=document.getElementById('addModal');
+if(sc&&sc.getAttribute('data-p')==='senza'&&!(ad&&ad.classList.contains('open'))){nccSenzaMarker();
+var sb=document.getElementById('scnBody');if(sb)sb.classList.remove('sc-entra');}}catch(e){}},350);
+return x;};
+w.__pross=true;window[n]=w;
+});
+}catch(e){}
+},3800);
+
+/* ── 🔊 Ascolta il percorso ── */
+var SIGLE=[[/\bP\.?ZZA\b\.?/g,'piazza'],[/\bP\.ZA\b\.?/g,'piazza'],[/\bP\.LE\b\.?/g,'piazzale'],[/\bV\.LE\b\.?/g,'viale'],[/\bC\.SO\b\.?/g,'corso'],
+[/\bL\.GO\b\.?/g,'largo'],[/\bP\.TA\b\.?/g,'porta'],[/\bSTAZ\.\s*/g,'stazione '],[/\bOSP\.\s*/g,'ospedale '],[/\bCAV\.\s*/g,'cavalcavia '],
+[/\bTANG\.\s*/g,'tangenziale '],[/\bINTERS\.\s*/g,'intersezione '],[/\bSS\b/g,'statale'],[/\bS\.\s*(?=[A-Z])/g,'san '],[/\bF\.LLI\b/g,'fratelli']];
+function leggibile(t){
+var x=String(t||'').toUpperCase();
+SIGLE.forEach(function(p){x=x.replace(p[0],p[1]);});
+x=x.replace(/\s+/g,' ').trim().toLowerCase();
+return x.replace(/(^|[\s(])([a-zà-ù])/g,function(m,a,b){return a+b.toUpperCase();});
+}
+window.nccLeggibile=leggibile;   /* per i test */
+var A={on:false,tok:0,id:null,tm:null};
+function voce(){try{return window.nccVoceMigliore?nccVoceMigliore():null;}catch(e){return null;}}
+function di(frase,poi){
+try{
+var u=new SpeechSynthesisUtterance(frase);u.lang='it-IT';var v=voce();if(v)u.voice=v;u.rate=0.95;
+var tok=A.tok,fatto=false;
+function fine(){if(fatto)return;fatto=true;if(tok!==A.tok||!A.on)return;poi&&poi();}
+u.onend=fine;u.onerror=fine;
+/* se la voce non risponde (browser muto), si va avanti lo stesso */
+setTimeout(fine,Math.max(2500,frase.length*140));
+speechSynthesis.speak(u);
+}catch(e){poi&&setTimeout(poi,800);}
+}
+function bottone(){var b=document.getElementById('ascBtn');if(b){b.classList.toggle('on',A.on);b.textContent=A.on?'⏹ Ferma':'🔊 Ascolta';}}
+function ferma(){A.on=false;A.tok++;clearTimeout(A.tm);try{speechSynthesis.cancel();}catch(e){}bottone();}
+window.nccAscoltaFerma=ferma;
+function passo(){
+if(!A.on)return;
+try{
+if(typeof cur==='undefined'||!cur||String(cur.id)!==A.id||!document.body.classList.contains('on-topo')){ferma();return;}
+var i=step,via=cur.steps[i];
+var dopo=function(){
+if(!A.on)return;
+if(i>=cur.steps.length-1){A.tm=setTimeout(function(){di('Arrivato',ferma);},500);return;}
+A.tm=setTimeout(function(){if(!A.on)return;try{nextS();}catch(e){}A.tm=setTimeout(passo,450);},700);
+};
+if(typeof mode!=='undefined'&&mode==='c'){
+di('Tappa '+(i+1),function(){A.tm=setTimeout(function(){if(!A.on)return;try{revealS();}catch(e){}di(leggibile(via),dopo);},3000);});
+}else di(leggibile(via),dopo);
+}catch(e){ferma();}
+}
+window.nccAscolta=function(){
+try{
+if(A.on){ferma();return;}
+if(!('speechSynthesis' in window)){if(typeof toast2==='function')toast2('🔇 Questo browser non legge ad alta voce',2800);return;}
+if(typeof cur==='undefined'||!cur){if(typeof toast2==='function')toast2('Apri prima un percorso',2200);return;}
+try{speechSynthesis.cancel();}catch(e){}
+A.on=true;A.tok++;A.id=String(cur.id);bottone();
+passo();
+}catch(e){ferma();}
+};
+function mettiBottone(){
+try{
+if(document.getElementById('ascBtn'))return;
+var ref=document.getElementById('edBtn')||document.getElementById('lineaBtn');if(!ref||!ref.parentElement)return;
+var b=document.createElement('button');b.id='ascBtn';b.type='button';b.className=ref.className;
+b.textContent='🔊 Ascolta';b.title='La voce legge le vie del percorso (tasto A)';
+b.onclick=function(e){try{e.stopPropagation();}catch(x){}nccAscolta();};
+ref.parentElement.insertBefore(b,ref.nextSibling);
+}catch(e){}
+}
+setTimeout(mettiBottone,3000);
+setTimeout(function(){
+try{
+var _sr=selectRoute;if(!_sr.__asc){selectRoute=function(r){if(A.on&&(!r||String(r.id)!==A.id))ferma();var x=_sr.apply(this,arguments);setTimeout(mettiBottone,200);return x;};selectRoute.__asc=true;}
+var _gh=goHome;if(!_gh.__asc){goHome=function(){if(A.on)ferma();return _gh.apply(this,arguments);};goHome.__asc=true;}
+var _gt=goTopografia;if(!_gt.__asc){goTopografia=function(){var x=_gt.apply(this,arguments);setTimeout(mettiBottone,350);return x;};goTopografia.__asc=true;}
+}catch(e){}
+},3900);
+/* il tasto A sulla mappa */
+document.addEventListener('keydown',function(e){
+try{
+if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey)return;
+var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+if((e.key==='a'||e.key==='A')&&document.body.classList.contains('on-topo')&&!document.getElementById('popOv')
+&&!document.querySelector('.modal.open')&&!document.getElementById('lineaOv')){
+var c=document.elementFromPoint(innerWidth/2,innerHeight/2);if(!(c&&c.closest&&c.closest('#map,#panel')))return;
+e.preventDefault();e.stopPropagation();nccAscolta();}
+}catch(x){}
+},true);
+})();
+
+/* ═══════════════════════════════════════════════════
+   🔒 PROTEGGI I DATI (v147)
+   L'indirizzo del cloud sta nel codice pubblico su GitHub: chi lo trova puo'
+   leggere (e cancellare) i dati. Con un accesso email e password, uguale su
+   tutti i tuoi dispositivi, e le regole di Firebase, solo tu puoi.
+   · finche' non entri, niente cambia: il pezzo di Firebase per l'accesso si
+     carica solo se lo usi (o se su questo dispositivo sei gia' entrato)
+   · entrato, il dispositivo riscarica i dati; al riavvio l'accesso resta
+   · le regole pronte da incollare, col tuo codice (UID), le copi da qui
+   · se le regole sono attive e un dispositivo non e' entrato, lo dice
+     (prima non si sarebbe capito perche' non si salva niente)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var SDK='https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js';
+var UTENTE=null,avvisato=false;
+function segnato(){try{return localStorage.getItem('nccAuth')==='1';}catch(e){return false;}}
+function carica(cb){
+try{
+if(window.firebase&&firebase.auth){cb(true);return;}
+var s=document.querySelector('script[data-ncc-auth]');
+if(!s){s=document.createElement('script');s.src=SDK;s.async=true;s.setAttribute('data-ncc-auth','1');document.head.appendChild(s);}
+s.addEventListener('load',function(){cb(!!(window.firebase&&firebase.auth));});
+s.addEventListener('error',function(){cb(false);});
+}catch(e){cb(false);}
+}
+function pronto(cb){
+carica(function(ok){
+if(!ok){cb(null);return;}
+try{if(typeof initFB==='function')initFB();}catch(e){}
+try{cb(firebase.auth());}catch(e){cb(null);}
+});
+}
+function riscarica(){
+setTimeout(function(){try{syncFromCloud();}catch(e){}try{if(window.nccSyncRiprendi)nccSyncRiprendi();}catch(e){}},300);
+}
+var ascolto=false;
+function ascolta(auth){
+if(!auth||ascolto)return;ascolto=true;
+try{auth.onAuthStateChanged(function(u){
+var prima=UTENTE;UTENTE=u||null;
+if(u&&!prima)riscarica();          /* appena riconosciuto: i dati si riscaricano con l'accesso */
+aggiornaRiga();
+});}catch(e){}
+}
+/* all'avvio: solo se su questo dispositivo sei gia' entrato */
+if(segnato())pronto(ascolta);
+window.nccProtettoTesto=function(){return segnato()?'attiva':'non attiva';};
+function aggiornaRiga(){try{var d=document.querySelector('#pfOv .pf-r[onclick*="nccProteggi"] .pf-d');if(d)d.textContent=window.nccProtettoTesto();}catch(e){}}
+function messaggio(err){
+var c=String((err&&(err.code||err.message))||'');
+if(/operation-not-allowed/.test(c))return 'Prima attiva «Email/password» nella console di Firebase: Authentication › Metodo di accesso (passo 1).';
+if(/email-already-in-use/.test(c))return 'Questa email ha già un accesso: usa «Entra».';
+if(/wrong-password|invalid-credential|user-not-found|invalid-login/.test(c))return 'Email o password sbagliate.';
+if(/weak-password/.test(c))return 'La password deve avere almeno 6 caratteri.';
+if(/invalid-email/.test(c))return 'L’email non è valida.';
+if(/network/.test(c))return 'Sei offline: riprova quando c’è la rete.';
+if(/too-many/.test(c))return 'Troppi tentativi: aspetta un po’ e riprova.';
+return 'Non ci sono riuscito ('+c+').';
+}
+function regole(uid){
+var r="auth != null && auth.uid === '"+uid+"'";
+var nodo=function(){return {'.read':r,'.write':r};};
+return JSON.stringify({rules:{prontuario:nodo(),prontuario_backup:nodo(),prontuario_snaps:nodo()}},null,2);
+}
+window.nccRegole=regole;   /* per i test */
+/* l'errore resta nel riquadro, sotto i campi: email e password non si riscrivono */
+function erroreQui(msg,campo){
+try{
+var e=document.getElementById('auErr');
+if(!e){if(msg)alert('⚠️ '+msg);return;}
+e.textContent=msg||'';
+['auEm','auPw'].forEach(function(id){var i=document.getElementById(id);if(i)i.classList.toggle('ko',!!msg&&id===campo);});
+if(!msg)return;
+e.classList.remove('scuoti');void e.offsetWidth;e.classList.add('scuoti');
+if(campo){var i=document.getElementById(campo);if(i)i.focus();}
+try{hap('e');}catch(x){}
+}catch(x){}
+}
+/* mentre aspetta Firebase: i tasti fermi, quello toccato dice cosa sta facendo */
+function occupato(si,crea){
+try{
+[].forEach.call(document.querySelectorAll('#popOv .pop-b'),function(b){b.disabled=!!si;});
+var b=document.querySelector('#popOv .pop-b[data-i="'+(crea?1:0)+'"]');
+if(b){if(si){if(!b.__t)b.__t=b.textContent;b.textContent=crea?'Creo l’accesso…':'Entro…';}else if(b.__t)b.textContent=b.__t;}
+}catch(e){}
+}
+function accedi(crea){
+try{
+var em=String((document.getElementById('auEm')||{}).value||'').trim(),pw=String((document.getElementById('auPw')||{}).value||'');
+if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){erroreQui('Scrivi un’email valida.','auEm');return false;}
+if(pw.length<6){erroreQui('La password deve avere almeno 6 caratteri.','auPw');return false;}
+erroreQui('');occupato(true,crea);
+pronto(function(auth){
+if(!auth){occupato(false,crea);erroreQui('Non riesco a caricare l’accesso: sei offline?');return;}
+ascolta(auth);
+var p=crea?auth.createUserWithEmailAndPassword(em,pw):auth.signInWithEmailAndPassword(em,pw);
+p.then(function(c){
+try{localStorage.setItem('nccAuth','1');}catch(e){}
+UTENTE=(c&&c.user)||auth.currentUser;aggiornaRiga();riscarica();
+alert('✅ '+(crea?'Accesso creato':'Sei entrato')+': questo dispositivo è pronto.\n\n'
++'Fai «Entra» con la stessa email e password su tutti gli altri dispositivi, poi apri di nuovo «Proteggi i dati» e copia le regole.');
+}).catch(function(err){
+var c=String((err&&(err.code||err.message))||'');
+occupato(false,crea);
+erroreQui(messaggio(err),/password|credential|login|user-not-found/.test(c)?'auPw':(/email/.test(c)?'auEm':null));
+});
+});
+return false;
+}catch(e){return false;}
+}
+function copia(testo){
+try{
+var fatto=function(){if(typeof toast2==='function')toast2('📋 Regole copiate: incollale in Firebase',2600);};
+var ripiego=function(){try{var t=document.createElement('textarea');t.value=testo;t.style.position='fixed';t.style.opacity='0';
+document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();fatto();}catch(e){alert(testo);}};
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(testo).then(fatto,ripiego);else ripiego();
+}catch(e){}
+}
+window.nccProteggi=function(){
+try{
+var u=UTENTE||(segnato()&&window.firebase&&firebase.auth?(function(){try{return firebase.auth().currentUser;}catch(e){return null;}})():null);
+if(u){
+var r=regole(u.uid);
+nccPopup({icona:'🔒',titolo:'Dati protetti',
+testo:'Accesso: '+(u.email||'')+'\nCodice (UID): '+u.uid+'\n\nQuando sei entrato su tutti i tuoi dispositivi: copia le regole e incollale in Firebase › Realtime Database › Regole, poi «Pubblica». Da lì in poi solo tu leggi e scrivi i dati.',
+html:'<textarea class="es-in au-reg" readonly rows="6">'+r.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>',
+azioni:[{t:'📋 Copia le regole',stile:'pieno',subito:true,fn:function(){copia(r);}},
+{t:'Esci dall’accesso',stile:'vuoto',fn:function(){
+nccConferma('Esco dall’accesso su questo dispositivo?\n\nSe le regole sono attive, finché non rientri non sincronizza più.',esci);}},
+{t:'Chiudi',stile:'vuoto'}]});
+return;
+}
+nccPopup({icona:'🔒',titolo:'Proteggi i dati',
+testo:'Oggi chi trova l’indirizzo del cloud può leggere (e cancellare) i tuoi dati. Con un accesso, uguale su tutti i tuoi dispositivi, solo tu potrai.\n\n'
++'1 · In Firebase attiva «Email/password» (Authentication › Metodo di accesso).\n'
++'2 · Qui, la prima volta «Crea l’accesso»; sugli altri dispositivi «Entra» con la stessa email e password.\n'
++'3 · Poi riapri questa voce e copia le regole da incollare in Firebase.',
+html:'<input class="es-in" id="auEm" type="email" inputmode="email" autocomplete="username" placeholder="Email">'
++'<input class="es-in" id="auPw" type="password" autocomplete="current-password" placeholder="Password (almeno 6 caratteri)">'
++'<div class="au-err" id="auErr" role="alert"></div>',
+azioni:[{t:'Entra',stile:'pieno',subito:true,fn:function(){return accedi(false);}},
+{t:'Crea l’accesso',stile:'pieno2',subito:true,fn:function(){return accedi(true);}},
+{t:'Annulla',stile:'vuoto'}]});
+setTimeout(function(){var i=document.getElementById('auEm');if(i)i.focus();},380);
+}catch(e){}
+};
+function esci(){
+pronto(function(auth){
+try{(auth?auth.signOut():Promise.resolve()).then(function(){
+try{localStorage.removeItem('nccAuth');}catch(e){}UTENTE=null;aggiornaRiga();
+if(typeof toast2==='function')toast2('🔓 Uscito dall’accesso',2200);});}catch(e){}
+});
+}
+/* le regole sono attive e questo dispositivo non e' entrato: lo dico, una volta */
+function controlla(){
+try{
+if(avvisato||typeof fbRef==='undefined'||!fbRef||!fbRef.child)return;
+fbRef.child('ts').once('value',function(){},function(err){
+var c=String((err&&(err.code||err.message))||'');
+if(!/permission/i.test(c)||avvisato)return;
+if(segnato())return;                 /* entrato: l'accesso si sta ancora caricando, poi riscarica da solo */
+avvisato=true;
+nccPopup({icona:'🔒',titolo:'Il cloud è protetto',
+testo:'Questo dispositivo non è ancora entrato, quindi non sincronizza: quello che fai resta solo qui.\n\nEntra con la tua email e password.',
+azioni:[{t:'Entra adesso',stile:'pieno',fn:function(){window.nccProteggi();}},{t:'Dopo',stile:'vuoto'}]});
+});
+}catch(e){}
+}
+setTimeout(controlla,6000);
+try{document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(controlla,1500);});}catch(e){}
 })();

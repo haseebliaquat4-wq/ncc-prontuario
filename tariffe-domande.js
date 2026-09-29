@@ -14,7 +14,7 @@ const CON_ANNO=[['D.g.r. 17 dicembre 2015, n. X/4591','95'],['DGR n. 2030 del 01
   const {page:p,errors}=await boot(b,{clock:false,touch:true,mobile:true,extra:{antiFretta:'false',wkRepTs:String(Date.now()),azzerato2026:String(Date.now())}});
   const r=await p.evaluate(([A,C])=>{buildQuiz();const giusta=t=>{const it=QUIZ_ALL.find(x=>x.q.indexOf(t)>=0);return it?{id:it.id,g:it.choices[it.correct],tutte:it.choices}:null;};
     return {tot:QUIZ_ALL.length,a:A.map(x=>[x[1],giusta(x[0])]),c:C.map(x=>[x[1],giusta(x[0])])};},[ATTESE,CON_ANNO]);
-  console.log('domande in tutto',r.tot);ok(r.tot===1110,'le domande non sono piu’ 1110 ma '+r.tot);
+  console.log('domande in tutto',r.tot);ok(r.tot===1136,'le domande non sono piu’ 1136 (1110 + le 26 che non uscivano mai) ma '+r.tot);
   r.a.forEach(([att,it])=>{console.log('  aggiornata  '+(it?it.g:'NON TROVATA'));ok(it&&it.g.indexOf(att)===0,'tariffa non aggiornata: attesa '+att+' trovata '+(it&&it.g));
     ok(it&&new Set(it.tutte).size===it.tutte.length,'risposte doppie: '+(it&&it.tutte.join(' | ')));});
   r.c.forEach(([att,it])=>{console.log('  con l’anno  '+(it?it.g:'NON TROVATA'));ok(it&&it.g===att,'domanda con l’anno cambiata: '+(it&&it.g));});

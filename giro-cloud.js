@@ -3,7 +3,8 @@
      entro un minuto (prima restava fermo finche' non toccavi la finestra)
    · il nome: sul PC «Thomas» (scelto prima che viaggiasse), l'iPhone non ne ha: lo prende;
      poi lo cambio sull'iPhone e sul PC arriva il nuovo (vale l'ultimo scelto)
-   · Profilo › «Aggiorna dal cloud»: c'e', dice l'ora, aggiorna e lo dice */
+   · Profilo › «Aggiorna dal cloud»: c'e', dice l'ora, aggiorna e lo dice
+   · la riga «Comandi da tastiera» c'e' sul PC (col mouse), non sull'iPhone (solo dito) */
 const {launch,seed,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
@@ -29,7 +30,8 @@ Ref.prototype.on=function(){};Ref.prototype.off=function(){};
 var db=function(){return {ref:function(p){return new Ref(p);}};};db.Reference=Ref;db.Query=Ref;
 window.firebase={apps:[],initializeApp:function(){this.apps.push({});return {};},database:db};})();`;
 async function dispositivo(b,nome,vp,dati){
-  const ctx=await b.newContext({viewport:vp,serviceWorkers:'block',hasTouch:true,isMobile:vp.width<700,timezoneId:'Europe/Rome'});
+  const ctx=await b.newContext({viewport:vp,serviceWorkers:'block',hasTouch:nome!=='PC',   /* il PC col mouse */
+    isMobile:vp.width<700,timezoneId:'Europe/Rome'});
   await ctx.exposeFunction('__fbGet',p=>leggi(p));
   await ctx.exposeFunction('__fbSet',(p,v)=>{scritture++;scrivi(p,v);return true;});
   await ctx.exposeFunction('__fbUpdate',(p,o)=>{scritture++;Object.keys(o||{}).forEach(k=>scrivi(p+'/'+k,o[k]));return true;});
@@ -86,10 +88,13 @@ const saluto=D=>D.p.evaluate(()=>(document.querySelector('#hmNew .hm-ciao')||{})
   await A.p.evaluate(()=>[...document.querySelectorAll('#pfOv .pf-r')].find(x=>/Aggiorna dal cloud/.test(x.textContent)).click());
   const toast=[];for(let k=0;k<20;k++){await A.p.waitForTimeout(200);const ts=await A.p.evaluate(()=>[...document.querySelectorAll('#toastStack .toastN')].map(e=>e.textContent));ts.forEach(x=>{if(!toast.includes(x))toast.push(x);});}
   const tk=await A.p.evaluate(()=>[...document.querySelectorAll('#pfOv .pf-r')].filter(x=>/Comandi da tastiera/.test(x.textContent)).length);
-  console.log('Profilo: riga «'+(riga0&&riga0.t)+'» | avvisi',toast.join(' → '),'| riga dei comandi',tk);
+  /* sull'iPhone (solo dito) la riga dei comandi da tastiera non serve */
+  await B.p.evaluate(()=>nccProfilo());await B.p.waitForTimeout(900);
+  const tkB=await B.p.evaluate(()=>[...document.querySelectorAll('#pfOv .pf-r')].filter(x=>/Comandi da tastiera/.test(x.textContent)).length);
+  console.log('Profilo: riga «'+(riga0&&riga0.t)+'» | avvisi',toast.join(' → '),'| riga dei comandi: PC',tk,'iPhone',tkB);
   ok(riga0&&/^oggi \d\d:\d\d$/.test(riga0.d),'Profilo: la riga «Aggiorna dal cloud» non dice l’ora '+JSON.stringify(riga0));
   ok(toast.some(t=>/Aggiornato dal cloud/.test(t)),'Aggiorna dal cloud: nessun avviso '+toast.join(' → '));
-  ok(tk===1,'Profilo: manca la riga «Comandi da tastiera»');
+  ok(tk===1&&tkB===0,'Profilo: la riga «Comandi da tastiera» sul PC '+tk+', sull’iPhone '+tkB);
   A.errs.concat(B.errs).forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});
