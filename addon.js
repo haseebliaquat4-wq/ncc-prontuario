@@ -1809,9 +1809,28 @@ border-radius:var(--r-lg);background:var(--a);color:#fff;
 font-family:inherit;font-size:15px;font-weight:850;cursor:pointer;}
 .ip-go.off{background:var(--fill2);color:var(--mu);}
 .ip-foot>*{max-width:var(--card-w,560px);margin-left:auto;margin-right:auto;}
-body.dark #ipOv{--bg:var(--ios-bg);--card:var(--ios-card);--tx:var(--ios-lbl);--mu:var(--ios-lbl2);
+/* tema scuro anche nelle finestre che restavano chiare: Importa, Cerca, la mappa grande */
+body.dark #ipOv,body.dark #cxOv,body.dark #mgOv{--bg:var(--ios-bg);--card:var(--ios-card);--tx:var(--ios-lbl);--mu:var(--ios-lbl2);
 --bd:rgba(255,255,255,.14);--sep2:var(--ios-sep);--fill2:rgba(255,255,255,.1);--fill3:rgba(255,255,255,.06);}
 body.dark #ipOv .ip-nota{color:#8AA0FF;}
+/* Cerca: la (i) accanto al campo, non sopra il testo */
+#cxOv .cx-hd .t-info-in{position:static!important;transform:none!important;flex:0 0 auto;}
+/* ⌨️ la finestrella dei comandi */
+.kb-l{text-align:left;margin:4px 0 2px;max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.kb-g{margin:0 0 12px;}
+.kb-g b{display:block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+color:var(--ios-lbl2,var(--mu));margin:0 0 5px;}
+.kb-r{display:flex;align-items:baseline;gap:10px;font-size:14px;line-height:1.35;color:var(--ios-lbl,var(--tx));padding:3px 0;}
+.kb-r span:first-child{flex:0 0 96px;text-align:right;}
+.kb-r kbd{display:inline-block;min-width:22px;padding:2px 6px;border-radius:7px;text-align:center;
+font-size:12.5px;font-weight:700;line-height:1.3;font-family:inherit;border:1.5px solid var(--ios-sep,rgba(0,0,0,.15));
+background:var(--ios-bg,#F2F2F7);color:var(--ios-lbl,#111);margin:1px 2px;}
+/* 📋 Percorsi salvati: il tasto Doppi, accanto alle zone */
+.mg-dp{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 11px;margin:0 6px 6px 0;
+border-radius:999px;border:1.5px solid var(--bd,rgba(0,0,0,.15));background:transparent;color:inherit;
+font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+.mg-dp.on{background:var(--a,#2447D6);border-color:var(--a,#2447D6);color:#fff;}
+.rim .mg-pag{font-weight:700;opacity:.85;}
 
 
 /* ── il menu ⋯ deve poter scorrere ──
@@ -2032,6 +2051,9 @@ display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .hm-rq-b{font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;
 background:rgba(0,0,0,.2);white-space:nowrap;letter-spacing:-.1px;
 max-width:62%;overflow:hidden;text-overflow:ellipsis;}
+.hm-rq-bx{display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:66%;min-width:0;}
+.hm-rq-bx .hm-rq-b{max-width:100%;}
+.hm-rq-w{font-size:11.5px;font-weight:700;line-height:1.1;opacity:.92;padding-right:3px;white-space:nowrap;letter-spacing:.1px;}
 .hm-rq-t{font-size:19px;font-weight:700;letter-spacing:-.4px;line-height:1.18;margin-top:12px;
 max-width:100%;overflow-wrap:break-word;hyphens:auto;}
 /* schermi stretti: il titolo va a capo invece di tagliarsi */
@@ -2662,6 +2684,12 @@ color:var(--ios-lbl);font:inherit;font-size:15px;font-weight:800;cursor:pointer;
 #scnOv,#pfOv{--col:680px;}
 #scnOv.dc-largo,#pfOv.dc-largo{--col:min(1100px,calc(100% - 48px));}
 #scnOv.dc-largo .pf-body>*,#pfOv.dc-largo .pf-body>*{max-width:none;}
+/* Profilo sull'iPad in orizzontale: con le righe nuove (Aggiorna dal cloud, Comandi) sta ancora in uno schermo */
+@media (orientation:landscape) and (max-height:900px){
+#pfOv.dc-largo .pf-r{min-height:56px!important;padding-top:5px!important;padding-bottom:5px!important;}
+#pfOv.dc-largo .pf-gr{gap:8px!important;margin-bottom:18px!important;}
+#pfOv.dc-largo .pf-piede{display:none;}
+}
 #scnOv .pf-body,#pfOv .pf-body{padding-left:calc((100% - var(--col))/2)!important;padding-right:calc((100% - var(--col))/2)!important;}
 #scnOv .t-hd,#pfOv .t-hd{padding-left:calc((100% - var(--col))/2 + 16px);padding-right:calc((100% - var(--col))/2 + 16px);}
 }
@@ -9876,7 +9904,8 @@ return [
 {ic:'\ud83d\udcca',c:C.viola,n:'Statistiche vie',f:'openStats'},
 {ic:'\ud83d\udcc5',c:C.indaco,n:'Report settimanale',f:'weeklyReport',a:true},
 {ic:'\ud83d\udcbe',c:C.verde,n:'Salva una copia',f:'nccSalvaCopia'},
-{ic:'\u21a9\ufe0f',c:C.grigio,n:'Ripristina',f:'nccRiprendiCopia'}
+{ic:'\u21a9\ufe0f',c:C.grigio,n:'Ripristina',f:'nccRiprendiCopia'},
+{ic:'\u2601\ufe0f',c:C.blu,n:'Aggiorna dal cloud',d:(window.nccUltimoCloud?nccUltimoCloud():''),f:'nccAggiornaCloud'}
 ]},
 {t:'IMPOSTAZIONI',v:[
 {ic:'\ud83c\udf13',c:C.indaco,n:'Tema',d:(window.nccTemaAttuale?nccTemaAttuale():''),f:'nccPfTema'},
@@ -9884,7 +9913,8 @@ return [
 {ic:'\ud83d\udcf3',c:C.viola,n:'Vibrazione',s:acceso('vibOn'),f:'togVib',k:'vibOn'},
 {ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
 {ic:'\ud83d\udef0',c:C.teal,n:'Vista satellite',s:(function(){try{return !!_mapSat;}catch(e){return false;}})(),f:'togSat'},
-{ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'}
+{ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'},
+{ic:'\u2328\ufe0f',c:C.grigio,n:'Comandi da tastiera',d:'tasto ?',f:'nccTastiera'}
 ]},
 {t:'',v:[
 {ic:'\ud83d\uddd1\ufe0f',c:C.rosso,n:'Reimposta tutto',f:'doReset',rosso:true}
@@ -10171,19 +10201,20 @@ function icona(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 +'stroke-linecap="round" stroke-linejoin="round">'+ICONE[k]+'</svg>';}
 
 function riquadri(n){
+/* il numero, e sotto la parola che lo spiega: «41/184» «sicuri», «15/91» «sai», «17/218» «visti» */
 function fr(a,b){return (b?a+'/'+b:'');}
 return [
-{k:'quiz',t:'Quiz',s:'Simulazioni e schede',c:'#FF9500',b:(n.quiz!=null?n.quiz+'% sai':''),fn:'nccSezQuiz'},
-{k:'topo',t:'Topografia',s:'Percorsi e vie',c:'#007AFF',b:fr(n.perc||0,n.percTot),fn:'nccSezTopo'},
+{k:'quiz',t:'Quiz',s:'Simulazioni e schede',c:'#FF9500',b:(n.quiz!=null?n.quiz+'%':''),w:'sai',fn:'nccSezQuiz'},
+{k:'topo',t:'Topografia',s:'Percorsi e vie',c:'#007AFF',b:fr(n.perc||0,n.percTot),w:'sicuri',fn:'nccSezTopo'},
 {k:'err',t:'Ripasso errori',s:n.erroriTot?(n.errori?(n.errori+' in scadenza oggi'):'da rivedere'):'Niente in sospeso',c:'#34C759',
- b:n.erroriTot?String(n.erroriTot):'',fn:'nccHmErrori'},
-{k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),fn:'nccSezPz'},
-{k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),fn:'openStudy'},
-{k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),fn:'nccSezNorme'},
+ b:n.erroriTot?String(n.erroriTot):'',w:(n.erroriTot===1?'errore':'errori'),fn:'nccHmErrori'},
+{k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),w:'sai',fn:'nccSezPz'},
+{k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),w:'visti',fn:'openStudy'},
+{k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),w:'sai',fn:'nccSezNorme'},
 {k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?'fra '+n.esame+' giorni':'data passata'):'Imposta la data'),
- c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?n.esame+' g':''),fn:'nccHmEsame'},
+ c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?String(n.esame):''),w:(n.esame===1?'giorno':'giorni'),fn:'nccHmEsame'},
 {k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
- b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),fn:'nccStat'}
+ b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),w:(n.striscia===1?'giorno':'giorni'),fn:'nccStat'}
 ];
 }
 
@@ -10232,7 +10263,7 @@ h+=coach(n)+(typeof window.nccOggiHTML==='function'?nccOggiHTML():'')+'<div clas
 riquadri(n).forEach(function(r){
 h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
 +'<span class="hm-rq-top"><span class="hm-rq-ic">'+icona(r.k)+'</span>'
-+(r.b?'<span class="hm-rq-b">'+E(r.b)+'</span>':'')+'</span>'
++(r.b?'<span class="hm-rq-bx"><span class="hm-rq-b">'+E(r.b)+'</span>'+(r.w?'<span class="hm-rq-w">'+E(r.w)+'</span>':'')+'</span>':'')+'</span>'
 +'<span class="hm-rq-t">'+E(r.t)+'</span>'
 +'<span class="hm-rq-s">'+E(r.s)+'</span></button>';
 });
@@ -10240,9 +10271,26 @@ h+='</div>';
 /* se non e' cambiato niente non riscrivo: era un ridisegno inutile a ogni ritorno */
 if(d.__h!==h){d.innerHTML=h;d.__h=h;}
 home.classList.add('hm-nuova');
+adatta();
 }catch(e){}
 }
 window.nccHomeRiquadri=disegna;
+/* il saluto sta sempre tutto: se non ci sta rimpicciolisco la scritta (fino a 22 px),
+   poi, se ancora non basta (un nome lungo), va su due righe. Mai «Buon pomerig…» */
+function adatta(){
+try{
+var el=document.querySelector('#hmNew .hm-ciao');if(!el||!el.getClientRects().length)return;
+el.style.fontSize='';el.style.whiteSpace='';el.style.webkitLineClamp='';el.style.webkitBoxOrient='';el.style.display='';
+if(el.scrollWidth<=el.clientWidth+1)return;
+var base=parseFloat(getComputedStyle(el).fontSize)||32,f=base;
+while(f>22&&el.scrollWidth>el.clientWidth+1){f-=1;el.style.fontSize=f+'px';}
+if(el.scrollWidth>el.clientWidth+1){el.style.whiteSpace='normal';el.style.display='-webkit-box';
+el.style.webkitBoxOrient='vertical';el.style.webkitLineClamp='2';
+while(f>18&&el.scrollHeight>el.clientHeight+2){f-=1;el.style.fontSize=f+'px';}
+if(el.scrollHeight>el.clientHeight+2)el.style.webkitLineClamp='3';}
+}catch(e){}
+}
+try{window.addEventListener('resize',function(){clearTimeout(adatta.t);adatta.t=setTimeout(adatta,120);});}catch(e){}
 
 /* ── il foglio d'azione iOS, per i riquadri con due strade ── */
 
@@ -11312,8 +11360,11 @@ nccPopup({icona:'\ud83d\udc64',titolo:'Come ti chiami?',testo:'Lo uso per saluta
 html:'<input class="es-in" id="nmIn" type="text" maxlength="24" value="'+E(v)+'" placeholder="Il tuo nome" autocomplete="given-name">',
 azioni:[{t:'Salva',stile:'pieno',subito:true,fn:function(){
 var i=document.getElementById('nmIn');var nn=i?String(i.value).trim().slice(0,24):'';
-try{if(nn)localStorage.setItem('nomeUtente',nn);else localStorage.removeItem('nomeUtente');}catch(e){}
-aggiorna();}},{t:'Annulla',stile:'vuoto'}]});
+/* con l'ora: su tutti i dispositivi vale l'ultimo nome scelto (anche cancellato: resta vuoto) */
+try{localStorage.setItem('nomeTs',String(Date.now()));localStorage.setItem('nomeUtente',nn);}catch(e){}
+/* e un salvataggio completo: gli altri dispositivi lo vedono al loro prossimo controllo */
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}
+aggiorna();try{if(window.nccHomeRiquadri)nccHomeRiquadri();}catch(e){}}},{t:'Annulla',stile:'vuoto'}]});
 setTimeout(function(){var i=document.getElementById('nmIn');if(i)i.focus();},380);
 };
 
@@ -11513,7 +11564,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','oggiNcc','dmStats','mmStats'];
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats'];
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -11527,9 +11578,19 @@ var n=0;
 try{
 CHIAVI.forEach(function(k){
 if(!ncc||ncc[k]==null)return;
+/* il nome: vale l'ultimo scelto su qualunque dispositivo (nomeTs dice quando).
+   Senza ora da nessuna parte (i nomi di prima): chi non ce l'ha prende quello del cloud */
+if(k==='nomeTs')return;
+if(k==='nomeUtente'){try{
+var tl=+(localStorage.getItem('nomeTs')||0)||0,tc=+(ncc.nomeTs||0)||0;
+var nl=localStorage.getItem('nomeUtente')||'',nc=String(ncc.nomeUtente);
+if(tc>tl||(!tc&&!tl&&!nl&&nc)){
+if(nc!==nl){localStorage.setItem('nomeUtente',nc);n++;}
+if(tc>tl)localStorage.setItem('nomeTs',String(tc));}
+}catch(e){}return;}
 var loc=localStorage.getItem(k),cl=ncc[k];
 if(loc==null||loc===''||loc==='{}'||loc==='[]'){localStorage.setItem(k,cl);n++;return;}
-if(k==='nomeUtente'||k==='pencilGeo')return;       /* quelli del dispositivo vincono */
+if(k==='pencilGeo')return;       /* i tratti della Pencil restano del dispositivo */
 /* i compiti di oggi: vince il giorno piu' recente; nello stesso giorno si sommano le cose fatte
    e restano le scelte fatte per prime (piazze e percorsi uguali su tutti i dispositivi) */
 if(k==='oggiNcc'){try{var oa=JSON.parse(loc),ob=JSON.parse(cl);
@@ -11622,6 +11683,9 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)ripr
 window.addEventListener('focus',riprendi);
 }catch(e){}
 window.nccSyncRiprendi=function(){ripresa=0;riprendi();};
+/* all'apertura, una volta: il ramo intero (prima arrivava solo al primo ritorno sull'app,
+   e un dispositivo appena aperto non prendeva per esempio il nome) */
+setTimeout(function(){try{ripresa=0;riprendi();}catch(e){}},3600);
 /* prima di ogni salvataggio completo (che riscrive tutte le preferenze) unisco il mio ramo
    del cloud: il salvataggio non cancella quello che l'altro dispositivo ha appena mandato */
 setTimeout(function(){
@@ -11641,7 +11705,10 @@ try{if(typeof syncFromCloud!=='function')return;var _s=syncFromCloud;
 syncFromCloud=function(){var r=_s.apply(this,arguments);
 try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(snap){
 try{var d=snap&&snap.val?snap.val():null;if(d&&d.prefs&&d.prefs.ncc){
-var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}}}catch(e){}});}catch(e){}
+var n=unisci(d.prefs.ncc);if(n){try{nccHomeRiquadri();}catch(e){}}
+/* il nome c'e' solo qui (scelto prima che viaggiasse): lo mando su, cosi' arriva agli altri */
+try{var nl=localStorage.getItem('nomeUtente');if(nl&&d.prefs.ncc.nomeUtente==null){
+cambiate.nomeUtente=1;if(localStorage.getItem('nomeTs'))cambiate.nomeTs=1;clearTimeout(tm);tm=setTimeout(invia,3000);}}catch(e){}}}catch(e){}});}catch(e){}
 return r;};}catch(e){}
 },3200);
 })();
@@ -13363,4 +13430,401 @@ if(j>=0&&j<os.length&&!os[j].disabled){e.preventDefault();os[j].click();}
 return;}
 }catch(x){}
 },true);
+})();
+
+/* ═══════════════════════════════════════════════════
+   ⌨️ COMANDI DA TASTIERA — PC e iPad con la tastiera
+   · Esc: indietro, come il tasto del telefono (mai fuori dall'app dalla Home)
+   · ?: la finestrella con tutti i comandi
+   · Invio nei riquadri: il tasto principale (mai quelli rossi: cancella, elimina)
+   · Home: Q quiz, T topografia, P piazze, E ripasso errori, N norme, / cerca
+   · Mappa: spazio scopre la via in Cieco; S, C, V Studio, Cieco, Quiz vie;
+     L la linea; R un percorso a caso; Tab il suggerimento in Quiz vie
+     (le frecce per le tappe c'erano gia')
+   · Quiz: Invio la domanda dopo, se hai gia' risposto (1-4 e frecce c'erano gia')
+   · Piazze: frecce fra le vie, spazio scopre; in «Mi verifico» spazio mostra,
+     1 non la sapevo, 2 la sapevo
+   Mentre scrivi in un campo le lettere restano lettere.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function scrive(t){try{return !!t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||!!t.isContentEditable);}catch(e){return false;}}
+function vis(e){try{return !!e&&e.getClientRects().length>0&&getComputedStyle(e).visibility!=='hidden';}catch(x){return false;}}
+function centro(){try{return document.elementFromPoint(Math.round(window.innerWidth/2),Math.round(window.innerHeight/2));}catch(e){return null;}}
+function dentro(sel){var c=centro();return !!(c&&c.closest&&c.closest(sel));}
+function popup(){return document.getElementById('popOv');}
+function modale(){return document.querySelector('.modal.open');}
+function quiz(){var q=document.getElementById('quizApp');return !!(q&&q.classList.contains('open'));}
+function home(){var h=document.getElementById('homeScreen');
+if(!h||h.style.display==='none'||popup()||modale()||quiz())return false;return dentro('#homeScreen');}
+function mappa(){var h=document.getElementById('homeScreen');
+if(!h||h.style.display!=='none'||popup()||modale()||quiz())return false;return dentro('#map,#panel');}
+function tocca(el){try{if(el&&vis(el)&&!el.disabled){el.click();return true;}}catch(e){}return false;}
+var ultimo=null;   /* lo spazio che ho usato io: il suo keyup non deve premere il bottone rimasto a fuoco */
+/* quando hai risposto l'ultima volta: dopo una risposta l'app passa da sola alla domanda dopo */
+var risposta=0;
+setTimeout(function(){try{if(typeof qPick!=='function'||qPick.__tasti)return;var _qp=qPick;
+qPick=function(){risposta=Date.now();return _qp.apply(this,arguments);};qPick.__tasti=true;}catch(e){}},3400);
+
+document.addEventListener('keydown',function(e){
+try{
+if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.altKey)return;
+var k=e.key,t=e.target,kl=(k&&k.length===1)?k.toLowerCase():k;
+/* ── Esc: indietro ── */
+if(k==='Escape'){
+if(document.body.classList.contains('topo-full'))return;       /* esce dallo schermo intero il suo gestore */
+if(modale())return;                                              /* le schede del nucleo le chiude il nucleo */
+var sg=document.getElementById('sugg');if(sg&&vis(sg))return;   /* prima si chiudono i suggerimenti */
+if(home())return;                                                /* dalla Home non si esce dall'app */
+e.preventDefault();
+try{history.back();}catch(x){}
+return;}
+/* ── un riquadro aperto: Invio = il tasto principale ── */
+var po=popup();
+if(po){
+if(k==='Enter'){var b=po.querySelector('.pop-b.pieno');if(b){e.preventDefault();e.stopPropagation();b.click();}}
+return;}
+/* ── mentre scrivi: solo il suggerimento di Quiz vie ── */
+if(scrive(t)){
+if(k==='Tab'&&t.id==='qa'&&typeof window.qvAiuto==='function'){e.preventDefault();window.qvAiuto();}
+return;}
+if(k==='?'){e.preventDefault();window.nccTastiera();return;}
+/* ── Home ── */
+if(home()){
+var fn={q:'nccSezQuiz',t:'nccSezTopo',p:'nccSezPz',e:'nccHmErrori',n:'nccSezNorme'}[kl];
+if(fn){var r=document.querySelector('#hmNew .hm-rq[onclick^="'+fn+'("]');if(r){e.preventDefault();e.stopPropagation();r.click();}return;}
+if(k==='/'){var l=document.querySelector('#hmNew .hm-lente');if(l){e.preventDefault();e.stopPropagation();l.click();}}
+return;}
+/* ── Quiz: Invio = la domanda dopo, se hai gia' risposto ── */
+if(quiz()){
+if(k==='Enter'&&typeof qCurView!=='undefined'&&qCurView==='run'&&typeof Q!=='undefined'&&Q&&Q.items){
+if(document.querySelector('#qRunAns .why-bar'))return;          /* il perche' dell'errore: ci pensa il suo tasto */
+var a=Q.ans&&Q.ans[Q.idx];
+/* mai mentre l'app sta gia' passando da sola alla domanda dopo (sarebbero due passi) */
+if(a!=null&&a>=0&&!Q._locked&&Date.now()-risposta>1200&&Q.idx<Q.items.length-1){e.preventDefault();e.stopPropagation();qGo(1);}
+}
+return;}
+/* ── la linea di metro del percorso: L la richiude ── */
+var ln=document.getElementById('lineaOv');
+if(ln&&vis(ln)){if(kl==='l'){e.preventDefault();e.stopPropagation();try{history.back();}catch(x){}}return;}
+/* ── Mappa ── */
+if(mappa()){
+var m=(typeof mode!=='undefined')?mode:'';
+if(k===' '){if(m==='c'&&tocca(document.getElementById('bRev'))){e.preventDefault();e.stopPropagation();ultimo=' ';}return;}
+var id={s:'cSt',c:'cCi',v:'cQu'}[kl];
+if(id){if(tocca(document.getElementById(id))){e.preventDefault();e.stopPropagation();}return;}
+if(kl==='l'){if(tocca(document.getElementById('lineaBtn'))){e.preventDefault();e.stopPropagation();}return;}
+if(kl==='r'&&typeof rndRoute==='function'){e.preventDefault();e.stopPropagation();rndRoute();return;}
+return;}
+/* ── Piazze: la mappa della piazza ── */
+var pm=document.getElementById('pzMapOv');
+if(pm&&vis(pm)&&dentro('#pzMapOv')){
+if(k==='ArrowRight'&&typeof pzMapNext==='function'){e.preventDefault();e.stopPropagation();pzMapNext();}
+else if(k==='ArrowLeft'&&typeof pzMapPrev==='function'){e.preventDefault();e.stopPropagation();pzMapPrev();}
+return;}
+/* ── Piazze: la piazza ── */
+if(dentro('#pzOv')){
+if(document.getElementById('verR')){                              /* Mi verifico */
+if(k===' '||k==='Enter'){if(tocca(document.getElementById('verShow'))){e.preventDefault();e.stopPropagation();ultimo=k;}return;}
+if(k==='1'||k==='2'){if(tocca(document.querySelector(k==='1'?'#pzOv .pz-no':'#pzOv .pz-si'))){e.preventDefault();e.stopPropagation();}return;}
+return;}
+if(document.getElementById('pzMetro')&&typeof pzVai==='function'){
+if(k==='ArrowRight'||k===' '){e.preventDefault();e.stopPropagation();ultimo=(k===' ')?' ':null;pzVai(1);return;}
+if(k==='ArrowLeft'){e.preventDefault();e.stopPropagation();pzVai(-1);return;}
+}
+return;}
+}catch(x){}
+},true);
+document.addEventListener('keyup',function(e){try{if(ultimo!==null&&e.key===ultimo){e.preventDefault();ultimo=null;}}catch(x){}},true);
+
+/* la linea di metro del percorso ora lascia il segno per il tasto indietro (e per Esc):
+   prima il telefono chiudeva la mappa e la linea restava sopra la Home */
+setTimeout(function(){try{var _ol=window.openLinea;if(typeof _ol!=='function'||_ol.__pila)return;
+window.openLinea=function(){var r=_ol.apply(this,arguments);
+try{if(document.getElementById('lineaOv')&&window.nccOvApri)nccOvApri('lineaOv',function(){var x=document.getElementById('lineaOv');if(x)x.remove();});}catch(e){}
+return r;};window.openLinea.__pila=true;}catch(e){}},3500);
+/* ── la finestrella con tutti i comandi (tasto ?, oppure Profilo › Comandi da tastiera) ── */
+function riga(tasti,cosa){return '<div class="kb-r"><span>'+tasti.map(function(x){return '<kbd>'+x+'</kbd>';}).join('')+'</span><span>'+cosa+'</span></div>';}
+window.nccTastiera=function(){
+try{
+var h='<div class="kb-l">'
++'<div class="kb-g"><b>Ovunque</b>'+riga(['Esc'],'indietro')+riga(['?'],'questa finestra')+riga(['Invio'],'conferma nei riquadri')+'</div>'
++'<div class="kb-g"><b>Home</b>'+riga(['Q'],'quiz')+riga(['T'],'topografia')+riga(['P'],'piazze')+riga(['E'],'ripasso errori')+riga(['N'],'norme e tariffe')+riga(['/'],'cerca')+'</div>'
++'<div class="kb-g"><b>Mappa</b>'+riga(['←','→'],'tappa prima e dopo')+riga(['spazio'],'scopri la via (Cieco)')+riga(['S','C','V'],'Studio, Cieco, Quiz vie')
++riga(['L'],'la linea')+riga(['R'],'un percorso a caso')+riga(['Tab'],'suggerimento mentre scrivi la via')+'</div>'
++'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
++'<div class="kb-g"><b>Piazze</b>'+riga(['←','→'],'via prima e dopo')+riga(['spazio'],'scopri la via')+riga(['1','2'],'Mi verifico: non la sapevo, la sapevo')+'</div>'
++'</div>';
+nccPopup({icona:'⌨️',titolo:'Comandi da tastiera',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
+}catch(e){}
+};
+})();
+
+/* ═══════════════════════════════════════════════════
+   ☁️ AGGIORNA DAL CLOUD
+   · Profilo › Aggiorna dal cloud: prende subito quello che hanno fatto
+     gli altri dispositivi (accanto, l'ora dell'ultimo aggiornamento)
+   · con la Home davanti, una volta al minuto guardo se un altro dispositivo
+     ha scritto: se si', aggiorno da solo. Sul PC la pagina restava ferma
+     (quiz 0/2 mentre sull'iPhone era 2/2) finche' non la toccavi.
+     Il controllo e' un numero solo (l'ora dell'ultimo salvataggio): pochissimi dati.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function lgN(k){try{return +(JSON.parse(localStorage.getItem(k)||'0'))||0;}catch(e){return 0;}}
+function pronto(){try{return typeof fbOk!=='undefined'&&fbOk&&typeof fbRef!=='undefined'&&!!fbRef;}catch(e){return false;}}
+function due(n){return (n<10?'0':'')+n;}
+window.nccUltimoCloud=function(){
+try{
+var t=lgN('syncTs');if(!t)return '';
+var d=new Date(t),o=new Date(),ieri=new Date(o.getFullYear(),o.getMonth(),o.getDate()-1);
+var ora=due(d.getHours())+':'+due(d.getMinutes());
+if(d.toDateString()===o.toDateString())return 'oggi '+ora;
+if(d.toDateString()===ieri.toDateString())return 'ieri '+ora;
+return d.toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' '+ora;
+}catch(e){return '';}
+};
+function ridisegna(){
+try{var h=document.getElementById('homeScreen');
+if(h&&h.style.display!=='none'){try{renderPlan();}catch(e){}try{renderCoach();}catch(e){}}
+if(window.nccHomeRiquadri)nccHomeRiquadri();if(window.nccOggiAggiorna)nccOggiAggiorna();try{updateTabBadge();}catch(e){}}catch(e){}
+/* la riga del profilo, se e' aperto */
+try{var b=document.querySelector('#pfOv .pf-r[onclick*="nccAggiornaCloud"] .pf-d'),v=window.nccUltimoCloud();
+if(b&&v)b.textContent=v;
+else if(!b&&v){var tx=document.querySelector('#pfOv .pf-r[onclick*="nccAggiornaCloud"] .pf-txt');
+if(tx){var s=document.createElement('span');s.className='pf-d';s.textContent=v;tx.appendChild(s);}}}catch(e){}
+}
+var inCorso=false;
+window.nccAggiornaCloud=function(){
+try{
+if(!pronto()){if(typeof toast2==='function')toast2('⚠️ Cloud non raggiungibile: sei offline?',2600);return;}
+if(inCorso)return;inCorso=true;
+if(typeof toast2==='function')toast2('☁️ Aggiorno dal cloud…',1800);
+try{syncFromCloud();}catch(e){}
+try{if(window.nccSyncRiprendi)nccSyncRiprendi();}catch(e){}
+setTimeout(function(){
+inCorso=false;
+try{fbRef.child('ts').once('value',function(s){try{var ct=s.val()||0;if(ct)localStorage.setItem('syncTs',JSON.stringify(ct));}catch(e){}ridisegna();
+if(typeof toast2==='function')toast2('✅ Aggiornato dal cloud',2000);},function(){ridisegna();});}catch(e){ridisegna();}
+},2200);
+}catch(e){inCorso=false;}
+};
+/* ── ogni minuto, con la Home davanti ── */
+function homeDavanti(){
+try{
+if(document.hidden)return false;
+var h=document.getElementById('homeScreen');if(!h||h.style.display==='none')return false;
+if(document.getElementById('popOv')||document.querySelector('.modal.open'))return false;
+var q=document.getElementById('quizApp');if(q&&q.classList.contains('open'))return false;
+var c=document.elementFromPoint(Math.round(window.innerWidth/2),Math.round(window.innerHeight/2));
+return !!(c&&c.closest&&c.closest('#homeScreen'));
+}catch(e){return false;}
+}
+setInterval(function(){
+try{
+if(!pronto()||!homeDavanti()||inCorso)return;
+fbRef.child('ts').once('value',function(s){
+try{
+var ct=s.val()||0,visto=lgN('syncTs');
+if(!ct||(visto&&ct<=visto+1500))return;          /* niente di nuovo */
+if(!homeDavanti())return;
+try{syncFromCloud();}catch(e){}
+try{if(window.nccSyncRiprendi)nccSyncRiprendi();}catch(e){}
+setTimeout(ridisegna,1800);
+}catch(e){}
+},function(){});
+}catch(e){}
+},60000);
+})();
+
+/* ═══════════════════════════════════════════════════
+   📋 PERCORSI SALVATI e ✂️ DIVIDI IN DUE
+   · accanto a quelli presi dal PDF: «pag. N»
+   · il tasto «Doppi»: solo i percorsi con lo stesso nome (il vecchio a meta'
+     e quello completo «… (pag. 17)»), uno sotto l'altro: cancelli tu quello
+     che non ti serve, col tasto di sempre (con la conferma e «Annulla»)
+   · in «Correggi le tappe», un percorso con OPPURE chiede: dividerlo in due
+     (un percorso per strada) o correggerlo a mano. L'originale resta com'e',
+     i nuovi senza marker: li metti tu
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function norm(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+/* il nome senza le aggiunte dell'app: «(pag. 17)», «(strada 2)» */
+function base(t){return norm(String(t||'').replace(/\s*\((?:pag\.?\s*\d+|strada\s*\d+)\)\s*$/i,''));}
+function pagina(id){try{var D=window.__PERCORSI_PDF__||[];for(var i=0;i<D.length;i++)if(D[i].id===id)return D[i].pp?D[i].pp.join(' e '):D[i].p;}catch(e){}return null;}
+function rigaId(row){
+try{var bs=row.querySelectorAll('.rab[onclick]');
+for(var i=0;i<bs.length;i++){var m=(bs[i].getAttribute('onclick')||'').match(/\('([^']+)'/);if(m)return m[1];}}catch(e){}
+return null;
+}
+var DOPPI=false;
+function ritocca(){
+try{
+var list=document.getElementById('mgrList'),cnt=document.getElementById('mgrCnt');if(!list||!cnt)return;
+var R=(typeof routes!=='undefined'&&routes)?routes:[],per={},gr={};
+R.forEach(function(r){if(!r)return;per[r.id]=r;var k=base(r.title);(gr[k]=gr[k]||[]).push(r.id);});
+var nd=0;Object.keys(gr).forEach(function(k){if(gr[k].length>1)nd+=gr[k].length;});
+if(!nd)DOPPI=false;
+var righe=[].slice.call(list.querySelectorAll('.ri'));
+righe.forEach(function(row){
+var id=rigaId(row),r=id&&per[id];if(!r)return;
+/* pag. N accanto a quelli presi dal PDF (se il nome non lo dice gia') */
+if(r.pdf&&!/pag\./i.test(r.title)&&!row.querySelector('.mg-pag')){var p=pagina(r.pdf),m=row.querySelector('.rim');
+if(p&&m){var s=document.createElement('span');s.className='mg-pag';s.textContent=' · pag. '+p;m.appendChild(s);}}
+row.__base=base(r.title);row.__tit=String(r.title||'');
+});
+/* il tasto Doppi, in fondo alle zone */
+var box=document.getElementById('zoneBar')||cnt.parentNode;
+var b=document.getElementById('mgDoppi');
+if(nd){
+if(!b){b=document.createElement('button');b.id='mgDoppi';b.type='button';b.className='mg-dp';}
+if(b.parentNode!==box)box.appendChild(b);
+b.className='mg-dp'+(DOPPI?' on':'');
+b.innerHTML='Doppi <b>'+nd+'</b>';
+b.onclick=function(ev){try{ev.stopPropagation();}catch(x){}DOPPI=!DOPPI;try{hap();}catch(x){}renderMgr();};
+}else if(b){b.remove();}
+if(DOPPI){
+var vis=righe.filter(function(row){var k=row.__base;var ok=!!(k&&gr[k]&&gr[k].length>1);if(!ok)row.style.display='none';return ok&&row.style.display!=='none';});
+/* uno sotto l'altro, per nome */
+vis.sort(function(a,b2){return (a.__base<b2.__base?-1:a.__base>b2.__base?1:(a.__tit<b2.__tit?-1:a.__tit>b2.__tit?1:0));});
+vis.forEach(function(row){list.appendChild(row);});
+cnt.textContent=vis.length+(vis.length===1?' percorso con lo stesso nome di un altro':' percorsi con lo stesso nome');
+}
+}catch(e){}
+}
+setTimeout(function(){
+try{
+if(typeof renderMgr!=='function'||renderMgr.__doppi)return;
+var _rm=renderMgr;
+renderMgr=function(){var r=_rm.apply(this,arguments);ritocca();return r;};
+renderMgr.__doppi=true;
+}catch(e){}
+},3200);
+
+/* ── ✂️ dividere un percorso con OPPURE ── */
+var ALT=/^\s*OPPURE\b/i;
+function parti(steps){
+var P=[[]];
+(steps||[]).forEach(function(s){
+s=String(s==null?'':s);
+if(ALT.test(s)){P.push([]);var resto=s.replace(/^\s*OPPURE\s*[:;,.]?\s*/i,'').trim();if(resto)P[P.length-1].push(resto);return;}
+if(/^\s*ECC\.?\s*$/i.test(s))return;                        /* «ECC.»: la strada continua come l'altra */
+s=s.replace(/\s+ECC\.?\s*$/i,'').trim();if(s)P[P.length-1].push(s);
+});
+return P.filter(function(p){return p.length>=2;});
+}
+window.nccPartiOppure=parti;   /* per i test */
+function dividi(r,P){
+try{
+var fatti=P.map(function(p,i){
+return {id:'r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5)+i,title:r.title+' (strada '+(i+1)+')',steps:p.slice()};
+});
+fatti.forEach(function(x){routes.push(x);});
+try{save();autoSave();}catch(e){}
+try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
+try{var sc=document.getElementById('scnOv');if(sc&&sc.getAttribute('data-p')==='correggi'){nccCorreggiElenco();
+var sb=document.getElementById('scnBody');if(sb)sb.classList.remove('sc-entra');}}catch(e){}
+alert('✂️ Fatti '+fatti.length+' percorsi:\n'+fatti.map(function(x){return '· '+x.title+' ('+x.steps.length+' tappe)';}).join('\n')
++'\n\nL’originale è rimasto com’era: cancellalo tu se non ti serve più. I marker li metti tu dalla mappa.');
+try{hap();}catch(e){}
+}catch(e){try{alert('⚠️ Non sono riuscito a dividerlo.');}catch(e2){}}
+}
+setTimeout(function(){
+try{
+var _ed=window.nccEdDaElenco;if(typeof _ed!=='function'||_ed.__div)return;
+window.nccEdDaElenco=function(id){
+try{
+var r=(routes||[]).filter(function(x){return String(x.id)===String(id);})[0];
+var P=r?parti(r.steps):[];
+if(r&&P.length>=2&&r.steps.some(function(s){return ALT.test(String(s));})){
+var self=this,args=arguments;
+nccPopup({icona:'✂️',titolo:'Questo percorso ha un OPPURE',
+testo:'Puoi dividerlo in '+P.length+' percorsi, uno per strada ('+P.map(function(p){return p.length+' tappe';}).join(' e ')
++'), oppure correggerlo a mano. L’originale resta com’è.',
+azioni:[{t:'✂️ Dividi in '+P.length,stile:'pieno',fn:function(){dividi(r,P);}},
+{t:'✏️ Correggi le tappe',stile:'pieno2',fn:function(){_ed.apply(self,args);}},
+{t:'Annulla',stile:'vuoto'}]});
+return;
+}
+}catch(e){}
+return _ed.apply(this,arguments);
+};
+window.nccEdDaElenco.__div=true;
+}catch(e){}
+},3200);
+})();
+
+/* ═══════════════════════════════════════════════════
+   📝 LE DOMANDE: REFUSI E DOPPIE
+   · i refusi si correggono a video (tassamentro, Ppavia, spazi doppi,
+     spazio prima di ? : ; , .): il file delle domande resta com'e' perche'
+     l'id di una domanda e' la sua posizione, e cambiando i testi due domande
+     potevano diventare uguali e far scivolare tutti gli id (e le statistiche)
+   · la stessa domanda con le stesse risposte non esce due volte nella stessa
+     sessione; nella simulazione d'esame la doppia lascia il posto a un'altra
+     domanda dello stesso argomento, cosi' il numero resta quello
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var PAROLE=[[/tassamentro/g,'tassametro'],[/Ppavia/g,'Pavia'],[/\bsevizio\b/g,'servizio'],[/ammistrativa/g,'amministrativa'],
+[/n\.\.(\s*)21/g,'n. 21'],[/gennaio(\d{4})/g,'gennaio $1']];
+function pulisci(t){
+if(typeof t!=='string')return t;
+var x=t;PAROLE.forEach(function(p){x=x.replace(p[0],p[1]);});
+return x.replace(/ {2,}/g,' ').replace(/ +([?:;,.!])(?=\s|$)/g,'$1').trim();
+}
+window.nccPulisciTesto=pulisci;   /* per i test */
+function sistema(){
+try{
+if(typeof QUIZ_ALL==='undefined'||!QUIZ_ALL||!QUIZ_ALL.length||QUIZ_ALL.__puliti)return;
+QUIZ_ALL.forEach(function(it){
+if(!it)return;
+if(typeof it.q==='string')it.q=pulisci(it.q);
+if(Array.isArray(it.choices))it.choices=it.choices.map(pulisci);
+});
+QUIZ_ALL.__puliti=true;
+}catch(e){}
+}
+setTimeout(function(){
+try{
+if(typeof buildQuiz==='function'&&!buildQuiz.__puliti){
+var _bq=buildQuiz;
+buildQuiz=function(){var r=_bq.apply(this,arguments);sistema();return r;};
+buildQuiz.__puliti=true;
+}
+sistema();
+}catch(e){}
+},3300);
+/* la stessa domanda: stesso testo e stesse risposte, a meno di spazi, maiuscole e punteggiatura */
+function nq(t){return String(t==null?'':t).toLowerCase().replace(/[^a-z0-9]/g,'');}
+function chiave(it){try{return nq(it.q)+'#'+(it.choices||[]).map(nq).sort().join('|');}catch(e){return 'x'+(it&&it.id);}}
+window.nccChiaveDomanda=chiave;   /* per i test */
+setTimeout(function(){
+try{
+if(typeof startQuiz!=='function'||startQuiz.__doppie)return;
+var _sq=startQuiz;
+startQuiz=function(items,opts){
+try{
+if(Array.isArray(items)&&items.length>1){
+var visti={},out=[],tolti=[];
+items.forEach(function(it){if(!it){return;}var k=chiave(it);if(visti[k]){tolti.push(it);return;}visti[k]=1;out.push(it);});
+if(tolti.length){
+if(opts&&opts.mode==='exam'&&typeof QUIZ_ALL!=='undefined'&&QUIZ_ALL){
+var ids={};out.forEach(function(it){ids[it.id]=1;});
+tolti.forEach(function(x){
+var c=QUIZ_ALL.filter(function(it){return it&&it.cat===x.cat&&!ids[it.id]&&!visti[chiave(it)];});
+if(!c.length)return;
+var y=c[Math.floor(Math.random()*c.length)];ids[y.id]=1;visti[chiave(y)]=1;out.push(y);
+});
+}
+items=out;
+}
+}
+}catch(e){}
+return _sq.call(this,items,opts);
+};
+startQuiz.__doppie=true;
+}catch(e){}
+},3300);
 })();
