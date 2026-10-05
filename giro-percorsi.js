@@ -1,7 +1,8 @@
 /* PERCORSI (v147), a tempo reale, fotogramma per fotogramma:
    · Percorsi salvati › Doppi › «Tieni»: tiene quel percorso, cancella gli altri con lo stesso nome
      (con i loro marker e le statistiche), il nome perde «(pag. N)», i Doppi spariscono;
-     «Annulla» rimette tutto com'era; rifatto, dopo un ricarico resta
+     «Annulla» rimette tutto com'era; rifatto, dopo un ricarico resta (e riaprendo l'app, che riapre da sola
+     l'ultimo percorso, niente vibrazione prima del primo tocco: il browser la bloccava con un errore)
    · Senza marker › «▶ Il prossimo»: apre l'editor di sempre sul primo percorso senza marker;
      chiuso l'editor, se ha avuto i suoi marker il tasto passa al prossimo
    · 🔊 Ascolta sulla mappa: la voce legge le vie dalla tappa dove sei (sigle per intero) e la mappa segue,
@@ -32,8 +33,11 @@ const senzaPrimo=a=>a[0]==='·stop·'?a.slice(1):a;
       return document.body.classList.contains('on-topo')?'mappa':'vuoto('+(e?(e.id||e.className||e.tagName):'-')+')';};`});
   const film=async(dur,fn)=>{const seq=[];let fine=false;const giro=(async()=>{const t0=Date.now();while(!fine&&Date.now()-t0<dur){const v=await p.evaluate(()=>__vedo());if(seq[seq.length-1]!==v)seq.push(v);await new Promise(r=>setTimeout(r,30));}})();
     if(fn)await fn();await new Promise(r=>setTimeout(r,dur));fine=true;await giro;return seq;};
-  /* ════ 1 · Doppi › Tieni ════ */
-  await p.evaluate(()=>{try{goHome();}catch(e){}openMgr();});await p.waitForTimeout(700);
+  /* ════ 1 · Doppi › Tieni ════
+     (v149) NIGUARDA e' aperto sulla mappa: «Tieni» sull'altro lo cancella e la mappa passa a quello tenuto
+     (prima restava sul percorso cancellato, coi tasti che non rispondevano) */
+  await p.evaluate(()=>{goTopografia();setTimeout(()=>{selectRoute(routes.find(r=>r.id==='n1'));setMode('s');},350);});await p.waitForTimeout(1500);
+  await p.evaluate(()=>openMgr());await p.waitForTimeout(700);
   await p.evaluate(()=>document.getElementById('mgDoppi').click());await p.waitForTimeout(500);
   const righe=await p.evaluate(()=>[...document.querySelectorAll('#mgrList .ri')].filter(x=>x.style.display!=='none')
     .map(x=>({t:x.querySelector('.rit').textContent,tieni:!!x.querySelector('.mg-tieni')})));
@@ -54,6 +58,10 @@ const senzaPrimo=a=>a[0]==='·stop·'?a.slice(1):a;
   ok(dopo.ids==='n2,n3,r1,r2,r3,r4'&&dopo.tit==='NIGUARDA - CADORNA'&&dopo.mk===0&&!dopo.qs&&dopo.rDel&&!dopo.doppi&&dopo.vis===6
     &&/Tenuto «NIGUARDA - CADORNA», cancellato l’altro/.test(dopo.undo||''),'Tieni questo: '+JSON.stringify(dopo));
   ok(!f.some(x=>/^vuoto/.test(x)),'dopo Tieni: schermo vuoto di passaggio '+f.join(' → '));
+  await p.evaluate(()=>closeMgr());await p.waitForTimeout(500);
+  const mp=await p.evaluate(()=>({cur:cur?cur.id:null,tit:(document.getElementById('pTitle')||{}).textContent,righe:document.querySelectorAll('#sList .sr').length}));
+  console.log('la mappa dopo Tieni:',JSON.stringify(mp));
+  ok(mp.cur==='n2'&&mp.tit==='NIGUARDA - CADORNA'&&mp.righe===10,'dopo «Tieni» la mappa resta sul percorso cancellato '+JSON.stringify(mp));
   /* Annulla: tutto com'era */
   await p.evaluate(()=>document.querySelector('#_undoBar button').click());await p.waitForTimeout(600);
   const annullato=await p.evaluate(()=>({ids:routes.map(r=>r.id).sort().join(','),tit:(routes.find(r=>r.id==='n2')||{}).title,mk:Object.keys(coords).filter(k=>/^n1_/.test(k)).length,

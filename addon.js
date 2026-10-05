@@ -2079,6 +2079,10 @@ max-width:100%;overflow-wrap:break-word;hyphens:auto;}
 .hm-rq{padding:12px 12px 13px;}.hm-rq-b{font-size:12px;padding:3px 8px;}}
 .hm-rq-s{font-size:13px;font-weight:500;opacity:.9;margin-top:2px;line-height:1.3;
 max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* (v149) sul telefono il sottotitolo dei riquadri va a capo (due righe) invece di finire coi puntini;
+   la regola degli schermi stretti stava prima di questa e non valeva */
+.hm-rq-s{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+@media(max-width:380px){.hm-rq-s{font-size:12px;}}
 /* la barra di Statistiche */
 #hmStatBar{position:sticky;top:0;z-index:20;display:flex;align-items:center;
 margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top,0px)) 8px 10px;
@@ -2858,6 +2862,118 @@ pointer-events:none;transition:opacity .18s,transform .22s var(--ios-spring);}
 .mg-barra::-webkit-scrollbar{display:none;}
 .mg-barra .mg-b{min-width:40px;min-height:40px;}
 }
+
+/* ══════════ v149 · IL GIRO FOTOGRAMMA PER FOTOGRAMMA ══════════ */
+/* le pagine che si aprono sopra (Tariffe, Profilo, le pagine delle sezioni, Cerca, Disegna a memoria...) hanno
+   la classe rd come il body: rimettevano i colori del tema chiaro anche col tema scuro (le Tariffe scure erano
+   illeggibili, la (i) blu scuro sul nero). Ora prendono quelli del body, chiaro, scuro o Berlina */
+body .rd{--a:inherit;--sac:inherit;--sab:inherit;--ok:inherit;--err:inherit;--warn:inherit;--pu:inherit;
+--bg:inherit;--bg1:inherit;--bg2:inherit;--bg3:inherit;--card:inherit;--card2:inherit;--tx:inherit;--mu:inherit;
+--bd:inherit;--sep:inherit;--sep2:inherit;--lbl1:inherit;--lbl2:inherit;--lbl3:inherit;--lbl4:inherit;
+--fill1:inherit;--fill2:inherit;--fill3:inherit;--ph:inherit;--pt:inherit;--pb:inherit;--grad:inherit;
+--sh-sm:inherit;--sh-md:inherit;--sh-lg:inherit;--sh-xl:inherit;}
+/* Tutte le piazze: il nome delle righe era nero anche nel tema scuro */
+#pzOv .pz-row{color:var(--tx);}
+/* la testata delle piazze: ‹ · nome e sottotitolo · 🎲 · (i). La (i) stava sopra il dado
+   e a 320 punti «Piazze di Milano» andava su tre righe */
+#pzOv .pz-hd{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-rows:auto auto;
+column-gap:0;align-items:center;text-align:left;padding:10px 14px!important;}
+#pzOv .pz-hd>.pz-x{position:static!important;grid-column:1;grid-row:1/3;margin-right:12px;}
+#pzOv .pz-hd>.pz-ti{grid-column:2;grid-row:1;align-self:end;min-width:0;overflow:hidden;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+#pzOv .pz-hd>.pz-su{grid-column:2;grid-row:2;align-self:start;min-width:0;margin-top:2px;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pzOv .pz-hd>.pz-rnd{position:static!important;grid-column:3;grid-row:1/3;margin-left:10px;}
+#pzOv .pz-hd>.t-info-in{position:static!important;transform:none!important;grid-column:4;grid-row:1/3;margin-left:10px!important;}
+/* Profilo: se nome e valore non ci stanno sulla stessa riga, il valore va sotto intero
+   (prima «Data dell’…  9 novembre 2…», a 320 punti «Data d…  9 novem…») */
+#pfOv .pf-txt:not(.sc-txt){flex-wrap:wrap;row-gap:1px;column-gap:8px;align-content:center;}
+#pfOv .pf-txt:not(.sc-txt)>.pf-n{flex:1 0 auto;max-width:100%;}
+#pfOv .pf-txt:not(.sc-txt)>.pf-d{flex:0 1 auto;max-width:100%;min-width:0;white-space:normal;}
+/* il nome del percorso e delle vie sulla mappa: su due righe invece che tagliato (iPad in verticale, telefoni stretti).
+   Le vie coperte del Cieco restano su una riga: la barra non deve dire quanto e' lungo il nome */
+.rd .ptrow h2{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.15;}
+.sname:not(.hid){white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;}
+/* Percorsi salvati: il nome su due righe; sui telefoni stretti i tasti vanno sotto (a 320 punti si leggeva «DUE …») */
+#mgrList .rit{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;}
+/* Quiz vie: la casella non spinge il tasto → fuori dallo schermo */
+.qrow input{min-width:0;}
+/* Disegna a memoria e Mappa muta: il tasto grande non va mai a capo */
+.dm-go,.mm-go{white-space:nowrap;min-width:max-content;padding:0 18px;}
+@media(max-width:360px){.dm-barra,.mm-barra{gap:8px;}.dm-barra .dm-b{min-width:46px;padding:0 10px;}.dm-go,.mm-go{padding:0 14px;}}
+@media(max-width:389px){
+/* i titoli delle pagine interi: un po' piu' piccoli e, se serve, su due righe */
+.t-tit{font-size:21px;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.mhdr-left h3{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2;}
+.sc-ti{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.og-t span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.dm-aiuto{white-space:normal;text-align:center;}
+.sc-col .pf-n{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+#mgrList .ri{flex-wrap:wrap;row-gap:8px;}
+#mgrList .rii{flex:1 1 100%;}
+#mgrList .ria{margin-left:auto;}
+}
+/* telefoni bassi (568 punti): la mappa cede un po' di posto, cosi' Salta e Mostra di Quiz vie restano interi */
+@media(max-width:699px) and (max-height:620px) and (orientation:portrait){#map{min-height:96px!important;}}
+
+/* ══════════ v149 · CHIESTO ALL'ESAME ══════════ */
+/* una scheda che si sta chiudendo (sfuma ancora per un attimo) non prende piu' i tocchi: vanno a quello che c'e' sotto */
+.modal:not(.open){pointer-events:none;}
+/* il riquadro largo in fondo alla Home: icona, titolo e numero su una riga */
+.hm-rq.hm-rq-largo{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+grid-template-areas:"ic t bx" "ic s bx";align-items:center;column-gap:14px;row-gap:2px;min-height:0!important;padding:16px;}
+.hm-rq-largo .hm-rq-top{display:contents;}
+.hm-rq-largo .hm-rq-ic{grid-area:ic;width:44px;height:44px;}
+.hm-rq-largo .hm-rq-bx{grid-area:bx;max-width:none;}
+.hm-rq-largo .hm-rq-t{grid-area:t;margin-top:0;align-self:end;}
+.hm-rq-largo .hm-rq-s{grid-area:s;align-self:start;}
+/* la pagina: le schede e le sessioni restano in cima mentre scorri */
+#scnOv .ch-fermo{position:sticky;top:-4px;z-index:3;background:var(--ios-bg);padding-top:6px;margin-top:-4px;}
+#scnOv .ch-tabs{margin-bottom:12px;}
+#scnOv .ch-tabs .sx-tab{font-size:15px;line-height:1.15;padding:8px 0 10px;min-width:0;}
+#scnOv .ch-tabs .sx-tab em{display:block;font-style:normal;font-size:12px;font-weight:700;margin-top:2px;opacity:.8;}
+.ch-ses{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 12px;-webkit-overflow-scrolling:touch;}
+.ch-ses::-webkit-scrollbar{display:none;}
+.ch-chip{flex:0 0 auto;border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--ios-lbl2);font:inherit;
+font-size:14px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ch-chip.on{background:#C76E00;border-color:#C76E00;color:#fff;}
+.ch-chip:active{transform:scale(.95);}
+#scnOv .ch-nota{margin:2px 20px 10px;}
+.ch-somma{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 16px 16px;}
+.ch-somma span,.ch-st{display:inline-block;font-style:normal;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:999px;line-height:1.3;}
+.ch-somma .si,.ch-st.si{background:color-mix(in srgb,var(--t-verde) 15%,transparent);color:#2E7D32;}
+.ch-somma .lib,.ch-st.lib{background:color-mix(in srgb,#2447D6 12%,transparent);color:#2447D6;}
+.ch-somma .no,.ch-st.no{background:var(--ios-hl);color:var(--ios-lbl2);}
+.dark .ch-somma .si,.dark .ch-st.si{color:#6FD67A;}
+.dark .ch-somma .lib,.dark .ch-st.lib{color:#9DB4FF;background:rgba(80,120,255,.18);}
+.ch-st.ses{background:transparent;padding:0;color:var(--ios-lbl2);font-weight:700;}
+#scnOv .qc-riga .qc-lt .ch-st{margin-top:7px;}
+.ch-avviso{margin:0 16px 14px;padding:12px 14px;border-radius:14px;font-size:13.5px;line-height:1.4;font-weight:600;color:var(--ios-lbl);
+background:color-mix(in srgb,var(--t-arancio) 12%,var(--ios-card));border:1.5px solid color-mix(in srgb,var(--t-arancio) 35%,transparent);}
+#scnOv .qc-riga .qc-li.ch-n{font-size:17px;font-weight:900;color:color-mix(in srgb,var(--qc) 62%,#000);letter-spacing:-.4px;font-variant-numeric:tabular-nums;}
+.dark #scnOv .qc-riga .qc-li.ch-n{color:color-mix(in srgb,var(--qc) 50%,#fff);}
+/* il numero bianco sui colori chiari (arancio, azzurro, verde) si legge poco: il tondo e' un po' piu' scuro */
+#scnOv .ch-r .qc-n{background:var(--qn,var(--qc));}
+#scnOv .ch-r .qc-lt>span:not(.qc-mini):not(.qc-st){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+#scnOv .ch-sez{margin-top:4px;}
+/* sull'iPad largo le righe vanno in due colonne */
+@media(min-width:960px){#scnOv[data-p="chiesto"]{--col:min(1000px,calc(100% - 64px));}
+#scnOv[data-p="chiesto"] .pf-body>*{max-width:none;}
+#scnOv[data-p="chiesto"] .ch-lista{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;}}
+/* il riquadro che sale dal basso: le vie e le domande scorrono dentro, i tasti restano sotto */
+#popOv .ch-pop{text-align:left;max-height:min(46vh,420px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px 16px;padding:0 4px;}
+.ch-dove{font-size:14px;line-height:1.45;color:var(--ios-lbl2);margin-bottom:10px;}
+.ch-dove b{color:var(--ios-lbl);font-weight:800;}
+.ch-box{font-size:14.5px;line-height:1.45;color:var(--ios-lbl);padding:11px 13px;border-radius:14px;margin-bottom:10px;}
+.ch-box.si{background:color-mix(in srgb,var(--t-verde) 12%,var(--ios-card));}
+.ch-box.lib{background:color-mix(in srgb,#2447D6 10%,var(--ios-card));}
+.ch-box.no,.ch-box.nt{background:var(--ios-bg);}
+.ch-vie{margin:0 0 4px;padding-left:30px;font-size:14px;line-height:1.55;color:var(--ios-lbl);}
+.ch-vie li::marker{color:var(--ios-lbl2);font-weight:700;}
+.ch-dom{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.ch-dom li{font-size:14.5px;line-height:1.45;color:var(--ios-lbl);background:var(--ios-bg);border-radius:12px;padding:10px 12px;}
+.ch-dom small{display:block;font-size:12.5px;color:var(--ios-lbl2);margin-top:3px;font-weight:700;}
+#popOv .ch-ta{min-height:132px;resize:vertical;font-weight:600;line-height:1.4;}
 `;
 }catch(e){}
 })();
@@ -5833,6 +5949,17 @@ window.NCC_HAPTIC='switch-ios';
 }catch(e){}
 })();
 
+/* (v149) all'avvio l'app riapre da sola l'ultimo percorso e la sua modalita': quel hap() non l'hai chiesto tu.
+   Prima che tu abbia toccato lo schermo niente vibrazione ne' suono (il browser li blocca comunque e lo segnala come errore) */
+(function(){
+try{
+var _h=window.hap;if(typeof _h!=='function')return;
+window.hap=function(){
+try{var u=navigator.userActivation;if(u&&!u.hasBeenActive)return;}catch(e){}
+return _h.apply(this,arguments);};
+}catch(e){}
+})();
+
 /* ═══════════════════════════════════════════════════
    SALVAGENTE DATI — storico copie + chi ha salvato per ultimo
    Il core tiene UNA sola copia settimanale: se i dati si rovinano
@@ -8052,10 +8179,11 @@ return b;
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var PILA=[],ignora=0;
+var PILA=[],ignora=0,ULT={},VIA={};
 function apri(id,chiudi){
 try{
 if(typeof chiudi!=='function')return;
+ULT[id]='reg';
 PILA.push({id:id,fn:chiudi});
 while(PILA.length>24)PILA.shift();
 history.pushState({nccOv:id,n:PILA.length},'');
@@ -8078,6 +8206,27 @@ window.nccOvApri=apri;
 window.nccOvChiuso=chiuso;
 /* il segno in cima alla pila e' gia' di questo riquadro? (chi si ridisegna non ne lascia un altro) */
 window.nccOvInCima=function(id){return !!(PILA.length&&PILA[PILA.length-1].id===id&&vivo(id));};
+/* (v149) le aperture in due tempi («apri le piazze, poi fra 120 ms la piazza»; «apri le norme, poi i numeri»):
+   un indietro arrivato in mezzo chiudeva il riquadro, poi la seconda meta' lo ricreava fuori dalla pila e nessun
+   indietro lo chiudeva piu'. Ora un riquadro che ricompare da solo entro 700 ms da quando e' stato chiuso (senza
+   essere stato riaperto davvero) si richiude prima di essere dipinto; se compare da solo in un altro momento
+   entra nella pila come gli altri */
+var VIGILATI={
+pzOv:{via:function(){try{var x=document.getElementById('pzOv');if(x)x.remove();document.body.classList.remove('pz-aperto');}catch(e){}},
+chiudi:function(){try{window.pzChiudi();}catch(e){var x=document.getElementById('pzOv');if(x)x.remove();}}},
+nmOv:{via:function(){try{window.nmChiudi();}catch(e){var x=document.getElementById('nmOv');if(x)x.remove();}},
+chiudi:function(){try{window.nmChiudi();}catch(e){var x=document.getElementById('nmOv');if(x)x.remove();}}}};
+try{new MutationObserver(function(ms){
+var ora=Date.now();
+ms.forEach(function(m){
+[].forEach.call(m.removedNodes||[],function(n){var id=n&&n.id;if(id&&VIGILATI[id]&&!document.getElementById(id)){ULT[id]='via';VIA[id]=ora;}});
+[].forEach.call(m.addedNodes||[],function(n){
+var id=n&&n.id;if(!id||!VIGILATI[id]||document.getElementById(id)!==n)return;
+if(ULT[id]==='via'&&ora-(VIA[id]||0)<700){VIGILATI[id].via();return;}
+if(!PILA.some(function(x){return x.id===id;}))apri(id,VIGILATI[id].chiudi);
+});
+});
+}).observe(document.body,{childList:true});}catch(e){}
 /* un riquadro conta solo se si vede davvero: esiste, non sta scorrendo via, non e' dentro
    qualcosa di nascosto (una scheda .modal senza "open" e' chiusa anche se resta nella pagina) */
 function vivo(id){
@@ -8133,6 +8282,10 @@ try{
 if(typeof appBack==='function'&&!appBack.__pila){
 var _ab=appBack;
 appBack=function(){
+/* (v149) un esercizio che sta partendo (la pagina ancora sopra, il quiz pronto sotto): l'indietro prima lo annulla,
+   anche se e' appena partito, poi fa il suo passo. Prima, arrivando proprio mentre il quiz partiva, chiudeva la
+   pagina e il quiz restava aperto. Se c'e' un riquadro che chiede (Inizia / Non ora) decide lui, come prima */
+try{if(document.body.classList.contains('qz-avvio')&&!document.getElementById('popOv')&&window.nccQuizAnnulla)nccQuizAnnulla();}catch(e){}
 var o=cima();
 if(o&&!schedaSopra(o)){PILA.pop();try{o.fn();}catch(e){}return false;}
 if(quizInCorso()){esciQuiz();return true;}
@@ -10226,6 +10379,744 @@ window[n]=w;
 },3900);
 
 /* ═══════════════════════════════════════════════════
+   🎓 (v149) CHIESTO ALL'ESAME
+   I resoconti degli orali scritti dai candidati, da ottobre 2025 a febbraio 2026:
+   i percorsi da dire a voce, le confluenze delle piazze, le domande sul regolamento,
+   sessione per sessione e aula per aula. E le domande dei quiz uscite fuori dispensa.
+   · Percorsi: i piu' chiesti in cima; per ognuno se ce l'hai fra i tuoi, se e' nel
+     libro della scuola (con la pagina) o se e' da preparare
+   · Piazze: le confluenze chieste; quelle che non ci sono le aggiungi tu (le vie le scrivi tu)
+   · Regole: tema per tema, le domande come sono state fatte, l'articolo e le domande del quiz
+   · Quiz: le domande fuori dispensa (ufficiali, 2023, 2024, geografia), con le 52 nuove
+   Da quello che apri qui (mappa, piazza, articolo, quiz) torni qui, sulla stessa scheda.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ── i resoconti: percorsi «da>a» (con «~nota»), piazze, regolamento «tema|domanda» ── */
+var SES=[
+{id:'2025-10',m:'Ottobre 2025',c:'Ott 25',aule:[
+{a:'Aula «non Pietro»',
+p:['Bande Nere>Monumentale','Porta Genova>Centrale','Centrale>San Siro','San Paolo>Corvetto','Linate>Garibaldi',
+'San Paolo>Centrale','Garibaldi>Piemonte','Cadorna>IEO','Piemonte>Linate','Centrale>Piemonte','Duomo>Rogoredo',
+'Diocleziano>Centrale','Duomo>Malpensa','Duomo>Giulio Cesare~vecchia Fiera','Repubblica>Abbiategrasso','Piemonte>Centrale',
+'Niguarda>Duomo','Linate>Duomo','Garibaldi>Duomo','Duomo>Niguarda','Cadorna>Cadorna~cerchia dei Navigli','Linate>Centrale',
+'Centrale>San Siro','Duomo>San Siro','San Siro>Linate~passando dal centro','Centrale>Cadorna','Centrale>Piemonte~dal centro',
+'Bottini>CityLife','Diaz>Ovidio','Napoli>San Giuseppe','Cairoli>Dateo','Piemonte>Repubblica','IEO>Centrale','Niguarda>Linate'],
+k:['Cadorna','Cavour','Corvetto','Baracca','Loreto','Tricolore','5 Giornate','Medaglie d’Oro'],
+r:['obblighi|Obblighi a inizio corsa','obblighi|Obblighi durante la corsa','obblighi|Obblighi a fine corsa',
+'diff|Differenze fra NCC e taxi','divieti|Atti vietati al conducente','cliente|Atti vietati al cliente',
+'predet|Tariffe predeterminate: quali sono (senza cifre), come funzionano e quando decadono',
+'bacino|Bacino aeroportuale lombardo','sedime|Sedime aeroportuale',
+'oggetti|Come ci si comporta se qualcuno dimentica qualcosa in auto','attesa|L’attesa: come mi comporto e come funziona']},
+{a:'Aula «Pietro»',
+p:['Centrale>San Siro','24 Maggio>Firenze','Corvetto>Cimitero Maggiore','Cadorna>IEO','Abbiategrasso>Niguarda',
+'Centrale>Piemonte','Lodi>Firenze','Niguarda>Cadorna','Bande Nere>Bonomelli','24 Maggio>Malpensa','Miani>Cadorna',
+'Bande Nere>Lambrate','Ferrara>Cimitero Maggiore','Abbiategrasso>Duomo','Duomo>Lotto','Rho Fiera>Brera',
+'Linate>Garibaldi','Porta Genova>Rogoredo'],
+k:['Corvetto','Monumentale','Loreto','Bande Nere'],
+r:['provincia|Obbligo di prestazione in provincia','idonea|Se la vettura è idonea',
+'provincia|Se la corsa ha come destinazione una provincia del bacino ma non parte dall’aeroporto','sosta|L’ora di sosta',
+'aeroporti|Obblighi di prestazione dagli aeroporti e dalle stazioni (domanda unica)','obblighi|Obbligo alla fine della corsa',
+'sedime|Definizione di sedime aeroportuale','obblighi|Obblighi prima, durante e dopo la corsa',
+'fuori|Arriva all’aeroporto un cliente che vuole andare a Verona: sei obbligato a portarlo?','predet|Tariffe predeterminate']}]},
+{id:'2025-11',m:'Novembre 2025',c:'Nov 25',aule:[
+{a:'Aula «Pietro»',
+p:['Linate>San Siro','Garibaldi>Perucchetti','Piemonte>Tribunale','Duomo>Missori','Linate>Centrale','Garibaldi>Cattolica',
+'Corvetto>Rho Fiera','San Cristoforo>Policlinico','Duomo>Motorizzazione','Centrale>Porta Genova','Niguarda>Firenze',
+'Duomo>IEO','Abbiategrasso>Niguarda','Bisceglie>Cadorna','Novelli>Centrale','IEO>Giulio Cesare','Lodi>Centrale',
+'Lampugnano>5 Giornate','Centrale>Malpensa','Nigra>San Carlo','Corvetto>Rho Fiera','Humanitas>Centrale','Corvetto>San Siro',
+'Centrale>San Siro','Centrale>Cadorna','Cimitero Maggiore>Ospedale Maggiore','Niguarda>Castello','San Paolo>Garibaldi',
+'24 Maggio>Rho Fiera','Bande Nere>Niguarda~con la circonvallazione 90/91','Centrale>Linate','24 Maggio>San Siro',
+'Bottini>Resistenza Partigiana','Firenze>Centrale','Rogoredo>Policlinico','Duomo>Rogoredo','Baiamonti>Caronno Pertusella',
+'Piola>24 Maggio','Agrippa>Fatebenefratelli','Linate>Niguarda','Linate>Garibaldi','Linate>Centrale','Linate>San Siro','Linate>Duomo'],
+k:['Medaglie d’Oro','Treves','Lagosta','Lodi','Piola','Cadorna'],
+r:['bacino|Bacino aeroportuale','doveri|Obblighi del conducente','collab|Collaborazione familiare','trasf|Trasferimento della licenza',
+'servizio|Quando un taxi è fuori servizio','obblighi|Obblighi a inizio, durante e dopo la corsa',
+'servizio|Quando il segnale del taxi è spento (occupato e fuori servizio: spiegare cosa bisogna fare fuori servizio)',
+'doveri|Doveri del conducente'],
+n:'Un esaminatore nuovo ha chiesto due volte le confluenze di «Anita Garibaldi»: secondo chi ha scritto il resoconto non esiste, e l’ha chiesta a due candidati ormai bocciati.'}]},
+{id:'2025-12',m:'Dicembre 2025',c:'Dic 25',aule:[
+{a:'',
+p:['Bande Nere>Monumentale','Porta Genova>Centrale','Centrale>San Siro','Linate>Garibaldi','Garibaldi>Piemonte','Cadorna>IEO',
+'Centrale>Piemonte','Linate>Centrale','Centrale>Linate','Duomo>Porta Genova','San Siro>Linate','Centrale>Cadorna',
+'Centrale>Piemonte','Centrale>6 Febbraio','Duomo>Rogoredo','Piemonte>Centrale','Napoli>San Giuseppe',
+'Cadorna>Cadorna~cerchia dei Navigli','Duomo>Giulio Cesare','Abbiategrasso>Niguarda','Cadorna>IEO','Duomo>Zavattari',
+'Piemonte>Duomo','24 Maggio>Rho Fiera','Biancamano>Caronno Pertusella','Cuoco>Rho Fiera','Maggi>Maciachini',
+'Centrale>Porta Genova','Porta Genova>Linate','Duomo>Malpensa','San Siro>Garibaldi','Garibaldi>Duomo',
+'Garibaldi>Orio al Serio~senza dire le uscite','Linate>Cadorna','Piemonte>Palazzo di Giustizia','Garibaldi>Perucchetti',
+'Piemonte>Tribunale','Duomo>Missori','Garibaldi>Cattolica','Corvetto>Rho Fiera','San Cristoforo>Policlinico',
+'Duomo>Motorizzazione','Niguarda>Firenze','Duomo>IEO','Bisceglie>Cadorna','Novelli>Centrale','IEO>Giulio Cesare',
+'Lodi>Centrale','Lampugnano>5 Giornate','Centrale>Malpensa','Nigra>San Carlo',
+'Corvetto>Rho Fiera','Humanitas>Centrale','Corvetto>San Siro','Cimitero Maggiore>Ospedale Maggiore','Niguarda>Castello',
+'San Paolo>Garibaldi','24 Maggio>Rho Fiera','Bande Nere>Niguarda~con la circonvallazione 90/91','24 Maggio>San Siro',
+'Bottini>Resistenza Partigiana','Firenze>Centrale','Rogoredo>Policlinico','Duomo>Rogoredo','Baiamonti>Caronno Pertusella',
+'San Babila>San Raffaele','Cordusio>San Carlo','Caiazzo>IEO','Piemonte>Linate','Duomo>Motorizzazione','Linate>Porta Genova',
+'Accursio>Linate','Linate>Niguarda~da Centrale e Segrino','Duomo>Niguarda','Abbiategrasso>Centrale','5 Giornate>Lotto',
+'Loreto>Sant’Eufemia','Napoli>Cavour','Lodi>Cairoli','Bande Nere>Loreto','Baracca>Centrale','Centrale>Resistenza Partigiana',
+'Centrale>Rho Fiera','Firenze>Duomo','San Cristoforo>Centrale','Corvetto>Cimitero Maggiore','Cadorna>IEO','Lodi>Firenze',
+'Bande Nere>Bonomelli','Niguarda>Cadorna','Miani>Cadorna','Bande Nere>Lambrate','Ferrara>Cimitero Maggiore','Duomo>Lotto',
+'Rho Fiera>Brera','Parri>Duomo','Maggi>Maciachini','Medaglie d’Oro>Rho Fiera','Tirana>Centrale','Lagosta>Accursio',
+'San Cristoforo>Tribunale','Corvetto>Cimitero Maggiore','Bande Nere>Loreto','24 Maggio>Garbagnate'],
+k:['Medaglie d’Oro','Treves','Lagosta','Lodi','Piola','Cadorna','Baracca','Corvetto','Firenze','5 Giornate','Loreto',
+'Cavour','Abbiategrasso','Susa','Monumentale','Bande Nere'],
+r:['reciproc|Reciprocità di carico: cos’è, con un esempio','bacino|Bacino aeroportuale in generale (domanda posta proprio così)',
+'doveri|Doveri del conducente','collab|Collaborazione familiare','obblighi|Obblighi del conducente a inizio, durante e dopo la corsa',
+'tassametro|Rottura del tassametro: cosa fai e quant’è la tariffa','diff|Differenze fra taxi e NCC (chiesto più volte)',
+'predet|Tariffe predeterminate: caratteristiche e tratte','predet|Quando ci sono importi diversi fra corsa e tassametro',
+'divieti|Divieti del conducente','predet|Due clienti a Malpensa, uno al T1 e l’altro al T2: quant’è la tariffa?',
+'trasf|Trasferimento della licenza','servizio|Quando un taxi è fuori servizio',
+'servizio|Quando il segnale del taxi è spento (occupato e fuori servizio: spiegare cosa bisogna fare fuori servizio)',
+'attesa|L’attesa: quant’è e come ci si comporta','cliente|Atti vietati al cliente','cane|Come ti comporti con il cane',
+'divieti|Atti vietati al conducente',
+'predet|Tariffe predeterminate: quali sono (senza cifre), quando si applicano e quando decadono',
+'aeroporti|In partenza dall’aeroporto, che obblighi ho','fuori|Se da Malpensa chiedono di andare a Vicenza, come mi comporto',
+'provincia|Obbligo di prestazione in provincia','idonea|Se la vettura è idonea',
+'provincia|Se la corsa ha come destinazione una provincia del bacino ma non parte dall’aeroporto','sosta|L’ora di sosta',
+'aeroporti|Obblighi di prestazione dagli aeroporti e dalle stazioni (domanda unica)','sedime|Definizione di sedime aeroportuale',
+'fuori|Arriva all’aeroporto un cliente che vuole andare a Verona: sei obbligato a portarlo?','predet|Tariffe predeterminate']}]},
+{id:'2026-01',m:'Gennaio 2026',c:'Gen 26',aule:[
+{a:'Aula «barbetta nera e barbetta bianca»',
+p:['5 Giornate>Firenze','Linate>Centrale','Centrale>Porta Genova','Centrale>San Siro','Duomo>Niguarda','Meda>San Raffaele',
+'Abbiategrasso>Centrale','Duomo>Rogoredo','Garibaldi>Duomo','Niguarda>Duomo~da via Ceresio','Firenze>Centrale',
+'Firenze>Porta Genova','Lotto>Cadorna','Porta Genova>Centrale','Centrale>Malpensa','Caiazzo>Rogoredo','Duomo>San Carlo',
+'Duomo>IEO','Linate>Brera','Miani>Duomo','Duomo>Motorizzazione','Cadorna>Linate','24 Maggio>Linate'],
+k:['Baracca','Medaglie d’Oro','Cadorna','5 Giornate','Cavour','Missori'],
+r:['tassametro|Rottura del tassametro: come ti comporti','predet|Quali sono le tariffe predeterminate',
+'fuori|Da Linate a Vicenza: come ti comporti e che obblighi hai',
+'predet|Da Malpensa al Duomo, se il cliente chiede di fare la tangenziale: a tariffa predeterminata il percorso lo sceglie il tassista; se il percorso lo sceglie il cliente si va a tassametro, e glielo DEVI dire prima di partire',
+'obblighi|Obblighi a inizio corsa',
+'ncc|Può capitare di trovare un NCC con il tassametro? Se sì, quando? (in teoria no: gli NCC possono fare servizio taxi solo nei comuni più piccoli, che non è detto abbiano il tassametro, ma potrebbero averlo)',
+'ncc|L’NCC può sostare nei posteggi dei taxi?','trasf|Trasferibilità della licenza','bacino|Bacino aeroportuale',
+'attesa|L’attesa: come ti comporti',
+'sedime|Sedime aeroportuale: sono i comuni dove ricade l’aeroporto; ha chiesto degli esempi (Linate è Segrate e Peschiera Borromeo)',
+'divieti|Divieti del conducente',
+'ncc|L’NCC deve avere la rimessa nel comune dell’autorizzazione? Se ne ha più di una, devono stare tutte nello stesso comune? (va bene anche nella provincia di appartenenza)',
+'diff|Differenze fra taxi e NCC','aeroporti|Obblighi dalle stazioni e dagli aeroporti (risposta: Lombardia e province confinanti)',
+'sigilli|Cosa sono i sigilli di garanzia (tassametro e giro gomme)'],
+n:'Attenzione alle principali sedi istituzionali di Milano.'},
+{a:'L’altra aula',
+p:['Garibaldi>Tribunale','Centrale>Porta Genova','Centrale>Forum','Bande Nere>Lambrate','San Paolo>Dateo','Piemonte>Linate',
+'Meda>San Carlo','Garibaldi>Duomo','Abbiategrasso>Centrale','Porta Genova>San Siro','Centrale>Cadorna','Baiamonti>Sacco',
+'Caronno Pertusella>Cadorna','Lorenteggio>Duomo','Cadorna>IEO','Caiazzo>Rogoredo','Miani>Duomo','Bisceglie>Policlinico',
+'5 Giornate>Niguarda'],
+k:['Missori','Baracca','Medaglie d’Oro'],
+r:['doveri|Doveri dei conducenti','obblighi|Obblighi a inizio, durante e fine corsa','bacino|Bacino aeroportuale',
+'predet|Tariffe predeterminate','diff|Differenze fra taxi e NCC','sigilli|Sigilli comunali','sedime|Sedime aeroportuale']}]},
+{id:'2026-02',m:'Febbraio 2026',c:'Feb 26',aule:[
+{a:'',
+p:['Maggi>Malpensa','24 Maggio>Orio al Serio','Lambrate>Malpensa','San Siro>Duomo','Duomo>Motorizzazione','Piemonte>Niguarda',
+'Linate>Brera','Centrale>IEO','Linate>Centrale','Centrale>Rogoredo','Centrale>San Siro','Duomo>Niguarda','Centrale>San Siro',
+'Axum>Linate','Garibaldi>San Siro','Lotto>24 Maggio','Bisceglie>Centrale','Bande Nere>Monumentale','Dateo>Tirana',
+'Cimitero Maggiore>San Babila','Rosario>Linate','Porta Genova>IEO','Duomo>Porta Genova','Linate>Duomo'],
+k:['Medaglie d’Oro','5 Giornate'],
+r:['attesa|L’attesa','reciproc|Reciprocità di carico','obblighi|Obblighi della corsa (inizio, durante, fine)',
+'tassametro|Rottura del tassametro','diff|Differenza fra taxi e NCC','bacino|Bacino aeroportuale',
+'aeroporti|Obblighi di trasporto da stazioni e aeroporti','sedime|Sedime aeroportuale','doveri|Doveri del conducente']}]}
+];
+
+/* ── i temi del regolamento: titolo, l'articolo da leggere, le domande del quiz sullo stesso argomento ── */
+var TEMI={
+obblighi:{t:'Obblighi a inizio, durante e fine corsa',ic:'🚦',art:'n40',q:[/inizio (della )?corsa|fine (della )?corsa|durante la corsa|aziona\w* (il )?tassametro|azzera\w* (il )?tassametro/i]},
+doveri:{t:'Doveri del conducente',ic:'🧑‍✈️',art:'n40',q:[/\bdover[ei]\b|obbligh?\w* (del|dei) conducent|conducent\w* (è|sono|e') tenut/i]},
+divieti:{t:'Divieti del conducente',ic:'⛔',art:'n40',q:[/vietat|divieto/i,/conducent|tassist|taxi/i]},
+cliente:{t:'Atti vietati al cliente',ic:'🙅',q:[/(utent|passegger|client)/i,/vietat|divieto|fumar|non (può|puo|possono)/i]},
+diff:{t:'Differenze fra taxi e NCC',ic:'🔀',q:[/noleggio con conducente|\bncc\b/i,/\btaxi\b/i]},
+bacino:{t:'Il bacino aeroportuale lombardo',ic:'✈️',art:'n60',q:[/bacino (aeroportuale|di traffico)/i]},
+sedime:{t:'Il sedime aeroportuale',ic:'🛬',q:[/sedime/i]},
+predet:{t:'Le tariffe predeterminate',ic:'💶',tar:1,q:[/predeterminat/i]},
+aeroporti:{t:'Obblighi da aeroporti e stazioni',ic:'🧳',q:[/aer[e]?oport/i,/obblig|confinant|destinazion|rifiut/i]},
+fuori:{t:'Corse oltre il bacino (Verona, Vicenza)',ic:'🛣️',q:[/aer[e]?oport/i,/obblig|confinant|destinazion|rifiut/i]},
+provincia:{t:'Prestazione in provincia',ic:'🗺️',q:[/comuni? integrat|area comunale|territorio del comune|comprensorial|fuori (dal|del) comune/i,/taxi|servizio|licenza/i]},
+attesa:{t:'L’attesa',ic:'⏳',art:'n45',q:[/attesa/i]},
+sosta:{t:'L’ora di sosta',ic:'🅿️',art:'n45',q:[/\bsost[ae]\b/i]},
+servizio:{t:'Fuori servizio e segnale spento',ic:'🚫',art:'n38',q:[/fuori servizio|contrassegno luminoso|scritta .?taxi/i]},
+tassametro:{t:'Rottura del tassametro',ic:'🧮',art:'n38',q:[/tassametr/i,/funzion|manomett|sigill|conform|guast|rott|avari/i]},
+reciproc:{t:'La reciprocità di carico',ic:'🔁',q:[/reciprocit/i]},
+sigilli:{t:'I sigilli di garanzia',ic:'🔏',art:'n49',q:[/sigill/i]},
+trasf:{t:'Il trasferimento della licenza',ic:'📝',q:[/trasferi/i]},
+collab:{t:'La collaborazione familiare',ic:'👨‍👩‍👦',q:[/collaborator\w* familiar|collaborazione familiar/i]},
+idonea:{t:'Se la vettura è idonea',ic:'🔧',q:[/visita di controllo|revision|idone\w*[^?]*(vettur|veicol)/i]},
+oggetti:{t:'Oggetti dimenticati in auto',ic:'🎒',q:[/dimentic|smarrit|rinvenut|\boggetti\b|trova dei documenti/i]},
+cane:{t:'Il cane a bordo',ic:'🐕',art:'n40',q:[/\bcan[ei]\b|animali (non )?compatibil|trasporto (di |degli )?animali/i]},
+ncc:{t:'NCC: tassametro, posteggi e rimessa',ic:'🚘',q:[/rimess/i]}
+};
+
+/* ── i luoghi: i nomi diversi dello stesso posto, e come si chiama nella riga ── */
+var LU={
+CENTRALE:['Centrale','DUCADAOSTA'],SANSIRO:['San Siro','SSIRO','MEAZZA'],LINATE:['Linate'],GARIBALDI:['Garibaldi'],
+PIEMONTE:['Piazza Piemonte'],CADORNA:['Cadorna','CADORNADALCENTRO'],IEO:['IEO'],DUOMO:['Duomo','DELDUOMO'],ROGOREDO:['Rogoredo'],
+DIOCLEZIANO:['Piazza Diocleziano'],MALPENSA:['Malpensa','MXP'],GIULIOCESARE:['Piazza Giulio Cesare'],
+REPUBBLICA:['Piazza della Repubblica','DELLAREPUBBLICA'],ABBIATEGRASSO:['Piazza Abbiategrasso'],NIGUARDA:['Niguarda'],
+MONUMENTALE:['Cimitero Monumentale','CIMITEROMONUMENTALE','CIMMONUMENTALE','CIMMONUM'],
+PORTAGENOVA:['Porta Genova','GENOVA','PTAGENOVA','PTGENOVA'],SANPAOLO:['San Paolo','SPAOLO'],CORVETTO:['Corvetto'],
+LAMBRATE:['Lambrate'],BOTTINI:['Piazza Bottini'],CITYLIFE:['CityLife','FIERAMILANOCITY'],DIAZ:['Piazza Diaz','ARMANDODIAZ'],
+OVIDIO:['Piazza Ovidio'],NAPOLI:['Piazza Napoli'],SANGIUSEPPE:['Ospedale San Giuseppe','SGIUSEPPE'],CAIROLI:['Largo Cairoli'],
+DATEO:['Piazzale Dateo'],X24MAGGIO:['Piazza XXIV Maggio','XXIVMAGGIO'],FIRENZE:['Piazza Firenze'],
+CIMMAGGIORE:['Cimitero Maggiore','CIMITEROMAGGIORE'],LODI:['Piazzale Lodi'],BONOMELLI:['Piazza Bonomelli'],MIANI:['Piazza Miani'],
+FERRARA:['Piazzale Ferrara'],LOTTO:['Piazzale Lotto'],
+RHOFIERA:['Rho Fiera','FIERARHO','RHOFIERAMILANO','FIERAMILANO','FIERAMILANORHO','RHO'],
+BRERA:['Pinacoteca di Brera','PINACOTECADIBRERA','PINACOTECABRERA'],PERUCCHETTI:['Piazzale Perucchetti'],
+TRIBUNALE:['Tribunale','PALAZZOGIUSTIZIA','PALAZZODIGIUSTIZIA','FREGUGLIA'],MISSORI:['Piazza Missori','GIUSEPPEMISSORI'],
+CATTOLICA:['Università Cattolica','UNIVERSITACATTOLICA'],SANCRISTOFORO:['San Cristoforo','SCRISTOFORO'],POLICLINICO:['Policlinico'],
+MOTORIZZAZIONE:['Motorizzazione'],BISCEGLIE:['Bisceglie'],NOVELLI:['Piazza Novelli'],LAMPUGNANO:['Lampugnano'],
+X5GIORNATE:['Piazza 5 Giornate','CINQUEGIORNATE'],NIGRA:['Piazzale Nigra'],SANCARLO:['Ospedale San Carlo','SCARLO'],
+HUMANITAS:['Humanitas'],OSPMAGGIORE:['Ospedale Maggiore','MAGGIORE'],CASTELLO:['Piazza Castello'],
+BAIAMONTI:['Piazzale Baiamonti','BAJAMONTI'],CARONNO:['Caronno Pertusella','CARONNOPERTUSELLA'],PIOLA:['Piazza Piola'],
+AGRIPPA:['Piazza Agrippa'],FATEBENEFRATELLI:['Fatebenefratelli'],
+RESISTENZA:['Piazza Resistenza Partigiana','RESISTENZAPARTIGIANA','DELLARESISTENZAPARTIGIANA'],
+SANBABILA:['San Babila','SBABILA'],SANRAFFAELE:['San Raffaele','SRAFFAELE'],CORDUSIO:['Cordusio'],CAIAZZO:['Piazza Caiazzo'],
+ACCURSIO:['Piazzale Accursio'],ZAVATTARI:['Piazzale Zavattari'],X6FEBBRAIO:['Piazza VI Febbraio','VIFEBBRAIO'],
+BIANCAMANO:['Piazzale Biancamano'],CUOCO:['Piazzale Cuoco'],MAGGI:['Piazza Maggi'],MACIACHINI:['Piazzale Maciachini','CARLOMACIACHINI'],
+SEUFEMIA:['Piazza Sant’Eufemia','SANTEUFEMIA','SANTAEUFEMIA'],CAVOUR:['Piazza Cavour'],BARACCA:['Piazzale Baracca'],
+PARRI:['Via Parri'],TIRANA:['Piazza Tirana'],MEDAGLIEDORO:['Piazzale Medaglie d’Oro','MEDDORO'],LAGOSTA:['Piazzale Lagosta'],
+GARBAGNATE:['Garbagnate'],MEDA:['Piazza Meda'],FORUM:['Forum di Assago','FORUMASSAGO','FORUMDIASSAGO'],SACCO:['Ospedale Sacco'],
+LORENTEGGIO:['Lorenteggio'],AXUM:['Piazza Axum'],ROSARIO:['Piazza del Rosario','DELROSARIO'],
+ORIO:['Orio al Serio','ORIOALSERIO','ORIOALSERI'],LORETO:['Loreto'],TRICOLORE:['Piazza Tricolore'],TREVES:['Largo Treves'],
+SUSA:['Piazzale Susa'],BANDENERE:['Bande Nere','BNERE']};
+/* le confluenze: come si chiamano per intero (per aggiungerle alle tue piazze) */
+var PZN={CADORNA:'PIAZZALE CADORNA',CAVOUR:'PIAZZA CAVOUR',CORVETTO:'PIAZZALE CORVETTO',BARACCA:'PIAZZALE BARACCA',
+LORETO:'PIAZZALE LORETO',TRICOLORE:'PIAZZA TRICOLORE',X5GIORNATE:'PIAZZA 5 GIORNATE',MEDAGLIEDORO:"PIAZZALE MEDAGLIE D'ORO",
+MONUMENTALE:'PIAZZALE CIMITERO MONUMENTALE',BANDENERE:'PIAZZALE BANDE NERE',TREVES:'LARGO TREVES',LAGOSTA:'PIAZZALE LAGOSTA',
+LODI:'PIAZZALE LODI',PIOLA:'PIAZZA PIOLA',FIRENZE:'PIAZZA FIRENZE',ABBIATEGRASSO:'PIAZZA ABBIATEGRASSO',SUSA:'PIAZZALE SUSA',
+MISSORI:'PIAZZA MISSORI'};
+var PARI={BOTTINI:'LAMBRATE'};           /* Piazza Bottini e' la stazione di Lambrate */
+var ANELLI={'CADORNA>CADORNA':'p4a'};    /* il giro della cerchia dei Navigli */
+var ALIAS={};
+Object.keys(LU).forEach(function(k){var s=k.replace(/^X/,'');ALIAS[k]=k;ALIAS[s]=k;LU[k].slice(1).forEach(function(a){ALIAS[a]=k;});});
+
+function nl(s){
+var t=String(s==null?'':s);
+try{t=t.normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){}
+t=t.toUpperCase().replace(/\(.*?\)/g,' ').replace(/[’'`]/g,'').replace(/\s+\d$/,'');
+var re=/^\s*(P\.?\s?ZZA|P\.?\s?ZA|PZZA|PZA|PIAZZETTA|PIAZZALE|PIAZZA|P\.?\s?LE|PZALE|PLE|L\.?\s?GO|LGO|LARGO|STAZIONE|STAZ|STZ|OSPEDALE|OSP|AEROPORTO|STADIO|VIALE|VIA|DALLA|DAL|DA|PORTA|P\.?\s?TA|PT)(\.|\s)\s*/;
+for(var g=0;g<4;g++){var u=t.replace(re,'');if(u===t)break;t=u;}
+return t.replace(/[^A-Z0-9]/g,'');
+}
+function luogo(s){var n=nl(s);return ALIAS[n]||n;}
+function nome(k){return LU[k]?LU[k][0]:String(k||'');}
+function pari(k){return PARI[k]||k;}
+function estremi(t){
+var s=String(t||'').replace(/\(.*?\)/g,' ');
+var p=s.split(/\s+[-–]\s*|\s*[-–]\s+/).map(function(x){return x.trim();}).filter(Boolean);
+if(p.length<2)return null;
+return [luogo(p[0]),luogo(p[p.length-1])];
+}
+
+/* ── i conti: ogni percorso, piazza e tema con quante volte e' uscito e dove ── */
+var CONTI=null;
+function conti(){
+if(CONTI)return CONTI;
+var P={},K={},R={},ordP=[],ordK=[],ordR=[];
+SES.forEach(function(s,si){s.aule.forEach(function(au,ai){
+(au.p||[]).forEach(function(x){
+var nt='',y=x;var i=y.indexOf('~');if(i>=0){nt=y.slice(i+1);y=y.slice(0,i);}
+var ab=y.split('>'),a=luogo(ab[0]),b=luogo(ab[1]),k=a+'>'+b;
+var o=P[k];if(!o){o=P[k]={k:k,a:a,b:b,n:0,ses:{},note:[],dove:[]};ordP.push(k);}
+o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);if(nt&&o.note.indexOf(nt)<0)o.note.push(nt);
+});
+(au.k||[]).forEach(function(x){
+var k=luogo(x);var o=K[k];if(!o){o=K[k]={k:k,n:0,ses:{},dove:[]};ordK.push(k);}
+o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
+});
+(au.r||[]).forEach(function(x){
+var i=x.indexOf('|'),t=x.slice(0,i),d=x.slice(i+1);
+var o=R[t];if(!o){o=R[t]={k:t,n:0,ses:{},dom:[],dove:[]};ordR.push(t);}
+o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
+var g=o.dom.filter(function(z){return z.d===d;})[0];if(!g){g={d:d,ses:[]};o.dom.push(g);}
+if(g.ses.indexOf(s.id)<0)g.ses.push(s.id);
+});
+});});
+function ord(m,l){return l.map(function(k,i){m[k].i=i;return m[k];}).sort(function(x,y){return (y.n-x.n)||(x.i-y.i);});}
+CONTI={P:P,K:K,R:R,perc:ord(P,ordP),pz:ord(K,ordK),reg:ord(R,ordR)};
+return CONTI;
+}
+
+/* ── i percorsi: nel libro della scuola e fra i tuoi ── */
+function libro(){try{return window.__PERCORSI_PDF__||[];}catch(e){return [];}}
+function miei(){try{return (typeof routes!=='undefined'&&Array.isArray(routes))?routes:[];}catch(e){return [];}}
+var LIB=null;
+function indiceLibro(){
+if(LIB)return LIB;
+LIB={};
+libro().forEach(function(p){var e=estremi(p.t);if(!e)return;var k=pari(e[0])+'>'+pari(e[1]);(LIB[k]=LIB[k]||[]).push(p);});
+Object.keys(ANELLI).forEach(function(k){var p=libro().filter(function(x){return x.id===ANELLI[k];})[0];if(p)(LIB[k]=LIB[k]||[]).push(p);});
+return LIB;
+}
+function indiceMiei(){
+var M={},byId={};
+libro().forEach(function(p){byId[p.id]=p;});
+miei().forEach(function(r){
+if(!r||!Array.isArray(r.steps))return;
+var e=null;
+if(r.pdf&&byId[r.pdf]){e=estremi(byId[r.pdf].t);
+var an=Object.keys(ANELLI).filter(function(k){return ANELLI[k]===r.pdf;})[0];if(an)e=an.split('>');}
+if(!e)e=estremi(r.title);
+if(!e)return;
+var k=pari(e[0])+'>'+pari(e[1]);(M[k]=M[k]||[]).push(r);
+});
+return M;
+}
+function marcati(r){var n=0;try{for(var i=0;i<r.steps.length;i++)if(coords[r.id+'_'+i])n++;}catch(e){}return n;}
+/* dove sta un percorso chiesto: tuo (stesso verso o al contrario), nel libro, o da preparare */
+function stato(o,M){
+var L=indiceLibro();M=M||indiceMiei();
+var kd=pari(o.a)+'>'+pari(o.b),kr=pari(o.b)+'>'+pari(o.a),gir=(kd===kr);
+var s={mio:(M[kd]||[])[0]||null,mioInv:gir?null:((M[kr]||[])[0]||null),lib:(L[kd]||[])[0]||null,libInv:gir?null:((L[kr]||[])[0]||null)};
+s.tipo=s.mio?'mio':(s.lib?'lib':(s.mioInv?'mioinv':(s.libInv?'libinv':'no')));
+return s;
+}
+function pagLib(p){return 'pag. '+(p.pp?p.pp.join(' e '):p.p);}
+
+/* ── le piazze: fra le 91 o fra le tue ── */
+function tuttePiazze(){
+var out=[];
+try{(window.__PIAZZE__||[]).forEach(function(p){out.push({id:p.id,n:p.n,v:p.v||[]});});}catch(e){}
+try{var mod=JSON.parse(localStorage.getItem('pzEdit')||'{}')||{};
+out=out.filter(function(p){return !(mod[p.id]&&mod[p.id].del);}).map(function(p){
+var m=mod[p.id];return m?{id:p.id,n:m.n||p.n,v:(m.v||p.v)}:p;});}catch(e){}
+try{(JSON.parse(localStorage.getItem('pzUser')||'[]')||[]).forEach(function(p){if(p&&p.id&&p.n)out.push({id:p.id,n:p.n,v:p.v||[],tua:1});});}catch(e){}
+return out;
+}
+function piazzaDi(k){
+var l=tuttePiazze();
+for(var i=0;i<l.length;i++){if(luogo(l[i].n)===k)return l[i];}
+return null;
+}
+
+
+/* ── la pagina: la scheda, la sessione scelta, da dove sei venuto, dove eri arrivato ── */
+var ST={tab:'perc',ses:'',da:null,daTop:0,top:0,lista:[]};
+var COL={perc:'#A0522D',pz:'#30B0C7',reg:'#5856D6'};
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function corpoEl(){return document.getElementById('scnBody');}
+function sesDi(id){for(var i=0;i<SES.length;i++)if(SES[i].id===id)return SES[i];return null;}
+function mese(id){var s=sesDi(id);return s?s.m.split(' ')[0]:id;}
+function breve(id){var s=sesDi(id);return s?s.c.split(' ')[0]:id;}
+/* «Ott · Nov ×2 · Dic» */
+function sigle(o){return SES.filter(function(s){return o.ses[s.id];}).map(function(s){var n=o.ses[s.id];return breve(s.id)+(n>1?' ×'+n:'');}).join(' · ');}
+/* «Ottobre 2025: Aula «non Pietro» ×2, Aula «Pietro» · Novembre 2025 ...» */
+function dove(o){
+var g={},ord=[];
+o.dove.forEach(function(d){var s=SES[d[0]],a=s.aule[d[1]];if(!g[s.id]){g[s.id]={s:s,a:{},ao:[]};ord.push(s.id);}
+var x=g[s.id];var k=a.a||'';if(!x.a[k]){x.a[k]=0;x.ao.push(k);}x.a[k]++;});
+return ord.map(function(id){var x=g[id];
+var au=x.ao.map(function(k){return (k||'')+(x.a[k]>1?(k?' ×':'×')+x.a[k]:'');}).filter(Boolean).join(', ');
+return '<b>'+E(x.s.m)+'</b>'+(au?' · '+E(au):'');}).join('<br>');
+}
+function toast(t){try{toast2(t);}catch(e){}}
+
+/* ── le domande del quiz: dai numeri delle righe alle domande vere dell'app ── */
+function QD(){return window.__QUIZDATA__||{};}
+var MQ=null;
+function pul(t){try{return window.nccPulisciTesto?nccPulisciTesto(t):t;}catch(e){return t;}}
+function mappaQuiz(){
+if(MQ&&MQ.n===QUIZ_ALL.length)return MQ;
+var m={},x={};
+QUIZ_ALL.forEach(function(it){if(!it)return;var k=nccChiaveDomanda(it);if(!m[k])m[k]=it;if(it.extra!=null)x[it.extra]=it;});
+MQ={n:QUIZ_ALL.length,m:m,x:x};return MQ;
+}
+function domanda(ref){
+try{
+var M=mappaQuiz(),r;
+if(typeof ref==='string'&&ref.charAt(0)==='x'){var i=+ref.slice(1);if(M.x[i])return M.x[i];r=(QD().extra||[])[i];}
+else r=(QD().domande||[])[ref];
+if(!r||!Array.isArray(r[1]))return null;
+return M.m[nccChiaveDomanda({q:pul(r[0]),choices:r[1].map(pul)})]||null;
+}catch(e){return null;}
+}
+var FONTI=[
+{id:'nuove',t:'Le domande nuove',s:'Uscite all’esame e prima mancavano: ora sono anche nella banca dati',ic:'🆕',c:'#007AFF'},
+{id:'fd',t:'Fuori dispensa (foglio ufficiale)',s:'Le domande del foglio «fuori dispensa», 30 alla volta',ic:'📄',c:'#5856D6'},
+{id:'24',t:'Quiz extra 2024',s:'Le domande ricordate dai candidati nel 2024',ic:'🗓️',c:'#FF9500',n:'#C76E00'},
+{id:'23',t:'Quiz extra 2023',s:'Le domande ricordate dai candidati nel 2023',ic:'🗓️',c:'#30B0C7',n:'#1C8A9E'},
+{id:'geo',t:'Extra di geografia',s:'Pavia, Vigevano, l’Oltrepò e dintorni',ic:'🧭',c:'#34C759',n:'#248A3D'},
+{id:'tutte',t:'Tutte insieme, 30 alla volta',s:'Prima quelle che non hai ancora visto',ic:'🎲',c:'#FF2D55'}];
+function domandeDi(id){
+try{
+buildQuiz();
+if(id==='nuove')return QUIZ_ALL.filter(function(it){return it&&it.extra!=null;});
+var F=QD().fuori||{},refs=id==='tutte'?[].concat(F.fd||[],F['23']||[],F['24']||[],F.geo||[]):(F[id]||[]);
+var out=[],visti={};
+refs.forEach(function(r){var it=domanda(r);if(it&&!visti[it.id]){visti[it.id]=1;out.push(it);}});
+return out;
+}catch(e){return [];}
+}
+function vista(it){try{return !!(qtStats.seenIds&&qtStats.seenIds[it.id]);}catch(e){return false;}}
+function mescola(a){try{return typeof qShuffle==='function'?qShuffle(a.slice()):a.slice();}catch(e){return a.slice();}}
+/* le domande della banca sul tema di una domanda del regolamento */
+function domandeTema(k){
+var T=TEMI[k];if(!T||!T.q)return [];
+try{buildQuiz();return QUIZ_ALL.filter(function(it){if(!it)return false;var t=it.q+' '+((it.choices||[])[it.correct]||'');
+return T.q.every(function(rx){return rx.test(t);});});}catch(e){return [];}
+}
+
+/* ── le righe ── */
+function riga(i,c,sx,tit,sub,st){
+return '<div class="qc qc-riga ch-r" role="button" tabindex="0" style="--qc:'+c+'" onclick="nccChiestoVai('+i+')">'
++'<span class="qc-li'+(sx.n?' ch-n':'')+'">'+sx.h+'</span>'
++'<span class="qc-lt"><b>'+tit+'</b>'+(sub?'<span>'+sub+'</span>':'')+(st||'')+'</span>'
++'<span class="qc-ch">›</span></div>';
+}
+function statoPerc(o,M){
+var s=stato(o,M);
+if(s.tipo==='mio')return '<em class="ch-st si">✓ Fra i tuoi percorsi</em>';
+if(s.tipo==='lib')return '<em class="ch-st lib">📖 Nel libro, '+pagLib(s.lib)+'</em>';
+if(s.tipo==='mioinv')return '<em class="ch-st si">↔ Fra i tuoi, al contrario</em>';
+if(s.tipo==='libinv')return '<em class="ch-st lib">↔ Nel libro al contrario, '+pagLib(s.libInv)+'</em>';
+return '<em class="ch-st no">Da preparare</em>';
+}
+function statoPz(o){
+var p=piazzaDi(o.k);
+if(p)return '<em class="ch-st si">✓ Fra le piazze · '+p.v.length+(p.v.length===1?' via':' vie')+'</em>';
+return '<em class="ch-st no">＋ Da aggiungere</em>';
+}
+/* le voci di una scheda: tutte (le piu' chieste in cima) o quelle di una sessione, aula per aula */
+function voci(tab){
+var C=conti(),tutte=tab==='perc'?C.perc:(tab==='pz'?C.pz:C.reg);
+if(!ST.ses)return [{a:null,l:tutte}];
+var s=sesDi(ST.ses);if(!s)return [{a:null,l:tutte}];
+var mappa=tab==='perc'?C.P:(tab==='pz'?C.K:C.R);
+return s.aule.map(function(au){
+var vis={},l=[];
+((tab==='perc'?au.p:(tab==='pz'?au.k:au.r))||[]).forEach(function(x){
+var k;
+if(tab==='perc'){var y=x.split('~')[0].split('>');k=luogo(y[0])+'>'+luogo(y[1]);}
+else if(tab==='pz')k=luogo(x);
+else k=x.slice(0,x.indexOf('|'));
+if(vis[k]){vis[k].qui++;return;}
+var o=mappa[k];if(!o)return;vis[k]={o:o,qui:1};l.push(vis[k]);
+});
+return {a:au.a,l:l.map(function(v){return v.o;}),n:l.length};
+}).filter(function(g){return g.l.length;});
+}
+function lista(){
+var h='',M=null,n=0;ST.lista=[];
+if(ST.tab==='perc')M=indiceMiei();
+var gruppi=voci(ST.tab);
+gruppi.forEach(function(g){
+if(ST.ses&&(g.a||gruppi.length>1))h+='<div class="pf-sez ch-sez">'+E((g.a||'Percorsi').toUpperCase())+' · '+g.l.length+'</div>';
+h+='<div class="qc-gr ch-lista">';
+g.l.forEach(function(o){
+var i=ST.lista.length;ST.lista.push(o);n++;
+if(ST.tab==='perc')h+=riga(i,COL.perc,{n:1,h:o.n+'×'},E(nome(o.a))+' → '+E(nome(o.b)),
+E(sigle(o))+(o.note.length?' · '+E(o.note.join(' · ')):''),statoPerc(o,M));
+else if(ST.tab==='pz')h+=riga(i,COL.pz,{n:1,h:o.n+'×'},E(nome(o.k)),E(sigle(o)),statoPz(o));
+else{var T=TEMI[o.k]||{t:o.k,ic:'❓'};
+h+=riga(i,COL.reg,{h:T.ic},E(T.t)+'<em class="qc-n">'+o.n+'×</em>',
+E(o.dom[0]?('«'+o.dom[0].d+'»'):'')+(o.dom.length>1?' e altre '+(o.dom.length-1):''),'<em class="ch-st ses">'+E(sigle(o))+'</em>');}
+});
+h+='</div>';
+});
+if(!n)h+='<div class="sc-vuoto">In questa sessione non ce ne sono.</div>';
+return h;
+}
+function quizHTML(){
+var h='<div class="qc-gr ch-lista">';ST.lista=[];
+FONTI.forEach(function(f){
+var l=domandeDi(f.id),v=l.filter(vista).length,pc=l.length?Math.round(v/l.length*100):0;
+var i=ST.lista.length;ST.lista.push(f);
+h+='<div class="qc qc-riga ch-r" role="button" tabindex="0" style="--qc:'+f.c+';--qn:'+(f.n||f.c)+'" onclick="nccChiestoVai('+i+')">'
++'<span class="qc-li">'+f.ic+'</span><span class="qc-lt"><b>'+E(f.t)+'<em class="qc-n">'+l.length+'</em></b>'
++'<span>'+E(f.s)+'</span><span class="qc-mini"><i style="width:'+pc+'%"></i></span>'
++'<span class="qc-st">Viste '+v+' su '+l.length+'</span></span><span class="qc-ch">›</span></div>';
+});
+return h+'</div>';
+}
+function corpo(){
+var C=conti(),F=QD().fuori||{};
+var nq=domandeDi('tutte').length;
+var T=[['perc','Percorsi',C.perc.length],['pz','Piazze',C.pz.length],['reg','Regole',C.reg.length],['quiz','Quiz',nq]];
+var h='<div class="ch-fermo"><div class="sx-tabs ch-tabs" role="tablist">';
+T.forEach(function(t){h+='<button class="sx-tab'+(ST.tab===t[0]?' on':'')+'" role="tab" onclick="nccChiestoTab(\''+t[0]+'\')">'+t[1]+'<em>'+t[2]+'</em></button>';});
+h+='</div>';
+if(ST.tab!=='quiz'){
+h+='<div class="ch-ses"><button class="ch-chip'+(!ST.ses?' on':'')+'" onclick="nccChiestoSes(\'\')">Tutte</button>';
+SES.forEach(function(s){h+='<button class="ch-chip'+(ST.ses===s.id?' on':'')+'" onclick="nccChiestoSes(\''+s.id+'\')">'+E(s.c)+'</button>';});
+h+='</div>';
+}
+h+='</div>';
+if(ST.tab==='perc'){
+var M=indiceMiei(),c={si:0,lib:0,no:0};
+C.perc.forEach(function(o){var t=stato(o,M).tipo;c[(t==='mio'||t==='mioinv')?'si':((t==='lib'||t==='libinv')?'lib':'no')]++;});
+h+='<div class="sc-nota ch-nota">'+(ST.ses?'Come nel resoconto, aula per aula. ':'I percorsi chiesti agli orali, i più frequenti in cima: il numero è quante volte sono usciti. ')
++'Tocca un percorso per vederlo o aggiungerlo.</div>'
++'<div class="ch-somma"><span class="si">✓ '+c.si+' fra i tuoi</span><span class="lib">📖 '+c.lib+' nel libro</span><span class="no">'+c.no+' da preparare</span></div>';
+}else if(ST.tab==='pz'){
+h+='<div class="sc-nota ch-nota">Le confluenze chieste: dici a voce tutte le vie che sboccano nella piazza. Tocca una piazza per studiarla; quelle che mancano le aggiungi tu.</div>';
+if(!ST.ses||ST.ses==='2025-11')h+='<div class="ch-avviso">⚠️ '+E(sesDi('2025-11').aule[0].n)+'</div>';
+}else if(ST.tab==='reg'){
+h+='<div class="sc-nota ch-nota">Le domande sul regolamento, tema per tema, come le hanno fatte. Tocca un tema: le domande, l’articolo e il quiz.</div>';
+if(!ST.ses||ST.ses==='2026-01')h+='<div class="ch-avviso">⚠️ Gennaio 2026: '+E(sesDi('2026-01').aule[0].n.replace(/^A/,'a'))+'</div>';
+}else{
+h+='<div class="sc-nota ch-nota">Le domande dei quiz uscite all’esame fuori dispensa: '+nq+'. Quelle che mancavano ('+domandeDi('nuove').length+') sono state aggiunte alla banca dati e escono anche nelle simulazioni.</div>';
+}
+h+=(ST.tab==='quiz'?quizHTML():lista());
+return h;
+}
+
+/* ── disegno e ridisegno ── */
+function disegna(){
+var b=corpoEl();
+if(b&&pag()==='chiesto'){var y=b.scrollTop;b.innerHTML=corpo();b.scrollTop=y;return;}
+nccPagina('chiesto','Chiesto all’esame',corpo(),'nccChiestoIndietro()');
+}
+window.nccChiesto=function(o){
+try{
+o=o||{};
+if(o.tab)ST.tab=o.tab;
+/* aperta da una pagina: ricordo dove eri, cosi' tornando sei di nuovo li' (non in cima) */
+ST.daTop=0;try{var b0=corpoEl();if(o.da&&b0&&pag()===o.da)ST.daTop=b0.scrollTop;}catch(e){}
+ST.da=o.da||null;ST.ses=o.ses||'';ST.top=0;
+disegna();
+var b=corpoEl();if(b)b.scrollTop=0;
+try{hap();}catch(e){}
+}catch(e){}
+};
+window.nccChiestoTab=function(t){
+try{ST.tab=t;var b=corpoEl();if(!b||pag()!=='chiesto')return disegna();b.innerHTML=corpo();
+b.scrollTop=0;try{hap();}catch(e){}}catch(e){}
+};
+window.nccChiestoSes=function(s){
+try{ST.ses=s;var b=corpoEl();if(!b||pag()!=='chiesto')return disegna();b.innerHTML=corpo();b.scrollTop=0;
+var c=b.querySelector('.ch-chip.on');if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest',inline:'center'});try{hap();}catch(e){}}catch(e){}
+};
+function allaSua(da){nccSez(da);try{var b=corpoEl();if(b)b.scrollTop=ST.daTop||0;}catch(e){}}
+window.nccChiestoIndietro=function(){
+try{var da=ST.da;ST.da=null;if(da){allaSua(da);return;}nccSezChiudi();}catch(e){}
+};
+/* il ritorno da quello che hai aperto qui: la pagina c'e' gia', il contenuto arriva da sinistra */
+window.nccChiestoTorna=function(){
+try{
+var c=pag()==='chiesto';
+disegna();
+var s=document.getElementById('scnOv');
+if(!c&&s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+var b=corpoEl();if(b&&!c)b.scrollTop=ST.top||0;
+}catch(e){}
+};
+function segna(){try{var b=corpoEl();if(b&&pag()==='chiesto')ST.top=b.scrollTop;}catch(e){}}
+
+/* ── toccando una riga ── */
+window.nccChiestoVai=function(i){
+try{
+var o=ST.lista[i];if(!o)return;
+try{hap();}catch(e){}
+if(ST.tab==='perc')popPerc(o);
+else if(ST.tab==='pz')vaiPz(o);
+else if(ST.tab==='reg')popTema(o);
+else avviaQuiz(o);
+}catch(e){}
+};
+
+/* ── un percorso: dov'e', e cosa puoi fare ── */
+function vie(l){
+var h='<ol class="ch-vie">';l.forEach(function(v){h+='<li>'+E(v)+'</li>';});return h+'</ol>';
+}
+function popPerc(o){
+var s=stato(o);
+var h='<div class="ch-pop"><div class="ch-dove">Chiesto '+o.n+(o.n===1?' volta':' volte')+'<br>'+dove(o)+'</div>';
+if(o.note.length)h+='<div class="ch-box nt">📝 '+E(o.note.join(' · '))+'</div>';
+if(s.mio){var m=marcati(s.mio);
+h+='<div class="ch-box si">✓ È fra i tuoi percorsi: <b>'+E(s.mio.title)+'</b><br>'+s.mio.steps.length+' tappe · '+(m===s.mio.steps.length?'tutte col marker':(m+' col marker'))+'</div>';}
+else if(s.lib)h+='<div class="ch-box lib">📖 Nel libro della scuola, '+pagLib(s.lib)+': <b>'+E(s.lib.t)+'</b> · '+s.lib.s.length+' vie</div>'+vie(s.lib.s);
+else if(s.mioInv)h+='<div class="ch-box si">↔ Fra i tuoi percorsi c’è solo al contrario: <b>'+E(s.mioInv.title)+'</b></div>';
+else if(s.libInv)h+='<div class="ch-box lib">↔ Nel libro c’è solo al contrario, '+pagLib(s.libInv)+': <b>'+E(s.libInv.t)+'</b> · '+s.libInv.s.length+' vie</div>'+vie(s.libInv.s);
+else h+='<div class="ch-box no">Non è nel libro della scuola e non è fra i tuoi percorsi: lo prepari tu, tappa per tappa.</div>';
+h+='</div>';
+var az=[];
+if(s.mio)az.push({t:'Apri sulla mappa',stile:'pieno',fn:function(){apriMappa(s.mio);}});
+else if(s.lib)az.push({t:'Aggiungi ai miei percorsi',stile:'pieno',fn:function(){aggiungiPerc(s.lib);}});
+else if(s.mioInv)az.push({t:'Apri quello al contrario',stile:'pieno',fn:function(){apriMappa(s.mioInv);}});
+else if(s.libInv)az.push({t:'Aggiungi quello al contrario',stile:'pieno',fn:function(){aggiungiPerc(s.libInv);}});
+else az.push({t:'Nuovo percorso',stile:'pieno',fn:function(){apriMappa(null,(nome(o.a)+' - '+nome(o.b)).toUpperCase());}});
+az.push({t:'Chiudi',stile:'vuoto'});
+nccPopup({titolo:nome(o.a)+' → '+nome(o.b),html:h,azioni:az});
+}
+/* dal libro ai tuoi percorsi: come «Importa dal PDF» (stesso nome, la pagina se il nome c'e' gia'), i marker li metti tu */
+function nT(s){return String(s||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function aggiungiPerc(p){
+try{
+var gia=miei().filter(function(r){return r&&r.pdf===p.id;})[0];
+if(!gia){
+var nomi={},doc={};
+miei().forEach(function(r){if(r)nomi[nT(r.title)]=1;});
+libro().forEach(function(x){var k=nT(x.t);doc[k]=(doc[k]||0)+1;});
+var k=nT(p.t),t=(nomi[k]||doc[k]>1)?(p.t+' (pag. '+p.p+')'):p.t;
+routes.push({id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,steps:p.s.slice(),pdf:p.id});
+try{save();autoSave();}catch(e){}
+try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
+try{if(typeof buildList==='function')buildList();}catch(e){}
+}
+toast(gia?'È già fra i tuoi percorsi':'✓ Aggiunto ai tuoi percorsi · i marker li metti tu dalla mappa');
+disegna();
+}catch(e){toast('⚠️ Non sono riuscito ad aggiungerlo');}
+}
+/* la mappa: la pagina resta finche' la mappa e' pronta; uscendo dalla mappa si torna qui */
+var RIT=null;
+function apriMappa(r,nuovo){
+try{
+segna();
+RIT={k:'topo',t:Date.now()};
+try{if(window.nccTopoDa)nccTopoDa(nuovo?'t0':'');}catch(e){}
+window.__nccTieniPagina=true;
+try{goTopografia();}catch(e){}
+setTimeout(function(){try{
+if(nuovo){openAdd();var t=document.getElementById('mRT');if(t&&!t.value)t.value=nuovo;}
+else{selectRoute(r);setMode('s');}}catch(e){}},320);
+var t0=Date.now();
+(function att(){try{
+if(document.body.classList.contains('on-topo')){window.__nccTieniPagina=false;
+setTimeout(function(){try{if(pag()==='chiesto')nccSezChiudi(true);}catch(e){}},0);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;RIT=null;
+}catch(e){}})();
+}catch(e){window.__nccTieniPagina=false;}
+}
+window.nccRitorno=function(k){
+if(!RIT||RIT.k!==k)return false;
+RIT=null;
+try{nccChiestoTorna();return true;}catch(e){return false;}
+};
+document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))RIT=null;}catch(e){}},true);
+
+/* ── una piazza: si apre sopra la pagina (chiudendola sei di nuovo qui); se manca la aggiungi tu ── */
+function registra(id,fn){try{if(document.getElementById(id)&&window.nccOvApri&&!(window.nccOvInCima&&nccOvInCima(id)))nccOvApri(id,fn);}catch(e){}}
+function vaiPz(o){
+var p=piazzaDi(o.k);
+if(!p){aggiungiPz(o);return;}
+segna();
+try{pzApri(p.id);}catch(e){return;}
+registra('pzOv',function(){try{pzChiudi();}catch(e){var x=document.getElementById('pzOv');if(x)x.remove();}});
+}
+function aggiungiPz(o){
+var nomeP=PZN[o.k]||nome(o.k).toUpperCase();
+nccPopup({icona:'➕',titolo:'Aggiungi '+nome(o.k),
+testo:'Non è fra le piazze dell’app. Scrivi le vie che vi sboccano, una per riga: la piazza va fra le tue e la studi come le altre.',
+html:'<input class="es-in" id="chPzN" type="text" autocomplete="off" spellcheck="false" value="'+E(nomeP)+'" aria-label="Nome della piazza">'
++'<textarea class="es-in ch-ta" id="chPzV" rows="6" placeholder="Una via per riga" aria-label="Le vie"></textarea>'
++'<div class="au-err" id="chPzE"></div>',
+azioni:[{t:'Aggiungi la piazza',stile:'pieno',subito:true,fn:function(){
+var n=((document.getElementById('chPzN')||{}).value||'').trim().toUpperCase().replace(/\s+/g,' ');
+var v=((document.getElementById('chPzV')||{}).value||'').split(/[\n,;]/).map(function(x){return x.trim().replace(/\s+/g,' ');}).filter(Boolean);
+var er=document.getElementById('chPzE');
+function no(t){if(er){er.textContent=t;er.classList.remove('scuoti');void er.offsetWidth;er.classList.add('scuoti');}return false;}
+if(!n)return no('Scrivi il nome della piazza');
+if(!v.length)return no('Scrivi almeno una via');
+if(tuttePiazze().some(function(x){return luogo(x.n)===luogo(n);}))return no('Questa piazza c’è già');
+var u=[];try{u=JSON.parse(localStorage.getItem('pzUser')||'[]');if(!Array.isArray(u))u=[];}catch(e){u=[];}
+u.push({id:'pzU'+Date.now(),n:n,t:n.indexOf('LARGO')===0?'largo':(n.indexOf('PIAZZALE')===0?'piazzale':'piazza'),v:v});
+try{localStorage.setItem('pzUser',JSON.stringify(u));}catch(e){return no('Non sono riuscito a salvarla');}
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}
+toast('✓ '+n+' aggiunta con '+v.length+(v.length===1?' via':' vie'));
+setTimeout(disegna,0);
+}},{t:'Annulla',stile:'vuoto'}]});
+setTimeout(function(){try{var t=document.getElementById('chPzV');if(t)t.focus();}catch(e){}},420);
+}
+
+/* ── un tema del regolamento ── */
+function articolo(id){try{var s=(window.__NORME__.sez||[]).filter(function(x){return x.id===id;})[0];return s?('Art. '+s.art):'';}catch(e){return '';}}
+function popTema(o){
+var T=TEMI[o.k]||{t:o.k,ic:'❓'};
+var dom=domandeTema(o.k);
+var h='<div class="ch-pop"><div class="ch-dove">Chiesto '+o.n+(o.n===1?' volta':' volte')+' · '+E(sigle(o))+'</div><ul class="ch-dom">';
+o.dom.forEach(function(d){h+='<li>«'+E(d.d)+'»<small>'+E(d.ses.map(mese).join(', '))+'</small></li>';});
+h+='</ul></div>';
+var az=[];
+if(T.art&&articolo(T.art))az.push({t:'Leggi l’articolo ('+articolo(T.art)+')',stile:'pieno',fn:function(){apriArticolo(T.art);}});
+if(T.tar)az.push({t:'Il prontuario delle tariffe',stile:az.length?'pieno2':'pieno',fn:apriTariffe});
+if(dom.length>=2)az.push({t:'Fai '+Math.min(20,dom.length)+' domande sul tema',stile:az.length?'pieno2':'pieno',fn:function(){avviaTema(o.k);}});
+az.push({t:'Chiudi',stile:'vuoto'});
+nccPopup({icona:T.ic,titolo:T.t,html:h,azioni:az});
+}
+var NM=null;
+/* la firma della schermata: titolo e sottotitolo, non i tasti (la (i) arriva un attimo dopo e cambiava il testo:
+   ‹ dall'articolo apriva l'indice delle norme invece di tornare qui) */
+function firmaDi(h){try{return h?(((h.querySelector('.nm-ti')||{}).textContent||'')+'|'+((h.querySelector('.nm-su')||{}).textContent||'')).trim():'';}catch(e){return '';}}
+function apriArticolo(id){
+try{
+segna();
+nmArt(id);
+registra('nmOv',function(){NM=null;try{nmChiudi();}catch(e){var x=document.getElementById('nmOv');if(x)x.remove();}});
+var h=document.querySelector('#nmOv .nm-dx .nm-hd')||document.querySelector('#nmOv .nm-hd');
+NM={firma:firmaDi(h)};
+}catch(e){}
+}
+/* ‹ dall'articolo aperto da qui: si chiude e sei di nuovo sulla pagina (non sull'indice delle norme) */
+window.addEventListener('click',function(ev){
+try{
+if(!NM)return;
+var t=ev.target;if(!t||!t.closest)return;
+var x=t.closest('#nmOv .nm-x');
+if(!x){if(!document.getElementById('nmOv'))NM=null;return;}
+var hd=x.closest('.nm-hd');
+if(hd&&firmaDi(hd)===NM.firma){ev.stopPropagation();ev.preventDefault();NM=null;
+try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}}
+}catch(e){}
+},true);
+function apriTariffe(){
+segna();
+window.__nccTieniPagina=true;try{openRegole();}catch(e){}window.__nccTieniPagina=false;
+}
+
+/* ── i quiz: la pagina resta finche' il quiz e' pronto, alla fine si torna qui ── */
+function quiz(titolo,trova){
+try{
+segna();
+window.__nccTieniPagina=true;window.__nccQuizOrigine='chiesto';
+nccAvvio(function(){try{
+buildQuiz();var l=trova();
+if(!l||!l.length){try{nccPopup({icona:'ℹ️',titolo:titolo,testo:'Nessuna domanda da fare qui.',azioni:[{t:'Va bene',stile:'pieno'}]});}catch(e){}return;}
+startQuiz(l,{mode:'study',title:titolo});}catch(e){}});
+}catch(e){window.__nccTieniPagina=false;}
+}
+function avviaQuiz(f){
+quiz(f.t,function(){
+var l=domandeDi(f.id);
+/* le nuove tutte, nell'ordine, prima quelle che non hai ancora visto; le altre 30 alla volta, prima le mai viste */
+if(f.id==='nuove')l=l.filter(function(it){return !vista(it);}).concat(l.filter(vista));
+else if(l.length>30){var nv=l.filter(function(it){return !vista(it);}),v=l.filter(vista);l=mescola(nv).concat(mescola(v)).slice(0,30);}
+else l=mescola(l);
+return l;});
+}
+function avviaTema(k){var T=TEMI[k]||{t:'Domande'};quiz(T.t,function(){return mescola(domandeTema(k)).slice(0,20);});}
+
+/* ── l'indietro del telefono: aperta da una pagina (Topografia, Piazze...), torni a quella ── */
+window.addEventListener('popstate',function(){
+try{
+if(pag()!=='chiesto'||!ST.da)return;
+var da=ST.da;
+requestAnimationFrame(function(){try{
+var s=document.getElementById('scnOv');
+if(!s||s.getAttribute('data-p')!=='chiesto')return;
+if(!(s.classList.contains('fuori')||!s.classList.contains('dentro')))return;
+try{s.remove();}catch(e){}
+ST.da=null;nccSez(da);
+/* prima il segno del ritorno (la pagina e' subito al suo posto), poi dove eri arrivato scorrendo: al contrario
+   la pagina partiva da fuori a destra e per qualche fotogramma si vedeva la Home */
+var n=document.getElementById('scnOv');
+if(n&&!n.classList.contains('dentro')){n.classList.add('sc-indietro');setTimeout(function(){try{n.classList.remove('sc-indietro');}catch(e){}},600);}
+try{var b=corpoEl();if(b)b.scrollTop=ST.daTop||0;}catch(e){}
+}catch(e){}});
+}catch(e){}
+},true);
+
+/* ── per la Home: quanti dei percorsi chiesti hai gia' fra i tuoi ── */
+window.nccChiestoConti=function(){
+try{var C=conti(),M=indiceMiei(),n=0;
+C.perc.forEach(function(o){var t=stato(o,M).tipo;if(t==='mio'||t==='mioinv')n++;});
+return {salvati:n,tot:C.perc.length};}catch(e){return {salvati:0,tot:0};}
+};
+/* per i giri di prova */
+window.nccChiestoStato=function(){return {tab:ST.tab,ses:ST.ses,da:ST.da,top:ST.top,n:ST.lista.length,rit:RIT?RIT.k:null,nm:!!NM};};
+window.nccChiestoMotore={SES:SES,TEMI:TEMI,LU:LU,PZN:PZN,nl:nl,luogo:luogo,nome:nome,estremi:estremi,conti:conti,
+stato:stato,indiceLibro:indiceLibro,indiceMiei:indiceMiei,piazzaDi:piazzaDi,pagLib:pagLib,marcati:marcati,
+domandeDi:domandeDi,domandeTema:domandeTema,domanda:domanda};
+})();
+
+/* ═══════════════════════════════════════════════════
    🏠 HOME A RIQUADRI — fase 2
    In cima i suggerimenti: quello che sbagli.
    Sotto otto riquadri grandi, ognuno col suo numero.
@@ -10272,6 +11163,7 @@ o.esame=Math.round((d-g)/86400000);}}catch(e){}
 try{var sk=L('streak',null);o.striscia=(sk&&sk.n)||0;}catch(e){o.striscia=0;}
 try{if(typeof qStats!=='undefined'&&qStats)o.vie=Object.keys(qStats).reduce(function(a,k){
 return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){o.vie=0;}
+try{if(window.nccChiestoConti){var cc=nccChiestoConti();o.chS=cc.salvati;o.chT=cc.tot;}}catch(e){}
 return o;
 }
 
@@ -10299,7 +11191,7 @@ d:'Una scheda da un minuto per restare in forma',b:'Vai',fn:'nccUnMinuto'});
 return s.slice(0,3);
 }
 window.nccHmErrori=function(){
-try{nccAvvio(function(){try{buildQuiz();qStartCat('errata');}catch(e){}});}catch(e){}
+try{window.__nccQuizOrigine='home';nccAvvio(function(){try{buildQuiz();qStartCat('errata');}catch(e){}});}catch(e){}   /* (v149) si parte dalla Home: li' si torna */
 };
 window.nccHmDebole=function(){
 try{
@@ -10316,7 +11208,8 @@ pz:'<path d="M12 2 22 12 12 22 2 12z"/>',
 luoghi:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
 norme:'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/>',
 esame:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-stat:'<path d="M5 20V11M12 20V5M19 20v-7"/>'
+stat:'<path d="M5 20V11M12 20V5M19 20v-7"/>',
+orale:'<path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.6c0 1.6 2.5 3 5.5 3s5.5-1.4 5.5-3V11"/><path d="M21.5 9v5.5"/>'
 };
 function icona(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
 +'stroke-linecap="round" stroke-linejoin="round">'+ICONE[k]+'</svg>';}
@@ -10335,7 +11228,10 @@ return [
 {k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?'fra '+n.esame+' giorni':'data passata'):'Imposta la data'),
  c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?String(n.esame):''),w:(n.esame===1?'giorno':'giorni'),fn:'nccHmEsame'},
 {k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
- b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),w:(n.striscia===1?'giorno':'giorni'),fn:'nccStat'}
+ b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),w:(n.striscia===1?'giorno':'giorni'),fn:'nccStat'},
+/* (v149) quello che hanno chiesto agli orali: un riquadro largo in fondo */
+{k:'orale',t:'Chiesto all\u2019esame',s:'Percorsi, piazze e regole chiesti agli orali',c:'#A0522D',
+ b:(n.chT?fr(n.chS||0,n.chT):''),w:'salvati',fn:'nccChiesto',largo:true}
 ];
 }
 
@@ -10382,7 +11278,7 @@ var h='<div class="hm-top"><h1 class="hm-ciao">'+E(saluto())+'</h1>'
 /* il coach: l'unico posto dei suggerimenti, un messaggio alla volta */
 h+=coach(n)+(typeof window.nccOggiHTML==='function'?nccOggiHTML():'')+'<div class="hm-griglia">';
 riquadri(n).forEach(function(r){
-h+='<button class="hm-rq" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
+h+='<button class="hm-rq'+(r.largo?' hm-rq-largo':'')+'" style="--rq:'+r.c+'" onclick="'+r.fn+'()">'
 +'<span class="hm-rq-top"><span class="hm-rq-ic">'+icona(r.k)+'</span>'
 +(r.b?'<span class="hm-rq-bx"><span class="hm-rq-b">'+E(r.b)+'</span>'+(r.w?'<span class="hm-rq-w">'+E(r.w)+'</span>':'')+'</span>':'')+'</span>'
 +'<span class="hm-rq-t">'+E(r.t)+'</span>'
@@ -10507,7 +11403,8 @@ quiz:{t:'Quiz',c:C.arancio,
 testa:(n.tot?{t:'Banca dati: sai '+n.sai+' su '+n.tot+' domande',p:pct(n.sai,n.tot)}:null),
 g:[
 {t:'ESAME',v:[
-{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))}]},
+{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))},
+{ic:'\ud83c\udf93',c:'#A0522D',n:'Domande fuori dispensa',s:'Quelle uscite all\u2019esame, con le 52 nuove',a:az('q11',function(){nccChiesto({tab:'quiz',da:'quiz'});}),resta:true}]},
 {t:'ALLENAMENTO',v:[
 {ic:'\ud83d\udcdd',c:C.arancio,n:'Scheda di allenamento',s:'Il mix scelto dal coach',a:az('q2',quiz('qStartMix'))},
 {ic:'\ud83c\udd95',c:C.blu,n:'Domande nuove',s:'Solo quelle mai viste',a:az('q3',quiz('qStartNew'))},
@@ -10530,12 +11427,13 @@ g:[
 {ic:'\ud83d\udcd6',c:C.verde,n:'Studio',s:'Tutte le vie in vista',a:az('t3',topo('s'))},
 {ic:'\ud83d\ude48',c:C.arancio,n:'Cieco',s:'Le vie coperte, le scopri una a una',a:az('t4',topo('c'))},
 {ic:'\u270d\ufe0f',c:C.rosso,n:'Quiz vie',s:'Le scrivi tu, i refusi non contano',a:az('t5',topo('q'))},
-{ic:'\ud83c\udfb2',c:C.viola,n:'Percorso a caso',s:'Fra quelli che hai preparato',a:az('t6',function(){try{goTopografia();setTimeout(function(){rndRoute();},340);}catch(e){}})},
+{ic:'\ud83c\udfb2',c:C.viola,n:'Percorso a caso',s:'Fra quelli che hai preparato',a:az('t6',function(){try{var t=Date.now();goTopografia();setTimeout(function(){if((window.__nccIndietroT||0)>=t)return;rndRoute();},340);}catch(e){}})},
 {ic:'\ud83e\udde9',c:C.teal,n:'Ordina le vie',s:'Rimetti in fila le tappe',a:az('t7',function(){ordinaVie();})},
 {ic:'\ud83d\udd8a\ufe0f',c:C.arancio,n:'Disegna a memoria',s:'Traccia il percorso sulla mappa senza nomi',a:az('t13',function(){nccDisegnaPercorso();}),resta:true},
-{ic:'\ud83d\udd01',c:C.rosa,n:'Vie da ripassare',s:'Quelle che sbagli nel Quiz vie',d:n.vie?String(n.vie):'',a:az('t8',function(){openWrong();})}]},
+{ic:'\ud83d\udd01',c:C.rosa,n:'Vie da ripassare',s:'Quelle che sbagli nel Quiz vie',d:n.vie?String(n.vie):'',a:az('t8',function(){openWrong();})},
+{ic:'\ud83c\udf93',c:'#A0522D',n:'Percorsi chiesti all\u2019esame',s:'I pi\u00f9 chiesti agli orali, e quali hai gi\u00e0',a:az('t15',function(){nccChiesto({tab:'perc',da:'topo'});}),resta:true}]},
 {t:'I TUOI PERCORSI',v:[
-{ic:'\u2795',c:C.verde,n:'Nuovo percorso',s:'Scrivi le tappe di un percorso tuo',a:az('t0',function(){try{goTopografia();setTimeout(function(){openAdd();},340);}catch(e){}})},
+{ic:'\u2795',c:C.verde,n:'Nuovo percorso',s:'Scrivi le tappe di un percorso tuo',a:az('t0',function(){try{var t=Date.now();goTopografia();setTimeout(function(){if((window.__nccIndietroT||0)>=t)return;openAdd();},340);}catch(e){}})},
 {ic:'\ud83d\udccb',c:C.grigio,n:'Percorsi salvati',s:'Modifica, rinomina, cancella',d:n.perc?String(n.perc):'',a:az('t9',function(){openMgr();})},
 {ic:'\u270f\ufe0f',c:C.arancio,n:'Correggi le tappe',s:'Rinomina, correggi, sposta, aggiungi',a:az('t12',function(){nccCorreggiElenco();}),resta:true},
 {ic:'\ud83d\udccd',c:C.rosso,n:'Senza marker',s:'Da completare sulla mappa',d:n.senza?String(n.senza):'0',a:az('t10',function(){nccSenzaMarker();}),resta:true},
@@ -10552,9 +11450,10 @@ g:[
 {ic:'\u2753',c:C.verde,n:'Quali vie sboccano',s:'Ti do la piazza, scegli le vie',a:az('p4',function(){pzQuizVie();})},
 {ic:'\ud83d\udd04',c:C.blu,n:'Dove sbocca una via',s:'Ti do la via, trova la piazza',a:az('p5',function(){pzQuizInv();})},
 {ic:'\ud83e\udded',c:C.indaco,n:'Mappa muta',s:'Tocca dove si trova la piazza',a:az('p8',function(){nccMappaMuta();}),resta:true},
-{ic:'\u2705',c:C.viola,n:'Verifica',s:'Tutte le vie di una piazza, a memoria',a:az('p6',function(){try{var p=pzPescaPiazza();if(p){openPiazze();setTimeout(function(){pzApri(p.id);setTimeout(function(){pzVerifica(p.id);},200);},200);}}catch(e){}})}]},
+{ic:'\u2705',c:C.viola,n:'Verifica',s:'Tutte le vie di una piazza, a memoria',a:az('p6',function(){try{var p=pzPescaPiazza();if(p){window.__nccVerDaPagina=Date.now();openPiazze();setTimeout(function(){pzApri(p.id);setTimeout(function(){pzVerifica(p.id);},200);},200);}}catch(e){}})}]},
 {t:'ELENCO',v:[
-{ic:'\ud83d\udcda',c:C.grigio,n:'Tutte le piazze',s:'91 piazze, con la ricerca',d:n.pzTot?String(n.pzTot):'',a:az('p7',function(){openPiazze();})}]}
+{ic:'\ud83d\udcda',c:C.grigio,n:'Tutte le piazze',s:'91 piazze, con la ricerca',d:n.pzTot?String(n.pzTot):'',a:az('p7',function(){openPiazze();})},
+{ic:'\ud83c\udf93',c:'#A0522D',n:'Confluenze chieste all\u2019esame',s:'Le piazze chieste agli orali',a:az('p9',function(){nccChiesto({tab:'pz',da:'pz'});}),resta:true}]}
 ]},
 norme:{t:'Norme e tariffe',c:C.indaco,testa:null,
 g:[
@@ -10562,7 +11461,8 @@ g:[
 {ic:'\ud83d\udcdc',c:C.indaco,n:'Gli articoli',s:'Dal 38 al 61, punto per punto',a:az('n1',function(){openNorme();})},
 {ic:'\ud83d\udd22',c:C.arancio,n:'I numeri da ricordare',s:'Misure, giorni, scadenze',a:az('n2',function(){openNorme();setTimeout(function(){try{nmNumeri();}catch(e){}},220);})},
 {ic:'\u2696\ufe0f',c:C.rosso,n:'Le quattro classi',s:'1-3 \u00b7 3-7 \u00b7 7-30 \u00b7 30-90 giorni',a:az('n3',function(){openNorme();setTimeout(function(){try{nmClassi();}catch(e){}},220);})},
-{ic:'\u2753',c:C.verde,n:'Quiz sulle norme',s:'41 domande sul regolamento',a:az('n4',function(){nmQuiz();})}]},
+{ic:'\u2753',c:C.verde,n:'Quiz sulle norme',s:'41 domande sul regolamento',a:az('n4',function(){nmQuiz();})},
+{ic:'\ud83c\udf93',c:'#A0522D',n:'Regolamento chiesto all\u2019esame',s:'Le domande degli orali, tema per tema',a:az('n7',function(){nccChiesto({tab:'reg',da:'norme'});}),resta:true}]},
 {t:'TARIFFE',v:[
 {ic:'\ud83d\udcd0',c:C.teal,n:'Il prontuario',s:'Scatti, fisse, minimi aeroporti',a:az('n5',function(){openRegole();})},
 {ic:'\ud83d\udcb6',c:C.verde,n:'Quiz sulle tariffe',s:'Gli importi a memoria',a:az('n6',function(){regQuiz();})}]}
@@ -10570,10 +11470,15 @@ g:[
 };
 }
 
+/* (v149) dove eri arrivato scorrendo, pagina per pagina: tornando indietro (la pagina arriva da sinistra) si riparte
+   da li' e non dall'inizio (prima la riga che avevi toccato finiva sotto, fuori dallo schermo) */
+var POS={};
+function ricorda(o){try{var b=document.getElementById('scnBody'),k=o&&o.getAttribute('data-p');if(b&&k)POS[k]=b.scrollTop;}catch(e){}}
 function pagina(id,titolo,corpo,indietro){
 var o=document.getElementById('scnOv');
 var nuovo=!o;
 if(nuovo){o=document.createElement('div');o.id='scnOv';o.className='rd';document.body.appendChild(o);}
+else ricorda(o);
 o.innerHTML=nccTestata(titolo,(indietro||'nccSezChiudi()'),id)
 +'<div class="pf-body" id="scnBody">'+corpo+'</div>';
 try{o.classList.remove('dc-largo');if(window.nccColonne)nccColonne(o);}catch(e){}   /* iPad: i gruppi in colonne prima del primo disegno */
@@ -10588,6 +11493,9 @@ bordo(o);
 b.classList.add('sc-entra');
 }
 o.setAttribute('data-p',id);
+try{Promise.resolve().then(function(){try{
+if(o.classList.contains('sc-indietro')&&POS[id]&&document.getElementById('scnBody')===b&&document.getElementById('scnOv')===o)b.scrollTop=POS[id];
+}catch(e){}});}catch(e){}
 }
 
 /* ── FASE 4: le schede in stile app quiz ──
@@ -10625,7 +11533,11 @@ p6:['Avvia','Tutte le vie di una piazza, a memoria, senza aiuti.'],
 p8:['Gioca','Ti dico una piazza e tu tocchi sulla mappa senza nomi dove si trova: vedi di quanti metri hai sbagliato. Dieci di fila, fra le piazze completate.'],
 t13:['Disegna','Sulla mappa senza nomi tracci il percorso da A a B, con la Pencil o col dito. Poi vedi il percorso giusto e quante tappe hai preso.'],
 n4:['Avvia','41 domande sul regolamento comunale.'],
-n6:['Avvia','Gli importi delle tariffe, a memoria.']};
+n6:['Avvia','Gli importi delle tariffe, a memoria.'],
+q11:['Apri','Le domande dei quiz uscite all’esame fuori dispensa (foglio ufficiale, quiz extra 2023 e 2024, geografia). Quelle che mancavano sono state aggiunte alla banca dati.'],
+t15:['Apri','I percorsi chiesti agli orali da ottobre 2025 a febbraio 2026, i più frequenti in cima: per ognuno vedi se ce l’hai, se è nel libro della scuola o se è da preparare.'],
+p9:['Apri','Le piazze di cui agli orali hanno chiesto le confluenze. Quelle che mancano le aggiungi tu.'],
+n7:['Apri','Le domande sul regolamento fatte agli orali, tema per tema, con l’articolo da leggere e le domande del quiz sullo stesso argomento.']};
 var LINK={q4:1,t0:1,t9:1,t10:1,t11:1,t12:1,p7:1,n1:1,n2:1,n3:1,n5:1};
 
 function righeHTML(gruppi){
@@ -10663,10 +11575,11 @@ nccPopup({icona:r.ic,titolo:r.n,testo:ex[1]||r.s||'',azioni:[
 };
 function dividiTopo(P){
 try{var st=P.g.filter(function(g){return g.t==='STUDIA';})[0];if(!st)return;
-var rip=st.v.filter(function(r){return r.a==='t6'||r.a==='t7'||r.a==='t8'||r.a==='t13';});
+var rip=st.v.filter(function(r){return r.a==='t6'||r.a==='t7'||r.a==='t8'||r.a==='t13'||r.a==='t15';});
 st.v=st.v.filter(function(r){return rip.indexOf(r)<0;});
 var i=P.g.indexOf(st);P.g.splice(i+1,0,{t:'RIPASSO',v:[rip.filter(function(r){return r.a==='t8';})[0],
-rip.filter(function(r){return r.a==='t6';})[0],rip.filter(function(r){return r.a==='t7';})[0],rip.filter(function(r){return r.a==='t13';})[0]].filter(Boolean)});}catch(e){}
+rip.filter(function(r){return r.a==='t6';})[0],rip.filter(function(r){return r.a==='t7';})[0],rip.filter(function(r){return r.a==='t13';})[0],
+rip.filter(function(r){return r.a==='t15';})[0]].filter(Boolean)});}catch(e){}   /* (v149) in fondo, i percorsi chiesti all'esame */
 }
 
 window.nccPagina=function(id,t,c,ind){pagina(id,t,c,ind);};
@@ -10734,6 +11647,7 @@ setTimeout(function(){try{goTopografia();setTimeout(function(){selectRoute(r);se
 window.nccSezChiudi=function(subito){
 try{
 var o=document.getElementById('scnOv');if(!o)return;
+ricorda(o);
 if(subito){o.remove();return;}
 o.classList.remove('dentro');o.classList.add('fuori');
 setTimeout(function(){try{o.remove();}catch(e){}},320);
@@ -10757,6 +11671,7 @@ o.addEventListener('touchcancel',function(){rilascia(false);},{passive:true});
 }
 
 /* ── come il profilo: qualunque navigazione chiude la pagina ── */
+function sopra(){try{return ['pzOv','pzMapOv','scOv','pzqOv','nmOv','rgOv','rgqOv'].some(function(id){var e=document.getElementById(id);return !!(e&&!e.classList.contains('fuori'));});}catch(e){return false;}}
 setTimeout(function(){
 try{
 ['goHome','goTopografia','openQuiz','openStudy','openPiazze','openNorme','openRegole',
@@ -10765,7 +11680,9 @@ try{
 if(typeof window[n]!=='function'||window[n].__sc)return;
 var _o=window[n];
 var w=function(){
-try{if(document.getElementById('scnOv')&&!window.__nccTieniPagina)nccSezChiudi(true);}catch(e){}
+/* (v149) se sopra la pagina c'e' gia' una piazza, un articolo o le tariffe (aperti dalla pagina), ci si sta muovendo
+   li' dentro: la pagina resta sotto e chiudendo si torna a lei */
+try{if(document.getElementById('scnOv')&&!window.__nccTieniPagina&&!sopra())nccSezChiudi(true);}catch(e){}
 return _o.apply(this,arguments);};
 w.__sc=true;window[n]=w;
 });
@@ -11371,7 +12288,8 @@ profilo:['\ud83d\udc64','Profilo','Le impostazioni dell\u2019app e i tuoi dati: 
 stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto e la tua costanza.'],
 senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemmeno un marker. Tocca un percorso: si apre sulla mappa pronto per posizionarli.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
-correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le vie di un percorso sulla mappa piccola. Con \u201cPosiziona in sequenza\u201d tocchi la mappa e il marker passa da solo alla tappa dopo.']
+correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le vie di un percorso sulla mappa piccola. Con \u201cPosiziona in sequenza\u201d tocchi la mappa e il marker passa da solo alla tappa dopo.'],
+chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. In Quiz trovi le domande uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati.']
 };
 window.nccInfo=function(k){
 var i=INFO[k]||INFO.quiz;
@@ -11395,7 +12313,7 @@ function inietta(){
 try{
 PRESE.forEach(function(p){
 var el=document.querySelector(p[0]);if(!el||!el.parentElement)return;
-if(el.parentElement.querySelector('.t-info'))return;
+if(el.parentElement.querySelector('.t-info,.qhi'))return;   /* (v149) ha gia' la sua (i): non ne metto una seconda sopra */
 var b=document.createElement('button');b.className='t-info t-info-in';b.textContent='i';
 b.setAttribute('aria-label','Informazioni');
 b.onclick=function(ev){ev.stopPropagation();nccInfo(p[1]);};
@@ -11791,6 +12709,7 @@ if(o)unisciZitto(o);
 Object.keys(dietro).forEach(function(k){if(ks.indexOf(k)<0)ks.push(k);});dietro={};
 var r=ramo(),loc=raccogli();if(!r)return;
 ks.forEach(function(k){try{if(loc[k]!=null)r.child(k).set(loc[k]);}catch(e){}});
+inviate(ks);
 try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}
 });
 }
@@ -11801,16 +12720,28 @@ var r=_si.apply(this,arguments);
 if(!zitto&&CHIAVI.indexOf(k)>=0){cambiate[k]=1;clearTimeout(tm);tm=setTimeout(invia,3000);}
 return r;};
 }catch(e){}
-/* (v147) l'app si chiude prima dei 3 secondi: le chiavi cambiate partono subito, una per una
-   (il salvataggio veloce dell'app non porta piu' questo ramo intero, che rimetteva le copie vecchie) */
+/* (v149) l'app si chiude prima dei 3 secondi: le chiavi cambiate si segnano sul dispositivo e partono alla
+   riapertura, unite a quelle del cloud come sempre (v147 le scriveva subito alla cieca: cancellava quello che
+   l'altro dispositivo aveva appena mandato, per esempio il quiz di «Oggi» fatto sull'iPad) */
+var SOSP='nccInSospeso';
 function subito(){
 try{
-var ks=Object.keys(cambiate);if(!ks.length||!ramo()||!navigator.onLine)return;
-clearTimeout(tm);cambiate={};
-var r=ramo(),loc=raccogli();
-ks.forEach(function(k){try{if(loc[k]!=null)r.child(k).set(loc[k]);}catch(e){}});
+var ks=Object.keys(cambiate);if(!ks.length)return;
+var v=[];try{v=JSON.parse(localStorage.getItem(SOSP)||'[]')||[];}catch(e){}
+ks.forEach(function(k){if(v.indexOf(k)<0)v.push(k);});
+localStorage.setItem(SOSP,JSON.stringify(v));
 }catch(e){}
 }
+function inviate(ks){
+try{var v=JSON.parse(localStorage.getItem(SOSP)||'[]')||[];if(!v.length)return;
+v=v.filter(function(k){return ks.indexOf(k)<0;});
+if(v.length)localStorage.setItem(SOSP,JSON.stringify(v));else localStorage.removeItem(SOSP);}catch(e){}
+}
+setTimeout(function(){
+try{var v=JSON.parse(localStorage.getItem(SOSP)||'[]')||[];if(!v.length)return;
+v.forEach(function(k){if(CHIAVI.indexOf(k)>=0)cambiate[k]=1;});
+clearTimeout(tm);tm=setTimeout(invia,300);}catch(e){}
+},4200);
 try{
 document.addEventListener('visibilitychange',function(){if(document.hidden)subito();});
 window.addEventListener('pagehide',subito);
@@ -11867,13 +12798,25 @@ return r;};}catch(e){}
    quarto di secondo che serve, ma il quiz resta invisibile finche'
    la sessione non e' pronta. Se la sessione non parte (es. nessun
    errore), dopo poco il quiz ricompare comunque. */
+/* (v149) l'ultimo indietro (tasto del telefono o gesto): se arriva prima che l'esercizio parta, non parte */
+window.__nccIndietroT=0;
+window.addEventListener('popstate',function(){window.__nccIndietroT=Date.now();},true);
 window.nccAvvio=function(fn){
+var tAvvio=Date.now();
 try{document.body.classList.add('qz-avvio');}catch(e){}
 try{openQuiz();}catch(e){}
 setTimeout(function(){
+/* hai toccato e subito tornato indietro: prima l'esercizio partiva lo stesso, sopra la Home */
+if(window.__nccIndietroT>=tAvvio){try{if(window.nccQuizAnnulla)nccQuizAnnulla();}catch(e){}return;}
 try{fn();}catch(e){}
+/* (v149) non e' partito niente, solo un avviso («Nessun errore storico», «Nessun segnalibro»...): si decide subito.
+   Prima si aspettava un secondo e mezzo: la vecchia schermata del quiz si vedeva per un attimo e, se intanto
+   tornavi indietro, la pagina Quiz si riapriva da sola */
+try{if(window.nccQuizFermo&&nccQuizFermo())return;}catch(e){}
 var t0=Date.now();
 (function libera(){
+/* (v149) c'e' un riquadro che chiede (Inizia / Non ora): dietro resta quello che c'era; decide chi sorveglia */
+if(document.getElementById('popOv')&&!(typeof qCurView!=='undefined'&&qCurView==='run'))return;
 var pronta=(typeof qCurView!=='undefined'&&qCurView==='run')||Date.now()-t0>1200;
 if(pronta)requestAnimationFrame(function(){try{document.body.classList.remove('qz-avvio');}catch(e){}});
 else requestAnimationFrame(libera);
@@ -12060,7 +13003,7 @@ window.nccQuizBlocchi={VECCHIO:VECCHIO,togliVecchi:togliVecchi,snapPulito:snapPu
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var NAV={origine:null,sezT:0,tocco:0,ereditaT:0,ritorno:false,saltaApri:0,soloChiudi:false,
+var NAV={origine:null,sezT:0,tocco:0,ereditaT:0,ritorno:false,saltaApri:0,soloChiudi:false,verDa:null,
 dettaglioDa:null,dettaglioId:null,mappaDa:null,mappaAperta:false,scriviDa:null,scriviDet:null,scriviAperto:false,quizReg:false};
 function ov(){var o=document.getElementById('pzOv');return (o&&document.body.contains(o))?o:null;}
 function vista(){var o=ov();if(!o)return null;
@@ -12101,7 +13044,7 @@ NAV.dettaglioDa=null;NAV.dettaglioId=null;NAV.mappaAperta=false;NAV.scriviAperto
 window.__nccTieniPagina=true;var r0=_sv.call(this,nome,1),t0=Date.now();
 (function att(){try{
 if(!nessunaPiazza()){window.__nccTieniPagina=false;
-setTimeout(function(){try{var x=document.getElementById('scnOv');if(x&&x.getAttribute('data-p')==='pz')nccSezChiudi(true);}catch(e){}},260);return;}
+setTimeout(function(){try{var x=document.getElementById('scnOv');if(x&&x.getAttribute('data-p')==='pz'&&!nessunaPiazza())nccSezChiudi(true);}catch(e){}},260);return;}   /* (v149) chiusa nel frattempo con un indietro: la pagina resta */
 if(Date.now()-t0<1300){setTimeout(att,50);return;}
 window.__nccTieniPagina=false;NAV.origine=null;            /* non si e' aperto niente: resto sulla pagina */
 }catch(e){}})();
@@ -12117,6 +13060,7 @@ window.pzApri=function(id){
 try{
 if(NAV.saltaApri&&Date.now()-NAV.saltaApri<700){NAV.saltaApri=0;return;}
 entrata();
+NAV.verDa=null;
 var v=vista();
 if(NAV.ritorno)NAV.ritorno=false;
 else if(Date.now()-NAV.ereditaT<900)NAV.ereditaT=0;
@@ -12127,6 +13071,11 @@ NAV.dettaglioId=id;
 return _pa.apply(this,arguments);
 };
 window.pzApri.__nav=true;
+/* (v149) da dove parte la verifica: dalla riga «Verifica» della pagina Piazze o da «Mi verifico» della piazza */
+var _pv=window.pzVerifica;
+if(typeof _pv==='function'&&!_pv.__nav){window.pzVerifica=function(){
+try{NAV.verDa=(Date.now()-(window.__nccVerDaPagina||0)<1500)?'pagina':'dettaglio';}catch(e){}
+return _pv.apply(this,arguments);};window.pzVerifica.__nav=true;}
 /* ── indietro dall'elenco, e indietro del telefono dentro le piazze ── */
 var _pc=window.pzChiudi;
 window.pzChiudi=function(){
@@ -12134,7 +13083,9 @@ if(NAV.soloChiudi)return _pc.apply(this,arguments);
 var v=vista();
 if((v==='dettaglio'||v==='risultato')&&NAV.dettaglioDa==='elenco'){
 try{openPiazze();}catch(e){}registra('pzOv',function(){window.pzChiudi();});return;}
-if(v==='verifica'&&NAV.dettaglioId!=null){try{pzApri(NAV.dettaglioId);}catch(e){}registra('pzOv',function(){window.pzChiudi();});return;}
+/* (v149) dalla verifica alla sua piazza solo se l'avevi fatta partire tu dalla piazza («Mi verifico»); entrata dalla
+   riga «Verifica» della pagina, ‹ torna alla pagina (prima passava da una piazza mai vista) */
+if(v==='verifica'&&NAV.dettaglioId!=null&&NAV.verDa!=='pagina'){try{pzApri(NAV.dettaglioId);}catch(e){}registra('pzOv',function(){window.pzChiudi();});return;}
 if(v==='altro'){try{openPiazze();}catch(e){}registra('pzOv',function(){window.pzChiudi();});return;}
 var r=_pc.apply(this,arguments);
 allOrigine();
@@ -12213,6 +13164,11 @@ else if(v==='dettaglio'&&t.closest('.pz-rnd'))NAV.ereditaT=Date.now();
 if(t.closest('.pz-hd2 .pz-x')&&(v==='dettaglio'||v==='risultato')){
 ev.stopPropagation();ev.preventDefault();indietroPiazza();
 }
+/* (v149) ✕ della verifica entrata dalla riga «Verifica» (non da «Mi verifico» della piazza): come l'indietro del
+   telefono, torna da dove eri entrato invece di aprire la piazza */
+else if(t.closest('.pz-hd2 .pz-x')&&v==='verifica'&&NAV.verDa==='pagina'){
+ev.stopPropagation();ev.preventDefault();chiudiPiazze();allOrigine();
+}
 }catch(e){}
 },true);
 setTimeout(installa,500);
@@ -12221,7 +13177,12 @@ window.nccPzNav=function(){return JSON.parse(JSON.stringify(NAV));};
 setTimeout(function(){try{
 if(typeof window.pzTrovaMarker!=='function'||window.pzTrovaMarker.__nav)return;
 var _tm=window.pzTrovaMarker;
-window.pzTrovaMarker=function(){var r=_tm.apply(this,arguments);
+window.pzTrovaMarker=function(soloQuesta,silenzioso){
+/* (v149) i marker li metti tu: aprendo la mappa di una piazza senza marker la ricerca su OpenStreetMap non parte
+   piu' da sola (copriva la mappa per secondi e, chiusa la mappa in fretta, compariva lo stesso sopra la pagina).
+   Resta il tasto 🛰 della mappa, che chiede prima */
+if(silenzioso===true)return;
+var r=_tm.apply(this,arguments);
 try{if(document.getElementById('pzGeoP'))registra('pzGeoP',function(){try{pzFermaMarker();}catch(e){}var d=document.getElementById('pzGeoP');if(d)d.remove();});}catch(e){}
 return r;};
 window.pzTrovaMarker.__nav=true;
@@ -12342,28 +13303,55 @@ document.body.classList.remove('qz-avvio');window.__nccTieniPagina=false;window.
 closeQuiz();
 try{goHome();}catch(e){}
 /* Statistiche non e' una pagina di nccSez: si riapre con la sua funzione (prima si finiva in Home) */
-if(QORIG==='home')QORIG=null;else{if(QORIG==='stat'&&window.nccStatTorna)nccStatTorna();else nccSez(QORIG||'quiz');QORIG=null;}
+if(QORIG==='home')QORIG=null;else{if(QORIG==='stat'&&window.nccStatTorna)nccStatTorna();
+else if(QORIG==='chiesto'&&window.nccChiestoTorna)nccChiestoTorna();   /* (v149) dalla pagina Chiesto all'esame: si torna li', sulla stessa scheda */
+else nccSez(QORIG||'quiz');QORIG=null;}
 var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
 }
+/* non e' partito niente: il quiz si chiude e resti dov'eri */
+var DAPAG=false;
+function decidi(daPagina,chiesto){
+if(quizAperto()){
+/* partito da una pagina: resto sulla pagina, la home pronta sotto. (v149) Se nel frattempo la pagina l'hai
+   chiusa tu con indietro, resti sulla Home: prima la pagina si riapriva da sola */
+if(daPagina){window.__nccTieniPagina=true;try{closeQuiz();goHome();}catch(e){}window.__nccTieniPagina=false;}
+/* (v149) «Non ora» (o un tocco fuori): torno dov'ero (la Home, se non si sa altro); prima si finiva sulla pagina Quiz */
+else{if(chiesto&&!QORIG)QORIG='home';menuQuiz();}
+}else window.__nccTieniPagina=false;
+document.body.classList.remove('qz-avvio');
+}
 /* se entro 1,6 s non parte niente (niente da ripassare...): niente dashboard vecchia */
 function sorveglia(daPagina){
-var t0=Date.now(),id=++SORV;
+var t0=Date.now(),id=++SORV,chiesto=false;DAPAG=!!daPagina;
 (function giro(){
 if(id!==SORV)return;
 try{
 if(quizAperto()&&typeof qCurView!=='undefined'&&qCurView!=='dash')return;          /* e' partito */
-if(document.getElementById('popOv')){setTimeout(giro,250);return;}                     /* aspetto la risposta */
-if(Date.now()-t0<1600){setTimeout(giro,250);return;}
-document.body.classList.remove('qz-avvio');
-if(quizAperto()){
-if(daPagina&&document.getElementById('scnOv')){window.__nccTieniPagina=true;try{closeQuiz();goHome();}catch(e){}window.__nccTieniPagina=false;}  /* resto sulla pagina, la home pronta sotto */
-else menuQuiz();
-}else window.__nccTieniPagina=false;
+if(document.getElementById('popOv')){chiesto=true;setTimeout(giro,250);return;}       /* aspetto la risposta */
+if(Date.now()-t0<1600&&!chiesto){setTimeout(giro,250);return;}
+decidi(daPagina,chiesto);
 }catch(e){}
 })();
 }
+/* (v149) chiamata da nccAvvio subito dopo la funzione che doveva far partire l'esercizio */
+window.nccQuizFermo=function(){
+try{
+if(!quizAperto()||document.getElementById('popOv'))return false;
+if(typeof qCurView!=='undefined'&&qCurView!=='dash')return false;
+SORV++;decidi(DAPAG,false);return true;
+}catch(e){return false;}
+};
+/* (v149) indietro prima della partenza: l'esercizio non parte, resti dove ti ha portato l'indietro */
+window.nccQuizAnnulla=function(){
+try{SORV++;
+if(quizAperto()){
+/* appena partito (l'indietro e' arrivato un attimo dopo): la sessione si butta, non c'e' ancora nessuna risposta */
+if(typeof qCurView!=='undefined'&&qCurView==='run'){try{if(Q&&Q.timer){clearInterval(Q.timer);Q.timer=null;}}catch(e){}try{Q=null;}catch(e){}}
+window.__qzHome=null;decidi(true,false);}
+else{window.__nccTieniPagina=false;document.body.classList.remove('qz-avvio');}}catch(e){}
+};
 try{
 if(typeof openQuiz==='function'&&!openQuiz.__unico){
 var _oq=openQuiz;
@@ -12441,12 +13429,21 @@ var c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden';}
 function aperto(){return document.body.classList.contains('on-topo')||su('mgOv')||su('ipOv')||su('addModal')||su('wrModal')||su('mgrModal');}
 function allaPagina(){
 T.orig=false;T.nuovo=false;T.torna=false;
+if(window.nccRitorno&&nccRitorno('topo'))return;   /* (v149) la mappa l'hai aperta da Chiesto all'esame: torni li' */
 try{nccSez('topo');var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}
 }
 function segnaIndietro(){T.indietro=Date.now();}
+/* (v149) la mappa aperta da un'altra pagina (Chiesto all'esame) si comporta come aperta da Topografia:
+   la pagina resta finche' la mappa e' pronta e uscendo dalla mappa (‹, Annulla, tasto del telefono) si torna li' */
+window.nccTopoDa=function(via){T.orig=true;T.torna=true;T.tab=false;T.nuovo=(via==='t0');T.via=via||'';};
 /* i tasti che vogliono dire "indietro" */
-function ricontrolla(){requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){setTimeout(controlla,ms);});}
+/* (v149) i controlli di un indietro di prima si annullano quando ne parte uno nuovo o quando tocchi un'altra riga:
+   prima, ritoccando una riga mentre la pagina tornava, uno di quelli in ritardo dimenticava da dove eri entrato
+   e l'indietro dopo portava alla Home */
+var RC={f:0,t:[]};
+function annullaControlli(){try{cancelAnimationFrame(RC.f);RC.t.forEach(function(x){clearTimeout(x);});}catch(e){}RC.t=[];}
+function ricontrolla(){annullaControlli();RC.f=requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){RC.t.push(setTimeout(controlla,ms));});}
 document.addEventListener('click',function(ev){try{var t=ev.target;if(!t||!t.closest)return;
 if(t.closest('#tabbar')){T.tab=true;T.orig=false;T.torna=false;return;}
 if(t.closest('#tpBack,.mhdr-close,.bcn,#mgOv .mg-b[title="Esci"],.ip-x,#ordModal button')){segnaIndietro();ricontrolla();}}catch(e){}},true);
@@ -12480,11 +13477,20 @@ if(typeof _sv==='function'&&!_sv.__topo){
 window.nccSezVai=function(nome,resta){
 try{
 if(!resta&&pag()==='topo'){
+annullaControlli();
 window.__nccTieniPagina=true;T.orig=true;T.torna=true;T.nuovo=(nome==='t0');T.via=nome;
-var r=_sv.call(this,nome,1),t0=Date.now();
+var tE=Date.now(),r=_sv.call(this,nome,1),t0=Date.now();
 (function att(){try{
 if(aperto()){window.__nccTieniPagina=false;var fin=document.body.classList.contains('on-topo')&&!su('addModal')&&!su('ordModal')?0:260;   /* le finestre sfumano: la pagina resta sotto finche' sono piene */
-setTimeout(function(){try{if(pag()==='topo')nccSezChiudi(true);}catch(e){}},fin);return;}
+setTimeout(function(){try{
+if(pag()!=='topo')return;
+/* (v149) un indietro arrivato nel frattempo: la pagina resta (prima si chiudeva lo stesso e restava la mappa,
+   aperta solo per far partire l'esercizio, come in «Ordina le vie»); quella mappa si chiude sotto la pagina */
+if((window.__nccIndietroT||0)>=tE){
+if(document.body.classList.contains('on-topo')&&!su('ordModal')&&!su('addModal')){window.__nccTieniPagina=true;try{goHome();}catch(e){}window.__nccTieniPagina=false;}
+return;}
+if(aperto())nccSezChiudi(true);
+}catch(e){}},fin);return;}
 if(Date.now()-t0<1300){setTimeout(att,50);return;}
 window.__nccTieniPagina=false;T.orig=false;T.nuovo=false;      /* non si e' aperto niente: resto sulla pagina */
 }catch(e){}})();
@@ -12541,7 +13547,7 @@ var DEST=['nmOv','rgOv','rgqOv'];
 function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
 function vis(id){var e=document.getElementById(id);if(!e)return false;var c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden';}
 function aperto(){return DEST.some(vis);}
-function firma(){var h=document.querySelector('#nmOv .nm-hd');return h?h.textContent.trim():'';}
+function firma(){var h=document.querySelector('#nmOv .nm-hd');return h?(((h.querySelector('.nm-ti')||{}).textContent||'')+'|'+((h.querySelector('.nm-su')||{}).textContent||'')).trim():'';}   /* (v149) senza i tasti: la (i) arriva dopo */
 function allaPagina(){
 N.torna=false;
 try{nccSez('norme');var s=document.getElementById('scnOv');
@@ -12552,7 +13558,12 @@ if(pag()==='norme'){N.torna=false;return;}
 if(!N.torna||pag())return;
 if(!aperto())allaPagina();
 }catch(e){}}
-function ricontrolla(){requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){setTimeout(controlla,ms);});}
+/* (v149) i controlli di un indietro di prima si annullano quando ne parte uno nuovo o quando tocchi un'altra riga:
+   prima, ritoccando una riga mentre la pagina tornava, uno di quelli in ritardo dimenticava da dove eri entrato
+   e l'indietro dopo portava alla Home */
+var RC={f:0,t:[]};
+function annullaControlli(){try{cancelAnimationFrame(RC.f);RC.t.forEach(function(x){clearTimeout(x);});}catch(e){}RC.t=[];}
+function ricontrolla(){annullaControlli();RC.f=requestAnimationFrame(controlla);[150,400,750].forEach(function(ms){RC.t.push(setTimeout(controlla,ms));});}
 /* ‹ nelle tre finestre */
 document.addEventListener('click',function(ev){try{
 var t=ev.target;if(!t||!t.closest)return;
@@ -12584,6 +13595,7 @@ setTimeout(function(){try{
 var _sv=window.nccSezVai;if(typeof _sv!=='function'||_sv.__norme)return;
 window.nccSezVai=function(nome,resta){
 try{if(!resta&&pag()==='norme'){
+annullaControlli();
 window.__nccTieniPagina=true;N.torna=true;N.firma='';N.primo=false;
 var r=_sv.call(this,nome,1),t0=Date.now();
 (function att(){try{
@@ -12591,7 +13603,7 @@ if(aperto()){window.__nccTieniPagina=false;
 /* le Tariffe sono una pagina che entra sopra questa: la pagina Norme resta sotto,
    chiudendo le Tariffe e' gia' li' (niente da riaprire) */
 if(vis('rgOv')){N.torna=false;return;}
-setTimeout(function(){try{if(pag()==='norme')nccSezChiudi(true);}catch(e){}},260);return;}
+setTimeout(function(){try{if(pag()==='norme'&&aperto())nccSezChiudi(true);}catch(e){}},260);return;}   /* (v149) chiusa nel frattempo con un indietro: la pagina resta */
 if(Date.now()-t0<1300){setTimeout(att,50);return;}
 window.__nccTieniPagina=false;N.torna=false;                /* non si e' aperto niente: resto sulla pagina */
 }catch(e){}})();
@@ -12599,6 +13611,38 @@ return r;}}catch(e){}
 return _sv.apply(this,arguments);};
 window.nccSezVai.__norme=true;
 }catch(e){}},1300);
+})();
+
+/* ═══════════════════════════════════════════════════
+   👆 (v149) IL DOPPIO TOCCO
+   Mentre una schermata entra o esce, come su iPhone, i tocchi non contano:
+   · dopo un tocco su una riga che apre qualcosa (o su ‹) per 400 ms nessun altro tocco:
+     prima «Tutte le piazze» toccato due volte apriva anche la piazza che il secondo tocco
+     trovava sotto il dito, e una riga toccata due volte si apriva due volte
+   · un tocco entro 400 ms su una schermata che al tocco prima non si vedeva ancora
+     (un riquadro appena comparso) non vale
+   Solo i tocchi veri (dito, mouse, Pencil): la tastiera e i clic del codice passano sempre.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var APRE='.qc-riga,.qc-i,.hm-rq,.og-r,.hm-lente,.pf-r,.pz-row,.ri,.sd-tile,.coach-row,#tabbar .tab';
+var INDIETRO='.t-back,.qback,.pz-x,.pzq-x,.pzg-x,.nm-x,.rg-x,.cx-x,.ip-x,.rq-x,.or-x,.sc-x,.qrun-x,#tpBack,.mhdr-close,#mgOv .mg-b[title="Esci"]';
+var ULT=null;
+function radice(el){var t=el;while(t&&t.parentElement&&t.parentElement!==document.body)t=t.parentElement;return (t&&t.parentElement===document.body)?t:null;}
+function visibili(){var v=[];[].forEach.call(document.body.children,function(e){
+try{if(!e.getClientRects().length)return;var s=getComputedStyle(e);if(s.visibility==='hidden'||+s.opacity<0.05)return;v.push(e);}catch(x){}});return v;}
+window.addEventListener('click',function(ev){
+try{
+if(!ev.isTrusted||!ev.detail)return;
+var t=ev.target;if(!t||!t.closest)return;
+var ora=Date.now();
+if(ULT&&ora-ULT.t<400){
+var r=radice(t);
+if(ULT.passaggio||(r&&ULT.vis.indexOf(r)<0)){ev.stopPropagation();ev.preventDefault();return;}
+}
+ULT={t:ora,passaggio:!!t.closest(APRE+','+INDIETRO),vis:visibili()};
+}catch(e){}
+},true);
 })();
 
 /* ═══ Statistiche: il piano si apre senza Home di passaggio e torna alla pagina ═══ */
@@ -13179,7 +14223,9 @@ function avviso(t){try{if(typeof toast2==='function')toast2(t,2200);}catch(e){}}
 
 /* ── la schermata: entra da destra, indietro del telefono la chiude ── */
 function apriOv(id,html,chiudi){
-var o=document.getElementById(id),nuovo=!o;
+var o=document.getElementById(id);
+if(o&&o.classList.contains('fuori')){try{o.remove();}catch(e){}o=null;}   /* (v149) stava ancora scorrendo via: ne apro uno nuovo (prima restava vuoto e spariva) */
+var nuovo=!o;
 if(nuovo){o=document.createElement('div');o.id=id;o.className='rd';document.body.appendChild(o);}
 o.innerHTML=html;
 if(nuovo){
@@ -13227,7 +14273,10 @@ dmApri(r);hp();
 };
 function ditoEtichetta(){
 var b=document.getElementById('dmDito');if(!b)return;
-b.textContent=DM.dito?'☝️ Disegni col dito':'✋ Il dito sposta';
+/* (v149) sul telefono resta l'icona, come nella cartina: il nome intero toglieva il posto a «✓ Controlla»,
+   che andava a capo fuori dal tasto (a 320 punti anche il nome usciva dal suo tasto) */
+b.innerHTML=DM.dito?'☝️<span class="ct-lb"> Disegni col dito</span>':'✋<span class="ct-lb"> Il dito sposta</span>';
+b.setAttribute('aria-label',DM.dito?'Disegni col dito':'Il dito sposta');
 b.classList.toggle('on',DM.dito);
 }
 function dmApri(r){
@@ -13631,7 +14680,8 @@ return;}
 /* ── un riquadro aperto: Invio = il tasto principale ── */
 var po=popup();
 if(po){
-if(k==='Enter'){var b=po.querySelector('.pop-b.pieno');if(b){e.preventDefault();e.stopPropagation();b.click();}}
+/* (v149) in un campo a piu' righe (le vie di una piazza nuova) Invio va a capo */
+if(k==='Enter'&&!(t&&t.tagName==='TEXTAREA')){var b=po.querySelector('.pop-b.pieno');if(b){e.preventDefault();e.stopPropagation();b.click();}}
 return;}
 /* ── mentre scrivi: solo il suggerimento di Quiz vie ── */
 if(scrive(t)){
@@ -13878,8 +14928,10 @@ Object.keys(ids).forEach(function(id){if(qStats[id]){bk.qStats[id]=qStats[id];de
 try{rDelMark(id);}catch(e){}});
 routes=routes.filter(function(r){return !ids[r.id];});
 k.title=nuovoNome;
-if(typeof cur!=='undefined'&&cur&&ids[cur.id]){try{cur=null;step=0;}catch(e){}}
+/* (v149) il percorso aperto sulla mappa era fra quelli cancellati: la mappa passa a quello tenuto (prima restava sul cancellato, ferma) */
+var eraAperto=false;try{eraAperto=!!(typeof cur!=='undefined'&&cur&&ids[cur.id]);}catch(e){}
 try{save();autoSave();}catch(e){}
+if(eraAperto){try{selectRoute(k);}catch(e){try{cur=null;step=0;}catch(e2){}}}
 try{renderMgr();}catch(e){}
 try{hap();}catch(e){}
 undoToast('Tenuto \u00ab'+nuovoNome+'\u00bb, '+(altri.length===1?'cancellato l\u2019altro':'cancellati gli altri '+altri.length),function(){
@@ -14013,22 +15065,56 @@ else if(b==='reg')sub=RX_DOV.test(q)?'reg_dov':'reg_com';}catch(e){}
 var cat=sub;try{cat=SUB2ARG[sub]||cat;}catch(e){}
 nuove.push({q:pulisci(q),choices:r[1].map(pulisci),correct:cor,sub:sub,cat:cat});
 });
+/* (v149) le domande nuove uscite all'esame (fuori dispensa, quiz extra 2023 e 2024, extra di geografia):
+   stanno in "extra", non in "domande", e vengono DOPO le 26 di sopra. Cosi' nessun numero cambia e le
+   statistiche di tutte le domande che c'erano restano al loro posto */
+var X=(window.__QUIZDATA__&&window.__QUIZDATA__.extra)||[];
+X.forEach(function(r,i){
+if(!r||!Array.isArray(r[1])||!r[1].length||!r[0])return;
+var k=chiaveR(r[0],r[1]);if(ci[k])return;            /* c'e' gia' uguale: non la doppio */
+ci[k]=1;
+var cor=r[2]|0;if(cor<0||cor>=r[1].length)cor=0;
+var sub='reg_com';try{sub=classifySub(r[0]);}catch(e){}
+try{var b=r[3];
+if(b==='geo')sub=RX_GEOVIE.test(r[0])?'geo_vie':'geo_terr';
+else if(b==='norm')sub=RX_AERO.test(r[0])?'norm_aero':'norm_legge';
+else if(b==='reg')sub=RX_DOV.test(r[0])?'reg_dov':'reg_com';}catch(e){}
+var cat=sub;try{cat=SUB2ARG[sub]||cat;}catch(e){}
+nuove.push({q:pulisci(r[0]),choices:r[1].map(pulisci),correct:cor,sub:sub,cat:cat,extra:i,fonte:r[4]||''});
+});
 var base=QUIZ_ALL.length;
 nuove.forEach(function(it,i){it.id=base+i;QUIZ_ALL.push(it);});
 QUIZ_ALL.__aggiunte=nuove.length;
 }catch(e){}
 }
 window.nccDomandeAggiunte=function(){try{return QUIZ_ALL.__aggiunte||0;}catch(e){return 0;}};
-setTimeout(function(){
+/* (v149) il nucleo, costruendo il quiz, cancella gli errori delle domande che non conosce (id oltre la fine):
+   succedeva anche a quelli delle domande aggiunte qui sotto, a ogni avvio. Li prendo dalla memoria del
+   dispositivo prima che l'app la riscriva e li rimetto appena le domande aggiunte ci sono */
+var ERR0=null;
+try{var q0=JSON.parse(localStorage.getItem('qtStats')||'null');if(q0&&q0.err&&typeof q0.err==='object')ERR0=q0.err;}catch(e){}
+function rimetti(){
+try{
+if(!ERR0||typeof qtStats==='undefined'||!qtStats||typeof QUIZ_ALL==='undefined'||!QUIZ_ALL||QUIZ_ALL.__aggiunte==null)return;
+var da=QUIZ_ALL.length-QUIZ_ALL.__aggiunte,a=QUIZ_ALL.length,n=0;
+qtStats.err=qtStats.err||{};
+Object.keys(ERR0).forEach(function(id){var i=+id;if(i>=da&&i<a&&qtStats.err[id]===undefined){qtStats.err[id]=ERR0[id];n++;}});
+ERR0=null;
+if(n){try{ls('qtStats',qtStats);}catch(e){}}
+}catch(e){}
+}
+function installa(){
 try{
 if(typeof buildQuiz==='function'&&!buildQuiz.__puliti){
 var _bq=buildQuiz;
-buildQuiz=function(){var r=_bq.apply(this,arguments);sistema();aggiungi();return r;};
+buildQuiz=function(){var r=_bq.apply(this,arguments);sistema();aggiungi();rimetti();return r;};
 buildQuiz.__puliti=true;
 }
-sistema();aggiungi();
+if(typeof QUIZ_ALL!=='undefined'&&QUIZ_ALL&&QUIZ_ALL.length){sistema();aggiungi();rimetti();}
 }catch(e){}
-},3300);
+}
+installa();                            /* subito: prima di ogni altro uso del quiz */
+setTimeout(installa,3300);
 /* la stessa domanda: stesso testo e stesse risposte, a meno di spazi, maiuscole e punteggiatura */
 function nq(t){return String(t==null?'':t).toLowerCase().replace(/[^a-z0-9]/g,'');}
 function chiave(it){try{return nq(it.q)+'#'+(it.choices||[]).map(nq).sort().join('|');}catch(e){return 'x'+(it&&it.id);}}
@@ -14215,13 +15301,28 @@ try{veloce();return;}catch(e){}
 try{return _fl.apply(this,arguments);}catch(e2){}
 };
 flushNow.__marker=true;
+/* (v149) il nucleo aveva agganciato all'uscita della pagina la funzione VECCHIA, che rimandava interi
+   percorsi e statistiche: su PC e Android chiudendo o ricaricando parte prima di tutto il resto. La tolgo */
+try{window.removeEventListener('pagehide',_fl);window.addEventListener('pagehide',function(){try{flushNow();}catch(e){}});}catch(e){}
 }
 }catch(e){}
 /* ── 4 · allo scarico: per ogni marker che c'e' su entrambi i lati vince l'ora piu' recente ── */
-function riconcilia(prima,cloud,sTs){
+function riconcilia(prima,cloud,sTs,foto){
 var cambiati=0;
 try{
 if(!cloud||typeof cloud!=='object')return 0;
+/* (v149) messi, spostati o tolti MENTRE arrivavano i dati (rete lenta): sono le cose piu' recenti di tutte */
+if(foto&&typeof foto==='object'){
+var ts=Date.now();
+Object.keys(foto).forEach(function(k){
+var F=foto[k],L=prima[k];if(!F||typeof F!=='object'||!pos(F))return;
+if(L&&pos(L)===pos(F))return;
+var v={lat:F.lat,lon:F.lon,t:Math.max(ts,ora(F))};
+prima[k]=v;P[k]=1;
+if(!coords[k]||pos(coords[k])!==pos(v)||ora(coords[k])!==v.t){coords[k]=copia(v);cambiati++;}
+});
+Object.keys(prima).forEach(function(k){if(prima[k]&&!foto[k]){delete prima[k];P[k]=1;}});
+}
 Object.keys(prima).forEach(function(k){
 var L=prima[k],C=cloud[k],X=coords[k];
 if(!L||!C||typeof L!=='object'||typeof C!=='object')return;
@@ -14250,15 +15351,20 @@ try{
 if(typeof syncFromCloud!=='function'||syncFromCloud.__marker)return;
 var _s=syncFromCloud;
 syncFromCloud=function(){
-var prima={},sTs=contatto();try{prima=JSON.parse(JSON.stringify(coords||{}));}catch(e){}
+var prima={},sTs=contatto(),foto=null;try{prima=JSON.parse(JSON.stringify(coords||{}));}catch(e){}
 inSync=Date.now();
+/* (v149) i marker come sono un attimo prima che l'app unisca i dati arrivati: questa lettura parte per prima */
+var rif=coords;
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(){
+try{if(coords!==rif)return;           /* i dati sono gia' stati uniti (ordine diverso): meglio nessuna foto che una sbagliata */
+foto=JSON.parse(JSON.stringify(coords||{}));}catch(e){}},function(){});}catch(e){}
 var r=_s.apply(this,arguments);
 try{
 if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once){
 fbRef.once('value',function(sn){
 try{
 var d=sn&&sn.val?sn.val():null;
-var n=riconcilia(prima,d&&d.coords,sTs);
+var n=riconcilia(prima,d&&d.coords,sTs,foto);
 inSync=0;fotografa();
 if(n){try{ls('coords',coords);}catch(e){}
 try{if(typeof autoSave==='function')autoSave();}catch(e){}
@@ -14475,9 +15581,15 @@ function carica(cb){
 try{
 if(window.firebase&&firebase.auth){cb(true);return;}
 var s=document.querySelector('script[data-ncc-auth]');
-if(!s){s=document.createElement('script');s.src=SDK;s.async=true;s.setAttribute('data-ncc-auth','1');document.head.appendChild(s);}
-s.addEventListener('load',function(){cb(!!(window.firebase&&firebase.auth));});
-s.addEventListener('error',function(){cb(false);});
+/* (v149) il tentativo di prima era fallito (senza rete): quel pezzo non si carichera' piu', lo rifaccio da capo */
+if(s&&s.__ko){try{s.remove();}catch(e){}s=null;}
+var fatto=false,tm=null;
+function fine(ok){if(fatto)return;fatto=true;clearTimeout(tm);cb(ok);}
+tm=setTimeout(function(){fine(!!(window.firebase&&firebase.auth));},15000);   /* rete che non risponde: mai tasti fermi per sempre */
+if(!s){s=document.createElement('script');s.src=SDK;s.async=true;s.setAttribute('data-ncc-auth','1');
+s.addEventListener('error',function(){s.__ko=true;});document.head.appendChild(s);}
+s.addEventListener('load',function(){fine(!!(window.firebase&&firebase.auth));});
+s.addEventListener('error',function(){s.__ko=true;fine(false);});
 }catch(e){cb(false);}
 }
 function pronto(cb){
@@ -14499,8 +15611,12 @@ if(u&&!prima)riscarica();          /* appena riconosciuto: i dati si riscaricano
 aggiornaRiga();
 });}catch(e){}
 }
-/* all'avvio: solo se su questo dispositivo sei gia' entrato */
-if(segnato())pronto(ascolta);
+/* all'avvio: solo se su questo dispositivo sei gia' entrato. (v149) Aperta senza rete: riprova quando torna
+   la rete o quando torni sull'app (prima restava senza accesso fino al riavvio, e non sincronizzava) */
+function accessoAvvio(){if(!segnato()||ascolto)return;pronto(function(a){if(a)ascolta(a);});}
+accessoAvvio();
+try{window.addEventListener('online',function(){setTimeout(accessoAvvio,800);});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(accessoAvvio,1200);});}catch(e){}
 window.nccProtettoTesto=function(){return segnato()?'attiva':'non attiva';};
 function aggiornaRiga(){try{var d=document.querySelector('#pfOv .pf-r[onclick*="nccProteggi"] .pf-d');if(d)d.textContent=window.nccProtettoTesto();}catch(e){}}
 function messaggio(err){
@@ -14678,7 +15794,9 @@ try{var t=d.transaction('k','readwrite');t.objectStore('k').put(v,k);t.oncomplet
 
 /* ── la schermata: entra da destra come le altre, indietro del telefono la chiude ── */
 function apriOv(id,html,chiudi){
-var o=document.getElementById(id),nuovo=!o;
+var o=document.getElementById(id);
+if(o&&o.classList.contains('fuori')){try{o.remove();}catch(e){}o=null;}   /* (v149) stava ancora scorrendo via: ne apro uno nuovo (prima restava vuoto e spariva) */
+var nuovo=!o;
 if(nuovo){o=document.createElement('div');o.id=id;o.className='rd';document.body.appendChild(o);}
 o.innerHTML=html;
 if(nuovo){
@@ -14696,7 +15814,8 @@ setTimeout(function(){try{o.remove();}catch(e){}},440);
 
 window.nccCartina=function(){
 try{
-if(document.getElementById('ctOv'))return;
+var v0=document.getElementById('ctOv');
+if(v0){if(!v0.classList.contains('fuori'))return;try{v0.remove();}catch(e){}}   /* (v149) quella di prima stava ancora scorrendo via */
 var pal=COLORI.map(function(c,i){return '<button type="button" class="ct-c'+(i===4?' ct-evc':'')+'" data-i="'+i+'" style="--c:'+c[0]
 +'" onclick="nccCartinaColore('+i+')" aria-label="'+c[1]+'"></button>';}).join('')
 +'<button type="button" class="ct-gomma" id="ctGomma" onclick="nccCartinaGomma()">🧽 Gomma</button>';
@@ -15030,11 +16149,11 @@ for(var j=0;j+1<p.length;j+=2){if(p[j]<b[0])b[0]=p[j];if(p[j+1]<b[1])b[1]=p[j+1]
 t.b=b;return t;
 }
 /* la gomma: toglie il segno intero che tocchi (↶ lo rimette) */
-function inizioGomma(ev,q){C.gm={id:ev.pointerId,via:[],pen:ev.pointerType==='pen',t0:Date.now(),last:q};cancellaA(q);}
+function inizioGomma(ev,q){C.gm={id:ev.pointerId,via:[],prima:C.tratti.slice(),pen:ev.pointerType==='pen',t0:Date.now(),last:q};cancellaA(q);}
 function segueGomma(ev){var q=xy(ev);C.gm.last=q;cancellaA(q);}
 function fineGomma(zitto){
 var g=C.gm;C.gm=null;pulisciVivo();
-if(g&&g.via.length){C.azioni.push({a:'-',v:g.via});salvaPoi();if(!zitto)hp();}
+if(g&&g.via.length){C.azioni.push({a:'-',v:g.via,prima:g.prima});salvaPoi();if(!zitto)hp();}
 }
 function dSeg(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy,u=l?((px-ax)*dx+(py-ay)*dy)/l:0;u=Math.max(0,Math.min(1,u));
 return Math.hypot(px-(ax+u*dx),py-(ay+u*dy));}
@@ -15097,6 +16216,7 @@ if(!C.W)return;
 var a=C.azioni.pop();
 if(!a){if(!C.tratti.length)return;a={a:'+',t:C.tratti[C.tratti.length-1]};}   /* i segni delle volte prima: l'ultimo */
 if(a.a==='+'){var i=C.tratti.lastIndexOf(a.t);if(i>=0)C.tratti.splice(i,1);}
+else if(a.prima)C.tratti=a.prima.slice();          /* (v149) com'erano prima della gomma, nello stesso ordine */
 else a.v.slice().sort(function(x,y){return x.i-y.i;}).forEach(function(v){C.tratti.splice(Math.min(v.i,C.tratti.length),0,v.t);});
 disegnaTutti();salvaPoi();hp();
 }catch(e){}
@@ -15162,7 +16282,7 @@ var az=[];
 if(C.W)az.push({t:'🖼️ Cambia cartina',stile:'pieno',subito:true,fn:function(){nccCartinaScegli();}});
 if(C.tratti.length)az.push({t:'🗑 Cancella i segni',stile:'rosso',fn:function(){
 nccConferma('Cancello tutti i segni che hai fatto sulla cartina?\n\nCon ↶ li rimetti.',function(){
-var via=C.tratti.map(function(t,i){return {t:t,i:i};});C.tratti=[];C.azioni.push({a:'-',v:via});disegnaTutti();salvaOra();
+var via=C.tratti.map(function(t,i){return {t:t,i:i};});C.azioni.push({a:'-',v:via,prima:C.tratti.slice()});C.tratti=[];disegnaTutti();salvaOra();
 avviso('Segni cancellati: ↶ li rimette',2200);});}});
 az.push({t:'Ho capito',stile:C.W?'vuoto':'pieno'});
 nccPopup({icona:'🏙️',titolo:'La cartina di Milano',

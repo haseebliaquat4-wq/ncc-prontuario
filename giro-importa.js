@@ -12,8 +12,16 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
 const VEDO=`window.__vedo=function(x,y){var e=document.elementFromPoint(x,y),c=e;
   while(c&&c!==document.body){if(c.id==='popOv')return 'popup';if(c.id==='ipOv')return 'importa';if(c.id==='scnOv')return 'pagina:'+c.getAttribute('data-p');
     if(c.id==='homeScreen')return 'home';c=c.parentElement;}
-  return 'vuoto('+(e?(e.id||e.tagName):'-')+')';};`;
-async function film(p,dur,x,y){const t0=Date.now(),seq=[];while(Date.now()-t0<dur){const v=await p.evaluate(([x,y])=>__vedo(x,y),[x,y]);if(seq[seq.length-1]!==v)seq.push(v);await new Promise(r=>setTimeout(r,30));}return seq;}
+  return 'vuoto('+(e?(e.id||e.tagName):'-')+')';};
+window.__film=[];window.__filmOn=false;window.__pt=[195,500];
+(function(){var s=document.createElement('div');s.style.cssText='position:fixed;left:-9px;top:0;width:1px;height:1px;pointer-events:none;';
+  document.documentElement.appendChild(s);var g=0;
+  new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(__pt[0],__pt[1]),L=window.__film;if(!L.length||L[L.length-1]!==v)L.push(v);}}catch(e){}}).observe(s);
+  (function giro(){g=1-g;s.style.width=(1+g)+'px';requestAnimationFrame(giro);})();})();`;
+/* il film: cosa c'e' nel punto (x,y) a ogni fotogramma, subito prima che venga dipinto; parte prima del tocco
+   (campionare a intervalli vedeva anche stati mai dipinti, fra la chiusura e il rientro nello stesso fotogramma) */
+async function film(p,dur,x,y,fa){await p.evaluate(([x,y])=>{__pt=[x,y];__film=[];__filmOn=true;},[x,y]);if(fa)await fa();await p.waitForTimeout(dur);
+  return p.evaluate(()=>{__filmOn=false;return __film.slice();});}
 const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
 (async()=>{
   const b=await launch();
@@ -29,8 +37,7 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   await p.addScriptTag({content:VEDO});
   /* ════ 1 · dalla pagina Topografia ════ */
   await p.evaluate(()=>nccSez('topo'));await p.waitForTimeout(900);
-  await p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].find(r=>/Importa dal PDF/.test(r.textContent)).click());
-  let f=await film(p,1200,195,500);console.log('Topografia → Importa',f.join(' → '));
+  let f=await film(p,1200,195,500,()=>p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].find(r=>/Importa dal PDF/.test(r.textContent)).click()));console.log('Topografia → Importa',f.join(' → '));
   ok(f[f.length-1]==='importa'&&pulito(f),'apertura: schermo sbagliato di passaggio ('+f.join(' → ')+')');
   let st=await p.evaluate(()=>{const o=document.getElementById('ipOv');
     return {su:o.querySelector('.ip-su').textContent,sez:[...o.querySelectorAll('.ip-sez')].map(x=>x.textContent),righe:o.querySelectorAll('.ip-r').length,
@@ -83,11 +90,11 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   for(const id of ['p17a','p96a','p18a'])await p.evaluate(id=>document.querySelector('#ipr_'+id+' .ip-chk').click(),id);
   /* ════ 4 · Aggiungi ════ */
   const prima=await p.evaluate(()=>({n:routes.length,vec:JSON.stringify(routes.find(r=>r.id==='vec')),mk:JSON.stringify(Object.keys(coords).filter(k=>k.startsWith('vec_')).sort().map(k=>[k,coords[k]]))}));
-  await p.evaluate(()=>document.querySelector('#ipFoot .ip-go').click());f=await film(p,600,195,700);
+  f=await film(p,600,195,700,()=>p.evaluate(()=>document.querySelector('#ipFoot .ip-go').click()));
   const conf=await p.evaluate(()=>(document.querySelector('#popOv .pop-x')||{}).textContent||'');
   console.log('Aggiungi →',f.join(' → '),'|',conf.replace(/\s+/g,' '));
   ok(f[f.length-1]==='popup'&&/Aggiungo 3 percorsi/.test(conf)&&/DUOMO - OSP\. NIGUARDA \(pag\. 17\)/.test(conf)&&/marker restano vuoti/.test(conf),'conferma: '+conf);
-  await p.evaluate(()=>document.querySelector('#popOv .pop-b[data-i="0"]').click());f=await film(p,1300,195,300);
+  f=await film(p,1300,195,300,()=>p.evaluate(()=>document.querySelector('#popOv .pop-b[data-i="0"]').click()));
   console.log('Conferma →',f.join(' → '));ok(pulito(f)&&f[f.length-1]==='popup','dopo la conferma: '+f.join(' → '));
   const dopo=await p.evaluate(()=>{const n=routes.filter(r=>r.pdf);
     return {n:routes.length,nuovi:n.map(r=>({t:r.title,s:r.steps.length,pdf:r.pdf,mk:Object.keys(coords).filter(k=>k.startsWith(r.id+'_')).length})),
@@ -102,7 +109,7 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   ok(dopo.su==='208 percorsi · 4 li hai già'&&dopo.righe===204,'l’elenco dopo l’aggiunta: '+dopo.su+' / '+dopo.righe);
   await p.evaluate(()=>document.querySelector('#popOv .pop-b').click());await p.waitForTimeout(400);
   /* ════ 5 · ‹ torna alla pagina Topografia ════ */
-  await p.evaluate(()=>document.querySelector('#ipOv .ip-x').click());f=await film(p,1200,195,500);
+  f=await film(p,1200,195,500,()=>p.evaluate(()=>document.querySelector('#ipOv .ip-x').click()));
   console.log('‹ →',f.join(' → '));ok(f[f.length-1]==='pagina:topo'&&pulito(f),'‹ non torna alla pagina Topografia ('+f.join(' → ')+')');
   /* ════ 6 · Correggi le tappe: in cima quello con OPPURE ════ */
   await p.evaluate(()=>nccCorreggiElenco());await p.waitForTimeout(700);

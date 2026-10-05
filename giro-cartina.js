@@ -157,6 +157,23 @@ const vicino=(a,b,t)=>Math.abs(a-b)<=(t||2);
   const g3=await st();
   console.log('gomma:',g0.n,'→',g1.n,JSON.stringify(colori1),'| ↶',g2.n,JSON.stringify(colori2),'| ↶',g3.n);
   ok(g0.n===2&&g1.n===1&&colori1[0]==='#FFD60A'&&g2.n===2&&colori2.join()==='#2447D6,#FFD60A'&&g3.n===1,'gomma e ↶ non vanno '+JSON.stringify({g0:g0.n,g1:g1.n,colori1,g2:g2.n,colori2,g3:g3.n}));
+  /* (v149) un gesto di gomma che toglie due segni (il primo e il terzo, non quello in mezzo): ↶ li rimette
+     nello stesso ordine di prima (prima tornavano in un ordine diverso) */
+  const ordine=()=>p.evaluate(()=>[...document.querySelectorAll('#ctSvg path')].map(e=>e.getAttribute('stroke')).join());
+  await p.evaluate(()=>nccCartinaColore(1));
+  await p.evaluate(({cx,cy})=>{__pe('pointerdown',51,'pen',cx-120,cy+40,0.5);for(let k=1;k<=10;k++)__pe('pointermove',51,'pen',cx-120+k*10,cy+40,0.5);__pe('pointerup',51,'pen',cx-20,cy+40,0);},{cx,cy});
+  await p.evaluate(()=>nccCartinaColore(2));
+  await p.evaluate(({cx,cy})=>{__pe('pointerdown',52,'pen',cx-120,cy+110,0.5);for(let k=1;k<=12;k++)__pe('pointermove',52,'pen',cx-120+k*20,cy+110,0.5);__pe('pointerup',52,'pen',cx+120,cy+110,0);},{cx,cy});
+  const o0=await ordine();
+  await p.evaluate(()=>nccCartinaGomma());await p.waitForTimeout(150);
+  /* la gomma scende dritta a cx+50: parte sopra il segno blu (ingrandito, ora sta piu' in alto) e arriva sotto il verde; il rosso resta a sinistra */
+  await p.evaluate(({cx,cy})=>{const r=document.querySelector('#ctSvg path[stroke="#2447D6"]').getBoundingClientRect(),y0=Math.min(cy-64,r.top-8),y1=cy+136,n=Math.ceil((y1-y0)/10);
+    __pe('pointerdown',53,'pen',cx+50,y0,0.5);for(let k=1;k<=n;k++)__pe('pointermove',53,'pen',cx+50,y0+k*(y1-y0)/n,0.5);__pe('pointerup',53,'pen',cx+50,y1,0);},{cx,cy});
+  const o1=await ordine();
+  await p.evaluate(()=>document.querySelector('#ctBarra .dm-b[aria-label^="Annulla"]').click());await p.waitForTimeout(150);
+  const o2=await ordine();
+  console.log('gomma su due segni in un gesto:',o0,'→',o1,'| ↶',o2);
+  ok(o0.split(',').length===3&&o1.split(',').length===1&&o2===o0,'↶ dopo la gomma su due segni non rimette l’ordine di prima '+JSON.stringify({o0,o1,o2}));
   await p.evaluate(()=>nccCartinaColore(1));
   /* col dito: ☝️ scrive; due dita insieme ingrandiscono e basta */
   await p.evaluate(()=>document.getElementById('ctDito').click());await p.waitForTimeout(150);

@@ -144,7 +144,7 @@ const VEDO=`window.__vedo=function(){var e=document.elementFromPoint(innerWidth/
     Q=null;try{closeQuiz();}catch(e){}
     return {tot:A.length,brutti:brutti.length,ids,tas,coppie:cp.length,nStudio,nEx,unici,catOk:Q===null};});
   console.log('domande:',JSON.stringify(dq));
-  ok(dq.tot===1136&&dq.ids&&dq.brutti===0&&dq.tas>=2,'domande: refusi a video o id spostati '+JSON.stringify(dq));
+  ok(dq.tot===1188&&dq.ids&&dq.brutti===0&&dq.tas>=2,'domande: refusi a video o id spostati '+JSON.stringify(dq));   /* 1110 + 26 che non uscivano + 52 nuove dell'esame (v149) */
   ok(dq.coppie>=15&&dq.nStudio===2&&dq.nEx===3&&dq.unici===3,'domande doppie nella stessa sessione '+JSON.stringify(dq));
   await p.evaluate(()=>{try{goHome();}catch(e){}});await p.waitForTimeout(600);
   /* ════ 8 · Home: i numeri con la parola ════ */

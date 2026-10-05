@@ -41,6 +41,25 @@ const fails=[];
   await p.evaluate(()=>{qConfirmExit();});await p.waitForTimeout(400);await p.evaluate(()=>{const b=document.querySelector('#popOv .pop-b[data-i="0"]');if(b)b.click();});await p.waitForTimeout(800);
   await p.evaluate(()=>nccSezChiudi());await p.waitForTimeout(600);
   const fine=await p.evaluate(()=>__vedo());console.log('dopo ‹ dalla pagina:',fine);if(fine!=='home')fails.push('‹ dalla pagina non mostra la home: '+fine);
+  /* (v149) una riga che non parte (solo l'avviso «Nessun errore storico») e l'indietro subito dopo:
+     si arriva alla Home e ci si resta; prima la pagina Quiz si riapriva da sola e la vecchia schermata del quiz si vedeva */
+  for(const ms of [60,400,1300]){
+    await p.evaluate(()=>{nccSez('quiz');});await p.waitForTimeout(800);
+    await p.evaluate(()=>{qtStats.wrongN={};});
+    await riga('Le più sbagliate');await p.waitForTimeout(ms);await p.evaluate(()=>history.back());
+    await film('non parte, indietro '+ms,2400,q=>q.every(x=>/^pagina:quiz$|^home$/.test(x))&&q[q.length-1]==='home');
+  }
+  /* toccata «Simulazione» e subito indietro, prima che parta: non parte piu' sopra la Home */
+  for(const ms of [40,150]){
+    await p.evaluate(()=>{nccSez('quiz');});await p.waitForTimeout(800);
+    await riga('Simulazione');await p.waitForTimeout(ms);await p.evaluate(()=>history.back());
+    await film('simulazione, indietro '+ms,1800,q=>!q.some(x=>/^quiz:/.test(x))&&q[q.length-1]==='home');
+  }
+  /* dalla Home: Ripasso errori › «Non ora» resta sulla Home (prima si finiva sulla pagina Quiz) */
+  await p.evaluate(()=>{buildQuiz();QUIZ_ALL.slice(0,12).forEach(it=>{qtStats.err[it.id]={box:1,due:Date.now()-5000};});goHome();});await p.waitForTimeout(500);
+  await p.evaluate(()=>nccHmErrori());await p.waitForTimeout(1600);
+  await p.evaluate(()=>{const b=document.querySelector('#popOv .pop-b[data-i="1"]');if(b)b.click();});
+  await film('home, non ora',2400,q=>q.every(x=>/^popup$|^home$/.test(x))&&q[q.length-1]==='home');
   errs.forEach(e=>fails.push('JS '+e));await b.close();
   console.log('FALLITI',fails.length);fails.forEach(f=>console.log(' - '+f));process.exit(fails.length?1:0);
 })().catch(e=>{console.error('FATAL',e);process.exit(2);});

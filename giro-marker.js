@@ -8,6 +8,7 @@
    · spostato e app chiusa subito (prima del salvataggio): il marker arriva lo stesso, da solo
    · una piazza messa sulla sua mappa (viaggia a parte): il salvataggio completo dell'altro non la cancella
    · una copia vecchia rimette la piazza di prima nel cloud: tornando sull'iPad il cloud si rimette a posto
+   · l'iPhone rimasto indietro si chiude (pagehide) e si riapre: niente copia vecchia nel cloud, il marker giusto arriva
    · nessun marker nuovo messo da solo */
 const {launch,seed,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
@@ -143,6 +144,19 @@ async function rispondi(D,n){
   const cz7=(JSON.parse(leggi('prontuario/prefs/ncc/pzCoords')||'{}')[PZ[1]]||{}).lat,a7=await pz(A,PZ[1]);
   console.log('copia vecchia nel cloud: rientrando sull’iPad il cloud torna a',cz7,'| sull’iPad',a7&&a7.lat,'| ora del cloud',leggi('prontuario/ts')===ts7?'uguale (solo la piazza)':'cambiata');
   ok(cz7===45.52&&a7&&a7.lat===45.52,'il cloud non si rimette a posto: '+cz7);
+  /* ── 7b · l'iPhone rimasto indietro si chiude (pagehide: il salvataggio veloce con tutto "da mandare") e si
+          riapre: nel cloud non torna la sua copia vecchia e, riaperto, ha il marker spostato sull'iPad ── */
+  await A.p.evaluate(()=>{coords['r2_4']={lat:45.4801,lon:9.2271};save();autoSave();});
+  await A.p.waitForTimeout(9000);
+  await B.p.evaluate(()=>{markDirty('routes','coords','qStats','done','prefs');window.dispatchEvent(new Event('pagehide'));});
+  await B.p.waitForTimeout(1500);
+  const c7b=leggi('prontuario/coords/r2_4');
+  console.log('iPhone indietro chiuso: nel cloud r2_4',JSON.stringify(c7b));
+  ok(c7b&&c7b.lat===45.4801,'chiudendo l’iPhone rimasto indietro il marker spostato sull’iPad torna com’era: '+JSON.stringify(c7b));
+  await B.p.reload();await B.p.waitForTimeout(9000);
+  const b7b=await mk(B,'r2_4');
+  console.log('iPhone riaperto: r2_4',JSON.stringify(b7b));
+  ok(b7b&&b7b.lat===45.4801,'riaperto, l’iPhone non ha il marker spostato sull’iPad: '+JSON.stringify(b7b));
   /* ── 8 · nessun marker nuovo messo da solo: solo quello messo a mano ── */
   const nA=await A.p.evaluate(()=>Object.keys(coords).length),nB=await B.p.evaluate(()=>Object.keys(coords).length);
   console.log('marker alla fine: iPad',nA,'| iPhone',nB,'(all’inizio',nA0,'+ 1 messo a mano)');
