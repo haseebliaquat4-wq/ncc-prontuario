@@ -5,7 +5,9 @@
    · toccare una riga in fondo non riporta l'elenco in cima; la ricerca tiene la tastiera
    · Aggiungi: il nuovo si chiama «… (pag. 17)», il vecchio e i suoi marker restano com'erano,
      il nuovo non ha marker; dopo un ricarico restano fra quelli che hai
-   · Correggi le tappe: in cima quelli con ancora OPPURE / ECC.
+   · (v150) quello che nel libro viene dopo «OPPURE» e' un'alternativa: non entra nelle vie, la riga la dice
+     («un’alternativa») e aprendola si vede; i marker li mette l'app (la conferma lo dice)
+   · Correggi le tappe: niente piu' OPPURE / ECC. fra le vie prese dal libro
    · dalla pagina Topografia e ritorno: mai la Home o schermi vuoti di passaggio */
 const {launch,boot}=require('./lib');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
@@ -75,15 +77,21 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   ok(cr.righe.length===11&&cr.righe.slice(0,3).join()==='p17a,p18a,p39b'&&cr.foc==='ipCerca'&&cr.top===0,'ricerca «niguarda» '+JSON.stringify(cr));
   await p.fill('#ipCerca','pag 96');await p.waitForTimeout(450);
   cr=await p.evaluate(()=>[...document.querySelectorAll('#ipBody .ip-r')].map(r=>r.id.slice(4)+' '+r.querySelector('i').textContent));
-  console.log('cerca «pag 96»:',cr.join(' | '));ok(cr.length===1&&/^p96a .*da controllare/.test(cr[0]),'ricerca per pagina: '+cr.join(' | '));
+  console.log('cerca «pag 96»:',cr.join(' | '));ok(cr.length===1&&/^p96a 21 tappe · un’alternativa · pag\. 96$/.test(cr[0]),'ricerca per pagina: '+cr.join(' | '));
+  /* aprendo la riga: le 21 vie e in fondo l'alternativa */
+  await p.evaluate(()=>document.querySelector('#ipr_p96a .ip-tx').click());await p.waitForTimeout(150);
+  const al=await p.evaluate(()=>[...document.querySelectorAll('#ipd_p96a .ip-det>div')].map(d=>d.className+'|'+d.textContent));
+  ok(al.length===22&&/^ip-alt\|↪oppure: P\.LE MACIACHINI → V\.LE MARCHE .* … e poi come sopra$/.test(al[21]),'p96a aperto: '+al.length+' '+al[21]);
+  await p.evaluate(()=>document.querySelector('#ipr_p96a .ip-tx').click());
   await p.evaluate(()=>document.querySelector('#ipr_p96a .ip-chk').click());
   await p.fill('#ipCerca','xyzxyz');await p.waitForTimeout(450);
   cr=await p.evaluate(()=>(document.querySelector('#ipBody .ip-vuoto')||{}).textContent);ok(/Nessun percorso con «xyzxyz»/.test(cr||''),'ricerca vuota: '+cr);
   await p.fill('#ipCerca','');await p.waitForTimeout(450);
   /* i tre tasti valgono per quelli che vedi */
-  await p.evaluate(()=>[...document.querySelectorAll('#ipOv .ip-bt button')].find(x=>/puliti/.test(x.textContent)).click());await p.waitForTimeout(100);
-  let pie=await p.evaluate(()=>document.querySelector('#ipFoot .ip-go').textContent);console.log('Solo i puliti:',pie);
-  ok(/Aggiungi 165 percorsi$/.test(pie),'Solo i puliti: '+pie);
+  ok(!(await p.evaluate(()=>[...document.querySelectorAll('#ipOv .ip-bt button')].some(x=>/puliti/.test(x.textContent)))),'«Solo i puliti» c’e’ ancora (ora sono tutti puliti)');
+  await p.evaluate(()=>[...document.querySelectorAll('#ipOv .ip-bt button')].find(x=>/Scegli tutti/.test(x.textContent)).click());await p.waitForTimeout(100);
+  let pie=await p.evaluate(()=>document.querySelector('#ipFoot .ip-go').textContent);console.log('Scegli tutti:',pie);
+  ok(/Aggiungi 207 percorsi$/.test(pie),'Scegli tutti: '+pie);
   await p.evaluate(()=>[...document.querySelectorAll('#ipOv .ip-bt button')].find(x=>/Nessuno/.test(x.textContent)).click());await p.waitForTimeout(100);
   pie=await p.evaluate(()=>({t:document.querySelector('#ipFoot .ip-go').textContent,off:document.querySelector('#ipFoot .ip-go').classList.contains('off'),sel:document.querySelectorAll('#ipBody .ip-r.sel').length}));
   ok(pie.off&&pie.sel===0,'Nessuno: '+JSON.stringify(pie));
@@ -93,17 +101,18 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   f=await film(p,600,195,700,()=>p.evaluate(()=>document.querySelector('#ipFoot .ip-go').click()));
   const conf=await p.evaluate(()=>(document.querySelector('#popOv .pop-x')||{}).textContent||'');
   console.log('Aggiungi →',f.join(' → '),'|',conf.replace(/\s+/g,' '));
-  ok(f[f.length-1]==='popup'&&/Aggiungo 3 percorsi/.test(conf)&&/DUOMO - OSP\. NIGUARDA \(pag\. 17\)/.test(conf)&&/marker restano vuoti/.test(conf),'conferma: '+conf);
+  ok(f[f.length-1]==='popup'&&/Aggiungo 3 percorsi/.test(conf)&&/DUOMO - OSP\. NIGUARDA \(pag\. 17\)/.test(conf)&&/I marker li metto io, da OpenStreetMap/.test(conf)&&/punto di domanda/.test(conf),'conferma: '+conf);
   f=await film(p,1300,195,300,()=>p.evaluate(()=>document.querySelector('#popOv .pop-b[data-i="0"]').click()));
   console.log('Conferma →',f.join(' → '));ok(pulito(f)&&f[f.length-1]==='popup','dopo la conferma: '+f.join(' → '));
   const dopo=await p.evaluate(()=>{const n=routes.filter(r=>r.pdf);
-    return {n:routes.length,nuovi:n.map(r=>({t:r.title,s:r.steps.length,pdf:r.pdf,mk:Object.keys(coords).filter(k=>k.startsWith(r.id+'_')).length})),
+    return {n:routes.length,nuovi:n.map(r=>({t:r.title,s:r.steps.length,pdf:r.pdf,mk:Object.keys(coords).filter(k=>k.startsWith(r.id+'_')).length,alt:r.alt?r.alt.length:0})),
       vec:JSON.stringify(routes.find(r=>r.id==='vec')),mk:JSON.stringify(Object.keys(coords).filter(k=>k.startsWith('vec_')).sort().map(k=>[k,coords[k]])),
       avviso:(document.querySelector('#popOv .pop-x')||{}).textContent||'',su:document.querySelector('#ipOv .ip-su').textContent,
       righe:document.querySelectorAll('#ipOv .ip-r').length,ls:JSON.parse(localStorage.getItem('routes')).filter(r=>r.pdf).length};});
   console.log('aggiunti:',JSON.stringify(dopo.nuovi),'| elenco',dopo.su,dopo.righe,'righe');
   ok(dopo.n===prima.n+3&&dopo.ls===3,'non sono stati aggiunti 3 percorsi (salvati '+dopo.ls+')');
-  ok(JSON.stringify(dopo.nuovi)===JSON.stringify([{t:'DUOMO - OSP. NIGUARDA (pag. 17)',s:30,pdf:'p17a',mk:0},{t:'DUOMO - OSP. NIGUARDA (pag. 18)',s:31,pdf:'p18a',mk:0},{t:'P.LE MACIACHINI - L.GO AUGUSTO',s:38,pdf:'p96a',mk:0}]),'nomi, tappe o marker dei nuovi sbagliati');
+  ok(JSON.stringify(dopo.nuovi)===JSON.stringify([{t:'DUOMO - OSP. NIGUARDA (pag. 17)',s:30,pdf:'p17a',mk:0,alt:0},{t:'DUOMO - OSP. NIGUARDA (pag. 18)',s:31,pdf:'p18a',mk:0,alt:0},{t:'P.LE MACIACHINI - L.GO AUGUSTO',s:21,pdf:'p96a',mk:0,alt:1}]),'nomi, tappe o marker dei nuovi sbagliati '+JSON.stringify(dopo.nuovi));
+  ok(/I marker li sto mettendo io/.test(dopo.avviso),'avviso finale sui marker: '+dopo.avviso);
   ok(dopo.vec===prima.vec&&dopo.mk===prima.mk&&JSON.parse(dopo.mk).length===17,'il percorso vecchio o i suoi marker sono cambiati');
   ok(/Aggiunti 3 percorsi/.test(dopo.avviso),'avviso finale: '+dopo.avviso);
   ok(dopo.su==='208 percorsi · 4 li hai già'&&dopo.righe===204,'l’elenco dopo l’aggiunta: '+dopo.su+' / '+dopo.righe);
@@ -111,12 +120,12 @@ const pulito=f=>!f.some(x=>/^vuoto|^home$/.test(x));
   /* ════ 5 · ‹ torna alla pagina Topografia ════ */
   f=await film(p,1200,195,500,()=>p.evaluate(()=>document.querySelector('#ipOv .ip-x').click()));
   console.log('‹ →',f.join(' → '));ok(f[f.length-1]==='pagina:topo'&&pulito(f),'‹ non torna alla pagina Topografia ('+f.join(' → ')+')');
-  /* ════ 6 · Correggi le tappe: in cima quello con OPPURE ════ */
+  /* ════ 6 · Correggi le tappe: niente OPPURE fra le vie prese dal libro ════ */
   await p.evaluate(()=>nccCorreggiElenco());await p.waitForTimeout(700);
   const cor=await p.evaluate(()=>({nota:document.querySelector('#scnOv .sc-nota').textContent,primo:document.querySelector('#scnOv .sc-r .pf-n').textContent,
     s:document.querySelector('#scnOv .sc-r .sc-s').textContent}));
   console.log('Correggi:',cor.nota,'| primo',cor.primo,'·',cor.s);
-  ok(/^1 percorso ha ancora le alternative del PDF/.test(cor.nota)&&cor.primo==='P.LE MACIACHINI - L.GO AUGUSTO'&&/da controllare/.test(cor.s),'Correggi le tappe: '+JSON.stringify(cor));
+  ok(cor.nota==='Tocca un percorso per correggerne le tappe.'&&!/da controllare/.test(cor.s),'Correggi le tappe: '+JSON.stringify(cor));
   errors.forEach(e=>fails.push('JS '+e));
   /* ════ 7 · dopo un ricarico: restano, anche se li correggi ════ */
   await p.evaluate(()=>{const r=routes.find(x=>x.pdf==='p96a');r.steps=r.steps.filter(s=>!/OPPURE|ECC/.test(s));save();});

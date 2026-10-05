@@ -37,9 +37,13 @@ async function boot(browser,opt){
     if(/leaflet\.css/.test(u))return route.fulfill({status:200,contentType:'text/css',body:MOCK_CSS});
     if(/polylinedecorator/.test(u))return route.fulfill({status:200,contentType:'application/javascript',body:'/* mock */'});
     if(/firebase/.test(u))return route.fulfill({status:200,contentType:'application/javascript',body:'/* niente firebase nei test */'});
+    if(opt.overpass&&/\/api\/interpreter/.test(u))return opt.overpass(route);   /* (v150) OpenStreetMap finto */
     return route.abort();
   });
   const s=opt.seed===false?null:seed();
+  /* (v150) i percorsi del libro e i marker messi dall'app partono solo nei giri che li provano */
+  await ctx.addInitScript(a=>{try{if(a.libro)window.__nccSiLibro=true;if(a.auto)window.__nccSiAuto=true;if(a.pausa!=null)window.__nccPausaOverpass=a.pausa;}catch(e){}},
+    {libro:!!opt.libro,auto:!!opt.auto,pausa:opt.pausaOverpass==null?null:opt.pausaOverpass});
   await ctx.addInitScript(a=>{
     try{
       if(a.s&&!sessionStorage.getItem('__seeded')){

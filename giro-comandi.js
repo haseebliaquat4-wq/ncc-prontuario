@@ -21,7 +21,8 @@ const VEDO=`window.__vedo=function(){var e=document.elementFromPoint(innerWidth/
   const p17=D0.find(x=>x.id==='p17a'),p96=D0.find(x=>x.id==='p96a');
   const s=seed();
   const routes=s.routes.concat([{id:'vec',title:'DUOMO - OSP. NIGUARDA',steps:p17.s.slice(0,17)},{id:'nuo',title:'DUOMO - OSP. NIGUARDA (pag. 17)',steps:p17.s.slice(),pdf:'p17a'},
-    {id:'opp',title:p96.t,steps:p96.s.slice(),pdf:'p96a'}]);
+    /* (v150) nel libro l'alternativa sta a parte: qui il percorso com'era prima, con OPPURE ed ECC. fra le vie */
+    {id:'opp',title:p96.t,steps:p96.s.concat(['OPPURE']).concat(p96.a[0].s).concat(['ECC.']),pdf:'p96a'}]);
   const coords=Object.assign({},s.coords);for(let i=0;i<17;i++)coords['vec_'+i]={lat:45.46+i/1000,lon:9.19};
   const err={};[3,4,5,6,7,8].forEach(i=>err[i]={box:1,due:Date.now()-3600000});
   let {page:p,ctx,errors}=await boot(b,{clock:false,viewport:{width:1280,height:800},extra:{routes,coords,antiFretta:'false',wkRepTs:String(Date.now()),

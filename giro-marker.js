@@ -9,7 +9,7 @@
    · una piazza messa sulla sua mappa (viaggia a parte): il salvataggio completo dell'altro non la cancella
    · una copia vecchia rimette la piazza di prima nel cloud: tornando sull'iPad il cloud si rimette a posto
    · l'iPhone rimasto indietro si chiude (pagehide) e si riapre: niente copia vecchia nel cloud, il marker giusto arriva
-   · nessun marker nuovo messo da solo */
+   · nessun marker nuovo messo da solo (qui i marker automatici della v150 sono spenti: li prova giro-marker-auto.js) */
 const {launch,seed,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};

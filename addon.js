@@ -1796,7 +1796,7 @@ background:var(--card);cursor:pointer;font-family:inherit;}
 .ip-tx b{display:block;font-size:13.5px;font-weight:800;color:var(--tx);line-height:1.3;}
 .ip-tx i{display:block;font-style:normal;font-size:11.5px;font-weight:650;
 color:var(--mu);margin-top:2px;}
-.ip-tx em{font-style:normal;color:var(--warn);font-weight:800;}
+.ip-tx em{font-style:normal;color:inherit;font-weight:800;}
 .ip-det{margin:0 0 9px 51px;padding:10px 12px;background:var(--fill3);
 border-radius:var(--r-md);}
 .ip-det div{font-size:12.5px;font-weight:650;color:var(--tx);line-height:1.7;}
@@ -2974,6 +2974,18 @@ background:color-mix(in srgb,var(--t-arancio) 12%,var(--ios-card));border:1.5px 
 .ch-dom li{font-size:14.5px;line-height:1.45;color:var(--ios-lbl);background:var(--ios-bg);border-radius:12px;padding:10px 12px;}
 .ch-dom small{display:block;font-size:12.5px;color:var(--ios-lbl2);margin-top:3px;font-weight:700;}
 #popOv .ch-ta{min-height:132px;resize:vertical;font-weight:600;line-height:1.4;}
+/* ═══ (v150) i marker messi dall'app: il punto di domanda ═══ */
+.pin-wrap.mk-q::after{content:'';position:absolute;left:3px;top:1px;width:28px;height:28px;border-radius:50%;border:2px dashed var(--warn);box-sizing:border-box;pointer-events:none;}
+.cb.q{background:rgba(217,119,6,.16);color:var(--warn);}
+.dark .cb.q{background:rgba(232,137,11,.24);color:#F5A623;}
+.mk-qt{font-size:12.5px;line-height:1.38;margin:6px 0 2px;color:var(--mu);max-width:230px;font-weight:500;}
+.mk-ok{display:block;width:100%;margin-top:8px;border:0;border-radius:10px;padding:9px 10px;font-weight:700;font-size:13px;background:var(--warn);color:#fff;cursor:pointer;font-family:inherit;}
+.mk-ok:active{transform:scale(.97);}
+.sl-alt{margin:10px 12px 16px;padding:10px 12px;border-radius:12px;background:var(--fill3);font-size:13px;line-height:1.45;color:var(--tx);}
+.sl-alt b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin-bottom:4px;font-weight:700;}
+.sl-alt-s+.sl-alt-s{margin-top:6px;padding-top:6px;border-top:1px solid var(--bd);}
+.sl-alt i{font-style:normal;color:var(--mu);}
+.ip-det .ip-alt{color:var(--mu);font-style:italic;}
 `;
 }catch(e){}
 })();
@@ -9081,7 +9093,8 @@ try{var _rp=renderPlan;renderPlan=function(){var r=_rp.apply(this,arguments);set
      a metà) lo scrivo sotto, con quante tappe ha il tuo
    · il nuovo si aggiunge accanto: il tuo non lo tocco mai
    · scegli tu cosa aggiungere, poi tieni o cancelli tu
-   I marker restano vuoti: li metti tu dalla mappa.
+   I marker li mette l'app (v150): quelli che non trova restano col punto di domanda.
+   Quello che nel libro viene dopo «OPPURE» e' un'alternativa: la vedi aprendo la riga.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -9131,6 +9144,7 @@ function dettaglio(p){
 /* la cornice si allinea alla riga (anche sull'iPad), le vie rientrano sotto il nome */
 var h='<div class="ip-dw" id="ipd_'+p.id+'"><div class="ip-det">';
 p.s.forEach(function(v,i){h+='<div><span>'+(i+1)+'</span>'+E(v)+'</div>';});
+(p.a||[]).forEach(function(a){h+='<div class="ip-alt"><span>↪</span>oppure: '+E(a.s.join(' → '))+(a.e?' … e poi come sopra':'')+'</div>';});
 return h+'</div></div>';
 }
 function riga(x){
@@ -9139,7 +9153,7 @@ var h='<div class="ip-r'+(s?' sel':'')+'" id="ipr_'+p.id+'">'
 +'<button class="ip-chk" onclick="nccImpTog(\''+p.id+'\')">'+(s?'✓':'')+'</button>'
 +'<button class="ip-tx" onclick="nccImpApri(\''+p.id+'\')">'
 +'<b>'+E(p.t)+'</b>'
-+'<i>'+p.s.length+' tappe'+(p.ck?' · <em>da controllare</em>':'')+' · '+pagine(p)+'</i>'
++'<i>'+p.s.length+' tappe'+(p.a&&p.a.length?' · <em>'+(p.a.length===1?'un’alternativa':p.a.length+' alternative')+'</em>':'')+' · '+pagine(p)+'</i>'
 +(x.o?'<span class="ip-nota">'+tuoi(x.o)+'</span>':'')
 +'</button></div>';
 if(APERTO[p.id])h+=dettaglio(p);
@@ -9178,7 +9192,6 @@ o.innerHTML='<div class="ip-hd">'
 +'<div class="ip-bt">'
 +'<button onclick="nccImpTutti(1)">Scegli tutti</button>'
 +'<button onclick="nccImpTutti(0)">Nessuno</button>'
-+'<button onclick="nccImpPuliti()">Solo i puliti</button>'
 +'</div></div>'
 +'<div class="ip-body" id="ipBody"></div>'
 +'<div class="ip-foot" id="ipFoot"></div>';
@@ -9244,7 +9257,7 @@ window.nccImpTutti=function(v){
 try{VIS.forEach(function(p){SEL[p.id]=!!v;segna(p.id);});piede();try{hap();}catch(e){}}catch(e){}
 };
 window.nccImpPuliti=function(){
-try{VIS.forEach(function(p){SEL[p.id]=!p.ck;segna(p.id);});piede();try{hap();}catch(e){}}catch(e){}
+try{VIS.forEach(function(p){SEL[p.id]=true;segna(p.id);});piede();try{hap();}catch(e){}}catch(e){}   /* (v150) sono tutti puliti */
 };
 window.nccImpAggiungi=function(){
 try{
@@ -9261,12 +9274,12 @@ var es=sc.filter(col)[0];
 if(!confirm('Aggiungo '+sc.length+(sc.length===1?' percorso':' percorsi')+', con tutte le vie del PDF.\n\n'
 +(es?('Se il nome c’è già, al nuovo aggiungo la pagina: «'+es.t+' (pag. '+es.p+')».\n'):'')
 +'I tuoi percorsi restano come sono.\n\n'
-+'I marker restano vuoti: li posizioni tu dalla mappa.\n\nProcedo?'))return;
++'I marker li metto io, da OpenStreetMap: quelli che non trovo con sicurezza hanno il punto di domanda.\n\nProcedo?'))return;
 var n=0,nomiNuovi=sc.map(function(p){return col(p)?(p.t+' (pag. '+p.p+')'):p.t;});
 sc.forEach(function(p,i){
 try{
 var id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+i;
-routes.push({id:id,title:nomiNuovi[i],steps:p.s.slice(),pdf:p.id});
+var o={id:id,title:nomiNuovi[i],steps:p.s.slice(),pdf:p.id};if(p.a)o.alt=p.a;routes.push(o);
 n++;
 }catch(e){}
 });
@@ -9276,8 +9289,9 @@ try{if(typeof buildList==='function')buildList();}catch(e){}
 SEL={};APERTO={};
 if(document.getElementById('ipOv'))disegna();
 alert('✅ Aggiunti '+n+(n===1?' percorso':' percorsi')+'.\n\n'
-+'Li trovi fra i percorsi salvati. I marker sono da mettere:\n'
-+'apri il percorso, tocca una tappa e poi il punto sulla mappa.');
++'Li trovi fra i percorsi salvati. I marker li sto mettendo io:\n'
++'ci vuole qualche minuto. Quelli col punto di domanda li controlli tu.');
+try{if(window.nccMarkerAuto)nccMarkerAuto.avvia();}catch(e){}
 try{hap();}catch(e){}
 }catch(e){
 try{alert('⚠️ Non sono riuscito ad aggiungerli.');}catch(e2){}
@@ -10935,7 +10949,7 @@ else az.push({t:'Nuovo percorso',stile:'pieno',fn:function(){apriMappa(null,(nom
 az.push({t:'Chiudi',stile:'vuoto'});
 nccPopup({titolo:nome(o.a)+' → '+nome(o.b),html:h,azioni:az});
 }
-/* dal libro ai tuoi percorsi: come «Importa dal PDF» (stesso nome, la pagina se il nome c'e' gia'), i marker li metti tu */
+/* dal libro ai tuoi percorsi: come «Importa dal PDF» (stesso nome, la pagina se il nome c'e' gia'), i marker li mette l'app (v150) */
 function nT(s){return String(s||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
 function aggiungiPerc(p){
 try{
@@ -10945,12 +10959,13 @@ var nomi={},doc={};
 miei().forEach(function(r){if(r)nomi[nT(r.title)]=1;});
 libro().forEach(function(x){var k=nT(x.t);doc[k]=(doc[k]||0)+1;});
 var k=nT(p.t),t=(nomi[k]||doc[k]>1)?(p.t+' (pag. '+p.p+')'):p.t;
-routes.push({id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,steps:p.s.slice(),pdf:p.id});
+var nr={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,steps:p.s.slice(),pdf:p.id};if(p.a)nr.alt=p.a;routes.push(nr);
+try{if(window.nccMarkerAuto)nccMarkerAuto.avvia();}catch(e){}
 try{save();autoSave();}catch(e){}
 try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
 try{if(typeof buildList==='function')buildList();}catch(e){}
 }
-toast(gia?'È già fra i tuoi percorsi':'✓ Aggiunto ai tuoi percorsi · i marker li metti tu dalla mappa');
+toast(gia?'È già fra i tuoi percorsi':'✓ Aggiunto ai tuoi percorsi · i marker li metto io');
 disegna();
 }catch(e){toast('⚠️ Non sono riuscito ad aggiungerlo');}
 }
@@ -11375,6 +11390,7 @@ try{o.err=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Dat
 try{o.errTot=Object.keys(qtStats.err||{}).length;}catch(e){}
 try{o.bm=Object.keys(qtStats.bm||{}).length;}catch(e){}
 try{o.senza=senzaMarker().length;o.perc=routes.length;}catch(e){}
+try{o.dubbi=window.nccMarkerAuto?nccMarkerAuto.dubbi():0;}catch(e){o.dubbi=0;}
 try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}catch(e){}
 try{o.vie=Object.keys(qStats||{}).reduce(function(a,k){return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){}
 return o;
@@ -11437,6 +11453,7 @@ g:[
 {ic:'\ud83d\udccb',c:C.grigio,n:'Percorsi salvati',s:'Modifica, rinomina, cancella',d:n.perc?String(n.perc):'',a:az('t9',function(){openMgr();})},
 {ic:'\u270f\ufe0f',c:C.arancio,n:'Correggi le tappe',s:'Rinomina, correggi, sposta, aggiungi',a:az('t12',function(){nccCorreggiElenco();}),resta:true},
 {ic:'\ud83d\udccd',c:C.rosso,n:'Senza marker',s:'Da completare sulla mappa',d:n.senza?String(n.senza):'0',a:az('t10',function(){nccSenzaMarker();}),resta:true},
+{ic:'\u2753',c:C.arancio,n:'Marker da controllare',s:(window.nccMarkerAuto?nccMarkerAuto.testo():'Il punto di domanda: la via non l\u2019ho trovata con sicurezza'),d:n.dubbi?String(n.dubbi):'',a:az('t16',function(){nccMarkerDubbi();}),resta:true},
 {ic:'\ud83d\udce5',c:C.teal,n:'Importa dal PDF',s:'Tutti i percorsi, con tutte le vie',a:az('t11',function(){nccImportaPercorsi();})}]}
 ]},
 pz:{t:'Piazze',c:C.teal,
@@ -11535,6 +11552,7 @@ t13:['Disegna','Sulla mappa senza nomi tracci il percorso da A a B, con la Penci
 n4:['Avvia','41 domande sul regolamento comunale.'],
 n6:['Avvia','Gli importi delle tariffe, a memoria.'],
 q11:['Apri','Le domande dei quiz uscite all’esame fuori dispensa (foglio ufficiale, quiz extra 2023 e 2024, geografia). Quelle che mancavano sono state aggiunte alla banca dati.'],
+t16:['Apri','I marker li mette l\u2019app da sola, cercando le vie su OpenStreetMap. Quelli col punto di domanda non li ha trovati con sicurezza: stanno fra le tappe vicine. Apri il percorso e trascinali nel punto giusto, oppure tocca il marker e \u00abÈ giusto qui\u00bb.'],
 t15:['Apri','I percorsi chiesti agli orali da ottobre 2025 a febbraio 2026, i più frequenti in cima: per ognuno vedi se ce l’hai, se è nel libro della scuola o se è da preparare.'],
 p9:['Apri','Le piazze di cui agli orali hanno chiesto le confluenze. Quelle che mancano le aggiungi tu.'],
 n7:['Apri','Le domande sul regolamento fatte agli orali, tema per tema, con l’articolo da leggere e le domande del quiz sullo stesso argomento.']};
@@ -11639,8 +11657,74 @@ pagina('senza','Senza marker ('+l.length+')',corpo,"nccSez('topo')");
 window.nccApriPerMarker=function(id){
 try{
 var r=(routes||[]).filter(function(x){return String(x.id)===String(id);})[0];if(!r)return;
-nccSezChiudi(true);
-setTimeout(function(){try{goTopografia();setTimeout(function(){selectRoute(r);setMode('s');},320);}catch(e){}},160);
+sullaMappa(r,-1,'senza');   /* (v150) senza la Home di passaggio; indietro torni qui */
+}catch(e){}
+};
+
+/* ── (v150) i marker col punto di domanda: un tocco e sei sulla tappa da sistemare ── */
+function conDubbi(){
+var l=[];
+try{(routes||[]).forEach(function(r){if(!r||!Array.isArray(r.steps))return;var n=0;for(var i=0;i<r.steps.length;i++){var c=coords[r.id+'_'+i];if(c&&c.q)n++;}if(n)l.push({r:r,n:n});});}catch(e){}
+l.sort(function(a,b){return (b.n-a.n)||String(a.r.title).localeCompare(String(b.r.title));});
+return l;
+}
+window.nccMarkerDubbi=function(){
+try{
+var l=conDubbi(),st=window.nccMarkerAuto?nccMarkerAuto.stato():null,corpo='';
+if(st&&st.inizio)corpo+='<div class="sc-nota">\ud83d\udccd '+E(nccMarkerAuto.testo())+'.</div>';
+if(!l.length){
+corpo+='<div class="sc-vuoto">\u2705 Nessun marker da controllare.</div>';
+}else{
+corpo+='<div class="sc-nota">Il punto di domanda vuol dire che quella via non l\u2019ho trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso: si apre sulla tappa, trascina il marker nel punto giusto (oppure toccalo e \u00ab\u00c8 giusto qui\u00bb).</div>'
++'<div class="pf-gr">';
+l.forEach(function(x){
+corpo+='<button class="pf-r sc-r" onclick="nccApriDubbio(\''+String(x.r.id).replace(/'/g,'')+'\')">'
++'<span class="pf-ic" style="background:'+C.arancio+'">\u2754</span>'
++'<span class="pf-txt sc-txt"><span class="sc-col"><span class="pf-n">'+E(x.r.title)+'</span>'
++'<span class="sc-s">'+x.n+' su '+x.r.steps.length+' tappe da controllare</span></span></span>'
++'<span class="pf-ch">\u203a</span></button>';
+});
+corpo+='</div>';
+}
+pagina('dubbi','Da controllare'+(l.length?' ('+l.length+')':''),corpo,"nccSez('topo')");
+}catch(e){}
+};
+/* dalla pagina alla mappa senza la Home di passaggio (la pagina resta finche' la mappa e' pronta);
+   indietro dalla mappa si torna alla pagina da cui sei entrato */
+var RITP=null;
+function avvolgiRitorno(){
+if(!window.nccRitorno||window.nccRitorno.__pag)return;
+var _r=window.nccRitorno;
+window.nccRitorno=function(k){
+if(RITP&&k==='topo'){var da=RITP;RITP=null;
+try{if(da==='dubbi')nccMarkerDubbi();else nccSenzaMarker();
+var s=document.getElementById('scnOv');if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}}catch(e){}
+return true;}
+return _r.apply(this,arguments);};
+window.nccRitorno.__pag=true;
+}
+document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))RITP=null;}catch(e){}},true);
+function sullaMappa(r,i0,da){
+try{
+avvolgiRitorno();RITP=da;
+try{if(window.nccTopoDa)nccTopoDa('');}catch(e){}
+window.__nccTieniPagina=true;
+try{goTopografia();}catch(e){}
+setTimeout(function(){try{selectRoute(r);setMode('s');if(i0>=0){step=i0;try{syncListActive();}catch(e){}updateUI();goStep();}}catch(e){}},320);
+var t0=Date.now();
+(function att(){try{
+if(document.body.classList.contains('on-topo')){window.__nccTieniPagina=false;
+setTimeout(function(){try{var s=document.getElementById('scnOv');if(s&&s.getAttribute('data-p')===da)nccSezChiudi(true);}catch(e){}},0);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;RITP=null;
+}catch(e){}})();
+}catch(e){window.__nccTieniPagina=false;}
+}
+window.nccApriDubbio=function(id){
+try{
+var r=(routes||[]).filter(function(x){return String(x.id)===String(id);})[0];if(!r)return;
+var i0=-1;for(var i=0;i<r.steps.length;i++){var c=coords[r.id+'_'+i];if(c&&c.q){i0=i;break;}}
+sullaMappa(r,i0,'dubbi');
 }catch(e){}
 };
 
@@ -12287,6 +12371,7 @@ studio:['\ud83d\udccd','Cosa & Dove','I luoghi di Milano con le schede: leggi la
 profilo:['\ud83d\udc64','Profilo','Le impostazioni dell\u2019app e i tuoi dati: la data dell\u2019esame, il backup, i suoni, la voce.'],
 stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto e la tua costanza.'],
 senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemmeno un marker. Tocca un percorso: si apre sulla mappa pronto per posizionarli.'],
+dubbi:['\u2753','Marker da controllare','I marker li mette l\u2019app cercando le vie su OpenStreetMap, solo vicino alle tappe accanto. Il punto di domanda vuol dire che quella via non l\u2019ha trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso e sistemalo: trascina il marker nel punto giusto, oppure toccalo e scegli \u00ab\u00c8 giusto qui\u00bb.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
 correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le vie di un percorso sulla mappa piccola. Con \u201cPosiziona in sequenza\u201d tocchi la mappa e il marker passa da solo alla tappa dopo.'],
 chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. In Quiz trovi le domande uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati.']
@@ -13466,7 +13551,7 @@ if(!aperto())allaPagina();
 }
 window.addEventListener('popstate',function(){try{
 segnaIndietro();
-var p=pag();if(p==='correggi'||p==='senza')T.sotto=true;
+var p=pag();if(p==='correggi'||p==='senza'||p==='dubbi')T.sotto=true;
 ricontrolla();
 }catch(e){}},true);
 function installa(){
@@ -14845,7 +14930,7 @@ setTimeout(ridisegna,1800);
      che non ti serve, col tasto di sempre (con la conferma e «Annulla»)
    · in «Correggi le tappe», un percorso con OPPURE chiede: dividerlo in due
      (un percorso per strada) o correggerlo a mano. L'originale resta com'e',
-     i nuovi senza marker: li metti tu
+     ai nuovi i marker li mette l'app (v150)
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
@@ -14978,7 +15063,8 @@ try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
 try{var sc=document.getElementById('scnOv');if(sc&&sc.getAttribute('data-p')==='correggi'){nccCorreggiElenco();
 var sb=document.getElementById('scnBody');if(sb)sb.classList.remove('sc-entra');}}catch(e){}
 alert('✂️ Fatti '+fatti.length+' percorsi:\n'+fatti.map(function(x){return '· '+x.title+' ('+x.steps.length+' tappe)';}).join('\n')
-+'\n\nL’originale è rimasto com’era: cancellalo tu se non ti serve più. I marker li metti tu dalla mappa.');
++'\n\nL’originale è rimasto com’era: cancellalo tu se non ti serve più. I marker li metto io.');
+try{if(window.nccMarkerAuto)nccMarkerAuto.avvia();}catch(e){}
 try{hap();}catch(e){}
 }catch(e){try{alert('⚠️ Non sono riuscito a dividerlo.');}catch(e2){}}
 }
@@ -15163,13 +15249,14 @@ startQuiz.__doppie=true;
      preferenze voce per voce, percorsi e statistiche solo se li hai toccati
    · un marker messo su un altro dispositivo dopo l'ultimo contatto non viene
      cancellato da una scrittura completa; uno che hai tolto tu non torna
-   Nessun marker viene mai messo da solo: si confrontano solo quelli che hai messo tu.
+   (v150) I marker messi dall'app viaggiano come gli altri, col loro segno (auto) e col
+   punto di domanda (q): togliere il punto di domanda conta come uno spostamento.
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-function pos(c){return (c&&isFinite(c.lat)&&isFinite(c.lon))?(Math.round(c.lat*1e6)+','+Math.round(c.lon*1e6)):'';}
+function pos(c){return (c&&isFinite(c.lat)&&isFinite(c.lon))?(Math.round(c.lat*1e6)+','+Math.round(c.lon*1e6)+(c.q?'?':'')):'';}
 function ora(c){return +(c&&c.t)||0;}
-function copia(c){var o={lat:c.lat,lon:c.lon};if(ora(c))o.t=ora(c);return o;}
+function copia(c){var o={lat:c.lat,lon:c.lon};if(ora(c))o.t=ora(c);if(c.auto)o.auto=1;if(c.q)o.q=1;return o;}
 function contatto(){try{return +lg('syncTs',0)||0;}catch(e){return 0;}}
 /* ── 1 · percorsi: l'ora a ogni salvataggio, solo sui marker nuovi o spostati ──
    P: i marker cambiati (o tolti) qui e non ancora scritti nel cloud */
@@ -15317,7 +15404,7 @@ var ts=Date.now();
 Object.keys(foto).forEach(function(k){
 var F=foto[k],L=prima[k];if(!F||typeof F!=='object'||!pos(F))return;
 if(L&&pos(L)===pos(F))return;
-var v={lat:F.lat,lon:F.lon,t:Math.max(ts,ora(F))};
+var v=copia(F);v.t=Math.max(ts,ora(F));
 prima[k]=v;P[k]=1;
 if(!coords[k]||pos(coords[k])!==pos(v)||ora(coords[k])!==v.t){coords[k]=copia(v);cambiati++;}
 });
@@ -16335,4 +16422,1060 @@ if(fatto){e.preventDefault();e.stopPropagation();}
 /* per i giri di prova */
 window.nccCartinaStato=function(){return {W:C.W,H:C.H,s:C.s,x:C.x,y:C.y,min:C.min,max:C.max,aw:C.aw,ah:C.ah,n:C.tratti.length,
 dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
+})();
+/* ═══════════════════════════════════════════════════
+   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI (v150)
+   Il documento della scuola ha 208 percorsi (percorsi-data.js). A ogni avvio,
+   appena arrivati i dati dal cloud:
+   · i tuoi percorsi presi dal libro (stesso nome, o col numero di pagina, o col
+     nome scritto con un piccolo refuso se le vie sono quelle) ricevono tutte le vie: in ogni tabella prima la colonna di sinistra
+     dall'alto in basso, poi quella di destra. Quello che viene dopo
+     «OPPURE» e' un'altra strada: non entra nel percorso, resta da parte
+     come alternativa (la vedi in fondo all'elenco delle vie, in Studio)
+   · senza marker il percorso prende le vie del libro; con dei marker gia'
+     messi da te le vie cambiano solo se ogni tuo marker trova la sua via nel
+     nuovo percorso (e la segue); se no il percorso resta come l'hai fatto tu
+   · un percorso sistemato cosi' non si tocca piu' (segno libV): se poi lo
+     correggi tu, resta come lo vuoi tu
+   · i percorsi del libro che non hai si aggiungono, col nome del libro
+     (e la pagina, se quel nome c'e' gia'); quelli che cancelli non tornano
+     (cancellandone uno preso dal libro resta la sua lapide)
+   · i percorsi divisi a mano («strada 1», «strada 2») restano come sono
+   Rifarlo a ogni avvio rimette a posto anche un dispositivo rimasto alla
+   versione vecchia che riscrive nel cloud i percorsi di prima.
+   I marker li mette l'app (sotto, «I MARKER LI METTE L'APP»).
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+if(navigator.webdriver&&!window.__nccSiLibro)return;   /* nei giri di prova (browser automatico) parte solo se il giro lo prova */
+var VER=4,KV='nccLibroVer';
+window.__nccLibroAtteso=true;   /* i marker automatici aspettano che i percorsi siano a posto */
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function norm(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function base(t){return norm(String(t||'').replace(/\s*\((?:pag\.?\s*\d+|strada\s*\d+)\)\s*$/i,''));}
+function pagDi(t){var m=String(t||'').match(/\(pag\.?\s*(\d+)\)\s*$/i);return m?+m[1]:0;}
+function diviso(t){return /\(strada\s*\d+\)\s*$/i.test(String(t||''));}
+function rid(k){return k.slice(0,k.lastIndexOf('_'));}
+/* i marker messi da te (quelli dell'app, segnati auto, si rifanno) */
+function miei(r){var n=0;for(var i=0;i<r.steps.length;i++){var c=coords[r.id+'_'+i];if(c&&!c.auto)n++;}return n;}
+function uguali(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(norm(a[i])!==norm(b[i]))return false;return true;}
+/* dove va ogni via vecchia nel percorso nuovo (nello stesso ordine); -1 se non c'e' */
+function allinea(a,b){
+var m=[],j=0;
+for(var i=0;i<a.length;i++){var x=norm(a[i]),f=-1;for(var k=j;k<b.length;k++){if(norm(b[k])===x){f=k;break;}}m.push(f);if(f>=0)j=f+1;}
+return m;
+}
+function inOrdine(a,b){return allinea(a,b).filter(function(x){return x>=0;}).length;}
+/* due nomi quasi uguali (un refuso: «L.GO AGOSTO» per «L.GO AUGUSTO») */
+function quasi(a,b){
+if(a===b)return true;if(Math.abs(a.length-b.length)>3||a.length<8)return false;
+if(a.slice(0,5)!==b.slice(0,5)&&a.slice(-5)!==b.slice(-5))return false;
+var p=[],i,j;for(j=0;j<=b.length;j++)p[j]=j;
+for(i=1;i<=a.length;i++){var q=[i],m=i;for(j=1;j<=b.length;j++){q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));if(q[j]<m)m=q[j];}if(m>3)return false;p=q;}
+return p[b.length]<=3;
+}
+/* le vie nuove; marker ed errori del Quiz vie seguono la loro via */
+function cambia(r,mappa,nuove){
+var vecchi={};
+Object.keys(coords).forEach(function(k){if(rid(k)===String(r.id)){var i=+k.slice(k.lastIndexOf('_')+1);if(isFinite(i))vecchi[i]=coords[k];delete coords[k];}});
+Object.keys(vecchi).forEach(function(i){var j=mappa[+i];if(j>=0)coords[r.id+'_'+j]=vecchi[i];});
+try{var q=qStats[r.id];if(q&&q.wrong&&typeof q.wrong==='object'){var nw={};Object.keys(q.wrong).forEach(function(i){var j=mappa[+i];if(j>=0)nw[j]=q.wrong[i];});q.wrong=nw;}}catch(e){}
+r.steps=nuove.slice();
+}
+function migra(){
+var D=window.__PERCORSI_PDF__;
+if(!Array.isArray(D)||!D.length||typeof routes==='undefined'||!Array.isArray(routes))return null;
+var tomb=L('rDel',{})||{},perBase={},perId={},preso={},esito={cambiati:0,allungati:0,aggiunti:0,lasciati:0,segnati:0};
+D.forEach(function(p){perId[p.id]=p;var k=base(p.t);(perBase[k]=perBase[k]||[]).push(p);});
+/* quelli gia' sistemati, o presi dal libro, ci sono gia' */
+routes.forEach(function(r){if(r&&r.pdf&&perId[r.pdf])preso[r.pdf]=1;});
+/* 1 · i tuoi percorsi che vengono dal libro: prima quelli col numero del libro, poi quelli con lo stesso nome */
+var ordine=routes.filter(function(r){return r&&r.pdf;}).concat(routes.filter(function(r){return r&&!r.pdf;}));
+ordine.forEach(function(r){
+if(!Array.isArray(r.steps)||diviso(r.title)||r.libV===VER)return;
+var p=r.pdf?perId[r.pdf]:null;
+if(!p){
+var c=perBase[base(r.title)];
+if(c&&c.length){
+var pg=pagDi(r.title),best=-1;
+c.forEach(function(x){
+var v=inOrdine(r.steps,x.s)*10+(pg&&(x.p===pg||(x.pp&&x.pp.indexOf(pg)>=0))?1000:0)-(preso[x.id]?5:0);
+if(v>best){best=v;p=x;}
+});
+}
+/* stesso nome ma un'altra strada (fatta da te): non la tocco, quella del libro si aggiunge accanto */
+if(p&&inOrdine(r.steps,p.s)<Math.max(2,Math.ceil(r.steps.length*0.4)))p=null;
+/* un nome con un refuso: vale solo se le vie sono quasi tutte quelle del libro */
+if(!p&&r.steps.length>=4){
+var bt=base(r.title),bv=-1;
+D.forEach(function(x){if(preso[x.id]||!quasi(bt,base(x.t)))return;var v=inOrdine(r.steps,x.s.concat(x.a&&x.a[0]?x.a[0].s:[]));
+if(v>=Math.ceil(r.steps.filter(function(t){return !/^\s*(OPPURE|ECC)\b/i.test(String(t));}).length*0.6)&&v>bv){bv=v;p=x;}});
+}
+}
+if(!p)return;
+if(uguali(r.steps,p.s)){
+preso[p.id]=1;r.pdf=p.id;r.libV=VER;esito.segnati++;
+if(p.a&&!r.alt)r.alt=p.a;
+return;
+}
+var mappa=allinea(r.steps,p.s);
+if(miei(r)){
+/* un tuo marker su una via che nel libro non c'e': il tuo resta com'e', quello del libro si aggiunge accanto */
+for(var i=0;i<r.steps.length;i++){var c0=coords[r.id+'_'+i];if(c0&&!c0.auto&&mappa[i]<0){esito.lasciati++;return;}}
+esito.allungati++;
+}else esito.cambiati++;
+cambia(r,mappa,p.s);
+r.pdf=p.id;r.libV=VER;preso[p.id]=1;
+if(p.a)r.alt=p.a;else delete r.alt;
+});
+/* 2 · quelli che non hai */
+var nomi={};routes.forEach(function(r){if(r){var k=base(r.title);nomi[k]=(nomi[k]||0)+1;}});
+D.forEach(function(p){
+var id='lib_'+p.id;
+if(preso[p.id]||tomb[id])return;
+if(routes.some(function(r){return r&&(String(r.id)===id||r.pdf===p.id);}))return;
+var k=base(p.t),t=(nomi[k]||perBase[k].length>1)?(p.t+' (pag. '+p.p+')'):p.t;
+var o={id:id,title:t,steps:p.s.slice(),pdf:p.id,libV:VER};if(p.a)o.alt=p.a;
+routes.push(o);nomi[k]=(nomi[k]||0)+1;preso[p.id]=1;esito.aggiunti++;
+});
+return esito;
+}
+window.nccLibroMigra=migra;   /* per i test */
+/* cancellato un percorso preso dal libro: la lapide va anche al suo «lib_», cosi' non torna
+   (ma non se quel «lib_» c'e' ed e' proprio quello che tieni, come con «Tieni questo») */
+function lapide(pdf,tranne){
+try{if(!pdf)return;var id='lib_'+pdf;if(String(tranne)===id)return;
+if((routes||[]).some(function(r){return r&&String(r.id)===id;}))return;
+if((L('rDel',{})||{})[id])return;
+if(typeof rDelMark==='function')rDelMark(id);}catch(e){}
+}
+setTimeout(function(){
+try{
+if(typeof delRoute==='function'&&!delRoute.__libro){
+var _d=delRoute;
+delRoute=function(id){
+var r=null;try{r=(routes||[]).filter(function(x){return x&&String(x.id)===String(id);})[0];}catch(e){}
+var pdf=r&&r.pdf,x=_d.apply(this,arguments);
+try{if(pdf&&!(routes||[]).some(function(y){return y&&String(y.id)===String(id);}))lapide(pdf,id);}catch(e){}
+return x;};
+delRoute.__libro=true;
+}
+if(typeof rDelMark==='function'&&!rDelMark.__libro){
+var _m=rDelMark;
+rDelMark=function(id){
+var x=_m.apply(this,arguments);
+try{if(String(id).indexOf('lib_')!==0){var r=(routes||[]).filter(function(y){return y&&String(y.id)===String(id);})[0];
+if(r&&r.pdf){var lib='lib_'+r.pdf;
+/* «Tieni questo»: se quello che resta e' proprio il «lib_», niente lapide */
+if(!(routes||[]).some(function(y){return y&&String(y.id)===lib;})&&!(L('rDel',{})||{})[lib])_m(lib);}}}catch(e){}
+return x;};
+rDelMark.__libro=true;
+}
+}catch(e){}
+},3300);
+/* quando: dopo il primo scarico dal cloud (cosi' non si scrive mai sopra dati piu' nuovi), o dopo 20 secondi */
+var avvio=Date.now(),scaricato=0,fatto=false;
+try{
+var _s=syncFromCloud;
+syncFromCloud=function(){
+var r=_s.apply(this,arguments);
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(){scaricato=Date.now();},function(){scaricato=Date.now();});else scaricato=Date.now();}catch(e){scaricato=Date.now();}
+return r;
+};
+}catch(e){}
+function prova(){
+if(fatto)return;
+try{
+var cloud=(typeof fbOk!=='undefined'&&fbOk&&navigator.onLine);
+if(cloud&&!scaricato&&Date.now()-avvio<20000){setTimeout(prova,1000);return;}
+if(scaricato&&Date.now()-scaricato<1200){setTimeout(prova,800);return;}
+fatto=true;window.__nccLibroFatto=true;
+var e=migra();
+S(KV,VER);
+if(e&&(e.cambiati||e.allungati||e.aggiunti||e.segnati)){
+try{save();}catch(x){}
+try{markDirty('routes','qStats');}catch(x){}
+try{flushNow();}catch(x){}
+try{if(typeof cur!=='undefined'&&cur){var c2=(routes||[]).filter(function(r){return String(r.id)===String(cur.id);})[0];if(c2){cur=c2;renderList();rebuildLines();}}}catch(x){}
+try{if(document.getElementById('mgrModal')&&document.getElementById('mgrModal').classList.contains('open'))renderMgr();}catch(x){}
+var n=e.cambiati+e.allungati;
+if(e.aggiunti||n){try{toast2('📚 Percorsi del libro: '+(e.aggiunti?e.aggiunti+' aggiunti':'')+(e.aggiunti&&n?', ':'')+(n?n+' completati con tutte le vie':''),4200);}catch(x){}}
+}
+try{if(window.nccMarkerAuto)setTimeout(function(){nccMarkerAuto.avvia();},4500);}catch(x){}   /* dopo l'avviso dei percorsi, non sopra */
+}catch(x){fatto=true;window.__nccLibroFatto=true;}
+}
+setTimeout(prova,6000);
+})();
+
+/* ═══════════════════════════════════════════════════
+   📍 I MARKER LI METTE L'APP (v150)
+   Per ogni tappa senza marker l'app cerca la via su OpenStreetMap e mette il
+   marker da sola. Come:
+   · legge la tappa del libro (P.ZA, V.LE, P.TA = PORTA, i civici in fondo, le
+     stazioni, gli ospedali, gli aeroporti...) e chiede a OpenStreetMap le vie
+     con quel nome a Milano (le doppie e gli accenti non contano)
+   · fra tutte le vie con quel nome sceglie quella attaccata alla tappa prima e
+     a quella dopo: il percorso deve stare insieme, come una catena
+   · il marker va nel tratto che percorri (fra dove entri e dove esci), nel
+     mezzo delle piazze
+   · una tappa che non trova, o trovata solo lontano dalle vicine: la cerca
+     ancora, ma solo li' vicino. Se non c'e' nemmeno li', il marker va fra le
+     tappe vicine col punto di domanda ❓ — da sistemare a mano
+   · i marker che hai gia' messo tu non si toccano mai (anzi, fanno da guida)
+   · trascinare un marker col punto di domanda lo rende tuo; «È giusto qui»
+     lo conferma dov'e'
+   Gira da solo, con calma (una domanda alla volta, pausa se la rete non va,
+   si ferma con l'app chiusa) e ricomincia da dove era rimasto. I marker nuovi
+   vanno nel cloud uno per uno. In Topografia «Marker da controllare» elenca i
+   percorsi coi punti di domanda.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+if(navigator.webdriver&&!window.__nccSiAuto)return;   /* nei giri di prova (browser automatico) parte solo se il giro lo prova */
+/* ── il motore: parti pure (provate anche fuori dal browser, scratchpad/test) ── */
+var MOTORE=(function(){
+'use strict';
+/* ── 1 · la tappa scritta nel libro → cosa cercare ── */
+var TIPI=[
+[/^(?:V\.?\s?LE|VIALE)\b\.?\s*/,'VIALE'],
+[/^(?:VIA|VAIA|VIS)\s+/,'VIA'],
+[/^(?:P\.?\s?LE|PIAZZALE|PZLE)\b\.?\s*/,'PIAZZALE'],
+[/^(?:P\.?\s?ZZA|P\.?\s?ZA|PZA|PIAZZA|P\.?\s?ZE)\b\.?\s*/,'PIAZZA'],
+[/^(?:PIAZZETTA|PIAZZATTA)\s+/,'PIAZZETTA'],
+[/^(?:L\.?\s?GO|LGO|LARGO)\b\.?\s*/,'LARGO'],
+[/^(?:C\.?\s?SO|CORSO)\b\.?\s*/,'CORSO'],
+[/^(?:BASTIONI|BASTIONE)\s+/,'BASTIONI'],
+[/^(?:CAVALCAVIA|CAVALCAVIE|CAVALCAVI|CAVLCAVIA|CAV\.)\s*/,'CAVALCAVIA'],
+[/^FORO\s+/,'FORO'],
+[/^ALZAIA\s+/,'ALZAIA'],[/^RIPA\s+/,'RIPA'],[/^GALLERIA\s+/,'GALLERIA'],[/^PONTE\s+/,'PONTE'],
+[/^VICOLO\s+/,'VICOLO'],[/^PASSAGGIO\s+/,'PASSAGGIO'],[/^(?:STRADA|STR\.)\s+/,'STRADA'],
+[/^TUNNEL\s+/,'TUNNEL'],[/^(?:SOTTOPASSAGGIO|SOTTOPASSO|SOTTOPASS\.|SOTT\.)\s*/,'SOTTOPASSO'],
+[/^VIALETTO\s+/,'VIALETTO'],[/^ROTONDA\s+/,'ROTONDA'],
+[/^P\.\s*(?=[A-Z])/,'PIAZZA'],          /* P. S.MARIA DELLE GRAZIE, P.VIRGILIO, P.LEGA LOMBARDA */
+[/^A\s+(?=[A-Z]{4})/,'VIA']             /* "A BENEFATTORI...": la VIA spezzata andando a capo */
+];
+/* tipi che nella realta' si confondono facilmente: stessa famiglia, piccola penalita' */
+var FAM={VIA:'v',VIALE:'v',VIALETTO:'v',VICOLO:'v',STRADA:'v',PASSAGGIO:'v',
+PIAZZA:'p',PIAZZALE:'p',LARGO:'p',PIAZZETTA:'p',ROTONDA:'p',CORSO:'c',FORO:'c',BASTIONI:'b',
+CAVALCAVIA:'k',PONTE:'k',TUNNEL:'k',SOTTOPASSO:'k',ALZAIA:'a',RIPA:'a',GALLERIA:'g'};
+var QUADRATI={PIAZZA:1,PIAZZALE:1,LARGO:1,PIAZZETTA:1,ROTONDA:1};
+var VUOTE={DI:1,DEL:1,DELLA:1,DELLO:1,DEI:1,DEGLI:1,DELLE:1,DA:1,DAL:1,DALLA:1,DALLO:1,DAI:1,DAGLI:1,DALLE:1,
+IN:1,AL:1,ALLA:1,ALLO:1,AI:1,AGLI:1,ALLE:1,E:1,ED:1,LA:1,IL:1,LO:1,LE:1,I:1,GLI:1,D:1,DELL:1,DALL:1,SULL:1,
+SU:1,CON:1,PER:1,L:1,NEL:1,NELLA:1,DE:1};
+var SANTI={S:1,SAN:1,SANTO:1,SANTA:1,SANT:1,SS:1,SANTI:1,SANTISSIMA:1};
+var TITOLI={GEN:1,GENERALE:1,GENERAL:1,CARDINAL:1,CARDINALE:1,MONS:1,MONSIGNOR:1,MONSIGNORE:1,DOTT:1,
+PROF:1,ING:1,AVV:1,DON:1,PADRE:1,FRA:1,BEATO:1,BEATA:1,AMMIRAGLIO:1,COLONNELLO:1,CAPITANO:1,MAESTRO:1};
+/* parole del libro che non stanno nel nome della via */
+var IGNORA={PARI:1,DISPARI:1,LATO:1,ANGOLO:1,CIVICO:1,NUMERO:1,FINE:1,INIZIO:1};
+/* parole troppo comuni per cercare solo con quelle */
+var COMUNI={PORTA:1,MARIA:1,GIOVANNI:1,GIUSEPPE:1,CARLO:1,LUIGI:1,FRANCESCO:1,ANTONIO:1,PIETRO:1,MARCO:1,
+PAOLO:1,VITTORIO:1,EMANUELE:1,ROMA:1,MILANO:1,NUOVA:1,NUOVO:1,VECCHIA:1,GRANDE:1,MONTE:1,VILLA:1,CASCINA:1,
+CHIESA:1,CASA:1,ALTO:1,CENTRALE:1,STAZIONE:1,REGINA:1,PRINCIPE:1,DUCA:1,CONTE:1,CORTE:1,BATTISTA:1,
+ANGELO:1,ANDREA:1,GIACOMO:1,LORENZO:1,MICHELE:1,NICOLA:1,STEFANO:1,AMBROGIO:1,ITALIA:1,REPUBBLICA:1,
+OSPEDALE:1,MAGGIORE:1,FRATELLI:1,MILANESE:1};
+var NUM={1:'UNO I PRIMO',2:'DUE II',3:'TRE III',4:'QUATTRO IV',5:'CINQUE V',6:'SEI VI',7:'SETTE VII',8:'OTTO VIII',
+9:'NOVE IX',10:'DIECI X',11:'UNDICI XI',12:'DODICI XII',13:'TREDICI XIII',14:'QUATTORDICI XIV',15:'QUINDICI XV',
+16:'SEDICI XVI',17:'DICIASSETTE XVII',18:'DICIOTTO XVIII',19:'DICIANNOVE XIX',20:'VENTI XX',21:'VENTUNO XXI',
+22:'VENTIDUE XXII',23:'VENTITRE XXIII',24:'VENTIQUATTRO XXIV',25:'VENTICINQUE XXV',26:'VENTISEI XXVI',
+27:'VENTISETTE XXVII',28:'VENTOTTO XXVIII',29:'VENTINOVE XXIX',30:'TRENTA XXX',31:'TRENTUNO XXXI'};
+function senzaAccenti(s){
+try{return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){return String(s||'');}
+}
+function parole(s){
+return senzaAccenti(s).toUpperCase()
+.replace(/F\.\s?LLI\b/g,'FRATELLI').replace(/\bP\.?\s?TA\b/g,'PORTA').replace(/\bP\.\s?TO\b/g,'PORTO')
+.replace(/\bSAV\b\.?/g,'SAVOIA').replace(/\bM\.\s?SE\b/g,'MILANESE').replace(/\bSTAZ\b\.?/g,'STAZIONE').replace(/\bOSP\b\.?/g,'OSPEDALE')
+.replace(/[’'`´]/g,' ').replace(/[^A-Z0-9 ]/g,' ').split(/\s+/).filter(Boolean);
+}
+function tipoDi(t){
+for(var i=0;i<TIPI.length;i++){var m=t.match(TIPI[i][0]);if(m)return {tipo:TIPI[i][1],resto:t.slice(m[0].length)};}
+return null;
+}
+function senzaDoppie(w){return w.replace(/([A-Z])\1+/g,'$1');}
+/* le parole che devono esserci tutte; le chiavi per cercare (le piu' rare, al massimo due) */
+function nomeDa(resto){
+var tutte=parole(resto),req=[];
+tutte.forEach(function(w,i){
+if(VUOTE[w]||SANTI[w]||TITOLI[w]||IGNORA[w])return;
+/* un numero conta solo dentro il nome (24 MAGGIO, 5 GIORNATE); in fondo e' il civico (VIA FRIULI 30) */
+if(/^\d+$/.test(w)){var x=+w;if(x>=1&&x<=31&&i<tutte.length-1&&!/^\d+$/.test(tutte[i+1]))req.push(String(x));return;}
+if(w.length<2)return;
+req.push(w);
+});
+var testo=req.filter(function(w){return !/^\d+$/.test(w);}).sort(function(a,b){
+var ca=COMUNI[a]?1:0,cb=COMUNI[b]?1:0;return (ca-cb)||(b.length-a.length);});
+var chiavi=testo.slice(0,1);
+/* la seconda solo se dice qualcosa (non DE, COL, EST...) */
+if(testo.length>1&&testo[1].length>=4&&(COMUNI[testo[0]]||testo[0].length<5||!COMUNI[testo[1]]))chiavi.push(testo[1]);
+return {req:req,chiavi:chiavi};
+}
+var SALTA=/^(?:A\s?\d|SS\s?\d|S\.S\.|SP\s?\d|TANG|INTERS|INTER\.|INT\.|INTERSEZIONE|SVINC|USCITA|IMBOCCO|PROSEGUO|BARRIERA|CASELLO|SNODO|RACCORDO|AUTOSTRADA|ENTRATA|INGRESSO)/;
+var POI=[
+[/^(?:STAZ\.?|STAZIONE)\s*(?:DI\s+)?(.+)$/,'stazione'],
+[/^S\.?\s?PAOLO$/,'ospedale','PAOLO'],
+[/^(?:OSP\.?|OSPEDALE)\s*(.+)$/,'ospedale'],
+[/^POLICLINICO/,'ospedale','POLICLINICO'],
+[/^(?:IST\.?\s?ONCOLOGICO|ISTITUTO ONCOLOGICO|ISTITUTO TUMORI|IST\.?\s?TUMORI)/,'ospedale','TUMORI|ONCOLOGIA'],
+[/^(?:IEO\b|ISTITUTO EUROPEO)/,'ospedale','ONCOLOGIA'],
+[/^HUMANITAS/,'ospedale','HUMANITAS'],
+[/^CTO\b/,'ospedale','TRAUMATOLOGICO'],
+[/^(?:AEROPORTO(?:\s+DI)?\s+)?(LINATE|MALPENSA|ORIO AL SERIO|BERGAMO)/,'aeroporto'],
+[/^(?:FIERAMILANOCITY|FIERA MILANO CITY|CITYLIFE|CITY LIFE)/,'luogo','CITYLIFE'],
+[/^(?:RHO FIERA|FIERA MILANO|FIERAMILANO)/,'luogo','FIERA'],
+[/^(?:STADIO|S\.?\s?SIRO$|SAN SIRO$)/,'luogo','MEAZZA'],
+[/^DUOMO$/,'luogo','DUOMO'],
+[/^(?:TRIBUNALE|PALAZZO(?:\s+DI)?\s+GIUSTIZIA)/,'luogo','GIUSTIZIA'],
+[/^(?:MUSEO DEL )?CENACOLO/,'luogo','CENACOLO'],
+[/^PARCO\s+(.+)$/,'luogo']
+];
+/* "P.ZA DUOMO" → {k:'via', tipo:'PIAZZA', req:['DUOMO'], chiavi:['DUOMO']} */
+function analizza(testo){
+var t=senzaAccenti(String(testo||'')).toUpperCase().replace(/\s+/g,' ').trim();
+t=t.replace(/\([^)]*\)?/g,' ').replace(/\s+/g,' ').trim();
+if(!t||/^(OPPURE|ECC)\b/.test(t))return {k:'salta',testo:t};
+/* due vie sulla stessa riga: "P.ZA AMENDOLA - V.LE EZIO" (l'incrocio), "LARGO CAIROLI CON L.GO MARIA CALLAS" */
+var pz=t.split(/\s+-\s+|\s*\/\s*|\s+CON\s+/);
+if(pz.length===2){var a=analizza(pz[0]),b=analizza(pz[1]);
+if(a.k==='via'&&b.k==='via')return {k:'incrocio',a:a,b:b,tipo:a.tipo,req:a.req,chiavi:a.chiavi,testo:t};
+if(a.k!=='salta')return a;
+if(b.k!=='salta'&&b.k!=='nome')return b;}
+t=t.replace(/\s+(?:TENENDO|DOVE|DIREZIONE|DIR\.|PER|FINO|VERSO|ALL'ALTEZZA)\b.*$/,'').replace(/[:;,.]+$/,'').trim();
+var tp=tipoDi(t);
+if(!tp&&!SALTA.test(t)){
+/* la via sta piu' avanti nella riga ("SVINC. AUTOSTRADALE V.LE CERTOSA") */
+var m=t.match(/\s((?:V\.?\s?LE|VIALE|VIA|P\.?\s?LE|PIAZZALE|P\.?\s?ZZA|P\.?\s?ZA|PIAZZA|L\.?\s?GO|LARGO|C\.?\s?SO|CORSO)\b.*)$/);
+if(m)tp=tipoDi(m[1]);
+}
+if(!tp&&SALTA.test(t)){
+var m2=t.match(/\s((?:V\.?\s?LE|VIALE|VIA|P\.?\s?LE|PIAZZALE|C\.?\s?SO|CORSO)\s.*)$/);
+if(m2)tp=tipoDi(m2[1]);
+}
+if(tp){
+var n=nomeDa(tp.resto);
+if(!n.req.length)return {k:'salta',testo:t};
+return {k:'via',tipo:tp.tipo,req:n.req,chiavi:n.chiavi,testo:t};
+}
+if(SALTA.test(t))return {k:'salta',testo:t};
+for(var i=0;i<POI.length;i++){
+var mm=t.match(POI[i][0]);
+if(mm){var nome=POI[i][2]||mm[1]||'';
+if(nome.indexOf('|')>0){var alt=nome.split('|');return {k:'poi',poi:POI[i][1],req:[alt[0]],alt:alt,chiavi:alt,testo:t};}
+var nn=nomeDa(nome);
+if(!nn.req.length)return {k:'salta',testo:t};
+var o={k:'poi',poi:POI[i][1],req:nn.req,chiavi:nn.chiavi,testo:t};
+if(o.poi==='aeroporto'){var tm=t.match(/TERMINAL\s*(\d)/);o.term=tm?tm[1]:'';}
+return o;}
+}
+/* un nome senza tipo: un paese che si attraversa (BARANZATE) o una via scritta senza "VIA" (BIGNAMI) */
+var w=parole(t).filter(function(x){return !VUOTE[x]&&x.length>2;});
+if(w.length&&w.length<=3&&!/\d/.test(t)){var np=nomeDa(t);if(np.req.length)return {k:'nome',req:np.req,chiavi:np.chiavi,testo:t};}
+return {k:'salta',testo:t};
+}
+/* ── 2 · cercare per nome: lo stesso pezzo di espressione per OpenStreetMap e per qui ──
+   le doppie possono esserci o no (NAZZARRO ~ Nazaro), le vocali anche accentate (MOLIERE ~ Molière),
+   l'ultima lettera libera (CITTA ~ Città) */
+var VOC={A:'(A|À|Á|à|á)',E:'(E|È|É|è|é)',I:'(I|Ì|Í|ì|í)',O:'(O|Ò|Ó|ò|ó)',U:'(U|Ù|Ú|ù|ú)'};
+function reToken(w,intera){
+var c=senzaDoppie(String(w||'').toUpperCase()),o='';
+for(var i=0;i<c.length;i++){
+var ch=c[i];
+if(i===c.length-1&&c.length>3&&VOC[ch]){o+='.';break;}
+if(VOC[ch])o+=VOC[ch];
+else{o+=ch;if(/[A-Z]/.test(ch))o+='+';}
+}
+if(intera&&c.length<=3)o+='( |$)';   /* le parole corte (OHM, BON): intere */
+return o;
+}
+var INIZIO="(^|[ '’(-])";
+function reChiavi(chiavi){return INIZIO+'('+chiavi.map(function(w){return reToken(w,true);}).join('|')+')';}
+/* per guardare vicino a dove deve stare: basta l'inizio (3 lettere) o la fine di una parola,
+   cosi' passano anche gli errori di battitura (GIRADINO ~ Giardino, CORCETTA ~ Crocetta) */
+function reBordi(chiavi){
+var pre={},suf={};
+chiavi.forEach(function(w){var c=senzaDoppie(String(w||'').toUpperCase());if(!c)return;
+if(c.length<=4){pre[reToken(c)]=1;return;}
+pre[reToken(c.slice(0,3))]=1;suf[reToken(c.slice(-3))]=1;});
+var a=Object.keys(pre),b=Object.keys(suf),r=[];
+if(a.length)r.push(INIZIO+'('+a.join('|')+')');
+if(b.length)r.push('('+b.join('|')+')( |$)');
+return r.join('|');
+}
+/* ── 3 · il nome sulla mappa: quanto somiglia alla tappa ── */
+function lev(a,b){   /* distanza di modifica, con lo scambio di due lettere vicine che conta uno (CORCETTA ~ CROCETTA) */
+if(a===b)return 0;
+var la=a.length,lb=b.length;if(Math.abs(la-lb)>2)return 9;
+var d=[],i,j;for(i=0;i<=la;i++)d[i]=[i];for(j=0;j<=lb;j++)d[0][j]=j;
+for(i=1;i<=la;i++)for(j=1;j<=lb;j++){
+var v=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,d[i-2][j-2]+1);
+d[i][j]=v;}
+return d[la][lb];
+}
+/* 0 = diversa; 1 = uguale; 0.75 = tagliata nel libro (MARGHERIT); 0.8 = un errore di battitura */
+function somiglia(b,o){
+if(b===o)return 1;
+if(/^\d+$/.test(b)){var eq=(NUM[+b]||'').split(' ');return eq.indexOf(o)>=0?1:0;}
+if(/^\d+$/.test(o))return 0;
+var cb=senzaDoppie(b),co=senzaDoppie(o);
+if(cb===co)return 0.95;
+if(b.length>=6&&(o.indexOf(b)===0||co.indexOf(cb)===0))return 0.75;
+if(cb.length>=5&&co.length>=4){var d=lev(cb,co);if(d<=(cb.length>=8?2:1))return 0.8;}
+return 0;
+}
+var TIPIOSM={VIA:'VIA',VIALE:'VIALE',PIAZZA:'PIAZZA',PIAZZALE:'PIAZZALE',LARGO:'LARGO',CORSO:'CORSO',PIAZZETTA:'PIAZZETTA',
+BASTIONI:'BASTIONI',BASTIONE:'BASTIONI',CAVALCAVIA:'CAVALCAVIA',ALZAIA:'ALZAIA',RIPA:'RIPA',GALLERIA:'GALLERIA',PONTE:'PONTE',VICOLO:'VICOLO',
+PASSAGGIO:'PASSAGGIO',STRADA:'STRADA',TUNNEL:'TUNNEL',SOTTOPASSO:'SOTTOPASSO',SOTTOPASSAGGIO:'SOTTOPASSO',VIALETTO:'VIALETTO',
+ROTONDA:'ROTONDA',FORO:'FORO'};
+/* quanto un nome della mappa va bene per la tappa: 0 = no; piu' alto e' meglio (1.3 = identico)
+   rilassato: cercando vicino a dove deve stare, puo' mancare una parola (il libro a volte la sbaglia) */
+function punteggio(passo,nomeOSM,rilassato){
+var ps=parole(nomeOSM);if(!ps.length)return 0;
+var to=TIPIOSM[ps[0]]||null,corpo=to?ps.slice(1):ps;
+var req=passo.req||[];if(!req.length)return 0;
+if(passo.alt){   /* una qualunque delle parole (TUMORI o ONCOLOGIA) */
+for(var a=0;a<passo.alt.length;a++){var s1=punteggio({k:passo.k,req:[passo.alt[a]]},nomeOSM,rilassato);if(s1)return s1;}
+return 0;}
+var usati={},manca=0,pen=0;
+for(var i=0;i<req.length;i++){
+var b=req[i],best=0,bj=-1;
+for(var j=0;j<corpo.length;j++){if(usati[j])continue;var v=somiglia(b,corpo[j]);if(v>best){best=v;bj=j;if(v===1)break;}}
+if(!best){manca++;continue;}
+usati[bj]=1;pen+=(1-best)*0.6;
+}
+if(manca){if(!rilassato||manca>1||req.length<2)return 0;pen+=0.4;}
+var p=1-pen;
+if(passo.k==='via'||passo.k==='incrocio'){
+if(to===passo.tipo)p+=0.3;else if(to&&FAM[to]&&FAM[to]===FAM[passo.tipo])p+=0.1;else if(to)p-=0.25;
+}
+var extra=0;corpo.forEach(function(w,j){if(!usati[j]&&!VUOTE[w]&&!SANTI[w]&&!TITOLI[w]&&!/^\d+$/.test(w))extra++;});
+p-=Math.min(0.2,extra*(passo.k==='via'||passo.k==='incrocio'?0.04:0.02));
+return Math.max(0.01,p);
+}
+/* ── 4 · geometria: metri su un piano attorno a Milano ── */
+var LAT0=45.464,LON0=9.19,KX=111320*Math.cos(LAT0*Math.PI/180),KY=110540;
+function xy(p){return [(p[1]-LON0)*KX,(p[0]-LAT0)*KY];}
+function ll(q){return [q[1]/KY+LAT0,q[0]/KX+LON0];}
+/* una "cosa" sulla mappa: linee (vie, piazze) o un punto (stazioni, ospedali), in metri */
+function cosa(linee,punto){
+var L=(linee||[]).map(function(l){return l.map(xy);}).filter(function(l){return l.length;});
+var P=punto?xy(punto):null;
+var b=[Infinity,Infinity,-Infinity,-Infinity];
+function allarga(q){if(q[0]<b[0])b[0]=q[0];if(q[1]<b[1])b[1]=q[1];if(q[0]>b[2])b[2]=q[0];if(q[1]>b[3])b[3]=q[1];}
+L.forEach(function(l){l.forEach(allarga);});if(P)allarga(P);
+var c;if(P)c=P;else{var sx=0,sy=0,n=0;L.forEach(function(l){l.forEach(function(q){sx+=q[0];sy+=q[1];n++;});});c=n?[sx/n,sy/n]:[0,0];}
+return {L:L,P:P,b:b,c:c};
+}
+function dPS(p,a,b){   /* punto-segmento: distanza e punto piu' vicino */
+var dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy,t=l?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l:0;
+t=t<0?0:(t>1?1:t);var q=[a[0]+t*dx,a[1]+t*dy];var ex=p[0]-q[0],ey=p[1]-q[1];
+return {d:Math.sqrt(ex*ex+ey*ey),q:q};
+}
+/* i segmenti con il loro riquadro, per scartare in fretta quelli lontani */
+function segmenti(C){
+if(C._s)return C._s;
+var s=[];
+function add(a,b){s.push({a:a,b:b,x0:Math.min(a[0],b[0]),y0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),y1:Math.max(a[1],b[1])});}
+C.L.forEach(function(l){if(l.length===1)add(l[0],l[0]);for(var i=1;i<l.length;i++)add(l[i-1],l[i]);});
+if(C.P)add(C.P,C.P);
+C._s=s;return s;
+}
+function distBox(A,B){var dx=Math.max(0,A.b[0]-B.b[2],B.b[0]-A.b[2]),dy=Math.max(0,A.b[1]-B.b[3],B.b[1]-A.b[3]);return Math.sqrt(dx*dx+dy*dy);}
+function dSeg(g,h){var dx=Math.max(0,g.x0-h.x1,h.x0-g.x1),dy=Math.max(0,g.y0-h.y1,h.y0-g.y1);return Math.sqrt(dx*dx+dy*dy);}
+function incrocio(p1,p2,p3,p4){
+var d=(p2[0]-p1[0])*(p4[1]-p3[1])-(p2[1]-p1[1])*(p4[0]-p3[0]);if(!d)return null;
+var u=((p3[0]-p1[0])*(p4[1]-p3[1])-(p3[1]-p1[1])*(p4[0]-p3[0]))/d,v=((p3[0]-p1[0])*(p2[1]-p1[1])-(p3[1]-p1[1])*(p2[0]-p1[0]))/d;
+if(u<0||u>1||v<0||v>1)return null;return [p1[0]+u*(p2[0]-p1[0]),p1[1]+u*(p2[1]-p1[1])];
+}
+/* la distanza fra due cose e i due punti piu' vicini (l'incrocio); null se oltre "lim" */
+function vicini(A,B,lim){
+if(lim!=null&&distBox(A,B)>lim)return null;
+var sa=segmenti(A),sb=segmenti(B),best={d:Infinity};
+for(var i=0;i<sa.length;i++){var g=sa[i];
+for(var j=0;j<sb.length;j++){var h=sb[j];
+if(dSeg(g,h)>=best.d)continue;
+var x=incrocio(g.a,g.b,h.a,h.b);
+if(x)return {d:0,pa:x,pb:x};
+var r1=dPS(g.a,h.a,h.b);if(r1.d<best.d)best={d:r1.d,pa:g.a,pb:r1.q};
+var r2=dPS(g.b,h.a,h.b);if(r2.d<best.d)best={d:r2.d,pa:g.b,pb:r2.q};
+var r3=dPS(h.a,g.a,g.b);if(r3.d<best.d)best={d:r3.d,pa:r3.q,pb:h.a};
+var r4=dPS(h.b,g.a,g.b);if(r4.d<best.d)best={d:r4.d,pa:r4.q,pb:h.b};
+}}
+if(lim!=null&&best.d>lim)return null;
+return best;
+}
+function piuVicino(C,p){var s=segmenti(C),best={d:Infinity,q:C.c};s.forEach(function(g){var r=dPS(p,g.a,g.b);if(r.d<best.d)best=r;});return best.q;}
+function dist(p,q){var dx=p[0]-q[0],dy=p[1]-q[1];return Math.sqrt(dx*dx+dy*dy);}
+function distPC(q,C){var s=segmenti(C),best=Infinity;s.forEach(function(g){var r=dPS(q,g.a,g.b);if(r.d<best)best=r.d;});return best;}
+/* un punto sulla via a circa m metri da p, il piu' lontano possibile da "lontanoDa" */
+function scosta(C,p,lontanoDa,m){
+var best=null,bd=-1;
+C.L.forEach(function(l){
+for(var i=1;i<l.length;i++){var a=l[i-1],b=l[i],n=Math.max(1,Math.ceil(dist(a,b)/15));
+for(var k=0;k<=n;k++){var q=[a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n],dp=dist(q,p);
+if(dp<m*0.5||dp>m*1.6)continue;var v=lontanoDa?distPC(q,lontanoDa):dp;if(v>bd){bd=v;best=q;}}}
+});
+return best;
+}
+function quadrato(C){return (C.b[2]-C.b[0])<420&&(C.b[3]-C.b[1])<420;}
+/* ── 5 · dagli elementi di OpenStreetMap alle "cose": le vie con lo stesso nome e attaccate fanno una cosa sola ── */
+function elementiInCose(els){
+var vie={},punti=[];
+(els||[]).forEach(function(e){
+var tg=e.tags||{},nome=tg.name;if(!nome)return;
+var linee=[];
+if(e.geometry&&e.geometry.length)linee.push(e.geometry.filter(Boolean).map(function(g){return [g.lat,g.lon];}));
+if(e.members)e.members.forEach(function(m){if(m.geometry&&m.geometry.length)linee.push(m.geometry.filter(Boolean).map(function(g){return [g.lat,g.lon];}));});
+var centro=e.center?[e.center.lat,e.center.lon]:(e.type==='node'&&isFinite(e.lat)?[e.lat,e.lon]:null);
+var poi=!(tg.highway||tg.place==='square');
+if(!poi&&!linee.length&&centro)linee.push([centro]);   /* una piazza segnata solo come punto */
+if(!poi&&linee.length){var k=parole(nome).join(' ');(vie[k]=vie[k]||[]).push({nome:nome,linee:linee,id:e.type+e.id,tg:tg});}
+else if(centro||linee.length){punti.push({nome:nome,id:e.type+e.id,tg:tg,C:cosa(linee.length&&!centro?linee:null,centro||null)});}
+});
+var cose=[];
+Object.keys(vie).forEach(function(k){
+var w=vie[k],n=w.length,gruppo=[],i,j;
+var C=w.map(function(x){return cosa(x.linee,null);});
+for(i=0;i<n;i++)gruppo[i]=i;
+function radice(x){while(gruppo[x]!==x){gruppo[x]=gruppo[gruppo[x]];x=gruppo[x];}return x;}
+for(i=0;i<n;i++)for(j=i+1;j<n;j++){if(radice(i)===radice(j))continue;if(vicini(C[i],C[j],80))gruppo[radice(i)]=radice(j);}
+var per={};
+for(i=0;i<n;i++){var r=radice(i);(per[r]=per[r]||[]).push(i);}
+Object.keys(per).forEach(function(r){
+var linee=[],ids=[];per[r].forEach(function(i2){linee=linee.concat(w[i2].linee);ids.push(w[i2].id);});
+cose.push({nome:w[per[r][0]].nome,id:ids.sort()[0],ids:ids,via:true,C:cosa(linee,null)});
+});
+});
+punti.forEach(function(p){cose.push({nome:p.nome,id:p.id,ids:[p.id],via:false,tg:p.tg,C:p.C});});
+return cose;
+}
+/* che genere di punto: per un ospedale vale un ospedale, per una stazione una stazione... */
+function generePunto(tg){
+tg=tg||{};
+if(tg.amenity==='hospital'||tg.healthcare==='hospital')return 'ospedale';
+if(tg.railway==='station'||tg.railway==='halt'||tg.public_transport==='station')return 'stazione';
+if(tg.aeroway==='aerodrome')return 'aeroporto';
+if(tg.aeroway==='terminal')return 'terminal';
+if(tg.place)return 'paese';
+return 'luogo';
+}
+/* i candidati di una tappa fra le cose conosciute */
+function candidati(passo,cose,rilassato){
+var out=[];
+if(!passo||passo.k==='salta')return out;
+cose.forEach(function(x){
+var s=0;
+if(passo.k==='via'||passo.k==='incrocio'){if(!x.via)return;s=punteggio(passo,x.nome,rilassato);}
+else if(passo.k==='nome'){
+if(x.via)s=punteggio(passo,x.nome,rilassato)-0.1;
+else{var g0=generePunto(x.tg);if(g0==='paese'||g0==='luogo')s=punteggio(passo,x.nome,rilassato)-(g0==='luogo'?0.15:0);}
+}
+else if(passo.k==='poi'){
+if(x.via)return;
+var g=generePunto(x.tg);
+if(passo.poi==='paese'){if(g!=='paese')return;}
+else if(passo.poi==='luogo'){if(g==='paese')return;}
+else if(passo.poi==='aeroporto'){if(g!=='aeroporto'&&g!=='terminal')return;}
+else if(g!==passo.poi)return;
+if(g==='terminal'){s=passo.term&&new RegExp('\\b'+passo.term+'\\b').test(x.nome)?1.2:0.9;}
+else s=punteggio(passo,x.nome,rilassato);
+if(s&&passo.poi==='stazione'&&x.tg&&x.tg.station==='subway')s-=0.15;
+}
+if(s>0)out.push({C:x.C,s:s,poi:!x.via,nome:x.nome,id:x.id,genere:x.via?'via':generePunto(x.tg)});
+});
+/* per un aeroporto: il terminal dentro l'aeroporto trovato, non quelli degli altri */
+if(passo.k==='poi'&&passo.poi==='aeroporto'){
+var aer=out.filter(function(c){return c.genere==='aeroporto';});
+var ter=out.filter(function(c){return c.genere==='terminal'&&aer.some(function(a){return dist(a.C.c,c.C.c)<4500;});});
+out=ter.length?ter:aer;
+}
+out.sort(function(a,b){return b.s-a.s;});
+if(out.length){var top=out[0].s;out=out.filter(function(c){return c.s>=top-0.45;}).slice(0,25);}
+return out;
+}
+/* un incrocio "A - B": il punto dove A incontra B */
+function candidatiIncrocio(passo,cose,rilassato){
+var A=candidati(passo.a,cose,rilassato),B=candidati(passo.b,cose,rilassato),out=[];
+A.forEach(function(a){
+var best=null;
+B.forEach(function(b){var r=vicini(a.C,b.C,90);if(r&&(!best||r.d<best.d))best={d:r.d,p:r.pa,s:b.s};});
+if(best)out.push({C:a.C,s:Math.min(1.3,(a.s+best.s)/2+0.1),nome:a.nome,id:a.id,punto:best.p,genere:'via'});
+});
+return out.length?out:A;
+}
+/* ── 6 · la catena: per ogni tappa la cosa giusta, vicina alla tappa prima e a quella dopo ── */
+var LIM_VIA=1300,LIM_POI=6000,MANCA=520;
+function limite(a,b){return (a.poi||b.poi)?LIM_POI:LIM_VIA;}
+/* cand[i] = [{C, s (punteggio), poi, fisso}] ; risultato: per ogni tappa l'indice scelto o -1 */
+function catena(cand){
+var n=cand.length,costo=[],da=[];
+if(!n)return [];
+for(var i=0;i<n;i++){
+var c=cand[i],k=c.length,haFisso=c.some(function(x){return x.fisso;});costo[i]=[];da[i]=[];
+for(var a=0;a<=k;a++){            /* a===k: la tappa non trovata */
+var em=(a===k)?MANCA:(c[a].fisso?0:(1.3-Math.min(1.3,c[a].s))*160);
+if(a===k&&haFisso){costo[i][a]=Infinity;da[i][a]=-1;continue;}
+if(i===0){costo[i][a]=em;da[i][a]=-1;continue;}
+var p=cand[i-1],best=Infinity,bi=-1;
+for(var b=0;b<=p.length;b++){
+var cb=costo[i-1][b];if(cb===Infinity)continue;var t;
+if(a===k||b===p.length)t=0;
+else if(p[b].fisso&&c[a].fisso)t=0;          /* due marker messi a mano: valgono comunque */
+else{var lim=limite(p[b],c[a]),r=vicini(p[b].C,c[a].C,lim);t=r?r.d:Infinity;}
+if(cb+t<best){best=cb+t;bi=b;}
+}
+costo[i][a]=best+em;da[i][a]=bi;
+}
+}
+var scelta=[],st=-1,bv=Infinity,last=costo[n-1];
+for(var z=0;z<n;z++)scelta[z]=-1;
+for(var a2=0;a2<last.length;a2++)if(last[a2]<bv){bv=last[a2];st=a2;}
+for(var j=n-1;j>=0&&st>=0;j--){
+scelta[j]=st>=cand[j].length?-1:st;
+st=da[j][st];if(st==null)st=-1;
+}
+/* i marker che ci sono gia' restano scelti comunque */
+for(var f=0;f<n;f++){for(var g=0;g<cand[f].length;g++)if(cand[f][g].fisso){scelta[f]=g;break;}}
+/* "non andare a cercare lontano": una tappa trovata ma lontana dalle vicine trovate torna col punto di domanda */
+var ok=scelta.slice();
+for(var i2=0;i2<n;i2++){
+if(ok[i2]<0)continue;var me=cand[i2][ok[i2]];if(me.fisso)continue;
+var pv=-1,nx2=-1;for(var p2=i2-1;p2>=0;p2--)if(scelta[p2]>=0){pv=p2;break;}for(var q2=i2+1;q2<n;q2++)if(scelta[q2]>=0){nx2=q2;break;}
+if(pv<0&&nx2<0){if(!me.poi||me.s<1)ok[i2]=-1;continue;}
+var buono=false;
+[pv,nx2].forEach(function(z){if(z<0||buono)return;var o=cand[z][scelta[z]],gap=Math.abs(z-i2),lim=limite(o,me)*gap;
+var r=vicini(o.C,me.C,lim);if(r)buono=true;});
+if(!buono)ok[i2]=-1;
+}
+return ok;
+}
+/* ── 7 · dove va il marker di ogni tappa ── */
+function posizioni(cand,scelta,passi){
+var n=scelta.length,pos=new Array(n),qq=new Array(n);
+function C(i){return scelta[i]>=0?cand[i][scelta[i]]:null;}
+for(var i=0;i<n;i++){
+var me=C(i);if(!me){pos[i]=null;continue;}
+if(me.fisso){pos[i]=me.C.P;continue;}
+if(me.punto){pos[i]=me.punto;continue;}
+var tipo=passi[i]&&passi[i].tipo;
+if(me.poi){pos[i]=me.C.P||me.C.c;qq[i]=(me.genere==='paese'||me.genere==='luogo'&&passi[i]&&passi[i].k==='nome')?1:0;continue;}
+var prev=(i>0&&C(i-1))?C(i-1):null,next=(i<n-1&&C(i+1))?C(i+1):null;
+if(QUADRATI[tipo]&&quadrato(me.C)){var bc=[(me.C.b[0]+me.C.b[2])/2,(me.C.b[1]+me.C.b[3])/2],nv=piuVicino(me.C,bc);pos[i]=dist(nv,bc)<80?bc:nv;continue;}   /* la piazza: nel mezzo */
+var e=prev?vicini(prev.C,me.C,null):null,x=next?vicini(me.C,next.C,null):null;
+var pe=(e&&e.d<400)?e.pb:null,px=(x&&x.d<400)?x.pa:null;
+if(pe&&px){var mid=[(pe[0]+px[0])/2,(pe[1]+px[1])/2];pos[i]=piuVicino(me.C,mid);continue;}
+if(px){pos[i]=scosta(me.C,px,next?next.C:null,110)||piuVicino(me.C,me.C.c);continue;}
+if(pe){pos[i]=scosta(me.C,pe,prev?prev.C:null,110)||piuVicino(me.C,me.C.c);continue;}
+pos[i]=piuVicino(me.C,me.C.c);
+}
+/* le tappe non trovate: col punto di domanda, fra le vicine trovate */
+var trov=pos.map(function(p){return !!p;});
+for(var j=0;j<n;j++){
+if(trov[j])continue;
+var a=-1,b=-1;for(var p=j-1;p>=0;p--)if(trov[p]&&!qq[p]){a=p;break;}for(var q=j+1;q<n;q++)if(trov[q]&&!qq[q]){b=q;break;}
+if(a<0)for(var p3=j-1;p3>=0;p3--)if(trov[p3]){a=p3;break;}
+if(b<0)for(var q3=j+1;q3<n;q3++)if(trov[q3]){b=q3;break;}
+if(a>=0&&b>=0){var t=(j-a)/(b-a);pos[j]=[pos[a][0]+(pos[b][0]-pos[a][0])*t,pos[a][1]+(pos[b][1]-pos[a][1])*t];}
+else if(a>=0||b>=0){
+var s=a>=0?a:b,v=a>=0?(j-a):(b-j),dir=null,s2=-1;
+if(a>=0){for(var r=a-1;r>=0;r--)if(trov[r]){s2=r;break;}}else{for(var r2=b+1;r2<n;r2++)if(trov[r2]){s2=r2;break;}}
+if(s2>=0){var dx=pos[s][0]-pos[s2][0],dy=pos[s][1]-pos[s2][1],l=Math.sqrt(dx*dx+dy*dy);if(l>1)dir=[dx/l,dy/l];}
+if(!dir)dir=[0.7071,0.7071];
+pos[j]=[pos[s][0]+dir[0]*70*v,pos[s][1]+dir[1]*70*v];
+}
+else pos[j]=null;
+qq[j]=1;
+}
+return pos.map(function(p,i){return p?{ll:ll(p),q:qq[i]?1:0}:null;});
+}
+/* ── 8 · tutto insieme: le tappe, le cose conosciute, i marker che ci sono gia' ── */
+/* passi: analizza() di ogni tappa; pool(i): le cose fra cui cercare la tappa i (o tutte);
+   fissi[i]: [lat,lon] di un marker che c'e' gia' (non si tocca, aiuta le vicine) */
+function risolvi(passi,pool,fissi,rilassato){
+var cand=passi.map(function(p,i){
+if(fissi&&fissi[i])return [{C:cosa(null,fissi[i]),s:1.3,fisso:true}];
+var cs=typeof pool==='function'?pool(i):pool;
+if(p.k==='incrocio')return candidatiIncrocio(p,cs,rilassato&&rilassato[i]);
+return candidati(p,cs,rilassato&&rilassato[i]);
+});
+var scelta=catena(cand);
+return {cand:cand,scelta:scelta,pos:posizioni(cand,scelta,passi)};
+}
+return {analizza:analizza,parole:parole,punteggio:punteggio,somiglia:somiglia,reToken:reToken,reChiavi:reChiavi,reBordi:reBordi,
+cosa:cosa,vicini:vicini,catena:catena,posizioni:posizioni,elementiInCose:elementiInCose,candidati:candidati,
+candidatiIncrocio:candidatiIncrocio,risolvi:risolvi,generePunto:generePunto,
+xy:xy,ll:ll,dist:dist,senzaAccenti:senzaAccenti,nomeDa:nomeDa,INIZIO:INIZIO,LIM_VIA:LIM_VIA,MANCA:MANCA};
+})();
+
+window.__nccMotore=MOTORE;   /* per i test */
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+/* gli avvisi del giro: non durante un quiz o una simulazione */
+function avvisa(m,ms){
+try{if(typeof qCurView!=='undefined'&&qCurView==='run')return;var qa=document.getElementById('quizApp');if(qa&&qa.classList.contains('open'))return;}catch(e){}
+try{toast2(m,ms);}catch(e){}
+}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* ── dove chiedere: il server principale di OpenStreetMap e due di riserva ── */
+var SERVER=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+var BOX='45.36,9.02,45.58,9.32',LARGO='45.30,8.60,45.75,9.80';   /* Milano e dintorni; per aeroporti e paesi un po' di piu' */
+var KT='nccAutoTent';   /* percorso → {h: le sue tappe, t: quando ci ho provato, m: quante tappe restavano senza marker} */
+var PRIMO=3,BLOCCO=10,MAXTOK=120;   /* il primo giro piccolo (si vede subito qualcosa), poi a gruppi */
+function pausa(){var p=+window.__nccPausaOverpass;return isFinite(p)&&p>=0?p:1200;}   /* una domanda alla volta, con calma */
+var ST={corre:false,fatti:0,tot:0,messi:0,dubbi:0,inizio:0,pausaFino:0,falliti:0,avvisato:false,errore:''};
+var CACHE={el:{},tok:{},vic:{},ter:null},COSE={},srv=0;
+
+/* ── quali percorsi ── */
+function vuota(s){return !String(s||'').trim()||/^\s*(OPPURE|ECC)\b/i.test(String(s||''));}   /* "OPPURE", "ECC.": non sono posti */
+function firma(r){var s=(r.steps||[]).join('|'),h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return s.length+'.'+h;}
+function trova(id){try{return (routes||[]).filter(function(r){return r&&String(r.id)===String(id);})[0]||null;}catch(e){return null;}}
+function mancanti(r){var n=0;for(var i=0;i<r.steps.length;i++)if(!coords[r.id+'_'+i]&&!vuota(r.steps[i]))n++;return n;}
+function daFare(){
+var T=L(KT,{})||{},ora=Date.now(),out=[];
+(routes||[]).forEach(function(r){
+if(!r||r.id==null||!Array.isArray(r.steps)||!r.steps.length)return;
+var m=mancanti(r);if(!m)return;
+/* gia' provato con queste tappe e manca solo quello che non ho trovato: riprovo domani */
+var t=T[r.id];if(t&&t.h===firma(r)&&ora-t.t<864e5&&m<=(+t.m||0))return;
+out.push(r);
+});
+/* prima quello aperto sulla mappa */
+try{if(typeof cur!=='undefined'&&cur){for(var i=0;i<out.length;i++)if(String(out[i].id)===String(cur.id)){out.unshift(out.splice(i,1)[0]);break;}}}catch(e){}
+return out;
+}
+
+/* ── chiedere a OpenStreetMap (Overpass) ── */
+function attesa(ms){return new Promise(function(ok){setTimeout(ok,ms);});}
+function una(q){
+return new Promise(function(ok,ko){
+var ctl=null;try{ctl=new AbortController();}catch(e){}
+var fine=false,tm=setTimeout(function(){if(fine)return;fine=true;try{if(ctl)ctl.abort();}catch(e){}ko(new Error('tempo scaduto'));},90000);
+fetch(SERVER[srv],{method:'POST',body:'data='+encodeURIComponent(q),
+headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ctl?ctl.signal:undefined})
+.then(function(r){if(!r.ok){var e=new Error('HTTP '+r.status);e.st=r.status;throw e;}return r.json();})
+.then(function(j){
+/* una risposta senza "osm3s" non viene da Overpass; "runtime error" vuol dire che non ha finito */
+if(!j||!j.osm3s){var e1=new Error('risposta strana');e1.st=502;throw e1;}
+if(j.remark&&/error|timed out|out of memory/i.test(j.remark)){var e2=new Error(String(j.remark).slice(0,120));e2.st=503;throw e2;}
+return j;})
+.then(function(j){if(fine)return;fine=true;clearTimeout(tm);ok(j);},function(e){if(fine)return;fine=true;clearTimeout(tm);ko(e);});
+});
+}
+function chiedi(q){
+var prove=0;
+function giro(){
+if(!navigator.onLine)return Promise.reject(new Error('offline'));
+return una(q).catch(function(e){
+prove++;srv=(srv+1)%SERVER.length;            /* il prossimo server */
+if(prove>=3||!navigator.onLine)throw e;
+return attesa((e&&e.st===429?15000:3000)*prove).then(giro);
+});
+}
+return giro();
+}
+/* di ogni elemento tengo solo quello che serve */
+function punti(g){return (g||[]).filter(function(x){return x&&isFinite(x.lat)&&isFinite(x.lon);}).map(function(x){return {lat:+(+x.lat).toFixed(6),lon:+(+x.lon).toFixed(6)};});}
+function compatta(e){
+var t=e.tags||{},o={type:e.type,id:e.id,tags:{}};
+['name','highway','place','railway','station','amenity','healthcare','aeroway','public_transport','leisure','tourism','building'].forEach(function(k){if(t[k]!=null)o.tags[k]=t[k];});
+if(!o.tags.name&&t.aeroway==='terminal')o.tags.name='Terminal';
+if(e.geometry)o.geometry=punti(e.geometry);
+if(e.members)o.members=e.members.filter(function(m){return m&&m.geometry;}).map(function(m){return {geometry:punti(m.geometry)};});
+if(e.center)o.center={lat:+e.center.lat,lon:+e.center.lon};
+if(e.type==='node'){o.lat=+e.lat;o.lon=+e.lon;}
+return o;
+}
+function adatto(cat,e){
+var t=e.tags||{};
+if(cat==='v')return !!(t.highway||t.place==='square')&&!!(e.geometry||e.members||e.type==='node');
+if(cat==='o')return t.amenity==='hospital'||t.healthcare==='hospital';
+if(cat==='s')return t.railway==='station'||t.railway==='halt';
+if(cat==='a')return t.aeroway==='aerodrome';
+if(cat==='p')return !!t.place&&t.place!=='square';
+if(cat==='l')return !t.highway&&!t.place;
+return false;
+}
+/* le chiavi di una tappa: categoria:parola (v vie e piazze, o ospedali, s stazioni, a aeroporti, p paesi, l luoghi) */
+var CAT={ospedale:'o',stazione:'s',aeroporto:'a',luogo:'l',paese:'p'};
+function poolDi(p){
+if(!p||p.k==='salta')return [];
+if(p.k==='via')return p.chiavi.map(function(t){return 'v:'+t;});
+if(p.k==='incrocio')return poolDi(p.a).concat(poolDi(p.b));
+if(p.k==='nome')return p.chiavi.map(function(t){return 'v:'+t;}).concat(p.chiavi.map(function(t){return 'p:'+t;}));
+if(p.k==='poi'){var c=CAT[p.poi]||'l',o=(p.chiavi||[]).map(function(t){return c+':'+t;});if(c==='a')o.push('ter');return o;}
+return [];
+}
+function bisogni(lavori){
+var b={v:{},o:{},s:{},a:{},p:{},l:{}};
+lavori.forEach(function(W){W.passi.forEach(function(p,i){
+if(coords[W.id+'_'+i])return;   /* c'e' gia': fa solo da guida */
+poolDi(p).forEach(function(c){if(c==='ter'||(c in CACHE.tok))return;b[c.charAt(0)][c.slice(2)]=1;});
+});});
+var o={};Object.keys(b).forEach(function(k){o[k]=Object.keys(b[k]);});
+return o;
+}
+function qNomi(b){
+var R=MOTORE.reChiavi,x='[out:json][timeout:120];',p='';
+if(b.v.length){var rv=R(b.v);
+x+='(way["highway"]["name"~"'+rv+'",i]('+BOX+');way["place"="square"]["name"~"'+rv+'",i]('+BOX+');relation["place"="square"]["name"~"'+rv+'",i]('+BOX+');node["place"="square"]["name"~"'+rv+'",i]('+BOX+'););out tags geom;';}
+if(b.o.length){var ro=R(b.o);p+='nwr["amenity"="hospital"]["name"~"'+ro+'",i]('+LARGO+');nwr["healthcare"="hospital"]["name"~"'+ro+'",i]('+LARGO+');';}
+if(b.s.length)p+='nwr["railway"~"^(station|halt)$"]["name"~"'+R(b.s)+'",i]('+LARGO+');';
+if(b.a.length)p+='nwr["aeroway"="aerodrome"]["name"~"'+R(b.a)+'",i]('+LARGO+');nwr["aeroway"="terminal"]('+LARGO+');';
+if(b.p.length)p+='node["place"~"^(city|town|village|suburb|quarter|neighbourhood|hamlet)$"]["name"~"'+R(b.p)+'",i]('+LARGO+');';
+if(b.l.length)p+='nwr[!"highway"][!"place"]["name"~"'+R(b.l)+'",i]('+BOX+');';
+if(p)x+='('+p+');out tags center;';
+return x;
+}
+function riponi(j,b){
+var els=((j&&j.elements)||[]).filter(function(e){return e&&e.tags;});
+els.forEach(function(e){if(e.tags.name||e.tags.aeroway==='terminal')CACHE.el[e.type+e.id]=compatta(e);});
+Object.keys(b).forEach(function(cat){
+b[cat].forEach(function(t){
+var re=new RegExp(MOTORE.reChiavi([t]),'i'),ids=[];
+els.forEach(function(e){if(e.tags.name&&adatto(cat,e)&&re.test(e.tags.name))ids.push(e.type+e.id);});
+CACHE.tok[cat+':'+t]=ids;
+});
+});
+if(b.a.length)CACHE.ter=els.filter(function(e){return e.tags.aeroway==='terminal';}).map(function(e){return e.type+e.id;});
+}
+function chiediNomi(b){
+var tutti=[];Object.keys(b).forEach(function(cat){b[cat].forEach(function(t){tutti.push([cat,t]);});});
+if(!tutti.length)return Promise.resolve();
+var pezzi=[];for(var i=0;i<tutti.length;i+=MAXTOK)pezzi.push(tutti.slice(i,i+MAXTOK));
+return pezzi.reduce(function(pr,pz){return pr.then(function(){
+var bb={v:[],o:[],s:[],a:[],p:[],l:[]};pz.forEach(function(x){bb[x[0]].push(x[1]);});
+return chiedi(qNomi(bb)).then(function(j){
+/* dieci vie di Milano e nessun risultato: quel server non sta bene, la prossima volta un altro */
+if(bb.v.length>=10&&!((j.elements||[]).length)){srv=(srv+1)%SERVER.length;var e=new Error('risposta vuota');e.st=502;throw e;}
+riponi(j,bb);}).then(function(){return attesa(pausa());});
+});},Promise.resolve());
+}
+/* le cose fra cui cercare una tappa */
+function coseDi(ch){
+var k=ch.slice().sort().join('|');
+if(COSE[k])return COSE[k];
+var vis={},els=[];
+ch.forEach(function(c){var ids=c==='ter'?(CACHE.ter||[]):(c.indexOf('vic:')===0?CACHE.vic[c.slice(4)]:CACHE.tok[c])||[];
+ids.forEach(function(id){if(!vis[id]&&CACHE.el[id]){vis[id]=1;els.push(CACHE.el[id]);}});});
+return (COSE[k]=MOTORE.elementiInCose(els));
+}
+function calcola(W){
+var r=W.r;
+var fissi=r.steps.map(function(s,i){var c=coords[r.id+'_'+i];return c&&isFinite(c.lat)&&isFinite(c.lon)?[c.lat,c.lon]:null;});
+var pool=function(i){var ch=poolDi(W.passi[i]);if(W.vic&&W.vic[i])ch=ch.concat(['vic:'+W.id+'_'+i]);return coseDi(ch);};
+var ril=W.vic?W.passi.map(function(_,i){return !!W.vic[i];}):null;
+W.res=MOTORE.risolvi(W.passi,pool,fissi,ril);
+}
+/* ── la seconda occhiata: le tappe non trovate si cercano solo li' vicino ── */
+function vicinoDi(W){
+var out=[],pos=W.res.pos;
+pos.forEach(function(p,i){
+if(!p||!p.q)return;
+var ps=W.passi[i];if(!ps||ps.k==='salta'||ps.k==='poi'||coords[W.id+'_'+i]||!chiaviVicino(ps).length)return;
+var a=null,b=null,x;
+for(x=i-1;x>=0;x--)if(pos[x]&&!pos[x].q){a=pos[x];break;}
+for(x=i+1;x<pos.length;x++)if(pos[x]&&!pos[x].q){b=pos[x];break;}
+var R=400;if(a&&b)R=Math.max(250,Math.min(650,MOTORE.dist(MOTORE.xy(a.ll),MOTORE.xy(b.ll))/2+150));
+out.push({W:W,i:i,ll:p.ll,R:Math.round(R)});
+});
+return out;
+}
+function chiaviVicino(p){return p.k==='incrocio'?(p.a.chiavi||[]).concat(p.b.chiavi||[]):(p.chiavi||[]);}
+function qVicino(giri){
+var x='[out:json][timeout:90];(';
+giri.forEach(function(g){var a='(around:'+g.R+','+g.ll[0].toFixed(6)+','+g.ll[1].toFixed(6)+')',re=MOTORE.reBordi(chiaviVicino(g.W.passi[g.i]));
+if(!re)return;
+x+='way["highway"]["name"~"'+re+'",i]'+a+';way["place"="square"]["name"~"'+re+'",i]'+a+';node["place"="square"]["name"~"'+re+'",i]'+a+';';});
+return x+');out tags geom;';
+}
+function linee(e){var l=[];if(e.type==='node'&&isFinite(e.lat))l.push([[e.lat,e.lon]]);if(e.geometry&&e.geometry.length)l.push(e.geometry.map(function(g){return [g.lat,g.lon];}));
+(e.members||[]).forEach(function(m){if(m.geometry&&m.geometry.length)l.push(m.geometry.map(function(g){return [g.lat,g.lon];}));});return l;}
+function chiediVicino(giri){
+if(!giri.length)return Promise.resolve();
+var pezzi=[];for(var i=0;i<giri.length;i+=40)pezzi.push(giri.slice(i,i+40));
+return pezzi.reduce(function(pr,pz){return pr.then(function(){
+return chiedi(qVicino(pz)).then(function(j){
+var els=((j&&j.elements)||[]).filter(function(e){return e&&e.tags&&e.tags.name&&adatto('v',e);}).map(compatta);
+els.forEach(function(e){CACHE.el[e.type+e.id]=e;});
+var CC=els.map(function(e){return MOTORE.cosa(linee(e),null);});
+pz.forEach(function(g){
+var P=MOTORE.cosa(null,g.ll),ids=[];
+els.forEach(function(e,k){if(MOTORE.vicini(P,CC[k],g.R+60))ids.push(e.type+e.id);});
+CACHE.vic[g.W.id+'_'+g.i]=ids;(g.W.vic=g.W.vic||{})[g.i]=1;
+});
+}).then(function(){return attesa(pausa());});
+});},Promise.resolve());
+}
+/* ── i marker: solo dove non ce n'e' gia' uno ── */
+function scrivi(W){
+var r=trova(W.id);if(!r||firma(r)!==W.h)return 0;          /* il percorso e' cambiato nel frattempo: lo rifaccio dopo */
+var n=0,q=0;
+W.res.pos.forEach(function(p,i){
+var k=r.id+'_'+i;if(!p||coords[k]||vuota(r.steps[i]))return;
+var c={lat:+p.ll[0].toFixed(6),lon:+p.ll[1].toFixed(6),auto:1};if(p.q){c.q=1;q++;}
+coords[k]=c;n++;
+});
+var T=L(KT,{})||{};T[r.id]={h:W.h,t:Date.now(),m:mancanti(r)};
+Object.keys(T).forEach(function(id){if(!trova(id))delete T[id];});
+S(KT,T);
+ST.messi+=n;ST.dubbi+=q;
+return n;
+}
+function ognuno(a,fn){return a.reduce(function(pr,x){return pr.then(function(){return attesa(0).then(function(){fn(x);});});},Promise.resolve());}
+function lavoraBlocco(lista){
+var lavori=lista.map(function(r){return {r:r,id:String(r.id),h:firma(r),
+passi:r.steps.map(function(s){return vuota(s)?{k:'salta',vuota:1}:MOTORE.analizza(s);})};});
+return chiediNomi(bisogni(lavori))
+.then(function(){return ognuno(lavori,calcola);})
+.then(function(){var g=[];lavori.forEach(function(W){g=g.concat(vicinoDi(W));});return chiediVicino(g);})
+.then(function(){return ognuno(lavori.filter(function(W){return W.vic;}),calcola);})
+.then(function(){
+var n=0;lavori.forEach(function(W){n+=scrivi(W);});
+if(n)salvato(lavori);
+});
+}
+function salvato(lavori){
+try{save();}catch(e){}
+try{flushNow();}catch(e){}            /* nel cloud vanno solo i marker nuovi, uno per uno */
+try{
+if(typeof cur!=='undefined'&&cur&&lavori.some(function(W){return W.id===String(cur.id);})){
+var c2=trova(cur.id);if(c2)cur=c2;
+renderList();rebuildLines();
+var k=cur.id+'_'+step;
+if(coords[k]&&!mkr&&typeof map!=='undefined'&&map&&document.body.classList.contains('on-topo'))putMkr(coords[k].lat,coords[k].lon,cur.steps[step],k);
+}
+}catch(e){}
+aggiorna();
+}
+/* ── il giro: un blocco alla volta, finche' ce n'e' ── */
+var tm=null;
+function prossimo(ms){clearTimeout(tm);tm=setTimeout(lavora,Math.max(0,ms));}
+function lavora(){
+try{
+if(ST.corre)return;
+if(!navigator.onLine||document.hidden)return;                 /* riparte da solo: rete tornata, app di nuovo davanti */
+if(Date.now()<ST.pausaFino){prossimo(ST.pausaFino-Date.now()+500);return;}
+if(typeof routes==='undefined'||!Array.isArray(routes))return;
+if(window.__nccLibroAtteso&&!window.__nccLibroFatto){prossimo(2000);return;}   /* prima i percorsi del libro */
+var lista=daFare();
+if(!lista.length){finito();return;}
+if(!ST.inizio){ST.inizio=Date.now();ST.fatti=0;ST.messi=0;ST.dubbi=0;}
+ST.tot=ST.fatti+lista.length;
+if(!ST.avvisato&&lista.length>=3){ST.avvisato=true;
+avvisa('📍 Metto i marker a '+lista.length+' percorsi: ci vuole qualche minuto, intanto usa pure l’app',4600);}
+ST.corre=true;aggiorna();
+var b=lista.slice(0,ST.fatti?BLOCCO:PRIMO);
+lavoraBlocco(b).then(function(){
+ST.corre=false;ST.fatti+=b.length;ST.falliti=0;ST.errore='';aggiorna();prossimo(400);
+},function(e){
+ST.corre=false;ST.falliti++;ST.errore=String((e&&e.message)||e);
+ST.pausaFino=Date.now()+Math.min(30*60000,60000*Math.pow(2,ST.falliti-1));   /* 1, 2, 4... minuti */
+aggiorna();prossimo(ST.pausaFino-Date.now()+500);
+});
+}catch(e){ST.corre=false;}
+}
+function finito(){
+if(!ST.inizio)return;
+if(ST.avvisato&&ST.messi)avvisa('✅ Marker messi: '+ST.messi+(ST.dubbi?' · ❓ '+ST.dubbi+' da controllare':''),4600);
+ST.inizio=0;ST.avvisato=false;COSE={};CACHE={el:{},tok:{},vic:{},ter:null};
+aggiorna();
+}
+function statoTesto(){
+if(ST.inizio&&ST.pausaFino>Date.now())return 'In pausa: OpenStreetMap non risponde, riprovo fra poco';
+if(ST.inizio)return 'L’app li sta mettendo: '+Math.min(ST.fatti,ST.tot)+' di '+ST.tot+' percorsi';
+return 'Il punto di domanda: la via non l’ho trovata con sicurezza';
+}
+function dubbi(){var n=0;try{Object.keys(coords).forEach(function(k){var c=coords[k];if(c&&c.q)n++;});}catch(e){}return n;}
+/* la riga in Topografia, se e' aperta */
+function aggiorna(){
+try{
+var r=document.querySelector('#scnOv[data-p="topo"] .qc-riga[onclick*="\'t16\'"]');if(!r)return;
+var s=r.querySelector('.qc-lt > span');if(s)s.textContent=statoTesto();
+var b=r.querySelector('.qc-lt > b'),n=dubbi(),em=b&&b.querySelector('.qc-n');
+if(b){if(n){if(!em){em=document.createElement('em');em.className='qc-n';b.appendChild(em);}em.textContent=String(n);}else if(em)em.remove();}
+}catch(e){}
+}
+window.nccMarkerAuto={
+avvia:function(){ST.pausaFino=0;ST.falliti=0;prossimo(300);},
+stato:function(){return {corre:ST.corre,fatti:ST.fatti,tot:ST.tot,messi:ST.messi,dubbi:ST.dubbi,inizio:ST.inizio,pausaFino:ST.pausaFino,errore:ST.errore,da:daFare().length};},
+testo:statoTesto,dubbi:dubbi,
+dimentica:function(id){var T=L(KT,{})||{};if(id==null)T={};else delete T[id];S(KT,T);}
+};
+window.addEventListener('online',function(){ST.pausaFino=0;prossimo(1500);});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)prossimo(2500);});
+setInterval(function(){if(!ST.corre)lavora();},90000);
+setTimeout(lavora,15000);
+
+/* ═══ sulla mappa e nell'elenco: il punto di domanda ═══ */
+function chiave(k){return String(k).replace(/[^A-Za-z0-9_\-]/g,'');}
+function segna(k){
+try{
+if(!mkr)return;
+var c=coords[k],el=mkr.getElement&&mkr.getElement();
+var q=!!(c&&c.q);
+if(el){el.classList.toggle('mk-q',q);var pe=el.querySelector('.pin-emoji');if(pe)pe.textContent=q?'❓':'📍';}
+var pp=mkr.getPopup&&mkr.getPopup();
+if(pp){var h=String(pp.getContent()||'').replace(/<div class="mk-qt">[\s\S]*$/,'');
+if(q)h+='<div class="mk-qt">❓ Questa via non l’ho trovata con sicurezza: trascina il marker nel punto giusto.'
++'<button class="mk-ok" type="button" onclick="nccMarkerOk(\''+chiave(k)+'\')">✓ È giusto qui</button></div>';
+pp.setContent(h);}
+}catch(e){}
+}
+window.nccMarkerOk=function(k){
+try{
+var c=coords[k];if(!c)return;
+coords[k]={lat:c.lat,lon:c.lon,auto:1};
+try{save();}catch(e){}try{autoSave();}catch(e){}
+try{if(mkr){segna(k);mkr.closePopup();}}catch(e){}
+try{renderList();}catch(e){}
+try{hap();}catch(e){}
+try{toast2('✓ Marker confermato',1600);}catch(e){}
+}catch(e){}
+};
+function inLista(){
+try{
+if(typeof cur==='undefined'||!cur||!Array.isArray(listRows))return;
+listRows.forEach(function(d,i){
+var cb=d&&d.querySelector&&d.querySelector('.cb');if(!cb)return;
+var c=coords[cur.id+'_'+i];
+if(c&&c.q){cb.textContent='❓';cb.classList.add('q');cb.title='Da controllare: trascina il marker nel punto giusto, o toccami per rimetterlo';}
+else if(cb.classList.contains('q')){cb.classList.remove('q');cb.textContent=c?'📍':'+';}
+});
+/* l'alternativa del libro (quello dopo «OPPURE»), in fondo, solo in Studio */
+var sl=document.getElementById('sList');if(!sl)return;
+var vecchio=document.getElementById('slAlt');if(vecchio)vecchio.remove();
+var studio=(typeof mode==='undefined'||mode==='s');
+if(studio&&Array.isArray(cur.alt)&&cur.alt.length){
+var h='';
+cur.alt.forEach(function(a){if(!a||!Array.isArray(a.s)||!a.s.length)return;
+h+='<div class="sl-alt-s">'+a.s.map(E).join(' → ')+(a.e?' <i>… e poi come sopra</i>':'')+'</div>';});
+if(h){var d=document.createElement('div');d.id='slAlt';d.className='sl-alt';d.innerHTML='<b>Oppure, nel libro</b>'+h;sl.appendChild(d);}
+}
+}catch(e){}
+}
+setTimeout(function(){
+try{
+if(typeof putMkr==='function'&&!putMkr.__auto){
+var _pm=putMkr;
+putMkr=function(lat,lon,name,k){
+var r=_pm.apply(this,arguments);
+try{segna(k);if(mkr){mkr.off('dragend',segnaDopo);mkr.on('dragend',segnaDopo);}}catch(e){}
+return r;};
+putMkr.__auto=true;
+}
+if(typeof renderList==='function'&&!renderList.__auto){
+var _rl=renderList;
+renderList=function(){var r=_rl.apply(this,arguments);inLista();return r;};
+renderList.__auto=true;
+}
+/* un percorso salvato o cambiato: i marker che mancano li metto subito */
+if(typeof savRoute==='function'&&!savRoute.__auto){
+var _sr=savRoute;
+savRoute=function(){var r=_sr.apply(this,arguments);try{window.nccMarkerAuto.avvia();}catch(e){}return r;};
+savRoute.__auto=true;
+}
+}catch(e){}
+},4600);
+/* trascinato: il marker e' tuo, il punto di domanda se ne va (il nucleo lo salva senza) */
+function segnaDopo(){try{if(typeof cur!=='undefined'&&cur)segna(cur.id+'_'+step);inLista();}catch(e){}}
 })();
