@@ -12,7 +12,10 @@
    · (v152) DUE PERCORSI IDENTICI, con nomi diversi: il tuo del libro e la sua «strada 1» (dopo «Dividi in due»), la
      «(COPIA)», uno scritto a mano col nome tuo, due tuoi senza libro: ne resta uno, col nome del libro (o il piu'
      vecchio); la «strada 2» (l'alternativa) resta; uno scritto a mano uguale a un percorso del libro diventa quello
-     del libro col nome tuo, e la copia del libro non si aggiunge */
+     del libro col nome tuo, e la copia del libro non si aggiunge
+   · (v153) lo stesso percorso che parte da un'altra parte della piazza (STAZ.CENTRALE - LINATE a pag. 6 e 59) e quello
+     che e' l'alternativa di un altro (STAZ. GARIBALDI - DUOMO a pag. 28, l'«OPPURE» di pag. 116): ne resta uno, il nome
+     senza pagina, marker statistiche ultimo percorso e percorsi di oggi passano; in Percorsi salvati niente «Doppi» */
 const {launch,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
@@ -230,6 +233,49 @@ await F5.p.reload();await aspetta(F5,26000);
 const S6=await stato(F5);
 ok(J(S6.ids)===J(S5.ids)&&!S6.toast.some(x=>/Percorsi del libro/.test(x)),'identici, riaperto: '+J(S6.ids)+' '+J(S6.toast));
 ok(!F5.errs.length,'PC5 errori: '+F5.errs.join(' | '));
+
+/* ════ 6 · (v153) lo stesso percorso da un'altra parte della piazza, e l'alternativa di un altro ════
+   Lo stato lasciato dalla v152: STAZ.CENTRALE - LINATE a pag. 6 e a pag. 59 (la 59 parte da P.ZA DUCA D'AOSTA, la 6 gira
+   prima da P.ZA 4 NOVEMBRE), STAZ. GARIBALDI - DUOMO a pag. 28 e 116 (la 28 e' la strada dopo «OPPURE» della 116) */
+await F5.ctx.close();
+const p59=lib('p59a'),p28=lib('p28a'),p116=lib('p116a');
+const R6=[
+  {id:'lib_p6a',title:tit(p6,1),steps:p6.s.slice(),pdf:'p6a',libV:4},
+  {id:'lib_p59a',title:tit(p59,1),steps:p59.s.slice(),pdf:'p59a',libV:4},
+  {id:'lib_p28a',title:tit(p28,1),steps:p28.s.slice(),pdf:'p28a',libV:4},
+  {id:'lib_p116a',title:tit(p116,1),steps:p116.s.slice(),pdf:'p116a',libV:4,alt:p116.a}
+];
+const iE59=p59.s.indexOf('VIA EUSTACHI'),iE6=p6.s.indexOf('VIA EUSTACHI'),iF28=p28.s.indexOf('P.ZA FREUD'),iF116=p116.s.indexOf('P.ZA FREUD');
+const C6={['lib_p59a_'+iE59]:{lat:45.51,lon:9.2,t:1000},['lib_p6a_'+iE6]:{lat:46,lon:9.3,t:900,auto:1}};
+const Q6={lib_p28a:{correct:3,total:5,wrong:{[iF28]:2}}};
+const DEL6={};D.forEach(p=>{if(!['p6a','p59a','p28a','p116a'].includes(p.id))DEL6['lib_'+p.id]=ora-864e5;});
+const T6=Date.now()-600e3;
+scrivi('prontuario',{routes:R6,coords:C6,qStats:Q6,done:{},prefs:{rDel:DEL6},ts:T6,dev:'PC',ans:0});
+const F6=await dispositivo(b,'PC6',{width:1280,height:800},Object.assign({},comuni,{routes:J(R6),coords:J(C6),qStats:J(Q6),rDel:J(DEL6),localTs:String(T6),syncTs:String(T6),
+  lRId:J('lib_p59a'),oggiNcc:J({d:oggi,t:ora,q:{},e:{},e0:0,pz:[],pr:['lib_p28a'],ieri:{pz:[],pr:['lib_p28a','lib_p59a']}})}));
+await aspetta(F6,26000);
+const S7=await stato(F6);
+console.log('v153:',S7.ids.join(' '),'·',J(S7.toast.filter(x=>/libro/.test(x))));
+ok(J(S7.ids)===J(['lib_p116a','lib_p6a']),'(v153) ne resta uno per percorso: '+J(S7.ids));
+const l6=S7.R.find(x=>x.id==='lib_p6a'),l116=S7.R.find(x=>x.id==='lib_p116a');
+ok(l6&&l6.title===p6.t&&l6.steps.length===p6.s.length,'STAZ.CENTRALE - LINATE: quello di pag. 6, col nome senza pagina '+J(l6&&{t:l6.title,n:l6.steps.length}));
+ok(l116&&l116.title===p116.t&&l116.alt&&l116.alt.length===1,'STAZ. GARIBALDI - DUOMO: quello di pag. 116, con l’alternativa '+J(l116&&{t:l116.title,alt:l116.alt&&l116.alt.length}));
+ok(S7.C['lib_p6a_'+iE6]&&S7.C['lib_p6a_'+iE6].lat===45.51&&!S7.C['lib_p6a_'+iE6].auto,'il mio marker su VIA EUSTACHI passa a pag. 6 (e vince su quello dell’app): '+J(S7.C['lib_p6a_'+iE6]));
+ok(S7.q.lib_p116a&&S7.q.lib_p116a.correct===3&&S7.q.lib_p116a.total===5&&S7.q.lib_p116a.wrong&&S7.q.lib_p116a.wrong[iF116]===2,'statistiche e errori di pag. 28 sulla sua via: '+J(S7.q.lib_p116a));
+ok(S7.lRId==='lib_p6a','ultimo percorso: '+S7.lRId);
+ok(S7.og&&S7.og.pr.every(id=>S7.ids.includes(id))&&J(S7.og.ieri.pr)===J(['lib_p116a','lib_p6a']),'i percorsi di oggi e di ieri: '+J(S7.og&&{pr:S7.og.pr,ieri:S7.og.ieri}));
+ok(S7.rDel.lib_p59a&&S7.rDel.lib_p28a,'lapidi: '+J(Object.keys(S7.rDel).filter(k=>/p59a|p28a/.test(k))));
+ok(S7.toast.some(x=>/tolti 2 doppi, ne resta uno per percorso/.test(x))&&!S7.toast.some(x=>/aggiunt/.test(x)),'avviso: '+J(S7.toast));
+const cl6=leggi('prontuario');
+ok(cl6&&cl6.prefs&&cl6.prefs.rDel&&cl6.prefs.rDel.lib_p59a&&cl6.prefs.rDel.lib_p28a,'cloud: lapidi');
+/* Percorsi salvati: niente «Doppi» (il libro e' a posto) */
+await F6.p.evaluate(()=>{try{goHome();}catch(e){}openMgr();});await F6.p.waitForTimeout(700);
+ok(!(await F6.p.evaluate(()=>!!document.getElementById('mgDoppi'))),'(v153) Percorsi salvati: il tasto Doppi c’e’ ancora');
+await F6.p.evaluate(()=>closeMgr());
+await F6.p.reload();await aspetta(F6,26000);
+const S8=await stato(F6);
+ok(J(S8.ids)===J(S7.ids)&&!S8.toast.some(x=>/Percorsi del libro/.test(x)),'v153, riaperto: '+J(S8.ids)+' '+J(S8.toast));
+ok(!F6.errs.length,'PC6 errori: '+F6.errs.join(' | '));
 
 console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));
 await b.close();process.exit(fails.length?1:0);

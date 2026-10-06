@@ -3022,6 +3022,41 @@ body.pz-aperto #toastStack{z-index:9700;}
 .berlina.dark :is(#plBanner,.sr.act .sn,.bp,.msi.sel .msn,.qtop-go,.qpill.ans:not(.cur),.qrun-end,.qrun-listen button.playing,.qans.sel .qa-let,.sd-show,.mt-train,.st-reset,.rd #homeBtn,.rd .qres-actions .btn:last-child,.ob-card button,.bail-go,.ec-go,.rdb-next,.rc-show,.rc-again,.rc-fw,.rq-again,.pz-via.att .pz-num,.pz-b.av,.pz-pin .pz-pb,.rg-quiz,.pz-m.on,.pz-next,.ver-n,.pz-pin,.nm-go,.nm-n,#pzMapOv .step.fatta .sn,#pzMapOv .sn.cap,.pz-primario:not(.pz-sec),.sc-ok,.sc-go,.vgf-go,.ip-r.sel .ip-chk,.ip-go,.mg-dp.on,.rab.mg-tieni,#ascBtn.on,.vc-x,.mg-b.on,#edOv .ed-n.ok,.ed-mb-n,.ed-mb-b,.ed-pin,.pop-b.pieno,.rq-show,.pzq-b,.pzl-vuota button,.dm-go,.mm-go,.dm-az button.pieno,.mm-az button.pieno,.ct-sc,#pzEdOv .ed-n.ok){--a:#8B6B21;--sac:#8B6B21;}
 /* (v152) il tasto del coach e «Nuova simulazione»: scritta bianca sull'arancio chiaro, poco leggibile: arancio piu' profondo */
 .co-b,.sx-go{background:#C44F00;}
+
+/* ══ (v153) ══ */
+/* Correggi le tappe: la casella per cercare (16px: il telefono non ingrandisce la pagina) */
+.sc-cerca{position:relative;margin:0 16px 12px;}
+.sc-cerca input{display:block;width:100%;box-sizing:border-box;height:46px;margin:0;border-radius:14px;
+border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--ios-lbl);
+font:inherit;font-size:16px;font-weight:500;padding:0 14px 0 42px;-webkit-appearance:none;appearance:none;outline:none;}
+.sc-cerca input::placeholder{color:var(--ios-lbl3);}
+.sc-cerca input:focus{border-color:var(--a,#2447D6);box-shadow:0 0 0 3px color-mix(in srgb,var(--a,#2447D6) 18%,transparent);}
+.sc-cerca::before{content:'';position:absolute;left:16px;top:50%;width:12px;height:12px;margin-top:-9px;
+border:2.2px solid var(--ios-lbl2);border-radius:50%;pointer-events:none;}
+.sc-cerca::after{content:'';position:absolute;left:29px;top:50%;width:2.4px;height:7px;margin-top:2px;
+background:var(--ios-lbl2);border-radius:2px;transform:rotate(-45deg);pointer-events:none;}
+.sc-cerca-vuoto{margin:-8px 16px 24px;padding:22px 12px;text-align:center;color:var(--ios-lbl2);font-size:15px;line-height:1.4;
+border:1.5px dashed var(--ios-sep);border-radius:var(--t-r,18px);}
+/* la mappa: il menu dei percorsi (le misure le mette lo script, qui solo i nomi lunghi su due righe al massimo) */
+#sugg li>span:first-child{min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;}
+/* le pagine del nucleo (Cosa & Dove, Seleziona argomento, Risultato) con la stessa testata delle altre */
+#quizApp .qhead,#studyApp .qhead{gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 12px;background:var(--bg1);
+border-bottom:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
+#quizApp .qhead h1,#studyApp .qhead h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.2;color:var(--ios-lbl);}
+#quizApp .qhi,#studyApp .qhi{flex:0 0 38px;width:38px;height:38px;border-radius:50%;border:2px solid var(--a,#2447D6);
+background:transparent;color:var(--a,#2447D6);font:italic 700 17px Georgia,'Times New Roman',serif;padding:0;}
+#quizApp .qhi:active,#studyApp .qhi:active{transform:scale(.92);}
+/* sull'iPad la testata sta in colonna col contenuto, come nelle altre pagine */
+#quizApp .qhead,#studyApp .qhead{padding-left:calc(max(0px,(100% - 680px)/2) + 16px);padding-right:calc(max(0px,(100% - 680px)/2) + 16px);}
+@media(min-width:768px) and (max-width:1099px){#quizApp .qhead,#studyApp .qhead{padding-left:calc(max(0px,(100% - 640px)/2) + 16px);padding-right:calc(max(0px,(100% - 640px)/2) + 16px);}}
+@media(min-width:1100px){#quizApp .qhead,#studyApp .qhead{padding-left:calc(max(0px,(100% - 760px)/2) + 16px);padding-right:calc(max(0px,(100% - 760px)/2) + 16px);}}
+@media(max-width:389px){#quizApp .qhead h1,#studyApp .qhead h1{font-size:21px;line-height:1.15;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}}
+/* Mappa a ragno: i tasti della tastiera solo dove c'e' una tastiera */
+@media(hover:none){.pzm-tasti{display:none!important;}}
+/* Tema: la scelta di adesso piena, le altre leggere */
+.pop-b.tenue{background:var(--ios-card);color:var(--ios-lbl);box-shadow:inset 0 0 0 1.5px var(--ios-sep);}
+/* Scrivi le vie: il nome lungo della piazza (PIAZZA SANTA MARIA DEL SUFFRAGIO) su due righe, non tagliato */
+.sc-ti{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2;}
 `;
 }catch(e){}
 })();
@@ -12531,6 +12566,9 @@ function temaAttuale(){var v=null;try{v=localStorage.getItem('dark');}catch(e){}
 if(v===null)return 'Automatico';return (v==='true'||v==='1')?'Scuro':'Chiaro';}
 window.nccTemaAttuale=temaAttuale;
 window.nccPfTema=function(){
+var cod={Automatico:'auto',Chiaro:'chiaro',Scuro:'scuro'}[temaAttuale()];
+function st(m){return m===cod?'pieno':'tenue';}
+function ck(m){return m===cod?'✓ ':'';}
 function metti(m){
 try{
 var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
@@ -12541,9 +12579,9 @@ if(typeof applyDark==='function')applyDark();
 aggiorna();
 }
 nccPopup({icona:'\ud83c\udf13',titolo:'Tema',testo:'Ora: '+temaAttuale(),azioni:[
-{t:'Automatico, come il telefono',stile:'pieno',fn:function(){metti('auto');}},
-{t:'\u2600\ufe0f Chiaro',stile:'pieno2',fn:function(){metti('chiaro');}},
-{t:'\ud83c\udf19 Scuro',stile:'pieno2',fn:function(){metti('scuro');}},
+{t:ck('auto')+'Automatico, come il telefono',stile:st('auto'),fn:function(){metti('auto');}},
+{t:ck('chiaro')+'\u2600\ufe0f Chiaro',stile:st('chiaro'),fn:function(){metti('chiaro');}},
+{t:ck('scuro')+'\ud83c\udf19 Scuro',stile:st('scuro'),fn:function(){metti('scuro');}},
 {t:'Annulla',stile:'vuoto'}]});
 };
 })();
@@ -14981,6 +15019,11 @@ try{
 var list=document.getElementById('mgrList'),cnt=document.getElementById('mgrCnt');if(!list||!cnt)return;
 var R=(typeof routes!=='undefined'&&routes)?routes:[],per={},gr={};
 R.forEach(function(r){if(!r)return;per[r.id]=r;var k=base(r.title);(gr[k]=gr[k]||[]).push(r.id);});
+/* (v153) tutti del libro e tutti percorsi diversi (una pagina per strada): non sono doppi, li distingue la pagina */
+var CN=window.nccLibroCanon||function(x){return x;};
+Object.keys(gr).forEach(function(k){var g=gr[k];if(g.length<2)return;var vis={},varianti=true;
+g.forEach(function(id){var r=per[id];if(!r||!r.pdf){varianti=false;return;}var c=CN(r.pdf);if(vis[c])varianti=false;vis[c]=1;});
+if(varianti)delete gr[k];});
 var nd=0;Object.keys(gr).forEach(function(k){if(gr[k].length>1)nd+=gr[k].length;});
 if(!nd)DOPPI=false;
 var righe=[].slice.call(list.querySelectorAll('.ri'));
@@ -16456,7 +16499,7 @@ window.nccCartinaStato=function(){return {W:C.W,H:C.H,s:C.s,x:C.x,y:C.y,min:C.mi
 dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
 })();
 /* ═══════════════════════════════════════════════════
-   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI, UNO PER NOME (v150, v151, v152)
+   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI, UNO PER NOME (v150, v151, v152, v153)
    Il documento della scuola ha 208 percorsi (percorsi-data.js). A ogni avvio,
    e dopo ogni scarico dal cloud riuscito:
    · i tuoi percorsi presi dal libro (stesso nome, o col numero di pagina, o col
@@ -16489,8 +16532,9 @@ dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
      scritto a mano, la «(COPIA)», la «strada 1» di un percorso diviso in due): ne resta uno, il tuo col nome del
      libro. E lo stesso con lo stesso nome e le vie quasi tutte uguali: il libro stampa alcuni percorsi su piu'
      pagine con qualche via scritta in un altro modo (S.PAOLO - DUOMO a pag. 103 e 119, DUOMO - OSP. NIGUARDA a
-     pag. 17, 18 e 39...): valgono come uno, quello con piu' vie. Le varianti davvero diverse (STAZ.CENTRALE -
-     LINATE a pag. 6 e 59) restano due
+     pag. 17, 18 e 39...): valgono come uno, quello con piu' vie
+   · (v153) e anche lo stesso percorso che parte da un'altra parte della piazza (STAZ.CENTRALE - LINATE a pag. 6 e 59)
+     o che e' l'alternativa di un altro (STAZ. GARIBALDI - DUOMO a pag. 28 e' l'«OPPURE» di pag. 116): uno solo
    · quelli che cancelli non tornano (cancellandone uno preso dal libro resta
      anche la lapide del suo «lib_»); i divisi a mano («strada 1») restano
    I marker li mette l'app (sotto, «I MARKER LI METTE L'APP»).
@@ -16613,7 +16657,23 @@ r.steps=nuove.slice();
 /* lo stesso percorso stampato su due pagine (P.ZA FIRENZE - P.LE PERUCCHETTI, pag. 80 e 108): vale come uno */
 /* (v152) e lo stesso percorso stampato su piu' pagine con qualche via scritta in un altro modo (S.PAOLO - DUOMO a pag. 103
    e 119, DUOMO - OSP. NIGUARDA a pag. 17, 18 e 39, STAZ.CENTRALE - RHO FIERA a pag. 14 e 120...): vale come uno,
-   quello con piu' vie. Restano due le varianti davvero diverse (STAZ.CENTRALE - LINATE a pag. 6 e 59) */
+   quello con piu' vie */
+/* (v153) e lo stesso percorso che parte da un'altra parte della stessa piazza: STAZ.CENTRALE - LINATE a pag. 59 parte
+   da P.ZA DUCA D'AOSTA, a pag. 6 gira prima da P.ZA 4 NOVEMBRE e poi e' lo stesso (le vie del piu' corto ci sono quasi
+   tutte nell'altro). E quello che e' l'alternativa di un altro: STAZ. GARIBALDI - DUOMO a pag. 28 e' proprio la strada
+   dopo «OPPURE» di quello a pag. 116. Resta quello che li tiene tutti e due (pag. 116, con l'alternativa), se no quello
+   con piu' vie (pag. 6) */
+function contenuto(A,B){var mn=Math.min(A.length,B.length);if(mn<6)return false;var c=comuni(A,B);return c>=mn-3&&c>=Math.ceil(mn*0.85);}
+/* la strada intera dell'alternativa: le vie di prima fin dove si stacca, l'alternativa, poi (se «… e poi come sopra») il resto */
+function strada(q,al){
+var s=q.s,k=-1,u=-1,i;
+for(i=0;i<s.length;i++)if(simileLargo(s[i],al.s[0])){k=i;break;}
+var a=(k>=0?s.slice(0,k):[]).concat(al.s);
+if(al.e){for(i=s.length-1;i>=0;i--)if(simileLargo(s[i],al.s[al.s.length-1])){u=i;break;}if(u>=0)a=a.concat(s.slice(u+1));}
+return a;
+}
+function nellAlt(p,q){return (q.a||[]).some(function(al){if(!al||!Array.isArray(al.s)||al.s.length<4)return false;var t=strada(q,al);return stessoPercorso(p.s,t)||contenuto(p.s,t);});}
+function unoSolo(p,q){return stessoPercorso(p.s,q.s)||contenuto(p.s,q.s)||nellAlt(p,q)||nellAlt(q,p);}
 var CANON=null;
 function canon(id){
 try{if(!CANON){CANON={};var D=window.__PERCORSI_PDF__||[],gr={};
@@ -16621,10 +16681,11 @@ D.forEach(function(p){var k=base(p.t);(gr[k]=gr[k]||[]).push(p);CANON[p.id]=p.id
 Object.keys(gr).forEach(function(k){var g=gr[k];if(g.length<2)return;
 var capo=g.map(function(p,i){return i;});
 function su(i){while(capo[i]!==i)i=capo[i];return i;}
-for(var i=0;i<g.length;i++)for(var j=i+1;j<g.length;j++){if(su(i)!==su(j)&&stessoPercorso(g[i].s,g[j].s))capo[su(j)]=su(i);}
+for(var i=0;i<g.length;i++)for(var j=i+1;j<g.length;j++){if(su(i)!==su(j)&&unoSolo(g[i],g[j]))capo[su(j)]=su(i);}
 var insieme={};g.forEach(function(p,i){(insieme[su(i)]=insieme[su(i)]||[]).push(p);});
 Object.keys(insieme).forEach(function(r){var m=insieme[r];if(m.length<2)return;
-var c=m.slice().sort(function(a,b){return (b.s.length-a.s.length)||(D.indexOf(a)-D.indexOf(b));})[0];
+function tiene(p){return m.some(function(x){return x!==p&&nellAlt(x,p);})?0:1;}   /* ha gli altri come alternativa */
+var c=m.slice().sort(function(a,b){return (tiene(a)-tiene(b))||(b.s.length-a.s.length)||(D.indexOf(a)-D.indexOf(b));})[0];
 m.forEach(function(p){CANON[p.id]=c.id;});});});}}catch(e){}
 return (CANON&&CANON[id])||id;
 }
@@ -16727,14 +16788,15 @@ window.nccLibroSimile=simile;  /* per i test */
 /* quale resta: prima i tuoi (non «lib_»), poi l'id piu' piccolo (il piu' vecchio). Uguale su ogni dispositivo */
 function primo(a,b){var la=lib(a)?1:0,lb=lib(b)?1:0;if(la!==lb)return la-lb;var x=String(a.id),y=String(b.id);return x<y?-1:(x>y?1:0);}
 /* (v152) quale resta, fra due dello stesso libro o con le stesse vie: il tuo (non la copia «lib_»), col libro, col
-   nome del libro (non uno scritto a mano), non la «strada N» ne' la «(COPIA)»; poi l'id. Uguale su ogni dispositivo */
+   nome del libro (non uno scritto a mano), (v153) la pagina di riferimento del gruppo (pag. 6, non 59), non la «strada N»
+   ne' la «(COPIA)»; poi l'id. Uguale su ogni dispositivo */
 var LIBRO=null;
 function nomeLibro(r){
 try{if(!LIBRO){LIBRO={};(window.__PERCORSI_PDF__||[]).forEach(function(p){LIBRO[p.id]=base(p.t);});}}catch(e){}
 return !!(r.pdf&&LIBRO&&LIBRO[r.pdf]&&LIBRO[r.pdf]===base(r.title));
 }
 function tieniPrima(a,b){
-function k(r){return [lib(r)?1:0,r.pdf?0:1,nomeLibro(r)?0:1,diviso(r.title)?1:0,/\(COPIA\)\s*$/i.test(String(r.title))?1:0];}
+function k(r){return [lib(r)?1:0,r.pdf?0:1,nomeLibro(r)?0:1,(r.pdf&&canon(r.pdf)!==r.pdf)?1:0,diviso(r.title)?1:0,/\(COPIA\)\s*$/i.test(String(r.title))?1:0];}
 var x=k(a),y=k(b);for(var i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];
 return primo(a,b);
 }
@@ -18151,4 +18213,108 @@ setTimeout(function(){try{dalCloud(pr);}catch(e){}},1900);}catch(e){}
 return r;
 };
 }catch(e){}
+})();
+
+/* ═══════════════════════════════════════════════════
+   🧹 SISTEMATO UN PO' TUTTO (v153)
+   · Correggi le tappe: con piu' di 200 percorsi si cerca per nome o per via
+     (la casella in cima; quello che scrivi resta finche' sei nella pagina)
+   · la mappa: il menu dei percorsi largo quanto lo schermo, i nomi lunghi del
+     libro si leggono interi e il numero delle vie non e' piu' tagliato
+   · Cosa & Dove si chiama cosi' anche in cima alla sua pagina (prima «Studio»,
+     come la modalita' della mappa)
+   · Scrivi le vie: sul telefono la casella dice «Scrivi una via…» (la frase
+     lunga restava tagliata)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function n(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function parole(q){return String(q||'').toUpperCase().split(/\s+/).map(n).filter(Boolean);}
+
+/* ── Correggi le tappe: la ricerca ── */
+var QC='';
+function idRiga(b){var m=(b.getAttribute('onclick')||'').match(/nccEdDaElenco\('([^']*)'\)/);return m?m[1]:null;}
+function filtra(){
+var body=document.getElementById('scnBody'),o=document.getElementById('scnOv');
+if(!body||!o||o.getAttribute('data-p')!=='correggi')return;
+var p=parole(QC),vis=0,righe=body.querySelectorAll('.pf-gr .sc-r');
+for(var i=0;i<righe.length;i++){
+var r=righe[i],h=r.__q;
+if(h==null){var id=idRiga(r),x=null;
+try{for(var j=0;j<routes.length;j++)if(routes[j]&&String(routes[j].id).replace(/'/g,'')===id){x=routes[j];break;}}catch(e){}
+h=r.__q=x?(n(x.title)+'|'+(x.steps||[]).map(n).join('|')):n(r.textContent);}
+var si=p.every(function(w){return h.indexOf(w)>=0;});
+r.style.display=si?'':'none';if(si)vis++;
+}
+var v=body.querySelector('.sc-cerca-vuoto');
+if(!vis&&p.length){if(!v){v=document.createElement('div');v.className='sc-cerca-vuoto';var g=body.querySelector('.pf-gr');if(g)g.parentNode.insertBefore(v,g.nextSibling);}
+v.textContent='Nessun percorso con «'+QC.trim()+'» nel nome o nelle vie.';}
+else if(v)v.remove();
+}
+function casella(){
+var body=document.getElementById('scnBody'),o=document.getElementById('scnOv');
+if(!body||!o||o.getAttribute('data-p')!=='correggi'||body.querySelector('.sc-cerca'))return;
+var g=body.querySelector('.pf-gr');if(!g||g.children.length<8)return;   /* pochi percorsi: non serve */
+var d=document.createElement('div');d.className='sc-cerca';
+var i=document.createElement('input');i.type='search';i.id='ccQ';i.placeholder='Cerca nome o via';
+i.setAttribute('autocomplete','off');i.setAttribute('autocorrect','off');i.setAttribute('autocapitalize','off');i.setAttribute('spellcheck','false');
+i.setAttribute('aria-label','Cerca un percorso per nome o per via');
+i.value=QC;
+i.addEventListener('input',function(){QC=i.value;filtra();});
+i.addEventListener('keydown',function(e){if(e.key==='Enter'){try{i.blur();}catch(x){}}});
+d.appendChild(i);
+g.parentNode.insertBefore(d,g);
+if(QC)filtra();
+}
+setTimeout(function(){
+try{
+var _c=window.nccCorreggiElenco;
+if(typeof _c==='function'&&!_c.__v153){
+var w=function(){
+var o=document.getElementById('scnOv'),era=!!(o&&o.getAttribute('data-p')==='correggi');
+if(!era)QC='';   /* entrando nella pagina si riparte da capo */
+var r=_c.apply(this,arguments);
+try{casella();}catch(e){}
+return r;};
+w.__v153=true;window.nccCorreggiElenco=w;
+}
+}catch(e){}
+},3600);
+
+/* ── la mappa: il menu dei percorsi largo quanto lo schermo ── */
+function allarga(){
+try{
+var ul=document.getElementById('sugg'),sw=ul&&ul.parentNode;if(!ul||!sw||ul.style.display!=='block')return;
+var r=sw.getBoundingClientRect(),W=window.innerWidth||document.documentElement.clientWidth,m=12,larg=Math.min(W-2*m,520);
+if(r.width>=larg-1){ul.style.left='';ul.style.right='';ul.style.width='';return;}
+var x=Math.max(m,Math.min(r.left,W-m-larg));
+ul.style.left=Math.round(x-r.left)+'px';ul.style.right='auto';ul.style.width=Math.round(larg)+'px';
+}catch(e){}
+}
+setTimeout(function(){
+try{
+['showAllRoutes','doSrch'].forEach(function(k){
+var f=window[k];if(typeof f!=='function'||f.__v153)return;
+var w=function(){var r=f.apply(this,arguments);allarga();return r;};w.__v153=true;window[k]=w;
+});
+window.addEventListener('resize',allarga);
+}catch(e){}
+},3600);
+
+/* ── Scrivi le vie: sul telefono la casella e' stretta, «Scrivi una via e premi Invio…» restava tagliato ── */
+function corto(){
+try{var i=document.getElementById('scIn');if(!i||i.__v153)return;i.__v153=true;
+if(i.clientWidth&&i.clientWidth<300)i.placeholder='Scrivi una via…';}catch(e){}
+}
+try{new MutationObserver(function(){if(document.getElementById('scIn'))corto();}).observe(document.body,{childList:true});}catch(e){}
+
+/* ── Cosa & Dove: il suo nome anche in cima alla pagina ── */
+setTimeout(function(){
+try{
+var f=window.sdShow;if(typeof f!=='function'||f.__v153)return;
+var w=function(v){var r=f.apply(this,arguments);try{if(v==='dash'){var t=document.getElementById('sdTitle');if(t)t.textContent='Cosa & Dove';}}catch(e){}return r;};
+w.__v153=true;window.sdShow=w;
+var t=document.getElementById('sdTitle');if(t&&/^Studio( Luoghi)?$/.test(t.textContent.trim()))t.textContent='Cosa & Dove';
+}catch(e){}
+},3600);
 })();
