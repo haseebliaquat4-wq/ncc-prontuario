@@ -2133,7 +2133,8 @@ background:var(--ios-card);border-radius:10px;margin:0 16px 28px;padding:14px 16
 #scnOv .sc-bar{flex:1;height:8px;border-radius:999px;background:var(--ios-gray5);overflow:hidden;}
 #scnOv .sc-bar i{display:block;height:100%;border-radius:999px;transition:width .6s var(--ios-spring);}
 #scOv .sc-bar{flex:0 0 5px!important;height:5px!important;border-radius:0!important;}
-.sc-pc{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;min-width:42px;text-align:right;}
+.sc-pc{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;min-width:42px;text-align:right;color:color-mix(in srgb,var(--pc,var(--tx)) 62%,#000);}
+.dark .sc-pc{color:color-mix(in srgb,var(--pc,var(--tx)) 70%,#fff);}
 .sc-txt{padding-top:9px;padding-bottom:9px;}
 .sc-col{flex:1;min-width:0;display:flex;flex-direction:column;}
 .sc-s{font-size:13px;color:var(--ios-lbl2);letter-spacing:-.08px;margin-top:1px;
@@ -2438,7 +2439,8 @@ color:var(--ios-lbl2);background:var(--ios-card);font:italic 700 14px Georgia,'T
 .sx-tabs{display:flex;margin:0 16px 18px;border-bottom:2px solid var(--ios-sep);}
 .sx-tab{flex:1;border:none;background:transparent;font:inherit;font-size:16px;font-weight:700;
 color:var(--ios-lbl2);padding:10px 0 12px;cursor:pointer;margin-bottom:-2px;border-bottom:3px solid transparent;}
-.sx-tab.on{color:var(--t-arancio);border-bottom-color:var(--t-arancio);}
+.sx-tab.on{color:#B45309;border-bottom-color:var(--t-arancio);}
+.dark .sx-tab.on{color:var(--t-arancio);}
 .sx-body{padding:0 16px 20px;}
 .sx-card{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:var(--t-r);padding:18px;margin-bottom:14px;}
 .sx-lab{font-size:12.5px;font-weight:800;letter-spacing:.08em;color:var(--ios-lbl2);}
@@ -2931,7 +2933,7 @@ grid-template-areas:"ic t bx" "ic s bx";align-items:center;column-gap:14px;row-g
 #scnOv .ch-fermo{position:sticky;top:-4px;z-index:3;background:var(--ios-bg);padding-top:6px;margin-top:-4px;}
 #scnOv .ch-tabs{margin-bottom:12px;}
 #scnOv .ch-tabs .sx-tab{font-size:15px;line-height:1.15;padding:8px 0 10px;min-width:0;}
-#scnOv .ch-tabs .sx-tab em{display:block;font-style:normal;font-size:12px;font-weight:700;margin-top:2px;opacity:.8;}
+#scnOv .ch-tabs .sx-tab em{display:block;font-style:normal;font-size:12px;font-weight:700;margin-top:2px;}
 .ch-ses{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px 12px;-webkit-overflow-scrolling:touch;}
 .ch-ses::-webkit-scrollbar{display:none;}
 .ch-chip{flex:0 0 auto;border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--ios-lbl2);font:inherit;
@@ -3014,6 +3016,12 @@ display:flex;align-items:center;justify-content:center;text-align:center;font-va
 @media (prefers-reduced-motion:reduce){#pzEdOv{transition:none;}#pzEdOv .ed-r.mosso{animation:none;}}
 /* nelle piazze gli avvisi (Tocca sulla mappa dove si trova…, posizionata, salvata) restavano sotto la schermata */
 body.pz-aperto #toastStack{z-index:9700;}
+/* ═══ (v152) tema scuro: i tasti pieni col colore dell'app avevano la scritta bianca sull'azzurro chiaro (illeggibile).
+   Lo stesso azzurro, piu' profondo, solo dove c'e' la scritta bianca sopra (le scritte azzurre restano chiare) ═══ */
+.dark :is(#plBanner,.sr.act .sn,.bp,.msi.sel .msn,.qtop-go,.qpill.ans:not(.cur),.qrun-end,.qrun-listen button.playing,.qans.sel .qa-let,.sd-show,.mt-train,.st-reset,.rd #homeBtn,.rd .qres-actions .btn:last-child,.ob-card button,.bail-go,.ec-go,.rdb-next,.rc-show,.rc-again,.rc-fw,.rq-again,.pz-via.att .pz-num,.pz-b.av,.pz-pin .pz-pb,.rg-quiz,.pz-m.on,.pz-next,.ver-n,.pz-pin,.nm-go,.nm-n,#pzMapOv .step.fatta .sn,#pzMapOv .sn.cap,.pz-primario:not(.pz-sec),.sc-ok,.sc-go,.vgf-go,.ip-r.sel .ip-chk,.ip-go,.mg-dp.on,.rab.mg-tieni,#ascBtn.on,.vc-x,.mg-b.on,#edOv .ed-n.ok,.ed-mb-n,.ed-mb-b,.ed-pin,.pop-b.pieno,.rq-show,.pzq-b,.pzl-vuota button,.dm-go,.mm-go,.dm-az button.pieno,.mm-az button.pieno,.ct-sc,#pzEdOv .ed-n.ok){--a:#4462EE;--sac:#4462EE;}
+.berlina.dark :is(#plBanner,.sr.act .sn,.bp,.msi.sel .msn,.qtop-go,.qpill.ans:not(.cur),.qrun-end,.qrun-listen button.playing,.qans.sel .qa-let,.sd-show,.mt-train,.st-reset,.rd #homeBtn,.rd .qres-actions .btn:last-child,.ob-card button,.bail-go,.ec-go,.rdb-next,.rc-show,.rc-again,.rc-fw,.rq-again,.pz-via.att .pz-num,.pz-b.av,.pz-pin .pz-pb,.rg-quiz,.pz-m.on,.pz-next,.ver-n,.pz-pin,.nm-go,.nm-n,#pzMapOv .step.fatta .sn,#pzMapOv .sn.cap,.pz-primario:not(.pz-sec),.sc-ok,.sc-go,.vgf-go,.ip-r.sel .ip-chk,.ip-go,.mg-dp.on,.rab.mg-tieni,#ascBtn.on,.vc-x,.mg-b.on,#edOv .ed-n.ok,.ed-mb-n,.ed-mb-b,.ed-pin,.pop-b.pieno,.rq-show,.pzq-b,.pzl-vuota button,.dm-go,.mm-go,.dm-az button.pieno,.mm-az button.pieno,.ct-sc,#pzEdOv .ed-n.ok){--a:#8B6B21;--sac:#8B6B21;}
+/* (v152) il tasto del coach e «Nuova simulazione»: scritta bianca sull'arancio chiaro, poco leggibile: arancio piu' profondo */
+.co-b,.sx-go{background:#C44F00;}
 `;
 }catch(e){}
 })();
@@ -9140,16 +9148,16 @@ function mie(){try{return (typeof routes!=='undefined'&&Array.isArray(routes))?r
 
 /* per ogni percorso del PDF: ce l'hai gia' uguale? ne hai uno con lo stesso nome? */
 function conta(){
-var perS={},perId={},perT={};
+var perS={},perId={},perT={},perC=window.nccLibroCanon?{}:null;   /* (v152) le pagine doppie del libro */
 mie().forEach(function(r){
 if(!r||!Array.isArray(r.steps))return;
 perS[normS(r.steps)]=1;
-if(r.pdf)perId[r.pdf]=1;
+if(r.pdf){perId[r.pdf]=1;if(perC)perC[nccLibroCanon(r.pdf)]=1;}
 var k=normT(r.title);(perT[k]=perT[k]||[]).push(r.steps.length);
 });
 var gia=0,omo=[],nuovi=[];
 dati().forEach(function(p){
-if(perId[p.id]||perS[normS(p.s)]){gia++;return;}
+if(perId[p.id]||perS[normS(p.s)]||(perC&&perC[nccLibroCanon(p.id)])){gia++;return;}
 var o=perT[normT(p.t)];
 if(o)omo.push({p:p,o:o});else nuovi.push({p:p,o:null});
 });
@@ -10770,7 +10778,7 @@ return M.m[nccChiaveDomanda({q:pul(r[0]),choices:r[1].map(pul)})]||null;
 }catch(e){return null;}
 }
 var FONTI=[
-{id:'nuove',t:'Le domande nuove',s:'Uscite all’esame e prima mancavano: ora sono anche nella banca dati',ic:'🆕',c:'#007AFF'},
+{id:'nuove',t:'Le domande nuove',s:'Uscite all’esame e aggiunte alla banca dati',ic:'🆕',c:'#007AFF'},
 {id:'fd',t:'Fuori dispensa (foglio ufficiale)',s:'Le domande del foglio «fuori dispensa», 30 alla volta',ic:'📄',c:'#5856D6'},
 {id:'24',t:'Quiz extra 2024',s:'Le domande ricordate dai candidati nel 2024',ic:'🗓️',c:'#FF9500',n:'#C76E00'},
 {id:'23',t:'Quiz extra 2023',s:'Le domande ricordate dai candidati nel 2023',ic:'🗓️',c:'#30B0C7',n:'#1C8A9E'},
@@ -10893,7 +10901,7 @@ if(!ST.ses||ST.ses==='2025-11')h+='<div class="ch-avviso">⚠️ '+E(sesDi('2025
 h+='<div class="sc-nota ch-nota">Le domande sul regolamento, tema per tema, come le hanno fatte. Tocca un tema: le domande, l’articolo e il quiz.</div>';
 if(!ST.ses||ST.ses==='2026-01')h+='<div class="ch-avviso">⚠️ Gennaio 2026: '+E(sesDi('2026-01').aule[0].n.replace(/^A/,'a'))+'</div>';
 }else{
-h+='<div class="sc-nota ch-nota">Le domande dei quiz uscite all’esame fuori dispensa: '+nq+'. Quelle che mancavano ('+domandeDi('nuove').length+') sono state aggiunte alla banca dati e escono anche nelle simulazioni.</div>';
+h+='<div class="sc-nota ch-nota">Le domande dei quiz uscite all’esame fuori dispensa: '+nq+'. Quelle che mancavano ('+domandeDi('nuove').length+') sono state aggiunte alla banca dati ed escono anche nelle simulazioni.</div>';
 }
 h+=(ST.tab==='quiz'?quizHTML():lista());
 return h;
@@ -11273,7 +11281,7 @@ return [
 {k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
  b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),w:(n.striscia===1?'giorno':'giorni'),fn:'nccStat'},
 /* (v149) quello che hanno chiesto agli orali: un riquadro largo in fondo */
-{k:'orale',t:'Chiesto all\u2019esame',s:'Percorsi, piazze e regole chiesti agli orali',c:'#A0522D',
+{k:'orale',t:'Chiesto all\u2019esame',s:'Percorsi, piazze, regole e quiz: tutto qui',c:'#A0522D',
  b:(n.chT?fr(n.chS||0,n.chT):''),w:'salvati',fn:'nccChiesto',largo:true}
 ];
 }
@@ -11447,8 +11455,7 @@ quiz:{t:'Quiz',c:C.arancio,
 testa:(n.tot?{t:'Banca dati: sai '+n.sai+' su '+n.tot+' domande',p:pct(n.sai,n.tot)}:null),
 g:[
 {t:'ESAME',v:[
-{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))},
-{ic:'\ud83c\udf93',c:'#A0522D',n:'Domande fuori dispensa',s:'Quelle uscite all\u2019esame, con le 52 nuove',a:az('q11',function(){nccChiesto({tab:'quiz',da:'quiz'});}),resta:true}]},
+{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))}]},
 {t:'ALLENAMENTO',v:[
 {ic:'\ud83d\udcdd',c:C.arancio,n:'Scheda di allenamento',s:'Il mix scelto dal coach',a:az('q2',quiz('qStartMix'))},
 {ic:'\ud83c\udd95',c:C.blu,n:'Domande nuove',s:'Solo quelle mai viste',a:az('q3',quiz('qStartNew'))},
@@ -11474,8 +11481,7 @@ g:[
 {ic:'\ud83c\udfb2',c:C.viola,n:'Percorso a caso',s:'Fra quelli che hai preparato',a:az('t6',function(){try{var t=Date.now();goTopografia();setTimeout(function(){if((window.__nccIndietroT||0)>=t)return;rndRoute();},340);}catch(e){}})},
 {ic:'\ud83e\udde9',c:C.teal,n:'Ordina le vie',s:'Rimetti in fila le tappe',a:az('t7',function(){ordinaVie();})},
 {ic:'\ud83d\udd8a\ufe0f',c:C.arancio,n:'Disegna a memoria',s:'Traccia il percorso sulla mappa senza nomi',a:az('t13',function(){nccDisegnaPercorso();}),resta:true},
-{ic:'\ud83d\udd01',c:C.rosa,n:'Vie da ripassare',s:'Quelle che sbagli nel Quiz vie',d:n.vie?String(n.vie):'',a:az('t8',function(){openWrong();})},
-{ic:'\ud83c\udf93',c:'#A0522D',n:'Percorsi chiesti all\u2019esame',s:'I pi\u00f9 chiesti agli orali, e quali hai gi\u00e0',a:az('t15',function(){nccChiesto({tab:'perc',da:'topo'});}),resta:true}]},
+{ic:'\ud83d\udd01',c:C.rosa,n:'Vie da ripassare',s:'Quelle che sbagli nel Quiz vie',d:n.vie?String(n.vie):'',a:az('t8',function(){openWrong();})}]},
 {t:'I TUOI PERCORSI',v:[
 {ic:'\u2795',c:C.verde,n:'Nuovo percorso',s:'Scrivi le tappe di un percorso tuo',a:az('t0',function(){try{var t=Date.now();goTopografia();setTimeout(function(){if((window.__nccIndietroT||0)>=t)return;openAdd();},340);}catch(e){}})},
 {ic:'\ud83d\udccb',c:C.grigio,n:'Percorsi salvati',s:'Modifica, rinomina, cancella',d:n.perc?String(n.perc):'',a:az('t9',function(){openMgr();})},
@@ -11497,8 +11503,7 @@ g:[
 {ic:'\ud83e\udded',c:C.indaco,n:'Mappa muta',s:'Tocca dove si trova la piazza',a:az('p8',function(){nccMappaMuta();}),resta:true},
 {ic:'\u2705',c:C.viola,n:'Verifica',s:'Tutte le vie di una piazza, a memoria',a:az('p6',function(){try{var p=pzPescaPiazza();if(p){window.__nccVerDaPagina=Date.now();openPiazze();setTimeout(function(){pzApri(p.id);setTimeout(function(){pzVerifica(p.id);},200);},200);}}catch(e){}})}]},
 {t:'ELENCO',v:[
-{ic:'\ud83d\udcda',c:C.grigio,n:'Tutte le piazze',s:'91 piazze, con la ricerca',d:n.pzTot?String(n.pzTot):'',a:az('p7',function(){openPiazze();})},
-{ic:'\ud83c\udf93',c:'#A0522D',n:'Confluenze chieste all\u2019esame',s:'Le piazze chieste agli orali',a:az('p9',function(){nccChiesto({tab:'pz',da:'pz'});}),resta:true}]}
+{ic:'\ud83d\udcda',c:C.grigio,n:'Tutte le piazze',s:'91 piazze, con la ricerca',d:n.pzTot?String(n.pzTot):'',a:az('p7',function(){openPiazze();})}]}
 ]},
 norme:{t:'Norme e tariffe',c:C.indaco,testa:null,
 g:[
@@ -11506,8 +11511,7 @@ g:[
 {ic:'\ud83d\udcdc',c:C.indaco,n:'Gli articoli',s:'Dal 38 al 61, punto per punto',a:az('n1',function(){openNorme();})},
 {ic:'\ud83d\udd22',c:C.arancio,n:'I numeri da ricordare',s:'Misure, giorni, scadenze',a:az('n2',function(){openNorme();setTimeout(function(){try{nmNumeri();}catch(e){}},220);})},
 {ic:'\u2696\ufe0f',c:C.rosso,n:'Le quattro classi',s:'1-3 \u00b7 3-7 \u00b7 7-30 \u00b7 30-90 giorni',a:az('n3',function(){openNorme();setTimeout(function(){try{nmClassi();}catch(e){}},220);})},
-{ic:'\u2753',c:C.verde,n:'Quiz sulle norme',s:'41 domande sul regolamento',a:az('n4',function(){nmQuiz();})},
-{ic:'\ud83c\udf93',c:'#A0522D',n:'Regolamento chiesto all\u2019esame',s:'Le domande degli orali, tema per tema',a:az('n7',function(){nccChiesto({tab:'reg',da:'norme'});}),resta:true}]},
+{ic:'\u2753',c:C.verde,n:'Quiz sulle norme',s:'41 domande sul regolamento',a:az('n4',function(){nmQuiz();})}]},
 {t:'TARIFFE',v:[
 {ic:'\ud83d\udcd0',c:C.teal,n:'Il prontuario',s:'Scatti, fisse, minimi aeroporti',a:az('n5',function(){openRegole();})},
 {ic:'\ud83d\udcb6',c:C.verde,n:'Quiz sulle tariffe',s:'Gli importi a memoria',a:az('n6',function(){regQuiz();})}]}
@@ -11639,7 +11643,7 @@ if(k==='topo')dividiTopo(P);         /* 📖 studia · 🔁 ripasso, come nell'a
 var corpo='';
 if(P.testa)corpo+='<div class="sc-testa"><div class="sc-tt">'+E(P.testa.t)+'</div>'
 +'<div class="sc-bar"><i style="width:'+P.testa.p+'%;background:'+P.c+'"></i></div>'
-+'<div class="sc-pc" style="color:'+P.c+'">'+P.testa.p+'%</div></div>';
++'<div class="sc-pc" style="--pc:'+P.c+'">'+P.testa.p+'%</div></div>';
 corpo+=righeHTML(P.g);
 pagina(k,P.t,corpo);
 try{hap();}catch(e){}
@@ -12402,7 +12406,7 @@ senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemm
 dubbi:['\u2753','Marker da controllare','I marker li mette l\u2019app cercando le vie su OpenStreetMap, solo vicino alle tappe accanto. Il punto di domanda vuol dire che quella via non l\u2019ha trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso e sistemalo: trascina il marker nel punto giusto, oppure toccalo e scegli \u00ab\u00c8 giusto qui\u00bb.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
 correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le vie di un percorso sulla mappa piccola. Con \u201cPosiziona in sequenza\u201d tocchi la mappa e il marker passa da solo alla tappa dopo.'],
-chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. In Quiz trovi le domande uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati.']
+chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. Nella scheda Quiz trovi le domande dei quiz uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati. È l’unico posto con tutto quello che hanno chiesto.']
 };
 window.nccInfo=function(k){
 var i=INFO[k]||INFO.quiz;
@@ -16452,7 +16456,7 @@ window.nccCartinaStato=function(){return {W:C.W,H:C.H,s:C.s,x:C.x,y:C.y,min:C.mi
 dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
 })();
 /* ═══════════════════════════════════════════════════
-   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI, UNO PER NOME (v150, v151)
+   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI, UNO PER NOME (v150, v151, v152)
    Il documento della scuola ha 208 percorsi (percorsi-data.js). A ogni avvio,
    e dopo ogni scarico dal cloud riuscito:
    · i tuoi percorsi presi dal libro (stesso nome, o col numero di pagina, o col
@@ -16481,6 +16485,12 @@ dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
      stampato su due pagine (pag. 80 e 108) vale come uno. La pulizia dei doppi
      del nucleo (stesso nome e stesse vie) viene dopo questa, e mai prima che i
      dati del cloud siano arrivati
+   · (v152) I PERCORSI IDENTICI: due percorsi con le stesse vie sono lo stesso percorso, qualunque nome abbiano (uno
+     scritto a mano, la «(COPIA)», la «strada 1» di un percorso diviso in due): ne resta uno, il tuo col nome del
+     libro. E lo stesso con lo stesso nome e le vie quasi tutte uguali: il libro stampa alcuni percorsi su piu'
+     pagine con qualche via scritta in un altro modo (S.PAOLO - DUOMO a pag. 103 e 119, DUOMO - OSP. NIGUARDA a
+     pag. 17, 18 e 39...): valgono come uno, quello con piu' vie. Le varianti davvero diverse (STAZ.CENTRALE -
+     LINATE a pag. 6 e 59) restano due
    · quelli che cancelli non tornano (cancellandone uno preso dal libro resta
      anche la lapide del suo «lib_»); i divisi a mano («strada 1») restano
    I marker li mette l'app (sotto, «I MARKER LI METTE L'APP»).
@@ -16501,6 +16511,8 @@ function rid(k){return k.slice(0,k.lastIndexOf('_'));}
 function lib(r){return String(r.id).indexOf('lib_')===0;}
 function vuota(s){return !String(s||'').trim()||/^\s*(OPPURE|ECC)\b/i.test(String(s||''));}   /* «OPPURE», «ECC.»: non sono vie */
 function piene(a){return a.filter(function(t){return !vuota(t);}).length;}
+/* (v152) le vie una per una: due percorsi con la stessa firma sono lo stesso percorso, qualunque nome abbiano */
+function firmaVie(a){var x=(a||[]).map(norm).filter(Boolean);return x.length>=2?x.join('|'):null;}
 /* i marker messi da te (quelli dell'app, segnati auto, si rifanno) */
 function miei(r){var n=0;for(var i=0;i<r.steps.length;i++){var c=coords[r.id+'_'+i];if(c&&!c.auto)n++;}return n;}
 function uguali(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(norm(a[i])!==norm(b[i]))return false;return true;}
@@ -16558,6 +16570,28 @@ if(parti.some(function(t){return simile(t,b[j])||(due&&norm(t)===norm(due));})){
 return m;
 }
 function inOrdine(a,b){return allineaSimile(a,b).filter(function(x){return x>=0;}).length;}
+/* (v152) il nucleo di una via: senza il tipo in testa (VIA, V.LE, P.ZA, CAV....) e senza le particelle (DEL, DELLA, DI...):
+   «V.LE MIGLIARA» = «VIA MIGLIARA», «CAV. DELLE MILIZIE» = «CAVALCAVIA DELLE MILIZIE», «P.ZA DEL DUOMO» = «P.ZA DUOMO» */
+function nucleo(s){
+var t=String(s||'').toUpperCase().replace(/[\u2019']/g,' ');
+SIGLE.forEach(function(x){t=t.replace(x[0],x[1]);});
+t=t.replace(/[^A-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+t=t.replace(/^(VIA|VIALE|VLE|PIAZZA|PIAZZALE|PIAZZETTA|LARGO|CORSO|CAVALCAVIA|CAV|VICOLO|BASTIONI|ALZAIA|A|AL|ALLA)\s+/,'');
+t=t.replace(/\b(DEL|DELL|DELLA|DELLE|DELLO|DEI|DEGLI|DI|DA|DAL|DALL|DE|D|IN|E)\b/g,' ');
+return norm(t);
+}
+function simileLargo(a,b){
+if(simile(a,b))return true;
+var p=nucleo(a),q=nucleo(b);if(!p||!q)return false;if(p===q)return p.length>=4;
+var m=Math.min(p.length,q.length);
+if(m>=10&&(p.indexOf(q)===0||q.indexOf(p)===0))return true;
+var lim=m>=12?2:(m>=7?1:0);return !!lim&&osa(p,q,lim)<=lim;
+}
+/* quante vie hanno in comune due percorsi (in qualunque ordine, a meno dei modi di scriverle) */
+function comuni(A,B){var usati={},n=0;A.forEach(function(a){for(var j=0;j<B.length;j++){if(usati[j])continue;if(simileLargo(a,B[j])){usati[j]=1;n++;break;}}});return n;}
+/* lo stesso percorso: le vie quasi tutte uguali (almeno l'85%, al piu' quattro diverse: una scritta in un altro modo,
+   una in piu', l'uscita della tangenziale descritta in un'altra maniera) */
+function stessoPercorso(A,B){var mx=Math.max(A.length,B.length);if(mx<2)return false;var c=comuni(A,B);return c>=mx-4&&c>=Math.ceil(mx*0.85);}
 /* il percorso del libro con le sue alternative dopo: un percorso vecchio le aveva dentro, dopo «OPPURE» */
 function conAlt(p){var a=p.s.slice();(p.a||[]).forEach(function(x){if(x&&Array.isArray(x.s))a=a.concat(x.s);});return a;}
 function inAlt(t,p){
@@ -16577,11 +16611,24 @@ try{var q=qStats[r.id];if(q&&q.wrong&&typeof q.wrong==='object'){var nw={};Objec
 r.steps=nuove.slice();
 }
 /* lo stesso percorso stampato su due pagine (P.ZA FIRENZE - P.LE PERUCCHETTI, pag. 80 e 108): vale come uno */
+/* (v152) e lo stesso percorso stampato su piu' pagine con qualche via scritta in un altro modo (S.PAOLO - DUOMO a pag. 103
+   e 119, DUOMO - OSP. NIGUARDA a pag. 17, 18 e 39, STAZ.CENTRALE - RHO FIERA a pag. 14 e 120...): vale come uno,
+   quello con piu' vie. Restano due le varianti davvero diverse (STAZ.CENTRALE - LINATE a pag. 6 e 59) */
 var CANON=null;
 function canon(id){
-try{if(!CANON){CANON={};var k={};(window.__PERCORSI_PDF__||[]).forEach(function(p){var x=p.s.map(norm).join('|');if(!k[x])k[x]=p.id;CANON[p.id]=k[x];});}}catch(e){}
+try{if(!CANON){CANON={};var D=window.__PERCORSI_PDF__||[],gr={};
+D.forEach(function(p){var k=base(p.t);(gr[k]=gr[k]||[]).push(p);CANON[p.id]=p.id;});
+Object.keys(gr).forEach(function(k){var g=gr[k];if(g.length<2)return;
+var capo=g.map(function(p,i){return i;});
+function su(i){while(capo[i]!==i)i=capo[i];return i;}
+for(var i=0;i<g.length;i++)for(var j=i+1;j<g.length;j++){if(su(i)!==su(j)&&stessoPercorso(g[i].s,g[j].s))capo[su(j)]=su(i);}
+var insieme={};g.forEach(function(p,i){(insieme[su(i)]=insieme[su(i)]||[]).push(p);});
+Object.keys(insieme).forEach(function(r){var m=insieme[r];if(m.length<2)return;
+var c=m.slice().sort(function(a,b){return (b.s.length-a.s.length)||(D.indexOf(a)-D.indexOf(b));})[0];
+m.forEach(function(p){CANON[p.id]=c.id;});});});}}catch(e){}
 return (CANON&&CANON[id])||id;
 }
+window.nccLibroCanon=canon;   /* per i test */
 /* i percorsi che ci sono nel cloud, per libro: quelli non si aggiungono (arrivano con l'unione dei dati) */
 var nube=null;
 function nubeDi(rs){
@@ -16596,7 +16643,8 @@ function migra(aggiungi){
 var D=window.__PERCORSI_PDF__;
 if(!Array.isArray(D)||!D.length||typeof routes==='undefined'||!Array.isArray(routes))return null;
 var tomb=L('rDel',{})||{},perBase={},perId={},preso={},mio={},esito={cambiati:0,allungati:0,aggiunti:0,lasciati:0,segnati:0};
-D.forEach(function(p){perId[p.id]=p;var k=base(p.t);(perBase[k]=perBase[k]||[]).push(p);});
+var perFirma={};
+D.forEach(function(p){perId[p.id]=p;var k=base(p.t);(perBase[k]=perBase[k]||[]).push(p);var f=firmaVie(p.s);if(f&&!perFirma[f])perFirma[f]=p;});
 /* quelli gia' sistemati, o presi dal libro, ci sono gia' (mio: ce l'ha un tuo percorso, non solo un «lib_») */
 routes.forEach(function(r){if(r&&r.pdf&&perId[r.pdf]){preso[r.pdf]=1;if(!lib(r))mio[r.pdf]=1;}});
 /* 1 · i tuoi percorsi che vengono dal libro: prima quelli col numero del libro, poi quelli con lo stesso nome */
@@ -16621,6 +16669,9 @@ var bt=base(r.title),bv=-1;
 D.forEach(function(x){if(mio[x.id]||!quasi(bt,base(x.t)))return;var v=inOrdine(r.steps,conAlt(x));
 if(v>=Math.ceil(piene(r.steps)*0.6)&&v>bv){bv=v;p=x;}});
 }
+/* (v152) con un altro nome ma le stesse vie, una per una (scritto a mano, una copia, la «strada 1» di un
+   percorso diviso): e' quel percorso del libro, e tiene il suo nome */
+if(!p){var fv=firmaVie(r.steps);if(fv&&perFirma[fv])p=perFirma[fv];}
 }
 if(!p)return;
 if(uguali(r.steps,p.s)){
@@ -16641,17 +16692,22 @@ cambia(r,mappa,p.s);
 r.pdf=p.id;r.libV=VER;preso[p.id]=1;mio[p.id]=1;
 if(p.a)r.alt=p.a;else delete r.alt;
 });
-/* 2 · quelli che non hai */
+/* 2 · quelli che non hai: lo stesso percorso su piu' pagine una volta sola (quello con piu' vie); non se ne
+   hai gia' uno, se l'hai cancellato o se c'e' gia' nel cloud */
 if(aggiungi){
-var nomi={};routes.forEach(function(r){if(r){var k=base(r.title);nomi[k]=(nomi[k]||0)+1;}});
+var nomi={},gruppi={},membri={};
+routes.forEach(function(r){if(r){var k=base(r.title);nomi[k]=(nomi[k]||0)+1;}});
+D.forEach(function(p){var c=canon(p.id),k=base(p.t);(gruppi[k]=gruppi[k]||{})[c]=1;(membri[c]=membri[c]||[]).push(p.id);});
 D.forEach(function(p){
-var id='lib_'+p.id,cp=canon(p.id);
-if(preso[p.id]||preso[cp]||tomb[id])return;
-if(routes.some(function(r){return r&&(String(r.id)===id||r.pdf===p.id||(r.pdf&&canon(r.pdf)===cp));}))return;
-var nb=nube?(nube[p.id]||[]).concat(cp!==p.id?(nube[cp]||[]):[]):null;if(nb&&nb.some(function(x){return !tomb[x];}))return;   /* c'e' nel cloud: arriva da li' */
-var k=base(p.t),t=(nomi[k]||perBase[k].length>1)?(p.t+' (pag. '+p.p+')'):p.t;
+var cp=canon(p.id);if(cp!==p.id)return;
+var gr=membri[cp]||[p.id],id='lib_'+p.id;
+if(gr.some(function(q){return preso[q]||tomb['lib_'+q];}))return;
+if(routes.some(function(r){return r&&(String(r.id)===id||(r.pdf&&canon(r.pdf)===cp));}))return;
+var nb=[];if(nube)gr.forEach(function(q){nb=nb.concat(nube[q]||[]);});
+if(nb.some(function(x){return !tomb[x];}))return;   /* c'e' nel cloud: arriva da li' */
+var k=base(p.t),t=(nomi[k]||Object.keys(gruppi[k]||{}).length>1)?(p.t+' (pag. '+p.p+')'):p.t;
 var o={id:id,title:t,steps:p.s.slice(),pdf:p.id,libV:VER};if(p.a)o.alt=p.a;
-routes.push(o);nomi[k]=(nomi[k]||0)+1;preso[p.id]=1;preso[cp]=1;esito.aggiunti++;
+routes.push(o);nomi[k]=(nomi[k]||0)+1;gr.forEach(function(q){preso[q]=1;});esito.aggiunti++;
 });
 }
 return esito;
@@ -16670,6 +16726,18 @@ window.nccLibroSimile=simile;  /* per i test */
 /* ── (v151) i doppi: per ogni percorso del libro ne resta uno ── */
 /* quale resta: prima i tuoi (non «lib_»), poi l'id piu' piccolo (il piu' vecchio). Uguale su ogni dispositivo */
 function primo(a,b){var la=lib(a)?1:0,lb=lib(b)?1:0;if(la!==lb)return la-lb;var x=String(a.id),y=String(b.id);return x<y?-1:(x>y?1:0);}
+/* (v152) quale resta, fra due dello stesso libro o con le stesse vie: il tuo (non la copia «lib_»), col libro, col
+   nome del libro (non uno scritto a mano), non la «strada N» ne' la «(COPIA)»; poi l'id. Uguale su ogni dispositivo */
+var LIBRO=null;
+function nomeLibro(r){
+try{if(!LIBRO){LIBRO={};(window.__PERCORSI_PDF__||[]).forEach(function(p){LIBRO[p.id]=base(p.t);});}}catch(e){}
+return !!(r.pdf&&LIBRO&&LIBRO[r.pdf]&&LIBRO[r.pdf]===base(r.title));
+}
+function tieniPrima(a,b){
+function k(r){return [lib(r)?1:0,r.pdf?0:1,nomeLibro(r)?0:1,diviso(r.title)?1:0,/\(COPIA\)\s*$/i.test(String(r.title))?1:0];}
+var x=k(a),y=k(b);for(var i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];
+return primo(a,b);
+}
 /* da quello che se ne va passa tutto quello che serve a quello che resta */
 function passa(tieni,via){
 var m=allineaSimile(via.steps,tieni.steps);
@@ -16697,10 +16765,40 @@ routes.forEach(function(r){if(r&&r.pdf&&Array.isArray(r.steps)&&!diviso(r.title)
 var via={},dove={};
 Object.keys(per).forEach(function(pdf){
 var g=per[pdf];if(g.length<2)return;
-g.sort(primo);
+g.sort(tieniPrima);
 var t=g[0];
 g.slice(1).forEach(function(r){passa(t,r);via[r.id]=1;dove[r.id]=t.id;});
 });
+/* (v152) e due percorsi con le stesse vie, una per una, anche con nomi diversi (scritto a mano, una copia, la
+   «strada 1» di un percorso diviso, uno dei tuoi senza libro): resta il tuo col libro, poi il tuo, poi l'id */
+var stesse={};
+routes.forEach(function(r){if(!r||via[r.id]||!Array.isArray(r.steps))return;var f=firmaVie(r.steps);if(f)(stesse[f]=stesse[f]||[]).push(r);});
+Object.keys(stesse).forEach(function(f){
+var g=stesse[f];if(g.length<2)return;
+g.sort(tieniPrima);
+var t=g[0];
+g.slice(1).forEach(function(r){passa(t,r);if(!t.pdf&&r.pdf){t.pdf=r.pdf;t.libV=VER;if(r.alt&&!t.alt)t.alt=r.alt;}via[r.id]=1;dove[r.id]=t.id;});
+});
+/* e con lo stesso nome e le vie quasi tutte uguali (come le pagine doppie del libro): anche quelli tuoi senza libro */
+var nome={};
+routes.forEach(function(r){if(!r||via[r.id]||!Array.isArray(r.steps)||r.steps.length<2)return;var k=base(r.title);if(k)(nome[k]=nome[k]||[]).push(r);});
+Object.keys(nome).forEach(function(k){
+var g=nome[k];if(g.length<2)return;
+var capo=g.map(function(r,i){return i;});
+function su(i){while(capo[i]!==i)i=capo[i];return i;}
+for(var i=0;i<g.length;i++)for(var j=i+1;j<g.length;j++){
+if(su(i)===su(j))continue;
+var a=g[i],b2=g[j];
+/* due del libro diversi e non lo stesso percorso (le varianti vere): restano */
+if(a.pdf&&b2.pdf&&canon(a.pdf)!==canon(b2.pdf))continue;
+if(stessoPercorso(a.steps,b2.steps))capo[su(j)]=su(i);
+}
+var ins={};g.forEach(function(r,i){(ins[su(i)]=ins[su(i)]||[]).push(r);});
+Object.keys(ins).forEach(function(x){var m=ins[x];if(m.length<2)return;m.sort(tieniPrima);var t=m[0];
+m.slice(1).forEach(function(r){passa(t,r);if(!t.pdf&&r.pdf){t.pdf=r.pdf;t.libV=VER;if(r.alt&&!t.alt)t.alt=r.alt;}via[r.id]=1;dove[r.id]=t.id;});});
+});
+/* chi se ne va dentro uno che se ne va anche lui: va a finire nell'ultimo che resta */
+Object.keys(dove).forEach(function(id){var x=dove[id],n=0;while(dove[x]&&n++<9)x=dove[x];dove[id]=x;});
 var ids=Object.keys(via);
 if(ids.length){
 /* i marker, gli errori e le lapidi di quelli che se ne vanno */

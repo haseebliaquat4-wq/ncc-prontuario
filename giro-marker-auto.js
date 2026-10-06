@@ -193,14 +193,16 @@ ok(U('u6').n===6&&S.C.u6_0&&S.C.u6_0.lat===45.45&&U('u6').pdf==='p90b','u6 (mark
 ok(S.lib.some(r=>r.id==='lib_p93a'&&r.t==='VIA PAOLO SARPI - POLICLINICO (pag. 93)'),'p93a accanto al mio, con la pagina');
 ok(!S.lib.some(r=>r.id==='lib_p90b'),'p90b: u6 resta mio ed e\' lui quello del libro, niente doppio accanto');
 ok(S.lib.some(r=>r.id==='lib_p80b')&&!S.lib.some(r=>r.id==='lib_p108b'),'pag. 80 e 108 (lo stesso percorso): uno solo');
+ok(S.lib.some(r=>r.id==='lib_p18a'&&r.t==='DUOMO - OSP. NIGUARDA')&&!S.lib.some(r=>/^lib_p(17a|39b)$/.test(r.id)),'(v152) DUOMO - OSP. NIGUARDA a pag. 17, 18 e 39: uno solo, quello con piu\' vie e senza la pagina nel nome');
+ok(S.lib.some(r=>r.id==='lib_p6a')&&S.lib.some(r=>r.id==='lib_p59a'),'(v152) STAZ.CENTRALE - LINATE pag. 6 e 59 sono due strade diverse: restano tutte e due');
 ok(!S.lib.some(r=>r.id==='lib_p1a'),'p1a cancellato e tornato');
 ok(!S.lib.some(r=>r.id==='lib_p90a'||r.id==='lib_p95a'||r.id==='lib_p92a'),'doppioni dei miei');
-ok(S.lib.length===208-5-1-1,'aggiunti: '+S.lib.length);
+ok(S.lib.length===194,'aggiunti: '+S.lib.length);   /* (v152) 208 nel libro, 200 percorsi diversi (le pagine doppie valgono uno), 5 tuoi, 1 cancellato */
 ok(U('u7').n===lib('p96a').s.length&&U('u7').pdf==='p96a'&&U('u7').alt===1&&U('u7').t==='P.LE MACIACHINI - L.GO AGOSTO','u7 (nome col refuso): '+JSON.stringify(U('u7')).slice(0,160));
 ok(!S.lib.some(r=>r.id==='lib_p96a'),'p96a aggiunto accanto a quello col refuso');
 /* gli errori del Quiz vie seguono la loro via */
 ok(S.q&&S.q.wrong&&S.q.wrong['5']===2&&S.q.wrong['20']===1,'errori del quiz spostati: '+JSON.stringify(S.q));
-ok(S.toast.some(x=>/Percorsi del libro: 201 aggiunti · 4 completati con tutte le vie/.test(x)),'avviso: '+JSON.stringify(S.toast));
+ok(S.toast.some(x=>/Percorsi del libro: 194 aggiunti · 4 completati con tutte le vie/.test(x)),'avviso: '+JSON.stringify(S.toast));
 ok(S.ver==='4','versione del libro: '+S.ver);
 ok(S.R.filter(r=>/^u[1237]$/.test(r.id)).length===4&&(await p.evaluate(()=>routes.filter(r=>/^u[1237]$/.test(r.id)||/^lib_/.test(r.id)).every(r=>r.libV===4))),'il segno libV manca');
 /* riaperta: non rifa' niente (nessun avviso) */
@@ -218,7 +220,7 @@ await p.evaluate(()=>{window.__toast=[];const _t=toast2;toast2=function(m){windo
 await p.waitForTimeout(7500);
 R3=await p.evaluate(()=>({n:routes.length,t:window.__toast,u1:routes.find(x=>x.id==='u1').steps.length,lib:routes.filter(r=>/^lib_/.test(r.id)).length}));
 console.log('dopo la copia vecchia:',JSON.stringify(R3));
-ok(R3.n===S.n&&R3.u1===p90.s.length&&R3.lib===201&&R3.t.some(x=>/201 aggiunti · 4 completati/.test(x)),'copia vecchia: non rimesso a posto '+JSON.stringify(R3));
+ok(R3.n===S.n&&R3.u1===p90.s.length&&R3.lib===194&&R3.t.some(x=>/194 aggiunti · 4 completati/.test(x)),'copia vecchia: non rimesso a posto '+JSON.stringify(R3));
 /* cancellato un percorso preso dal libro (il mio, completato): non torna come «lib_» */
 await p.evaluate(()=>delRoute('u1'));await p.waitForTimeout(500);
 await p.evaluate(()=>document.querySelector('#popOv .pop-b[data-i="0"]').click());await p.waitForTimeout(500);

@@ -8,7 +8,11 @@
      percorso, i percorsi di oggi; le copie prendono la lapide; tutto arriva nel cloud; riaperto non rifa' niente
    · l'iPhone coi dati vecchi (e una copia sua): arriva allo stesso elenco, la sua copia passa il marker e se ne va
    · un dispositivo nuovo: niente doppi, niente aggiunte
-   · scarico dal cloud fallito: niente aggiunte; riuscito dopo: si aggiunge solo quello che manca davvero */
+   · scarico dal cloud fallito: niente aggiunte; riuscito dopo: si aggiunge solo quello che manca davvero
+   · (v152) DUE PERCORSI IDENTICI, con nomi diversi: il tuo del libro e la sua «strada 1» (dopo «Dividi in due»), la
+     «(COPIA)», uno scritto a mano col nome tuo, due tuoi senza libro: ne resta uno, col nome del libro (o il piu'
+     vecchio); la «strada 2» (l'alternativa) resta; uno scritto a mano uguale a un percorso del libro diventa quello
+     del libro col nome tuo, e la copia del libro non si aggiunge */
 const {launch,BASE}=require('./lib');const fs=require('fs');
 const MOCK_JS=fs.readFileSync(__dirname+'/leaflet-mock.js','utf8'),MOCK_CSS=fs.readFileSync(__dirname+'/leaflet-mock.css','utf8');
 const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
@@ -189,6 +193,43 @@ SD=await stato(E2);
 console.log('scarico riuscito:',SD.ids.length,'percorsi ·',J(SD.toast.filter(x=>/libro/.test(x))));
 ok(SD.ids.includes('lib_p3a')&&SD.toast.some(x=>/Percorsi del libro: 1 aggiunto$/.test(x)),'scarico riuscito: '+J(SD.ids)+' '+J(SD.toast));
 ok(!E2.errs.length,'PC2 errori: '+E2.errs.join(' | '));
+
+/* ════ 5 · (v152) due percorsi identici con nomi diversi ════ */
+for(const X of [A,B,Cn,E2])await X.ctx.close();   /* gli altri dispositivi spenti: il cloud ricomincia da qui */
+const p17=lib('p17a'),p3=lib('p3a');
+const R5=[
+  {id:'g1',title:p5.t,steps:p5.s.slice(),pdf:'p5a',libV:4},
+  {id:'g0',title:'IL MIO DUOMO LINATE',steps:p5.s.slice()},
+  {id:'g2',title:p5.t+' (strada 1)',steps:p5.s.slice()},
+  {id:'g3',title:p5.t+' (strada 2)',steps:['VIA ALTRA','VIA ANCORA','V.LE FORLANINI']},
+  {id:'g4',title:p5.t+' (COPIA)',steps:p5.s.slice()},
+  {id:'g5',title:'GIRO MIO A',steps:['VIA UNO','VIA DUE','VIA TRE']},
+  {id:'g6',title:'GIRO MIO B',steps:['VIA UNO','VIA DUE','VIA TRE']},
+  {id:'g7',title:'A MODO MIO',steps:p17.s.slice()}
+];
+const C5={g2_0:{lat:45.1,lon:9.1,t:1000},g4_3:{lat:45.2,lon:9.1,t:1000},g0_5:{lat:45.3,lon:9.1,t:1000},g6_2:{lat:45.4,lon:9.1,t:1000}};
+const Q5={g4:{correct:2,total:2,wrong:{}}};
+const DEL5={};D.forEach(p=>{if(!['p5a','p17a'].includes(p.id))DEL5['lib_'+p.id]=ora-864e5;});
+const T5=Date.now()-600e3;
+scrivi('prontuario',{routes:R5,coords:C5,qStats:Q5,done:{},prefs:{rDel:DEL5},ts:T5,dev:'PC',ans:0});
+const F5=await dispositivo(b,'PC5',{width:1280,height:800},Object.assign({},comuni,{routes:J(R5),coords:J(C5),qStats:J(Q5),rDel:J(DEL5),localTs:String(T5),syncTs:String(T5),lRId:J('g2')}));
+await aspetta(F5,26000);
+const S5=await stato(F5);
+console.log('identici:',S5.ids.join(' '),'·',J(S5.toast.filter(x=>/libro/.test(x))));
+ok(J(S5.ids)===J(['g1','g3','g5','g7']),'identici: '+J(S5.ids));
+const g1=S5.R.find(x=>x.id==='g1'),g7=S5.R.find(x=>x.id==='g7');
+ok(g1&&g1.title===p5.t&&g1.pdf==='p5a','resta quello col nome del libro: '+J(g1&&{t:g1.title,pdf:g1.pdf}));
+ok(S5.C.g1_0&&S5.C.g1_0.lat===45.1&&S5.C.g1_3&&S5.C.g1_3.lat===45.2&&S5.C.g1_5&&S5.C.g1_5.lat===45.3,'marker passati: '+J([S5.C.g1_0,S5.C.g1_3,S5.C.g1_5]));
+ok(S5.C.g5_2&&S5.C.g5_2.lat===45.4,'il marker del gemello senza libro: '+J(S5.C.g5_2));
+ok(S5.q.g1&&S5.q.g1.correct===2&&S5.q.g1.total===2,'statistiche della copia: '+J(S5.q.g1));
+ok(S5.lRId==='g1','ultimo percorso: '+S5.lRId);
+ok(g7&&g7.title==='A MODO MIO'&&g7.pdf==='p17a'&&!S5.ids.includes('lib_p17a'),'scritto a mano uguale al libro: '+J(g7&&{t:g7.title,pdf:g7.pdf})+' '+J(S5.ids));
+ok(['g0','g2','g4','g6'].every(k=>S5.rDel[k]),'lapidi dei gemelli: '+J(Object.keys(S5.rDel).filter(k=>/^g/.test(k))));
+ok(S5.toast.some(x=>/tolti 4 doppi, ne resta uno per percorso/.test(x))&&!S5.toast.some(x=>/aggiunt/.test(x)),'avviso: '+J(S5.toast));
+await F5.p.reload();await aspetta(F5,26000);
+const S6=await stato(F5);
+ok(J(S6.ids)===J(S5.ids)&&!S6.toast.some(x=>/Percorsi del libro/.test(x)),'identici, riaperto: '+J(S6.ids)+' '+J(S6.toast));
+ok(!F5.errs.length,'PC5 errori: '+F5.errs.join(' | '));
 
 console.log('FALLITI',fails.length);fails.forEach(x=>console.log(' - '+x));
 await b.close();process.exit(fails.length?1:0);

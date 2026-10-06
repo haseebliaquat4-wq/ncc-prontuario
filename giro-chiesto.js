@@ -1,6 +1,6 @@
-/* CHIESTO ALL'ESAME, fotogramma per fotogramma: si entra dal riquadro della Home e dalle righe delle pagine
-   Topografia, Piazze, Norme e Quiz; ogni passaggio e' registrato a ogni fotogramma, subito prima che venga
-   dipinto: mai schermo vuoto, mai Home di passaggio, mai sfarfallio, e si torna sempre dove si era.
+/* CHIESTO ALL'ESAME, fotogramma per fotogramma: si entra dal riquadro della Home, l'unico posto (v152: niente
+   piu' righe sparse nelle pagine Topografia, Piazze, Norme e Quiz); ogni passaggio e' registrato a ogni fotogramma,
+   subito prima che venga dipinto: mai schermo vuoto, mai Home di passaggio, mai sfarfallio, e si torna sempre dove si era.
    · percorsi: tuo (si apre sulla mappa, ‹ torna qui), nel libro (si aggiunge, resta dopo un ricarico),
      da preparare (Nuovo percorso col nome gia' scritto, Annulla torna qui)
    · piazze: c'e' (si apre sopra, ‹ e il tasto del telefono tornano qui), manca (si aggiunge, le vie le scrivi tu)
@@ -91,19 +91,21 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
   await p.evaluate(()=>nccChiesto());await p.waitForTimeout(700);
   f=await film(()=>p.evaluate(()=>history.back()));pulito('indietro del telefono → Home',f,'home');
 
-  /* ── 2 · dalle righe delle pagine: ‹ e il tasto del telefono tornano alla pagina ── */
-  for(const [k,nome,tab] of [['topo','Percorsi chiesti','perc'],['pz','Confluenze chieste','pz'],['norme','Regolamento chiesto','reg'],['quiz','Domande fuori dispensa','quiz']]){
+  /* ── 2 · (v152) tutto in un posto solo: nelle pagine Topografia, Piazze, Norme e Quiz nessuna riga del chiesto
+     all'esame; dal riquadro della Home le quattro schede, e indietro torna alla Home ── */
+  for(const k of ['topo','pz','norme','quiz']){
     await sez(k);
-    const i=await p.evaluate(n=>[...document.querySelectorAll('#scnOv .qc-riga')].findIndex(r=>r.textContent.indexOf(n)>=0),nome);
-    ok(i>=0,'riga «'+nome+'» non trovata nella pagina '+k);if(i<0)continue;
-    await p.evaluate(i=>document.querySelectorAll('#scnOv .qc-riga')[i].scrollIntoView({block:'center'}),i);await p.waitForTimeout(250);
-    f=await film(()=>tocca('#scnOv .qc-riga >> nth='+i),900);pulito(k+' → pagina',f,'pagina:chiesto','pagina:'+k);
-    const st=await stato();ok(st.tab===tab&&st.da===k,'da '+k+' la scheda doveva essere '+tab+': '+JSON.stringify(st));
-    f=await film(()=>tocca('#scnOv .t-back'),900);pulito('‹ → '+k,f,'pagina:'+k,'pagina:chiesto');
-    await p.waitForTimeout(300);await tocca('#scnOv .qc-riga >> nth='+i);await p.waitForTimeout(700);
-    ok(await vedo()==='pagina:chiesto','da '+k+' la riga non riapre la pagina');
-    f=await film(()=>p.evaluate(()=>history.back()),1000);pulito('telefono → '+k,f,'pagina:'+k,'pagina:chiesto');
+    const n=await p.evaluate(()=>[...document.querySelectorAll('#scnOv .qc-riga')].filter(r=>/chiest[oe] all|fuori dispensa/i.test(r.textContent)).length);
+    ok(n===0,'nella pagina '+k+' c’è ancora una riga del chiesto all’esame');
   }
+  await home();
+  await p.evaluate(()=>{document.querySelector('#hmNew .hm-rq-largo').scrollIntoView({block:'center'});});await p.waitForTimeout(300);
+  await tocca('#hmNew .hm-rq-largo');await p.waitForTimeout(800);
+  for(const [tab,nome] of [['pz','Piazze'],['reg','Regole'],['quiz','Quiz'],['perc','Percorsi']]){
+    await p.evaluate(n=>[...document.querySelectorAll('#scnOv .ch-tabs .sx-tab')].find(t=>t.textContent.indexOf(n)===0).click(),nome);await p.waitForTimeout(450);
+    const st=await stato();ok(st.tab===tab&&!st.da&&st.n>0,'scheda '+nome+': '+JSON.stringify(st));
+  }
+  f=await film(()=>p.evaluate(()=>history.back()),1000);pulito('schede → telefono → Home',f,'home','pagina:chiesto');
 
   /* ── 3 · un percorso tuo: sulla mappa e ritorno, stessa scheda e stesso punto ── */
   await home();await p.evaluate(()=>nccChiesto({tab:'perc'}));await p.waitForTimeout(700);
