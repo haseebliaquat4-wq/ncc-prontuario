@@ -2986,6 +2986,34 @@ background:color-mix(in srgb,var(--t-arancio) 12%,var(--ios-card));border:1.5px 
 .sl-alt-s+.sl-alt-s{margin-top:6px;padding-top:6px;border-top:1px solid var(--bd);}
 .sl-alt i{font-style:normal;color:var(--mu);}
 .ip-det .ip-alt{color:var(--mu);font-style:italic;}
+/* ═══ (v151) le vie di una piazza: la scheda grande, come Modifica percorso ═══ */
+#pzEdOv{position:fixed;inset:0;z-index:9360;background:var(--ios-bg);display:flex;flex-direction:column;overflow:hidden;
+transform:translateY(100%);transition:transform .45s var(--ios-spring);font-family:inherit;border-radius:12px 12px 0 0;
+will-change:transform;contain:layout paint;}
+#pzEdOv.su{transform:none;}
+#pzEdOv.via{transition-duration:.36s;}
+#pzEdOv .ed-body{position:relative;padding-top:18px;padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));}
+#pzEdOv .ed-gr{background:var(--ios-card)!important;border:1.5px solid var(--ios-sep);border-radius:var(--t-r)!important;
+overflow:hidden!important;gap:0;margin:0 16px 22px!important;}
+#pzEdOv .ed-r{min-height:54px;padding:0 8px 0 10px;gap:6px;transition:background .15s;}
+#pzEdOv .ed-r+.ed-r::before{left:50px;}
+#pzEdOv .ed-r:focus-within{background:color-mix(in srgb,var(--a,#2447D6) 6%,var(--ios-card));}
+#pzEdOv .ed-r.mosso{animation:pzEdLampo .9s ease;}
+@keyframes pzEdLampo{0%{background:color-mix(in srgb,var(--a,#2447D6) 20%,var(--ios-card));}100%{background:var(--ios-card);}}
+#pzEdOv .ed-n{flex:0 0 32px;width:32px;height:32px;margin:0 4px 0 0;padding:0;border-radius:50%;box-sizing:border-box;
+border:2px dashed var(--ios-lbl3);background:transparent;color:var(--ios-lbl2);font-size:13px;font-weight:800;
+display:flex;align-items:center;justify-content:center;text-align:center;font-variant-numeric:tabular-nums;}
+#pzEdOv .ed-n.ok{border:2px solid var(--a,#2447D6);background:var(--a,#2447D6);color:#fff;}
+#pzEdOv .ed-in::placeholder{color:var(--ios-lbl3);opacity:1;}
+#pzEdOv .ed-tit{text-transform:uppercase;}
+#pzEdOv .ed-tit::placeholder{text-transform:none;}
+#pzEdOv .ed-nota{margin:4px 0 10px;padding:0 22px;box-sizing:border-box;}
+#pzEdOv .pe-col{max-width:680px;margin:0 auto;}
+@media(max-width:360px){#pzEdOv .ed-r{gap:4px;padding:0 6px 0 8px;}#pzEdOv .ed-r+.ed-r::before{left:42px;}
+#pzEdOv .ed-n{flex-basis:28px;width:28px;height:28px;margin-right:2px;}#pzEdOv .ed-b{flex-basis:30px;width:30px;height:30px;}}
+@media (prefers-reduced-motion:reduce){#pzEdOv{transition:none;}#pzEdOv .ed-r.mosso{animation:none;}}
+/* nelle piazze gli avvisi (Tocca sulla mappa dove si trova…, posizionata, salvata) restavano sotto la schermata */
+body.pz-aperto #toastStack{z-index:9700;}
 `;
 }catch(e){}
 })();
@@ -16424,25 +16452,37 @@ window.nccCartinaStato=function(){return {W:C.W,H:C.H,s:C.s,x:C.x,y:C.y,min:C.mi
 dito:C.dito,penna:C.penna,gomma:C.gomma,col:C.col,id:C.id};};
 })();
 /* ═══════════════════════════════════════════════════
-   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI (v150)
+   📚 I PERCORSI DEL LIBRO, TUTTI E INTERI, UNO PER NOME (v150, v151)
    Il documento della scuola ha 208 percorsi (percorsi-data.js). A ogni avvio,
-   appena arrivati i dati dal cloud:
+   e dopo ogni scarico dal cloud riuscito:
    · i tuoi percorsi presi dal libro (stesso nome, o col numero di pagina, o col
-     nome scritto con un piccolo refuso se le vie sono quelle) ricevono tutte le vie: in ogni tabella prima la colonna di sinistra
-     dall'alto in basso, poi quella di destra. Quello che viene dopo
-     «OPPURE» e' un'altra strada: non entra nel percorso, resta da parte
-     come alternativa (la vedi in fondo all'elenco delle vie, in Studio)
-   · senza marker il percorso prende le vie del libro; con dei marker gia'
-     messi da te le vie cambiano solo se ogni tuo marker trova la sua via nel
-     nuovo percorso (e la segue); se no il percorso resta come l'hai fatto tu
+     nome scritto con un piccolo refuso se le vie sono quelle) ricevono tutte le
+     vie: in ogni tabella prima la colonna di sinistra dall'alto in basso, poi
+     quella di destra. Quello che viene dopo «OPPURE» e' un'altra strada: non
+     entra nel percorso, resta da parte come alternativa (la vedi in fondo
+     all'elenco delle vie, in Studio)
+   · i marker seguono la loro via, anche se nel documento vecchio era scritta
+     con un refuso (VISTRUVIO → VITRUVIO, S.NICCOLAO → SAN NICOLAO). Quelli
+     messi sulle vie dell'alternativa (dopo «OPPURE») non hanno piu' una tappa:
+     l'alternativa non fa parte del percorso. Solo un tuo marker su una via che
+     nel libro non c'e' proprio tiene il percorso com'e' (e' lui quello del libro)
    · un percorso sistemato cosi' non si tocca piu' (segno libV): se poi lo
      correggi tu, resta come lo vuoi tu
-   · i percorsi del libro che non hai si aggiungono, col nome del libro
-     (e la pagina, se quel nome c'e' gia'); quelli che cancelli non tornano
-     (cancellandone uno preso dal libro resta la sua lapide)
-   · i percorsi divisi a mano («strada 1», «strada 2») restano come sono
-   Rifarlo a ogni avvio rimette a posto anche un dispositivo rimasto alla
-   versione vecchia che riscrive nel cloud i percorsi di prima.
+   · i percorsi del libro che non hai si aggiungono, col nome del libro (e la
+     pagina, se quel nome c'e' gia') — solo dopo aver visto i dati del cloud, e
+     non quelli che nel cloud ci sono gia': un dispositivo coi dati vecchi non
+     aggiunge piu' quello che hai gia'
+   · (v151) I DOPPI: per ogni percorso del libro ne resta uno solo. Resta il
+     tuo (il piu' vecchio), e da quelli che se ne vanno passano i marker, gli
+     errori del Quiz vie, le statistiche e il ripasso; gli altri prendono la
+     lapide, cosi' non tornano da nessun dispositivo. La scelta e' la stessa su
+     ogni dispositivo (prima i tuoi, poi l'id), cosi' due dispositivi non
+     possono cancellare l'uno quello che tiene l'altro. Lo stesso percorso
+     stampato su due pagine (pag. 80 e 108) vale come uno. La pulizia dei doppi
+     del nucleo (stesso nome e stesse vie) viene dopo questa, e mai prima che i
+     dati del cloud siano arrivati
+   · quelli che cancelli non tornano (cancellandone uno preso dal libro resta
+     anche la lapide del suo «lib_»); i divisi a mano («strada 1») restano
    I marker li mette l'app (sotto, «I MARKER LI METTE L'APP»).
    ═══════════════════════════════════════════════════ */
 (function(){
@@ -16454,9 +16494,13 @@ function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)
 function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function norm(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
 function base(t){return norm(String(t||'').replace(/\s*\((?:pag\.?\s*\d+|strada\s*\d+)\)\s*$/i,''));}
+function pulito(t){return String(t||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,'').trim();}
 function pagDi(t){var m=String(t||'').match(/\(pag\.?\s*(\d+)\)\s*$/i);return m?+m[1]:0;}
 function diviso(t){return /\(strada\s*\d+\)\s*$/i.test(String(t||''));}
 function rid(k){return k.slice(0,k.lastIndexOf('_'));}
+function lib(r){return String(r.id).indexOf('lib_')===0;}
+function vuota(s){return !String(s||'').trim()||/^\s*(OPPURE|ECC)\b/i.test(String(s||''));}   /* «OPPURE», «ECC.»: non sono vie */
+function piene(a){return a.filter(function(t){return !vuota(t);}).length;}
 /* i marker messi da te (quelli dell'app, segnati auto, si rifanno) */
 function miei(r){var n=0;for(var i=0;i<r.steps.length;i++){var c=coords[r.id+'_'+i];if(c&&!c.auto)n++;}return n;}
 function uguali(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(norm(a[i])!==norm(b[i]))return false;return true;}
@@ -16466,30 +16510,95 @@ var m=[],j=0;
 for(var i=0;i<a.length;i++){var x=norm(a[i]),f=-1;for(var k=j;k<b.length;k++){if(norm(b[k])===x){f=k;break;}}m.push(f);if(f>=0)j=f+1;}
 return m;
 }
-function inOrdine(a,b){return allinea(a,b).filter(function(x){return x>=0;}).length;}
-/* due nomi quasi uguali (un refuso: «L.GO AGOSTO» per «L.GO AUGUSTO») */
-function quasi(a,b){
-if(a===b)return true;if(Math.abs(a.length-b.length)>3||a.length<8)return false;
-if(a.slice(0,5)!==b.slice(0,5)&&a.slice(-5)!==b.slice(-5))return false;
-var p=[],i,j;for(j=0;j<=b.length;j++)p[j]=j;
-for(i=1;i<=a.length;i++){var q=[i],m=i;for(j=1;j<=b.length;j++){q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));if(q[j]<m)m=q[j];}if(m>3)return false;p=q;}
-return p[b.length]<=3;
+/* (v151) due vie uguali a meno di un refuso del documento vecchio: VISTRUVIO ~ VITRUVIO, S.NICCOLAO ~ SAN NICOLAO,
+   MARGHERIT ~ MARGHERITA (tagliata), CORCETTA ~ CROCETTA (due lettere scambiate) */
+var SIGLE=[[/\bV\.\s*LE\b\.?/g,'VIALE '],[/\bP\.\s*Z+A\b\.?/g,'PIAZZA '],[/\bP\.\s*ZE\b\.?/g,'PIAZZE '],[/\bP\.\s*LE\b\.?/g,'PIAZZALE '],
+[/\bL\.\s*GO\b\.?/g,'LARGO '],[/\bC\.\s*SO\b\.?/g,'CORSO '],[/\bP\.\s*TA\b\.?/g,'PORTA '],[/\bSTAZ\b\.?/g,'STAZIONE '],[/\bS\.\s*/g,'SAN ']];
+function esteso(s){var t=String(s||'').toUpperCase();SIGLE.forEach(function(x){t=t.replace(x[0],x[1]);});return norm(t);}
+function osa(a,b,max){
+if(Math.abs(a.length-b.length)>max)return max+1;
+var d=[],i,j;for(i=0;i<=a.length;i++){d[i]=[i];}for(j=0;j<=b.length;j++)d[0][j]=j;
+for(i=1;i<=a.length;i++){var riga=max+1;for(j=1;j<=b.length;j++){
+var v=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,d[i-2][j-2]+1);
+d[i][j]=v;if(v<riga)riga=v;}
+if(riga>max)return max+1;}
+return d[a.length][b.length];
 }
+function simile(a,b){
+var x=norm(a),y=norm(b);if(!x||!y)return false;if(x===y)return true;
+var c=[[x,y],[esteso(a),esteso(b)]];
+for(var i=0;i<c.length;i++){
+var p=c[i][0],q=c[i][1];if(p===q)return true;
+var m=Math.min(p.length,q.length);
+if(m>=8&&Math.abs(p.length-q.length)<=4&&(p.indexOf(q)===0||q.indexOf(p)===0))return true;   /* tagliata, o con «ECC.» in fondo */
+var lim=m>=12?2:(m>=8?1:0);
+if(lim&&osa(p,q,lim)<=lim)return true;
+}
+return false;
+}
+/* come allinea, poi le vie rimaste fuori cercano un refuso fra le loro vicine (le vie del libro fra la giusta
+   prima e la giusta dopo); una casella con due vie («P.LE GIULIO CESARE - V.LE BELLISARIO») vale per la prima */
+function allineaSimile(a,b){
+var m=allinea(a,b),usati={};
+m.forEach(function(j){if(j>=0)usati[j]=1;});
+for(var i=0;i<a.length;i++){
+if(m[i]>=0||vuota(a[i]))continue;
+var da=-1,fino=b.length,k;
+for(k=i-1;k>=0;k--)if(m[k]>=0){da=m[k];break;}
+for(k=i+1;k<a.length;k++)if(m[k]>=0){fino=m[k];break;}
+var pz=String(a[i]).split(/\s+-\s+/),parti=pz.length>1?[a[i]].concat(pz):[a[i]];
+for(var j=da+1;j<fino;j++){
+if(usati[j])continue;
+/* o due caselle del libro scritte in una (V.LE FORLANINI AEROPORTO LINATE = V.LE FORLANINI + AEROPORTO LINATE) */
+var due=(j+1<fino&&!usati[j+1])?(b[j]+' '+b[j+1]):null;
+if(parti.some(function(t){return simile(t,b[j])||(due&&norm(t)===norm(due));})){m[i]=j;usati[j]=1;break;}
+}
+}
+return m;
+}
+function inOrdine(a,b){return allineaSimile(a,b).filter(function(x){return x>=0;}).length;}
+/* il percorso del libro con le sue alternative dopo: un percorso vecchio le aveva dentro, dopo «OPPURE» */
+function conAlt(p){var a=p.s.slice();(p.a||[]).forEach(function(x){if(x&&Array.isArray(x.s))a=a.concat(x.s);});return a;}
+function inAlt(t,p){
+var x=norm(t);if(!x||!p.a)return false;
+return p.a.some(function(al){return al&&Array.isArray(al.s)&&al.s.some(function(s){return norm(s)===x||simile(t,s);});});
+}
+function haOppure(r){return r.steps.some(function(t){return /^\s*OPPURE\b/i.test(String(t));});}
+/* un marker che cambia posto e' una modifica di adesso: senza la sua ora vecchia, il salvataggio gli da' quella
+   di adesso e lo manda nel cloud (con l'ora vecchia sembrerebbe gia' arrivato da li' e resterebbe qui) */
+function nuovo(c){var o={lat:c.lat,lon:c.lon};if(c.auto)o.auto=1;if(c.q)o.q=1;return o;}
 /* le vie nuove; marker ed errori del Quiz vie seguono la loro via */
 function cambia(r,mappa,nuove){
 var vecchi={};
 Object.keys(coords).forEach(function(k){if(rid(k)===String(r.id)){var i=+k.slice(k.lastIndexOf('_')+1);if(isFinite(i))vecchi[i]=coords[k];delete coords[k];}});
-Object.keys(vecchi).forEach(function(i){var j=mappa[+i];if(j>=0)coords[r.id+'_'+j]=vecchi[i];});
-try{var q=qStats[r.id];if(q&&q.wrong&&typeof q.wrong==='object'){var nw={};Object.keys(q.wrong).forEach(function(i){var j=mappa[+i];if(j>=0)nw[j]=q.wrong[i];});q.wrong=nw;}}catch(e){}
+Object.keys(vecchi).forEach(function(i){var j=mappa[+i];if(j>=0&&!coords[r.id+'_'+j])coords[r.id+'_'+j]=(j===+i)?vecchi[i]:nuovo(vecchi[i]);});
+try{var q=qStats[r.id];if(q&&q.wrong&&typeof q.wrong==='object'){var nw={};Object.keys(q.wrong).forEach(function(i){var j=mappa[+i];if(j>=0)nw[j]=(nw[j]||0)+q.wrong[i];});q.wrong=nw;}}catch(e){}
 r.steps=nuove.slice();
 }
-function migra(){
+/* lo stesso percorso stampato su due pagine (P.ZA FIRENZE - P.LE PERUCCHETTI, pag. 80 e 108): vale come uno */
+var CANON=null;
+function canon(id){
+try{if(!CANON){CANON={};var k={};(window.__PERCORSI_PDF__||[]).forEach(function(p){var x=p.s.map(norm).join('|');if(!k[x])k[x]=p.id;CANON[p.id]=k[x];});}}catch(e){}
+return (CANON&&CANON[id])||id;
+}
+/* i percorsi che ci sono nel cloud, per libro: quelli non si aggiungono (arrivano con l'unione dei dati) */
+var nube=null;
+function nubeDi(rs){
+var o={};
+try{if(rs&&typeof rs==='object')Object.keys(rs).forEach(function(k){var r=rs[k];if(!r||r.id==null)return;var id=String(r.id);
+if(r.pdf)(o[r.pdf]=o[r.pdf]||[]).push(id);
+if(id.indexOf('lib_')===0){var q=id.slice(4);(o[q]=o[q]||[]).push(id);}});}catch(e){}
+return o;
+}
+/* aggiungi=false: i dati del cloud non sono arrivati, quelli che mancano si aggiungono un'altra volta */
+function migra(aggiungi){
 var D=window.__PERCORSI_PDF__;
 if(!Array.isArray(D)||!D.length||typeof routes==='undefined'||!Array.isArray(routes))return null;
-var tomb=L('rDel',{})||{},perBase={},perId={},preso={},esito={cambiati:0,allungati:0,aggiunti:0,lasciati:0,segnati:0};
+var tomb=L('rDel',{})||{},perBase={},perId={},preso={},mio={},esito={cambiati:0,allungati:0,aggiunti:0,lasciati:0,segnati:0};
 D.forEach(function(p){perId[p.id]=p;var k=base(p.t);(perBase[k]=perBase[k]||[]).push(p);});
-/* quelli gia' sistemati, o presi dal libro, ci sono gia' */
-routes.forEach(function(r){if(r&&r.pdf&&perId[r.pdf])preso[r.pdf]=1;});
+/* quelli gia' sistemati, o presi dal libro, ci sono gia' (mio: ce l'ha un tuo percorso, non solo un «lib_») */
+routes.forEach(function(r){if(r&&r.pdf&&perId[r.pdf]){preso[r.pdf]=1;if(!lib(r))mio[r.pdf]=1;}});
 /* 1 · i tuoi percorsi che vengono dal libro: prima quelli col numero del libro, poi quelli con lo stesso nome */
 var ordine=routes.filter(function(r){return r&&r.pdf;}).concat(routes.filter(function(r){return r&&!r.pdf;}));
 ordine.forEach(function(r){
@@ -16500,48 +16609,123 @@ var c=perBase[base(r.title)];
 if(c&&c.length){
 var pg=pagDi(r.title),best=-1;
 c.forEach(function(x){
-var v=inOrdine(r.steps,x.s)*10+(pg&&(x.p===pg||(x.pp&&x.pp.indexOf(pg)>=0))?1000:0)-(preso[x.id]?5:0);
+var v=inOrdine(r.steps,conAlt(x))*10+(pg&&(x.p===pg||(x.pp&&x.pp.indexOf(pg)>=0))?1000:0)-(mio[x.id]?5:(preso[x.id]?2:0));
 if(v>best){best=v;p=x;}
 });
 }
 /* stesso nome ma un'altra strada (fatta da te): non la tocco, quella del libro si aggiunge accanto */
-if(p&&inOrdine(r.steps,p.s)<Math.max(2,Math.ceil(r.steps.length*0.4)))p=null;
+if(p&&inOrdine(r.steps,conAlt(p))<Math.max(2,Math.ceil(piene(r.steps)*0.4)))p=null;
 /* un nome con un refuso: vale solo se le vie sono quasi tutte quelle del libro */
 if(!p&&r.steps.length>=4){
 var bt=base(r.title),bv=-1;
-D.forEach(function(x){if(preso[x.id]||!quasi(bt,base(x.t)))return;var v=inOrdine(r.steps,x.s.concat(x.a&&x.a[0]?x.a[0].s:[]));
-if(v>=Math.ceil(r.steps.filter(function(t){return !/^\s*(OPPURE|ECC)\b/i.test(String(t));}).length*0.6)&&v>bv){bv=v;p=x;}});
+D.forEach(function(x){if(mio[x.id]||!quasi(bt,base(x.t)))return;var v=inOrdine(r.steps,conAlt(x));
+if(v>=Math.ceil(piene(r.steps)*0.6)&&v>bv){bv=v;p=x;}});
 }
 }
 if(!p)return;
 if(uguali(r.steps,p.s)){
-preso[p.id]=1;r.pdf=p.id;r.libV=VER;esito.segnati++;
+preso[p.id]=1;mio[p.id]=1;r.pdf=p.id;r.libV=VER;esito.segnati++;
+r.steps=p.s.slice();   /* scritte come nel libro (CITTA' DI FIUME): le tappe sono le stesse, i marker non si muovono */
 if(p.a&&!r.alt)r.alt=p.a;
 return;
 }
-var mappa=allinea(r.steps,p.s);
+var mappa=allineaSimile(r.steps,p.s);
 if(miei(r)){
-/* un tuo marker su una via che nel libro non c'e': il tuo resta com'e', quello del libro si aggiunge accanto */
-for(var i=0;i<r.steps.length;i++){var c0=coords[r.id+'_'+i];if(c0&&!c0.auto&&mappa[i]<0){esito.lasciati++;return;}}
+/* un tuo marker su una via che nel libro non c'e' (ne' nel percorso ne' nella sua alternativa):
+   il tuo resta com'e', ed e' lui il percorso del libro */
+for(var i=0;i<r.steps.length;i++){var c0=coords[r.id+'_'+i];if(c0&&!c0.auto&&mappa[i]<0&&!vuota(r.steps[i])&&!inAlt(r.steps[i],p)){
+esito.lasciati++;r.pdf=p.id;r.libV=VER;preso[p.id]=1;mio[p.id]=1;if(p.a&&!r.alt&&!haOppure(r))r.alt=p.a;return;}}
 esito.allungati++;
 }else esito.cambiati++;
 cambia(r,mappa,p.s);
-r.pdf=p.id;r.libV=VER;preso[p.id]=1;
+r.pdf=p.id;r.libV=VER;preso[p.id]=1;mio[p.id]=1;
 if(p.a)r.alt=p.a;else delete r.alt;
 });
 /* 2 · quelli che non hai */
+if(aggiungi){
 var nomi={};routes.forEach(function(r){if(r){var k=base(r.title);nomi[k]=(nomi[k]||0)+1;}});
 D.forEach(function(p){
-var id='lib_'+p.id;
-if(preso[p.id]||tomb[id])return;
-if(routes.some(function(r){return r&&(String(r.id)===id||r.pdf===p.id);}))return;
+var id='lib_'+p.id,cp=canon(p.id);
+if(preso[p.id]||preso[cp]||tomb[id])return;
+if(routes.some(function(r){return r&&(String(r.id)===id||r.pdf===p.id||(r.pdf&&canon(r.pdf)===cp));}))return;
+var nb=nube?(nube[p.id]||[]).concat(cp!==p.id?(nube[cp]||[]):[]):null;if(nb&&nb.some(function(x){return !tomb[x];}))return;   /* c'e' nel cloud: arriva da li' */
 var k=base(p.t),t=(nomi[k]||perBase[k].length>1)?(p.t+' (pag. '+p.p+')'):p.t;
 var o={id:id,title:t,steps:p.s.slice(),pdf:p.id,libV:VER};if(p.a)o.alt=p.a;
-routes.push(o);nomi[k]=(nomi[k]||0)+1;preso[p.id]=1;esito.aggiunti++;
+routes.push(o);nomi[k]=(nomi[k]||0)+1;preso[p.id]=1;preso[cp]=1;esito.aggiunti++;
 });
+}
 return esito;
 }
+/* due nomi quasi uguali (un refuso: «L.GO AGOSTO» per «L.GO AUGUSTO») */
+function quasi(a,b){
+if(a===b)return true;if(Math.abs(a.length-b.length)>3||a.length<8)return false;
+if(a.slice(0,5)!==b.slice(0,5)&&a.slice(-5)!==b.slice(-5))return false;
+var p=[],i,j;for(j=0;j<=b.length;j++)p[j]=j;
+for(i=1;i<=a.length;i++){var q=[i],m=i;for(j=1;j<=b.length;j++){q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));if(q[j]<m)m=q[j];}if(m>3)return false;p=q;}
+return p[b.length]<=3;
+}
 window.nccLibroMigra=migra;   /* per i test */
+window.nccLibroSimile=simile;  /* per i test */
+
+/* ── (v151) i doppi: per ogni percorso del libro ne resta uno ── */
+/* quale resta: prima i tuoi (non «lib_»), poi l'id piu' piccolo (il piu' vecchio). Uguale su ogni dispositivo */
+function primo(a,b){var la=lib(a)?1:0,lb=lib(b)?1:0;if(la!==lb)return la-lb;var x=String(a.id),y=String(b.id);return x<y?-1:(x>y?1:0);}
+/* da quello che se ne va passa tutto quello che serve a quello che resta */
+function passa(tieni,via){
+var m=allineaSimile(via.steps,tieni.steps);
+for(var i=0;i<via.steps.length;i++){
+var c=coords[via.id+'_'+i],j=m[i];if(!c||j<0)continue;
+var k=tieni.id+'_'+j,d=coords[k];
+if(!d||(d.auto&&!c.auto)||(d.q&&!c.q))coords[k]=nuovo(c);   /* un marker tuo vince su uno dell'app, uno sicuro su uno col ❓ */
+}
+try{var qv=qStats[via.id];if(qv&&typeof qv==='object'){
+var qt=qStats[tieni.id];if(!qt||typeof qt!=='object')qt=qStats[tieni.id]={correct:0,total:0,wrong:{}};
+qt.correct=(qt.correct||0)+(qv.correct||0);qt.total=(qt.total||0)+(qv.total||0);
+if(qv.wrong&&typeof qv.wrong==='object'){qt.wrong=qt.wrong||{};Object.keys(qv.wrong).forEach(function(i){var j=m[+i];if(j>=0)qt.wrong[j]=(qt.wrong[j]||0)+(+qv.wrong[i]||0);});}}}catch(e){}
+try{if(done[via.id]&&!done[tieni.id])done[tieni.id]=done[via.id];}catch(e){}
+try{if(typeof rSR!=='undefined'&&rSR&&typeof rSR==='object'){var a=rSR[via.id],b=rSR[tieni.id];
+if(a){if(!b||((a.last||0)>(b.last||0)))rSR[tieni.id]=a;delete rSR[via.id];ls('rSR',rSR);}}}catch(e){}
+['rDoneLog','dmStats'].forEach(function(key){try{var o=L(key,null);if(!o||typeof o!=='object')return;
+if(o[via.id]!=null){if(o[tieni.id]==null)o[tieni.id]=o[via.id];delete o[via.id];S(key,o);}}catch(e){}});
+if(!tieni.alt&&via.alt&&!haOppure(tieni))tieni.alt=via.alt;
+}
+function doppi(){
+var esito={tolti:0,nomi:0};
+if(typeof routes==='undefined'||!Array.isArray(routes))return esito;
+var per={};
+routes.forEach(function(r){if(r&&r.pdf&&Array.isArray(r.steps)&&!diviso(r.title)){var c=canon(r.pdf);(per[c]=per[c]||[]).push(r);}});
+var via={},dove={};
+Object.keys(per).forEach(function(pdf){
+var g=per[pdf];if(g.length<2)return;
+g.sort(primo);
+var t=g[0];
+g.slice(1).forEach(function(r){passa(t,r);via[r.id]=1;dove[r.id]=t.id;});
+});
+var ids=Object.keys(via);
+if(ids.length){
+/* i marker, gli errori e le lapidi di quelli che se ne vanno */
+Object.keys(coords).forEach(function(k){if(via[rid(k)])delete coords[k];});
+ids.forEach(function(id){try{delete qStats[id];}catch(e){}try{delete done[id];}catch(e){}});
+routes=routes.filter(function(r){return !(r&&via[r.id]);});
+ids.forEach(function(id){try{rDelMark(id);}catch(e){}});
+esito.tolti=ids.length;
+}
+/* il nome senza «(pag. N)», se ormai e' l'unico con quel nome */
+var quanti={};routes.forEach(function(r){if(r){var k=base(r.title);quanti[k]=(quanti[k]||0)+1;}});
+routes.forEach(function(r){if(r&&r.pdf&&pagDi(r.title)&&quanti[base(r.title)]===1&&(ids.length||lib(r))){var p=pulito(r.title);if(p&&p!==r.title){r.title=p;esito.nomi++;}}});
+if(!ids.length)return esito;
+/* chi puntava a un doppio ora punta a quello che resta: il percorso aperto, l'ultimo studiato, la lista di oggi */
+try{if(typeof cur!=='undefined'&&cur&&dove[cur.id]){var nc=routes.filter(function(r){return String(r.id)===String(dove[cur.id]);})[0];if(nc){cur=nc;try{ls('lRId',nc.id);}catch(e){}try{renderList();rebuildLines();}catch(e){}}}}catch(e){}
+try{var lr=L('lRId',null);if(lr!=null&&dove[lr])S('lRId',dove[lr]);}catch(e){}
+try{var og=L('oggiNcc',null);if(og&&typeof og==='object'){var ch=false;
+['pr','ieri'].forEach(function(f){var a=f==='ieri'?(og.ieri&&og.ieri.pr):og.pr;if(!Array.isArray(a))return;
+var b=a.map(function(id){if(dove[id]){ch=true;return dove[id];}return id;}).filter(function(x,i,arr){return arr.indexOf(x)===i;});
+if(f==='ieri')og.ieri.pr=b;else og.pr=b;});
+if(ch)S('oggiNcc',og);}}catch(e){}
+return esito;
+}
+window.nccLibroDoppi=doppi;   /* per i test */
+
 /* cancellato un percorso preso dal libro: la lapide va anche al suo «lib_», cosi' non torna
    (ma non se quel «lib_» c'e' ed e' proprio quello che tieni, come con «Tieni questo») */
 function lapide(pdf,tranne){
@@ -16566,42 +16750,74 @@ var _m=rDelMark;
 rDelMark=function(id){
 var x=_m.apply(this,arguments);
 try{if(String(id).indexOf('lib_')!==0){var r=(routes||[]).filter(function(y){return y&&String(y.id)===String(id);})[0];
-if(r&&r.pdf){var lib='lib_'+r.pdf;
-/* «Tieni questo»: se quello che resta e' proprio il «lib_», niente lapide */
-if(!(routes||[]).some(function(y){return y&&String(y.id)===lib;})&&!(L('rDel',{})||{})[lib])_m(lib);}}}catch(e){}
+if(r&&r.pdf){var lb='lib_'+r.pdf;
+/* «Tieni questo» e i doppi: se un altro percorso tiene quel libro, niente lapide al «lib_» */
+var altro=(routes||[]).some(function(y){return y&&String(y.id)!==String(id)&&(String(y.id)===lb||y.pdf===r.pdf);});
+if(!altro&&!(L('rDel',{})||{})[lb])_m(lb);}}}catch(e){}
 return x;};
 rDelMark.__libro=true;
 }
 }catch(e){}
 },3300);
-/* quando: dopo il primo scarico dal cloud (cosi' non si scrive mai sopra dati piu' nuovi), o dopo 20 secondi */
-var avvio=Date.now(),scaricato=0,fatto=false;
+/* sistema tutto: completa, aggiunge (se ha visto il cloud), toglie i doppi; salva e avvisa solo se cambia qualcosa.
+   Con un percorso aperto nell'editor aspetta che lo chiudi (non gli cambia le tappe sotto le mani) */
+var rinvio=null,rinvioAgg=false;
+function inModifica(){try{if(document.getElementById('edOv'))return true;var a=document.getElementById('addModal');return !!(a&&a.classList.contains('open'));}catch(e){return false;}}
+function sistema(aggiungi,zitto){
+if(inModifica()){rinvioAgg=rinvioAgg||!!aggiungi;clearTimeout(rinvio);rinvio=setTimeout(function(){var a=rinvioAgg;rinvioAgg=false;sistema(a,zitto);},5000);return;}
+var e=migra(aggiungi)||{cambiati:0,allungati:0,aggiunti:0,segnati:0,lasciati:0},d=doppi();
+if(!(e.cambiati||e.allungati||e.aggiunti||e.segnati||e.lasciati||d.tolti||d.nomi))return;
+try{save();}catch(x){}
+try{markDirty('routes','coords','qStats','done','prefs');}catch(x){}
+try{flushNow();}catch(x){}
+try{if(typeof cur!=='undefined'&&cur){var c2=(routes||[]).filter(function(r){return String(r.id)===String(cur.id);})[0];if(c2){cur=c2;renderList();rebuildLines();}}}catch(x){}
+try{if(document.getElementById('mgrModal')&&document.getElementById('mgrModal').classList.contains('open'))renderMgr();}catch(x){}
+var n=e.cambiati+e.allungati,parti=[];
+if(d.tolti)parti.push((d.tolti===1?'tolto 1 doppio':'tolti '+d.tolti+' doppi')+', ne resta uno per percorso');
+if(e.aggiunti)parti.push(e.aggiunti+(e.aggiunti===1?' aggiunto':' aggiunti'));
+if(n)parti.push(n+(n===1?' completato':' completati')+' con tutte le vie');
+if(parti.length&&!zitto){try{toast2('📚 Percorsi del libro: '+parti.join(' · '),4600);}catch(x){}}
+}
+/* quando: dopo il primo scarico dal cloud (cosi' non si scrive mai sopra dati piu' nuovi), o dopo 20 secondi;
+   i percorsi che mancano si aggiungono solo se lo scarico e' riuscito (o se il cloud non c'e' proprio) */
+var avvio=Date.now(),scaricato=0,riuscito=false,fatto=false,dopo=null;
 try{
 var _s=syncFromCloud;
 syncFromCloud=function(){
 var r=_s.apply(this,arguments);
-try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(){scaricato=Date.now();},function(){scaricato=Date.now();});else scaricato=Date.now();}catch(e){scaricato=Date.now();}
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(sn){
+scaricato=Date.now();riuscito=true;
+try{nube=nubeDi(sn&&sn.child?sn.child('routes').val():((sn&&sn.val&&sn.val())||{}).routes);}catch(x){}
+/* uno scarico piu' avanti (un altro dispositivo ha scritto): rimetto a posto quello che e' arrivato */
+if(fatto){clearTimeout(dopo);dopo=setTimeout(function(){try{sistema(true);}catch(x){}},1600);}},
+function(){scaricato=Date.now();});else scaricato=Date.now();}catch(e){scaricato=Date.now();}
 return r;
 };
+}catch(e){}
+/* il nucleo toglie i doppi a modo suo (stesso nome e stesse vie: tiene quello con piu' marker e butta il resto,
+   coi tuoi marker, le statistiche e il ripasso, e su due dispositivi puo' tenerne due diversi): prima passano i
+   doppi del libro, fatti come qui sopra. Prima che i dati del cloud siano arrivati non tocca niente: lo rifa' prova */
+try{
+if(typeof dedupRoutes==='function'&&!dedupRoutes.__libro){
+var _dd=dedupRoutes;
+dedupRoutes=function(){
+if(!fatto)return 0;
+try{sistema(false);}catch(e){}
+return _dd.apply(this,arguments);
+};
+dedupRoutes.__libro=true;
+}
 }catch(e){}
 function prova(){
 if(fatto)return;
 try{
-var cloud=(typeof fbOk!=='undefined'&&fbOk&&navigator.onLine);
-if(cloud&&!scaricato&&Date.now()-avvio<20000){setTimeout(prova,1000);return;}
+var cloud=(typeof fbOk!=='undefined'&&fbOk);
+if(cloud&&navigator.onLine&&!scaricato&&Date.now()-avvio<20000){setTimeout(prova,1000);return;}
 if(scaricato&&Date.now()-scaricato<1200){setTimeout(prova,800);return;}
 fatto=true;window.__nccLibroFatto=true;
-var e=migra();
+sistema(!cloud||riuscito);
 S(KV,VER);
-if(e&&(e.cambiati||e.allungati||e.aggiunti||e.segnati)){
-try{save();}catch(x){}
-try{markDirty('routes','qStats');}catch(x){}
-try{flushNow();}catch(x){}
-try{if(typeof cur!=='undefined'&&cur){var c2=(routes||[]).filter(function(r){return String(r.id)===String(cur.id);})[0];if(c2){cur=c2;renderList();rebuildLines();}}}catch(x){}
-try{if(document.getElementById('mgrModal')&&document.getElementById('mgrModal').classList.contains('open'))renderMgr();}catch(x){}
-var n=e.cambiati+e.allungati;
-if(e.aggiunti||n){try{toast2('📚 Percorsi del libro: '+(e.aggiunti?e.aggiunti+' aggiunti':'')+(e.aggiunti&&n?', ':'')+(n?n+' completati con tutte le vie':''),4200);}catch(x){}}
-}
+try{dedupRoutes();}catch(x){}   /* e poi i doppi del nucleo, saltati finora */
 try{if(window.nccMarkerAuto)setTimeout(function(){nccMarkerAuto.avvia();},4500);}catch(x){}   /* dopo l'avviso dei percorsi, non sopra */
 }catch(x){fatto=true;window.__nccLibroFatto=true;}
 }
@@ -17478,4 +17694,363 @@ savRoute.__auto=true;
 },4600);
 /* trascinato: il marker e' tuo, il punto di domanda se ne va (il nucleo lo salva senza) */
 function segnaDopo(){try{if(typeof cur!=='undefined'&&cur)segna(cur.id+'_'+step);inLista();}catch(e){}}
+})();
+/* ═══════════════════════════════════════════════════
+   ✎ LE VIE DI UNA PIAZZA IN UNA SCHEDA GRANDE (v151)
+   «✎ Modifica» e «＋ Aggiungi una piazza» usavano la finestrella del
+   browser: una riga sola e piccola, con tutte le vie attaccate (sul PC il
+   ritorno a capo spariva e le vie diventavano una sola). Ora si apre una
+   scheda a tutta pagina, come «Modifica percorso»:
+   · in alto il nome; sotto le vie, una per riga, ognuna col suo campo,
+     ↑ ↓ per spostarla, − per toglierla, «＋ Aggiungi una via» in fondo
+   · Invio passa alla via dopo (dall'ultima ne apre una nuova); cancellata
+     tutta, una via vuota se ne va con un altro ⌫; incollando un elenco (una
+     via per riga, o con le virgole) ogni via prende la sua riga
+   · i marker della piazza seguono la via quando la sposti; se la togli se ne
+     va con lei, anche dagli altri dispositivi (la «lapide» pzTolte)
+   · Salva: le vie valgono subito e passano agli altri dispositivi: vince
+     l'ultima modifica (prima, se una piazza era gia' stata modificata su un
+     dispositivo, la modifica fatta su un altro non ci arrivava mai)
+   · una piazza aggiunta e poi eliminata non torna piu' dal cloud
+   · Annulla con delle modifiche chiede prima; il tasto indietro chiude senza
+     salvare, come «Modifica percorso»
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function vibra(t){try{if(typeof hap==='function')hap(t);}catch(e){}}
+function avviso(m,ms){try{toast2(m,ms||2200);}catch(e){}}
+function pulisci(s){return String(s==null?'':s).replace(/\s+/g,' ').trim();}
+function tue(){var v=L('pzUser',[]);return (Array.isArray(v)?v:[]).filter(function(p){return p&&p.id&&p.n&&Array.isArray(p.v);});}
+function modifiche(){var v=L('pzEdit',{});return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function piazza(id){try{var a=window.pzTutte?pzTutte():[];for(var i=0;i<a.length;i++)if(String(a[i].id)===String(id))return a[i];}catch(e){}return null;}
+function tipo(n){return /^(LARGO|L\.\s*GO)\b/.test(n)?'largo':(/^(PIAZZALE|P\.\s*LE)\b/.test(n)?'piazzale':'piazza');}
+
+/* ── le lapidi: i marker delle vie tolte («c:») e le piazze tue eliminate («u:») non tornano dal cloud ── */
+var KT='pzTolte';
+function lapidi(){var v=L(KT,null);return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function seppellisci(chiavi){
+if(!chiavi.length)return;
+var t=lapidi(),ora=Date.now();chiavi.forEach(function(k){t[k]=ora;});
+var ks=Object.keys(t);if(ks.length>600){ks.sort(function(a,b){return t[a]-t[b];});ks.slice(0,ks.length-600).forEach(function(k){delete t[k];});}
+S(KT,t);
+}
+function filtraMarker(co,t){var n=0;Object.keys(t).forEach(function(k){if(k.indexOf('c:')!==0)return;var id=k.slice(2),c=co[id];if(c&&typeof c==='object'&&(+c.t||0)<=+t[k]){delete co[id];n++;}});return n;}
+function filtraTue(u,t){return u.filter(function(p){var x=p&&p.id!=null?t['u:'+p.id]:0;return !(x&&(+p.ts||0)<=+x);});}
+/* un marker che stai per mettere tu (o che cerca il 🛰) su una via con la lapide: la lapide se ne va */
+function libera(pre,idx){
+try{var t=lapidi(),k=0;Object.keys(t).forEach(function(x){
+if(x.indexOf('c:')!==0)return;var id=x.slice(2);
+if(pre==null||(idx!=null?id===pre+'_'+idx:id.indexOf(pre+'_')===0)){delete t[x];k++;}});
+if(k)S(KT,t);}catch(e){}
+}
+/* ogni scrittura (anche quelle che uniscono i dati arrivati dal cloud) passa di qui */
+try{
+var _si=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k,v){
+try{
+if((k==='pzCoords'||k==='pzUser')&&this===window.localStorage&&typeof v==='string'&&v.length>2){
+var t=lapidi();
+if(Object.keys(t).length){
+var o=JSON.parse(v);
+if(k==='pzCoords'&&o&&typeof o==='object'&&!Array.isArray(o)){if(filtraMarker(o,t))v=JSON.stringify(o);}
+else if(k==='pzUser'&&Array.isArray(o)){var f=filtraTue(o,t);if(f.length!==o.length)v=JSON.stringify(f);}
+}
+}
+}catch(e){}
+return _si.call(this,k,v);
+};
+}catch(e){}
+
+/* ── la scheda ── */
+var PE=null;   /* {id, nuova, n, v:[{t, o: la via di prima (per i marker) o null}], prima: com'era} */
+function aperta(){
+try{var b=document.querySelector('#pzOv .pz-azioni .pz-del'),m=b&&String(b.getAttribute('onclick')||'').match(/pzElimina\('([^']+)'\)/);if(m)return m[1];}catch(e){}
+try{if(window.nccPzNav){var n=nccPzNav();if(n&&n.dettaglioId!=null)return n.dettaglioId;}}catch(e){}
+return null;
+}
+function firma(){if(!PE)return '';return pulisci(PE.n).toUpperCase()+'§'+PE.v.map(function(s){return pulisci(s.t)+'@'+(s.o==null?'':s.o);}).filter(function(x){return x.charAt(0)!=='@';}).join('|');}
+function conMarker(i){
+try{var s=PE&&PE.v[i];if(!s||s.o==null||!PE.id)return false;
+var c=(L('pzCoords',{})||{})[PE.id+'_'+s.o];return !!(c&&isFinite(c.lat)&&isFinite(c.lon));}catch(e){return false;}
+}
+function conta(){return 'VIE ('+PE.v.filter(function(s){return pulisci(s.t);}).length+')';}
+function apri(){
+var o=document.getElementById('pzEdOv');if(o)o.remove();
+o=document.createElement('div');o.id='pzEdOv';o.className='rd';
+o.setAttribute('role','dialog');o.setAttribute('aria-label',PE.nuova?'Nuova piazza':'Modifica piazza');
+o.innerHTML='<div class="ed-nav"><button class="ed-a" type="button" onclick="nccPzEdAnnulla()">Annulla</button>'
++'<div class="ed-t">'+(PE.nuova?'Nuova piazza':'Modifica piazza')+'</div>'
++'<button class="ed-s" type="button" onclick="nccPzEdSalva()">Salva</button></div>'
++'<div class="ed-body" id="pzEdBody"></div>';
+document.body.appendChild(o);
+disegna(PE.nuova?'nome':null);
+PE.prima=firma();
+void o.offsetHeight;
+requestAnimationFrame(function(){try{o.classList.add('su');}catch(e){}});
+try{if(window.nccOvApri)nccOvApri('pzEdOv',function(){chiudi();});}catch(e){}
+vibra();
+}
+function disegna(fuoco){
+try{
+var b=document.getElementById('pzEdBody');if(!b||!PE)return;
+var y=b.scrollTop;
+var h='<div class="pe-col"><div class="pf-sez">NOME</div><div class="pf-gr ed-gr">'
++'<input class="ed-in ed-tit" id="pzEdNome" value="'+E(PE.n)+'" placeholder="PIAZZA NAPOLI" aria-label="Nome della piazza" '
++'oninput="nccPzEdNome(this.value)" onkeydown="nccPzEdTasto(event,-1)" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next"></div>'
++'<div class="pf-sez" id="pzEdConta">'+conta()+'</div><div class="pf-gr ed-gr" id="pzEdVie">';
+PE.v.forEach(function(s,i){
+h+='<div class="ed-r" data-i="'+i+'">'
++'<span class="ed-n'+(conMarker(i)?' ok':'')+'" aria-hidden="true">'+(i+1)+'</span>'
++'<input class="ed-in" data-i="'+i+'" value="'+E(s.t)+'" placeholder="Nome della via" aria-label="Via '+(i+1)+'" '
++'oninput="nccPzEdVia('+i+',this.value)" onkeydown="nccPzEdTasto(event,'+i+')" onpaste="nccPzEdIncolla(event,'+i+')" '
++'autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next">'
++'<button class="ed-b" type="button" onclick="nccPzEdSposta('+i+',-1)" '+(i===0?'disabled ':'')+'aria-label="Sposta su">↑</button>'
++'<button class="ed-b" type="button" onclick="nccPzEdSposta('+i+',1)" '+(i===PE.v.length-1?'disabled ':'')+'aria-label="Sposta giù">↓</button>'
++'<button class="ed-b ed-x" type="button" onclick="nccPzEdTogli('+i+')" aria-label="Togli la via">−</button>'
++'</div>';
+});
+h+='</div><button class="ed-add" type="button" onclick="nccPzEdAggiungi()">＋ Aggiungi una via</button>'
++'<div class="sc-nota ed-nota">Una via per riga. Invio passa alla via dopo; se incolli un elenco (una via per riga, o separate da virgole) ogni via prende la sua riga. '
++'I marker seguono la via quando la sposti; se la togli se ne va con lei. Il numero pieno vuol dire che la via ha il marker.</div></div>';
+b.innerHTML=h;
+b.scrollTop=y;
+if(fuoco==='nome')metti(document.getElementById('pzEdNome'));
+else if(fuoco!=null)metti(b.querySelector('.ed-in[data-i="'+fuoco+'"]'));
+}catch(e){}
+}
+function metti(inp){
+if(!inp)return;
+try{inp.focus({preventScroll:true});}catch(e){try{inp.focus();}catch(e2){}}
+try{var l=inp.value.length;inp.setSelectionRange(l,l);}catch(e){}
+try{var b=document.getElementById('pzEdBody'),r=inp.closest('.ed-r')||inp;
+if(b){var rb=r.getBoundingClientRect(),bb=b.getBoundingClientRect();
+if(rb.bottom>bb.bottom-12||rb.top<bb.top+12)b.scrollTop+=rb.top-bb.top-(bb.height-rb.height)/2;}}catch(e){}
+}
+function lampo(i){
+try{var r=document.querySelector('#pzEdVie .ed-r[data-i="'+i+'"]');if(!r)return;
+r.classList.remove('mosso');void r.offsetWidth;r.classList.add('mosso');}catch(e){}
+}
+function chiudi(){
+try{
+var o=document.getElementById('pzEdOv');PE=null;
+try{if(window.nccOvChiuso)nccOvChiuso('pzEdOv');}catch(e){}
+if(!o)return;
+try{var a=document.activeElement;if(a&&a.blur&&o.contains(a))a.blur();}catch(e){}
+o.classList.remove('su');o.classList.add('via');
+setTimeout(function(){try{o.remove();}catch(e){}},480);
+}catch(e){}
+}
+
+/* ── aprire: la piazza aperta, o una nuova ── */
+function modifica(){
+try{
+var id=aperta(),p=id!=null?piazza(id):null;
+if(!p){avviso('⚠️ Apri prima una piazza',2200);return;}
+PE={id:p.id,nuova:false,n:p.n,v:p.v.map(function(t,i){return {t:t,o:i};})};
+if(!PE.v.length)PE.v.push({t:'',o:null});
+apri();
+}catch(e){}
+}
+function nuova(){
+try{PE={id:null,nuova:true,n:'',v:[{t:'',o:null}]};apri();}catch(e){}
+}
+
+/* ── le azioni ── */
+window.nccPzEdNome=function(v){if(PE)PE.n=v;};
+window.nccPzEdVia=function(i,v){
+if(!PE||!PE.v[i])return;PE.v[i].t=v;
+var c=document.getElementById('pzEdConta');if(c)c.textContent=conta();
+};
+window.nccPzEdTasto=function(ev,i){
+try{
+if(!PE||!ev)return;
+if(ev.key==='Enter'&&!ev.isComposing&&ev.keyCode!==229){
+ev.preventDefault();
+if(i<0){metti(document.querySelector('#pzEdVie .ed-in[data-i="0"]'));return;}
+if(i+1<PE.v.length){metti(document.querySelector('#pzEdVie .ed-in[data-i="'+(i+1)+'"]'));return;}
+if(!pulisci(PE.v[i].t))return;          /* dall'ultima vuota non se ne apre un'altra */
+PE.v.push({t:'',o:null});disegna(PE.v.length-1);
+return;
+}
+if((ev.key==='Backspace'||ev.key==='Delete')&&i>=0&&ev.target&&ev.target.value===''&&PE.v.length>1){
+ev.preventDefault();
+PE.v.splice(i,1);disegna(Math.max(0,ev.key==='Delete'?Math.min(i,PE.v.length-1):i-1));
+}
+}catch(e){}
+};
+window.nccPzEdIncolla=function(ev,i){
+try{
+if(!PE||!PE.v[i])return;
+var t=((ev.clipboardData||window.clipboardData)||{getData:function(){return '';}}).getData('text')||'';
+if(!/[\n\r,;]/.test(t))return;          /* una via sola: incolla come sempre */
+var parti=t.split(/\r?\n|\r|[,;]/).map(pulisci).filter(Boolean);
+if(parti.length<2)return;
+ev.preventDefault();
+var nuove=parti.map(function(x){return {t:x,o:null};});
+if(!pulisci(PE.v[i].t)){PE.v[i].t=nuove[0].t;nuove=nuove.slice(1);}
+PE.v.splice.apply(PE.v,[i+1,0].concat(nuove));
+disegna(i+nuove.length);
+avviso('✓ '+parti.length+' vie, una per riga',1800);
+}catch(e){}
+};
+window.nccPzEdSposta=function(i,d){
+if(!PE)return;var j=i+d;if(j<0||j>=PE.v.length)return;
+var t=PE.v[i];PE.v[i]=PE.v[j];PE.v[j]=t;
+disegna();lampo(j);vibra();
+};
+window.nccPzEdTogli=function(i){
+if(!PE||!PE.v[i])return;
+PE.v.splice(i,1);if(!PE.v.length)PE.v.push({t:'',o:null});
+disegna();vibra();
+};
+window.nccPzEdAggiungi=function(){
+if(!PE)return;
+var u=PE.v[PE.v.length-1];
+if(u&&!pulisci(u.t)){disegna(PE.v.length-1);return;}   /* l'ultima e' ancora vuota: si scrive li' */
+PE.v.push({t:'',o:null});disegna(PE.v.length-1);
+};
+window.nccPzEdAnnulla=function(){
+try{
+if(!PE)return;
+if(firma()!==PE.prima){
+var esci=function(){chiudi();};
+if(window.nccConferma)nccConferma('Esci senza salvare le modifiche?',esci,{si:'Esci senza salvare',icona:'✎'});
+else if(confirm('Esci senza salvare le modifiche?'))esci();
+return;
+}
+chiudi();
+}catch(e){chiudi();}
+};
+/* i marker seguono la via; quelli delle vie tolte (o in fondo, se ora sono meno) prendono la lapide */
+function spostaMarker(id,righe){
+try{
+var co=L('pzCoords',{})||{},pre=String(id)+'_',vecchi={},t=Date.now(),via=[];
+Object.keys(co).forEach(function(k){if(k.indexOf(pre)===0&&/^\d+$/.test(k.slice(pre.length))){vecchi[+k.slice(pre.length)]=co[k];delete co[k];}});
+righe.forEach(function(s,j){
+var c=s.o!=null?vecchi[s.o]:null;if(!c||typeof c!=='object')return;
+if(s.o===j){co[pre+j]=c;return;}
+var n={lat:c.lat,lon:c.lon,t:t};if(c.auto)n.auto=c.auto;co[pre+j]=n;   /* spostata: e' una modifica di adesso */
+});
+Object.keys(vecchi).forEach(function(i){if(!co[pre+i])via.push('c:'+pre+i);});
+seppellisci(via);
+S('pzCoords',co);
+}catch(e){}
+}
+window.nccPzEdSalva=function(){
+try{
+if(!PE)return;
+var nome=pulisci(PE.n).toUpperCase();
+var righe=PE.v.map(function(s){return {t:pulisci(s.t),o:s.o};}).filter(function(s){return s.t;});
+if(!nome){
+try{nccPopup({icona:'✎',testo:'Scrivi il nome della piazza.',azioni:[{t:'OK',stile:'pieno',fn:function(){metti(document.getElementById('pzEdNome'));}}]});}
+catch(e){alert('Scrivi il nome della piazza.');}
+return;}
+if(!righe.length){
+try{nccPopup({icona:'✎',testo:'Scrivi almeno una via.',azioni:[{t:'OK',stile:'pieno',fn:function(){metti(document.querySelector('#pzEdVie .ed-in'));}}]});}
+catch(e){alert('Scrivi almeno una via.');}
+return;}
+var vie=righe.map(function(s){return s.t;}),ora=Date.now(),id=PE.id,nuovaP=PE.nuova;
+if(nuovaP){
+id='pzU'+ora;
+var u=tue();u.push({id:id,n:nome,t:tipo(nome),v:vie,ts:ora});S('pzUser',u);
+}else{
+var p=piazza(id);if(!p){chiudi();return;}
+if(p.base){
+var m=modifiche(),x=(m[id]&&typeof m[id]==='object')?m[id]:{};
+x.v=vie;if(nome!==p.n||x.n)x.n=nome;x.ts=ora;m[id]=x;S('pzEdit',m);
+}else{
+var u2=tue();u2.forEach(function(y){if(String(y.id)===String(id)){y.v=vie;if(y.n!==nome){y.n=nome;y.t=tipo(nome);}y.ts=ora;}});S('pzUser',u2);
+}
+spostaMarker(id,righe);
+}
+try{if(typeof markDirty==='function')markDirty('prefs');}catch(e){}
+try{if(typeof autoSave==='function')autoSave();}catch(e){}
+chiudi();
+vibra('m');
+if(nuovaP){
+avviso('✓ '+nome+' aggiunta con '+vie.length+(vie.length===1?' via':' vie'),2400);
+try{openPiazze();}catch(e){}
+}else{
+avviso('✓ '+nome+': '+vie.length+(vie.length===1?' via':' vie'),2000);
+try{pzApri(id);}catch(e){}
+}
+}catch(e){}
+};
+window.nccPzEdStato=function(){return PE?JSON.parse(JSON.stringify(PE)):null;};   /* per i test */
+
+/* ── al posto delle finestrelle del browser ── */
+function installa(){
+try{
+var _pp=window.pzPos;
+if(typeof _pp==='function'&&!_pp.__pzEd){window.pzPos=function(id,idx){if(idx>=0)libera(String(id),idx);return _pp.apply(this,arguments);};window.pzPos.__pzEd=true;}
+var _tm=window.pzTrovaMarker;
+if(typeof _tm==='function'&&!_tm.__pzEd){window.pzTrovaMarker=function(sola){if(arguments[1]!==true)libera(sola!=null?String(sola):null,null);return _tm.apply(this,arguments);};window.pzTrovaMarker.__pzEd=true;
+if(_tm.__nav)window.pzTrovaMarker.__nav=true;}
+if(typeof window.pzModifica==='function'&&!window.pzModifica.__pzEd){window.pzModifica=modifica;window.pzModifica.__pzEd=true;}
+if(typeof window.pzNuovaPiazza==='function'&&!window.pzNuovaPiazza.__pzEd){window.pzNuovaPiazza=nuova;window.pzNuovaPiazza.__pzEd=true;}
+/* eliminare: la data (cosi' una modifica piu' vecchia, da un altro dispositivo, non la fa tornare)
+   e per le piazze tue la lapide */
+var _el=window.pzElimina;
+if(typeof _el==='function'&&!_el.__pzEd){
+window.pzElimina=function(id){
+var era=tue().some(function(x){return String(x.id)===String(id);});
+var r=_el.apply(this,arguments);
+try{
+var m=modifiche();if(m[id]&&m[id].del&&!m[id].tsDel){m[id].tsDel=Date.now();m[id].ts=m[id].tsDel;S('pzEdit',m);try{markDirty('prefs');}catch(e){}}
+if(era&&!tue().some(function(x){return String(x.id)===String(id);})){seppellisci(['u:'+id]);try{markDirty('prefs');autoSave();}catch(e){}}
+}catch(e){}
+return r;};
+window.pzElimina.__pzEd=true;
+}
+}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',installa);
+if(document.readyState!=='loading')setTimeout(installa,0);
+setTimeout(installa,600);setTimeout(installa,2000);
+
+/* ── nel cloud: le lapidi viaggiano con le preferenze ── */
+setTimeout(function(){
+try{if(typeof getPrefs!=='function'||getPrefs.__pzEd)return;var _g=getPrefs;
+getPrefs=function(){var p=_g.apply(this,arguments)||{};try{var t=lapidi();if(Object.keys(t).length)p.pzTolte=t;}catch(e){}return p;};
+getPrefs.__pzEd=true;}catch(e){}
+},3200);
+/* dal cloud: le lapidi si uniscono, e fra due versioni della stessa piazza vince la modifica piu' recente */
+function dalCloud(pr){
+var n=0;
+try{
+if(!pr||typeof pr!=='object')return 0;
+var ct=pr.pzTolte;
+if(ct&&typeof ct==='object'){var t=lapidi(),k=0;Object.keys(ct).forEach(function(x){if(+ct[x]>(+t[x]||0)){t[x]=+ct[x];k++;}});
+if(k){S(KT,t);n+=k;
+var co=L('pzCoords',null);if(co&&typeof co==='object'&&filtraMarker(co,t))S('pzCoords',co);
+var u0=L('pzUser',null);if(Array.isArray(u0)){var f=filtraTue(u0,t);if(f.length!==u0.length)S('pzUser',f);}}}
+var ce=pr.pzEdit;
+if(ce&&typeof ce==='object'&&!Array.isArray(ce)){var m=modifiche(),k2=0;
+Object.keys(ce).forEach(function(id){var c=ce[id],l=m[id];if(!c||typeof c!=='object'||!(+c.ts))return;
+if(!l||!(+l.ts)||+c.ts>+l.ts){if(JSON.stringify(c)!==JSON.stringify(l)){m[id]=c;k2++;}}});
+if(k2){S('pzEdit',m);n+=k2;}}
+var cu=pr.pzUser;
+if(Array.isArray(cu)){var u=tue(),k3=0;
+cu.forEach(function(c){if(!c||c.id==null||!(+c.ts))return;
+for(var i=0;i<u.length;i++){var l=u[i];if(String(l.id)===String(c.id)){if((!(+l.ts)||+c.ts>+l.ts)&&JSON.stringify(c)!==JSON.stringify(l)){u[i]=c;k3++;}return;}}});
+if(k3){S('pzUser',u);n+=k3;}}
+}catch(e){}
+return n;
+}
+window.nccPzDalCloud=dalCloud;   /* per i test */
+try{
+var _sf=window.syncFromCloud;
+window.syncFromCloud=function(){
+var r=_sf.apply(this,arguments);
+try{if(typeof fbRef!=='undefined'&&fbRef&&fbRef.once)fbRef.once('value',function(sn){
+try{var pr=sn&&sn.child?sn.child('prefs').val():((sn&&sn.val&&sn.val())||{}).prefs;
+/* dopo l'unione delle piazze di piazze.js (1,2 s dopo lo scarico): l'ordine non conta, ognuna tocca solo il suo */
+setTimeout(function(){try{dalCloud(pr);}catch(e){}},1900);}catch(e){}
+},function(){});}catch(e){}
+return r;
+};
+}catch(e){}
 })();
