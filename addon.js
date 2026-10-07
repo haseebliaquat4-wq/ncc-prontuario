@@ -7170,6 +7170,13 @@ try{
 /* niente detectRetina: caricava i riquadri dello zoom dopo a meta'
    grandezza, e i NOMI DELLE VIE uscivano a meta' misura */
 try{opt=opt||{};opt.detectRetina=false;}catch(e){}
+/* (v154) un indirizzo solo per i riquadri di OpenStreetMap (a., b., c. sono vecchi: con HTTP/2 non servono, e ogni
+   mappa riscaricava i riquadri gia' presi da un'altra); zoomando, niente riquadri dei livelli di passaggio */
+try{if(typeof url==='string')url=url.replace(/^https?:[/][/]([{]s[}]|[abc])[.]tile[.]openstreetmap[.]org[/]/,'https://tile.openstreetmap.org/');
+if(opt.updateWhenZooming===undefined)opt.updateWhenZooming=false;}catch(e){}
+/* (v154) le mappe senza nomi (Disegna a memoria, Mappa muta) chiedevano a CARTO la mappa senza scritte, ma qui
+   diventava quella di OpenStreetMap coi nomi delle vie: ora la mappa grigia senza nomi, come la principale in Cieco */
+try{if(typeof url==='string'&&url.indexOf('cartocdn')>=0&&/nolabels/.test(url)){url=SENZA;opt.attribution='&copy; Esri';opt.maxNativeZoom=16;delete opt.subdomains;}}catch(e){}
 if(typeof url==='string'&&url.indexOf('cartocdn')>=0){
 url=CON;
 opt=opt||{};
@@ -7185,18 +7192,22 @@ for(var k in _tl)if(Object.prototype.hasOwnProperty.call(_tl,k))L.tileLayer[k]=_
 }catch(e){}
 
 /* 2 · sulla mappa principale i due stili convivono: si dissolve, non si ricarica */
-var LIV={con:null,senza:null,sat:null},pronto=false;
+/* (v154) ...ma il livello nascosto (a opacita' 0) scaricava lo stesso tutti i suoi riquadri: ogni spostamento della
+   mappa ne chiedeva il doppio (il triplo dopo aver usato il satellite). Ora sulla mappa c'e' solo quello che si vede.
+   Cambiando stile: verso la mappa senza nomi (Cieco, Quiz vie) quella coi nomi sparisce subito (niente nomi
+   intravisti); verso quella coi nomi o il satellite il nuovo entra trasparente e si dissolve sopra appena ha i suoi
+   riquadri (al piu' dopo un secondo e mezzo); poi il vecchio esce dalla mappa */
+var LIV={con:null,senza:null,sat:null},pronto=false,ATT=null,USC=null;
 function creaLivelli(){
 try{
 if(pronto)return true;
 if(typeof map==='undefined'||!map||typeof L==='undefined')return false;
 function mk(u,mz){
-var l=L.tileLayer(u,{maxNativeZoom:mz,maxZoom:20,keepBuffer:4,
+return L.tileLayer(u,{maxNativeZoom:mz,maxZoom:20,keepBuffer:4,
 attribution:(u===CON?'&copy; OpenStreetMap':'&copy; Esri'),opacity:0});
-l.addTo(map);return l;
 }
 LIV.con=mk(CON,19);LIV.senza=mk(SENZA,16);
-/* il vecchio livello del core viene rimosso: lo sostituiscono i due nuovi */
+/* il vecchio livello del core viene rimosso: lo sostituiscono i nuovi */
 try{if(window._tileLayer&&map.hasLayer(window._tileLayer))map.removeLayer(window._tileLayer);}catch(e){}
 pronto=true;return true;
 }catch(e){return false;}
@@ -7207,15 +7218,33 @@ if(!creaLivelli())return false;
 var sat=false;try{sat=!!lg('mapSat',false);}catch(e){}
 if(sat&&!LIV.sat){
 LIV.sat=L.tileLayer(SAT,{maxNativeZoom:19,maxZoom:20,keepBuffer:4,attribution:'&copy; Esri',opacity:0});
-LIV.sat.addTo(map);
 }
 var attivo=sat?LIV.sat:(quale==='senza'?LIV.senza:LIV.con);
-[LIV.con,LIV.senza,LIV.sat].forEach(function(l){
-if(!l)return;
-try{l.setOpacity(l===attivo?1:0);}catch(e){}
-});
-try{attivo.bringToFront();}catch(e){}
 window._tileLayer=attivo;      /* il core continua a trovare il livello attivo */
+if(ATT===attivo&&map.hasLayer(attivo))return true;
+ATT=attivo;
+clearTimeout(USC);
+var altri=[LIV.con,LIV.senza,LIV.sat].filter(function(l){return l&&l!==attivo&&map.hasLayer(l);});
+function via(){altri.forEach(function(l){try{if(l!==ATT&&map.hasLayer(l)){l.setOpacity(0);map.removeLayer(l);}}catch(e){}});}
+if(!map.hasLayer(attivo)){try{attivo.setOpacity(0);}catch(e){}attivo.addTo(map);}
+try{attivo.bringToFront();}catch(e){}
+if(!altri.length){try{attivo.setOpacity(1);}catch(e){}return true;}
+if(attivo===LIV.senza){
+/* senza nomi: quella coi nomi sparisce subito */
+altri.forEach(function(l){try{l.setOpacity(0);}catch(e){}});
+try{attivo.setOpacity(1);}catch(e){}
+USC=setTimeout(via,400);
+return true;
+}
+var fatto=false;
+function entra(){
+if(fatto||ATT!==attivo)return;fatto=true;
+try{attivo.off('load',entra);}catch(e){}
+try{attivo.setOpacity(1);}catch(e){}
+USC=setTimeout(via,400);   /* dopo la dissolvenza (0,3 s) */
+}
+try{if(typeof attivo.isLoading==='function'&&attivo.isLoading()===false)entra();else attivo.on('load',entra);}catch(e){entra();}
+setTimeout(entra,1500);
 return true;
 }catch(e){return false;}
 }
@@ -10053,6 +10082,7 @@ try{nccScegliVoce();}catch(e){}
 var MG=null,CTX=null,CV=null,DIS=false,TRATTI=[],CORRENTE=null,ULT=null,GEO=false;
 var COLORI=[['#2447D6','blu'],['#E5484D','rosso'],['#0E9F6E','verde'],['#111827','nero']];
 var COL=0,SPESS=3,CHIAVE='pencilGeo';
+var RAF=0,PROI=(typeof WeakMap==='function')?new WeakMap():null;   /* (v154) il ridisegno: un fotogramma, i punti gia' proiettati */
 function salva(){try{localStorage.setItem(CHIAVE,JSON.stringify(TRATTI.slice(-400)));}catch(e){}}
 function carica(){try{var v=JSON.parse(localStorage.getItem(CHIAVE)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
 
@@ -10090,7 +10120,7 @@ var b=document.getElementById('mgSp');if(b)b.textContent=String(SPESS);try{hap()
 function avvia(){
 try{
 var LF=window.L;if(!LF||!LF.map)return;
-MG=LF.map('mgMap',{zoomControl:true,attributionControl:true,tap:false,minZoom:11,maxZoom:19});
+MG=LF.map('mgMap',{zoomControl:true,attributionControl:true,tap:false,minZoom:11,maxZoom:19,fadeAnimation:false});   /* (v154) i riquadri si vedono appena arrivano */
 try{LF.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {maxZoom:19,maxNativeZoom:19,detectRetina:false,attribution:'\u00a9 OpenStreetMap'}).addTo(MG);}catch(e){}
 /* a livello strada: sul primo marker del percorso che stavi studiando, o sul Duomo */
@@ -10100,7 +10130,7 @@ for(var i=0;i<cur.steps.length;i++){var k=coords[cur.id+'_'+i];
 if(k){c=[k.lat,(k.lon!=null?k.lon:k.lng)];break;}}}}catch(e){}
 MG.setView(c,16);
 GEO=typeof MG.latLngToContainerPoint==='function'&&typeof MG.containerPointToLatLng==='function';
-try{MG.on('move zoom viewreset resize',ridisegna);}catch(e){}
+try{MG.on('move',mossa);MG.on('zoom viewreset resize moveend zoomend',ridisegna);MG.on('zoomanim',zoomAnim);}catch(e){}
 setTimeout(function(){try{MG.invalidateSize();}catch(e){}ridimensiona();},220);
 TRATTI=carica();
 input();
@@ -10115,7 +10145,7 @@ CV.width=Math.round(a.width*r);CV.height=Math.round(a.height*r);
 CV.style.width=a.width+'px';CV.style.height=a.height+'px';
 CTX=CV.getContext('2d');CTX.setTransform(r,0,0,r,0,0);
 CTX.lineCap='round';CTX.lineJoin='round';
-ridisegna();
+disegna();   /* subito: la tela appena ridimensionata e' vuota */
 }catch(e){}
 }
 window.addEventListener('resize',function(){if(document.getElementById('mgOv'))ridimensiona();});
@@ -10129,17 +10159,96 @@ function daSchermo(x,y){
 try{if(GEO){var ll=MG.containerPointToLatLng({x:x,y:y});return {lat:ll.lat,lng:ll.lng};}}catch(e){}
 return {x:x,y:y};
 }
+/* (v154) il ridisegno dei tratti. Prima: tutti i tratti, punto per punto, a ogni minimo spostamento della mappa — con
+   qualche centinaio di tratti il telefono restava occupato e i riquadri della mappa arrivavano a fatica (mezzi
+   trasparenti, a pezzi). Ora: al massimo una volta per fotogramma; ogni punto proiettato una volta sola; solo i tratti
+   che si vedono; per ogni livello di zoom solo i punti che servono (quelli nello stesso pixel una volta sola).
+   Zoomando coi tasti i tratti seguono la mappa */
 function ridisegna(){
+if(RAF)return;
+try{RAF=requestAnimationFrame(function(){RAF=0;disegna();});}catch(e){RAF=0;disegna();}
+}
+/* trascinando la mappa (stesso zoom) i tratti scorrono con lei senza ridisegnarli: si sposta la tela; ogni tanto,
+   e quando la mappa si ferma, si ridisegnano (cosi' entrano anche quelli che arrivano dai bordi) */
+var D0=null;
+function mossa(){
+try{
+if(!D0||!MG||!CV||CORRENTE){ridisegna();return;}
+var z=MG.getZoom();if(z!==D0.z){ridisegna();return;}
+var po=MG.getPixelOrigin(),c0=MG.containerPointToLayerPoint([0,0]),dx=(-po.x-c0.x)-D0.ox,dy=(-po.y-c0.y)-D0.oy;
+CV.style.transition='none';CV.style.transformOrigin='0 0';CV.style.transform='translate('+dx+'px,'+dy+'px)';
+if(Date.now()-D0.t>250)ridisegna();
+}catch(e){ridisegna();}
+}
+function proietta(t){
+try{
+if(!PROI||!MG||typeof MG.project!=='function')return null;
+var g=PROI.get(t),n=t.p.length;
+if(g&&g.n===n)return g;
+var a=new Float64Array(n*2),x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+for(var i=0;i<n;i++){
+var q=t.p[i];if(!q||q.lat==null||q.lng==null)return null;   /* un tratto vecchio, a punti dello schermo */
+var w=MG.project({lat:q.lat,lng:q.lng},0);
+a[2*i]=w.x;a[2*i+1]=w.y;
+if(w.x<x0)x0=w.x;if(w.x>x1)x1=w.x;if(w.y<y0)y0=w.y;if(w.y>y1)y1=w.y;
+}
+g={n:n,a:a,b:[x0,y0,x1,y1]};PROI.set(t,g);return g;
+}catch(e){return null;}
+}
+/* i punti che servono a quello zoom: quelli a meno di un pixel e poco dal precedente una volta sola. Fatto una
+   volta per livello di zoom, poi a ogni fotogramma si disegnano solo quelli */
+function livello(g,z){
+var zi=Math.max(0,Math.floor(z)),L2=g.lod||(g.lod={});
+if(L2[zi])return L2[zi];
+var tol=1.2/Math.pow(2,zi),A=g.a,n=g.n,out=new Float64Array(n*2),m=1,lx=A[0],ly=A[1];
+out[0]=lx;out[1]=ly;
+for(var i=1;i<n;i++){
+var x=A[2*i],y=A[2*i+1];
+if(i<n-1&&x-lx<tol&&lx-x<tol&&y-ly<tol&&ly-y<tol)continue;
+out[2*m]=x;out[2*m+1]=y;m++;lx=x;ly=y;
+}
+var r={a:out.subarray(0,m*2),n:m};L2[zi]=r;return r;
+}
+function disegna(){
 try{
 if(!CTX||!CV)return;
+if(CV.style.transform){CV.style.transition='none';CV.style.transform='';}
 CTX.clearRect(0,0,CV.width,CV.height);
+var Wc=CV.clientWidth||CV.width,Hc=CV.clientHeight||CV.height,k=0,ox=0,oy=0,z=0;
+if(GEO&&MG&&typeof MG.getPixelOrigin==='function'&&typeof MG.containerPointToLayerPoint==='function'){
+/* dal punto allo zoom 0 al punto sullo schermo: lo stesso conto di latLngToContainerPoint, fatto una volta */
+z=MG.getZoom();var po=MG.getPixelOrigin(),c0=MG.containerPointToLayerPoint([0,0]);
+k=Math.pow(2,z);ox=-po.x-c0.x;oy=-po.y-c0.y;
+if(isFinite(k)&&isFinite(ox)&&isFinite(oy))D0={z:z,ox:ox,oy:oy,t:Date.now()};
+else{k=0;ox=0;oy=0;D0=null;}   /* una mappa che non sa fare il conto: punto per punto, come prima */
+}
 TRATTI.forEach(function(t){
 if(!t||!t.p||t.p.length<2)return;
-CTX.strokeStyle=t.c;CTX.lineWidth=t.w;CTX.beginPath();
-var a=aSchermo(t.p[0]);CTX.moveTo(a.x,a.y);
-for(var i=1;i<t.p.length;i++){var b=aSchermo(t.p[i]);CTX.lineTo(b.x,b.y);}
-CTX.stroke();});
+CTX.strokeStyle=t.c;CTX.lineWidth=t.w;
+var g=(k&&t!==CORRENTE)?proietta(t):null;
+if(!g){
+CTX.beginPath();var a0=aSchermo(t.p[0]);CTX.moveTo(a0.x,a0.y);
+for(var j=1;j<t.p.length;j++){var b0=aSchermo(t.p[j]);CTX.lineTo(b0.x,b0.y);}
+CTX.stroke();return;
+}
+var m=(t.w||3)+2,b=g.b;
+if(b[2]*k+ox<-m||b[0]*k+ox>Wc+m||b[3]*k+oy<-m||b[1]*k+oy>Hc+m)return;   /* fuori dallo schermo */
+var P=livello(g,z),A=P.a,n=P.n;
+CTX.beginPath();CTX.moveTo(A[0]*k+ox,A[1]*k+oy);
+for(var i=1;i<n;i++)CTX.lineTo(A[2*i]*k+ox,A[2*i+1]*k+oy);
+CTX.stroke();
+});
 }catch(e){}
+}
+/* zoomando coi tasti (o col doppio tocco) la mappa scorre in un quarto di secondo: i tratti la seguono, poi si ridisegnano */
+function zoomAnim(e){
+try{
+if(!CV||!MG||!e||!e.center)return;
+var sc=MG.getZoomScale(e.zoom),c=MG.latLngToContainerPoint(e.center),s=MG.getSize();
+CV.style.transformOrigin='0 0';
+CV.style.transition='transform .25s cubic-bezier(0,0,.25,1)';
+CV.style.transform='translate('+(s.x/2-c.x*sc)+'px,'+(s.y/2-c.y*sc)+'px) scale('+sc+')';
+}catch(x){}
 }
 
 function input(){
@@ -10155,6 +10264,7 @@ try{area.setPointerCapture(ev.pointerId);}catch(e){}
 var q=xy(ev);ULT=q;
 CORRENTE={c:COLORI[COL][0],w:SPESS*(ev.pressure?(0.6+ev.pressure*0.9):1),p:[daSchermo(q.x,q.y)]};
 TRATTI.push(CORRENTE);
+try{if(CV&&CV.style.transform)disegna();}catch(e){}   /* (v154) */
 },true);
 area.addEventListener('pointermove',function(ev){
 if(!CORRENTE)return;
@@ -10195,6 +10305,7 @@ TRATTI=[];salva();ridisegna();try{hap();}catch(e){}}catch(e){}
 window.nccMappaGrandeChiudi=function(){
 try{
 salva();
+try{if(RAF)cancelAnimationFrame(RAF);}catch(e){}RAF=0;
 if(MG){try{MG.remove();}catch(e){}MG=null;}
 var o=document.getElementById('mgOv');if(o)o.remove();
 CTX=null;CV=null;CORRENTE=null;ULT=null;
@@ -17730,6 +17841,8 @@ function lavora(){
 try{
 if(ST.corre)return;
 if(!navigator.onLine||document.hidden)return;                 /* riparte da solo: rete tornata, app di nuovo davanti */
+/* (v154) mentre disegni sulla mappa grande o sulla cartina il telefono resta tutto per te: riprovo fra poco */
+try{var mgo=document.getElementById('mgOv'),cto=document.getElementById('ctOv');if(mgo||(cto&&!cto.classList.contains('fuori'))){prossimo(8000);return;}}catch(e){}
 if(Date.now()<ST.pausaFino){prossimo(ST.pausaFino-Date.now()+500);return;}
 if(typeof routes==='undefined'||!Array.isArray(routes))return;
 if(window.__nccLibroAtteso&&!window.__nccLibroFatto){prossimo(2000);return;}   /* prima i percorsi del libro */
@@ -18317,4 +18430,46 @@ w.__v153=true;window.sdShow=w;
 var t=document.getElementById('sdTitle');if(t&&/^Studio( Luoghi)?$/.test(t.textContent.trim()))t.textContent='Cosa & Dove';
 }catch(e){}
 },3600);
+})();
+/* ═══════════════════════════════════════════════════
+   🗺️ LA MAPPA PIU' VELOCE (v154)
+   · un indirizzo solo per i riquadri di OpenStreetMap: la mappa grande con la
+     Pencil, le piazze e l'editor usavano a., b., c.tile.openstreetmap.org
+     (indirizzi vecchi) e non ritrovavano mai quelli gia' scaricati dalla mappa
+     principale. Ora sono gli stessi (lo fa il livello mappa, piu' su)
+   · zoomando niente riquadri dei livelli di passaggio: arrivano subito quelli
+     del livello giusto
+   · la mappa grande: i tratti si ridisegnano una volta per fotogramma e solo
+     quelli che si vedono (prima il telefono restava occupato)
+   · qui: una volta sola, con calma, dalla memoria dei riquadri tolgo quelli con
+     gli indirizzi vecchi — non servono piu' e lasciano posto agli altri
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var VECCHI=/^https?:[/][/][abc][.]tile[.]openstreetmap[.]org[/]/;
+function pulisci(){
+try{
+if(localStorage.getItem('nccTileAbc')==='1')return;
+if(!window.caches||typeof caches.keys!=='function')return;
+caches.keys().then(function(ks){
+var nomi=ks.filter(function(x){return /^ncc-tiles/.test(x);});
+return Promise.all(nomi.map(function(nome){
+return caches.open(nome).then(function(c){
+return c.keys().then(function(rq){
+var via=rq.filter(function(r){return VECCHI.test(r.url);});
+return Promise.all(via.map(function(r){return c.delete(r);}));
+});
+});
+}));
+}).then(function(){try{localStorage.setItem('nccTileAbc','1');}catch(e){}}).catch(function(){});
+}catch(e){}
+}
+function quando(){
+try{
+/* non mentre una mappa e' aperta: aspetto */
+if(document.hidden||document.getElementById('mgOv')||document.body.classList.contains('on-topo')){setTimeout(quando,30000);return;}
+pulisci();
+}catch(e){}
+}
+setTimeout(quando,25000);
 })();
