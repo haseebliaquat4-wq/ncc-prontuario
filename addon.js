@@ -3238,6 +3238,29 @@ background:transparent;color:var(--a,#2447D6);font:inherit;font-size:15px;font-w
 @media (max-height:620px){.ora-intro{padding:14px 16px 12px;margin-bottom:12px;}.ora-ic{font-size:30px;margin-bottom:4px;}
 .ora-intro p{font-size:14px;line-height:1.45;}.ora-intro p+p{margin-top:6px;}}
 @media (prefers-reduced-motion:reduce){#scnOv .pf-body.ora-entra,.ora-risp{animation:none;}}
+
+/* ══ (v157) il ripasso unico ══ */
+.rip-cima{margin:6px 16px 22px;padding:20px 18px 18px;border-radius:var(--t-r,20px);background:var(--ios-card);text-align:center;
+box-shadow:0 1px 0 rgba(0,0,0,.03);}
+.rip-n{font-size:56px;font-weight:900;line-height:1;letter-spacing:-1.5px;color:var(--ios-lbl);font-variant-numeric:tabular-nums;}
+.rip-l{margin-top:6px;font-size:15px;font-weight:700;color:var(--ios-lbl2);}
+.rip-d{margin-top:10px;font-size:14.5px;line-height:1.45;color:var(--ios-lbl2);}
+.rip-cima .ora-go{width:100%;margin:16px 0 0;}
+.rip-ic{font-size:44px;line-height:1;margin-bottom:8px;}
+.rip-tt{font-size:22px;font-weight:800;letter-spacing:-.3px;color:var(--ok,#129462);}
+.rip-cima .ora-go2{width:100%;margin:14px 0 0;border:1.5px solid var(--ios-sep);background:transparent;color:var(--a,#2447D6);}
+/* la prossima della coda: il bordo del suo colore */
+#scnOv .qc.qc-riga.rip-r.prima{border-color:color-mix(in srgb,var(--qc) 55%,var(--ios-sep));}
+#scnOv .rip-r .qc-lt>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+/* il numero bianco sui colori chiari (arancio del quiz, azzurro delle piazze) si leggeva poco: il tondo un po' piu' scuro */
+#scnOv .rip-r .qc-n{background:var(--qn,var(--qc));}
+.rip-dopo{margin:-8px 20px 26px;font-size:14px;line-height:1.45;color:var(--ios-lbl2);}
+/* telefono stretto: nel tasto basta «Ripassa adesso» (la prima riga ha gia' il bordo colorato) */
+@media(max-width:360px){.rip-go-c{display:none;}}
+/* tema scuro: i tasti pieni dell'orale e del ripasso come tutti gli altri dalla v152 (scritta bianca sull'azzurro
+   profondo, non su quello chiaro: non si leggeva), anche la sessione scelta dell'orale */
+.dark :is(.ora-go,.ora-ses .ch-chip.on){--a:#4462EE;--sac:#4462EE;}
+.berlina.dark :is(.ora-go,.ora-ses .ch-chip.on){--a:#8B6B21;--sac:#8B6B21;}
 `;
 }catch(e){}
 })();
@@ -9109,9 +9132,9 @@ if(!m)return r;
 try{
 if(qStats[cur.id]){
 qStats[cur.id].correct++;
-if(qStats[cur.id].wrong&&qStats[cur.id].wrong[giusta]){
-qStats[cur.id].wrong[giusta]--;
-if(qStats[cur.id].wrong[giusta]<=0)delete qStats[cur.id].wrong[giusta];
+if(qStats[cur.id].wrong&&qStats[cur.id].wrong[step]){   /* (v157) la tappa, non il nome */
+qStats[cur.id].wrong[step]--;
+if(qStats[cur.id].wrong[step]<=0)delete qStats[cur.id].wrong[step];
 }
 save();autoSave();
 }
@@ -9695,7 +9718,8 @@ if(top)peggiore=top+' ('+per[top]+')';
 }catch(e2){}
 var vie=0;
 try{
-if(typeof qStats!=='undefined'&&qStats)
+if(window.nccVieConta)vie=nccVieConta();   /* (v157) solo quelle non ancora rifatte giuste */
+else if(typeof qStats!=='undefined'&&qStats)
 vie=Object.keys(qStats).reduce(function(a,k2){
 return a+Object.keys((qStats[k2]||{}).wrong||{}).length;},0);
 }catch(e2){}
@@ -11525,6 +11549,7 @@ if(peg&&peg.pErr>0.15)o.peggiore=peg.label;}
 /* lo stesso conto del pallino rosso sulla linguetta Quiz */
 try{o.errori=Object.keys(qtStats.err||{}).filter(function(id){return srDue(id)<=Date.now();}).length;}catch(e){o.errori=0;}
 try{o.erroriTot=Object.keys(qtStats.err||{}).length;}catch(e){o.erroriTot=0;}
+try{o.rip=window.nccRipassoConto?nccRipassoConto():null;}catch(e){o.rip=null;}   /* (v157) il ripasso unico */
 try{var tm=topoModel();o.percTot=tm.rows.length;
 o.perc=tm.rows.filter(function(r){return r.clean>=0.8;}).length;}catch(e){}
 try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}catch(e){}
@@ -11539,7 +11564,7 @@ return t2>0&&(y.ok||0)/t2>=0.8;}).length;}}catch(e){}
 try{var ex=L('examDate',null);if(ex){var d=new Date(ex),g=new Date();g.setHours(0,0,0,0);d.setHours(0,0,0,0);
 o.esame=Math.round((d-g)/86400000);}}catch(e){}
 try{var sk=L('streak',null);o.striscia=(sk&&sk.n)||0;}catch(e){o.striscia=0;}
-try{if(typeof qStats!=='undefined'&&qStats)o.vie=Object.keys(qStats).reduce(function(a,k){
+if(window.nccVieConta){try{o.vie=nccVieConta();}catch(e){o.vie=0;}}else try{if(typeof qStats!=='undefined'&&qStats)o.vie=Object.keys(qStats).reduce(function(a,k){
 return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){o.vie=0;}
 try{if(window.nccChiestoConti){var cc=nccChiestoConti();o.chS=cc.salvati;o.chT=cc.tot;}}catch(e){}
 return o;
@@ -11598,8 +11623,8 @@ function fr(a,b){return (b?a+'/'+b:'');}
 return [
 {k:'quiz',t:'Quiz',s:'Simulazioni e schede',c:'#FF9500',b:(n.quiz!=null?n.quiz+'%':''),w:'sai',fn:'nccSezQuiz'},
 {k:'topo',t:'Topografia',s:'Percorsi e vie',c:'#007AFF',b:fr(n.perc||0,n.percTot),w:'sicuri',fn:'nccSezTopo'},
-{k:'err',t:'Ripasso errori',s:n.erroriTot?(n.errori?(n.errori+' in scadenza oggi'):'da rivedere'):'Niente in sospeso',c:'#34C759',
- b:n.erroriTot?String(n.erroriTot):'',w:(n.erroriTot===1?'errore':'errori'),fn:'nccHmErrori'},
+{k:'err',t:'Ripasso errori',s:n.rip?n.rip.s:(n.erroriTot?(n.errori?(n.errori+' in scadenza oggi'):'da rivedere'):'Niente in sospeso'),c:'#34C759',
+ b:n.rip?(n.rip.n?String(n.rip.n):''):(n.erroriTot?String(n.erroriTot):''),w:n.rip?'oggi':(n.erroriTot===1?'errore':'errori'),fn:n.rip?'nccRipasso':'nccHmErrori'},
 {k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),w:'sai',fn:'nccSezPz'},
 {k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),w:'visti',fn:'openStudy'},
 {k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),w:'sai',fn:'nccSezNorme'},
@@ -11755,7 +11780,7 @@ try{o.bm=Object.keys(qtStats.bm||{}).length;}catch(e){}
 try{o.senza=senzaMarker().length;o.perc=routes.length;}catch(e){}
 try{o.dubbi=window.nccMarkerAuto?nccMarkerAuto.dubbi():0;}catch(e){o.dubbi=0;}
 try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}catch(e){}
-try{o.vie=Object.keys(qStats||{}).reduce(function(a,k){return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){}
+try{o.vie=window.nccVieConta?nccVieConta():Object.keys(qStats||{}).reduce(function(a,k){return a+Object.keys((qStats[k]||{}).wrong||{}).length;},0);}catch(e){}
 return o;
 }
 function senzaMarker(){
@@ -11901,7 +11926,7 @@ t4:['Allenati','Le vie sono coperte: le scopri una alla volta e vedi se te le ri
 t5:['Scrivi','Scrivi tu ogni via a memoria. I refusi non contano, il suggerimento \u00e8 a un tocco.'],
 t6:['Pesca','Un percorso a caso fra quelli che hai preparato.'],
 t7:['Gioca','Sei tappe mescolate: rimettile nell\u2019ordine giusto.'],
-t8:['Ripassa','Le vie che hai sbagliato nel Quiz vie.'],
+t8:['Ripassa','Le vie che hai sbagliato nel Quiz vie. Quando ne riscrivi una giusta esce dall’elenco; se la sbagli di nuovo, rientra.'],
 p1:['Studia','Una piazza fra quelle che hai preparato, con le sue vie.'],
 p2:['Apri','La piazza sulla mappa: le vie compaiono una alla volta, come le zampe di un ragno.'],
 p3:['Scrivi','Scrivi a memoria le vie che sboccano nella piazza.'],
@@ -13055,7 +13080,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip'];   /* (v156) anche l'orale */
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste */
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -13109,6 +13134,7 @@ var x=a[id],y=b[id];
 if(!(id in a)){a[id]=y;agg++;return;}
 if(!x||!y||typeof x!=='object'||typeof y!=='object')return;
 /* ripasso a spirale: vince l'ultimo ripasso fatto, su qualunque dispositivo */
+if(k==='nccVieOk'){if((+y.t||0)>(+x.t||0)){a[id]=y;agg++;}return;}   /* (v157) */
 if(k==='pzSR'||k==='nmSR'){if((+y.last||+y.due||0)>(+x.last||+x.due||0)){a[id]=y;agg++;}return;}
 /* i marker delle piazze: vince quello spostato per ultimo (l'ora la mette chi lo sposta) */
 if(k==='pzCoords'){if((+y.t||0)>(+x.t||0)&&(x.lat!==y.lat||x.lon!==y.lon||(+x.t||0)!==(+y.t||0))){a[id]=y;agg++;}
@@ -13764,7 +13790,7 @@ closeQuiz();
 try{goHome();}catch(e){}
 /* Statistiche non e' una pagina di nccSez: si riapre con la sua funzione (prima si finiva in Home) */
 if(QORIG==='home')QORIG=null;else{if(QORIG==='stat'&&window.nccStatTorna)nccStatTorna();
-else if(QORIG==='chiesto'&&window.nccChiestoTorna)nccChiestoTorna();   /* (v149) dalla pagina Chiesto all'esame: si torna li', sulla stessa scheda */
+else if(QORIG==='chiesto'&&window.nccChiestoTorna)nccChiestoTorna();else if(QORIG==='ripasso'&&window.nccRipassoTorna)nccRipassoTorna();   /* (v149) dalla pagina Chiesto all'esame: si torna li', sulla stessa scheda */
 else nccSez(QORIG||'quiz');QORIG=null;}
 var s=document.getElementById('scnOv');
 if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
@@ -14085,7 +14111,7 @@ window.nccSezVai.__norme=true;
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var APRE='.qc-riga,.qc-i,.hm-rq,.og-r,.hm-lente,.pf-r,.pz-row,.ri,.sd-tile,.coach-row,#tabbar .tab';
+var APRE='.qc-riga,.qc-i,.hm-rq,.og-r,.hm-lente,.pf-r,.pz-row,.ri,.sd-tile,.coach-row,#tabbar .tab,.ora-go,.ora-go2,.ora-v,.ora-a';   /* (v157) l'orale e il ripasso */
 var INDIETRO='.t-back,.qback,.pz-x,.pzq-x,.pzg-x,.nm-x,.rg-x,.cx-x,.ip-x,.rq-x,.or-x,.sc-x,.qrun-x,#tpBack,.mhdr-close,#mgOv .mg-b[title="Esci"]';
 var ULT=null;
 function radice(el){var t=el;while(t&&t.parentElement&&t.parentElement!==document.body)t=t.parentElement;return (t&&t.parentElement===document.body)?t:null;}
@@ -15150,7 +15176,7 @@ return;}
 if(k==='?'){e.preventDefault();window.nccTastiera();return;}
 /* ── Home ── */
 if(home()){
-var fn={q:'nccSezQuiz',t:'nccSezTopo',p:'nccSezPz',e:'nccHmErrori',n:'nccSezNorme'}[kl];
+var fn={q:'nccSezQuiz',t:'nccSezTopo',p:'nccSezPz',e:'nccRipasso',n:'nccSezNorme'}[kl];
 if(fn){var r=document.querySelector('#hmNew .hm-rq[onclick^="'+fn+'("]');if(r){e.preventDefault();e.stopPropagation();r.click();}return;}
 if(k==='/'){var l=document.querySelector('#hmNew .hm-lente');if(l){e.preventDefault();e.stopPropagation();l.click();}}
 return;}
@@ -18987,7 +19013,8 @@ e.preventDefault();e.stopPropagation();b.click();
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var PAG='simorale',TITOLO='Simulazione dell’orale';
+var PAG='simorale',TITOLO='Simulazione dell’orale',TITOLO_RIP='Ripasso dell’orale';
+var ORIG=null;   /* (v157) da dove sei entrato: null la pagina Quiz, 'ripasso' la pagina Ripasso errori */
 function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
 return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function B(s){return E(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
@@ -19241,6 +19268,7 @@ if(p.x==='pz')return '🕸 '+E(m.nome(p.k));
 var T=(m.TEMI||{})[p.k]||{};return '⚖️ '+E(T.t||p.k);
 }
 function htmlFine(){
+if(S.rip)return htmlFineRip();
 var e=esito(),h='<div class="ora-esito '+(e.ok?'ok':'ko')+'"><div class="ora-ic">'+(e.ok?'🎉':'📚')+'</div>'
 +'<div class="ora-tt">'+(e.ok?'Superato':'Da ripassare')+'</div>'
 +'<div class="ora-sub">'+(e.ok?(e.qu?'Una risposta incerta, le altre giuste.':'Tutte le prove giuste.'):
@@ -19257,6 +19285,27 @@ h+='<button class="ora-go" onclick="nccOraleInizia()">🔁 Un altro orale</butto
 +'<button class="ora-go2" onclick="nccOraleIndietro()">Fine</button>';
 return h;
 }
+/* (v157) il ripasso delle prove andate male: quelle giuste escono dalla coda */
+function righe(){
+var h='<div class="ora-lista">';
+S.prove.forEach(function(p,i){
+var v=p.v||'no';
+h+='<div class="ora-r '+v+'"><div class="ora-rt"><span class="ora-rv">'+VOTI[v][0]+'</span><span class="ora-rn">'+titoloProva(p)+'</span></div>'
++(v!=='si'?azioni(p,i):'')+'</div>';
+});
+return h+'</div>';
+}
+function htmlFineRip(){
+var si=0;S.prove.forEach(function(p){if(p.v==='si')si++;});
+var tutte=si===S.prove.length,resta=S.prove.length-si;
+var h='<div class="ora-esito '+(tutte?'ok':'ko')+'"><div class="ora-ic">'+(tutte?'🎉':'📚')+'</div>'
++'<div class="ora-tt">'+(tutte?'Ripasso fatto':'Ancora da ripassare')+'</div>'
++'<div class="ora-sub">'+(si?(si===1?'Una esce dalla coda':si+' escono dalla coda'):'Nessuna esce dalla coda')
++(resta?(resta===1?', una resta: la ritrovi nel ripasso.':', '+resta+' restano: le ritrovi nel ripasso.'):'.')+'</div></div>';
+h+='<div class="pf-sez ora-sez">Le prove</div>'+righe();
+h+='<button class="ora-go" onclick="nccOraleIndietro()">‹ Torna al ripasso</button>';
+return h;
+}
 
 /* ── disegno: la pagina e' una sola, cambia il contenuto ── */
 /* piano: stessa prova, compare solo la risposta (niente pagina che rientra da destra) */
@@ -19268,7 +19317,7 @@ b.innerHTML=h;
 if(piano){b.classList.remove('ora-entra');}
 else{b.scrollTop=0;b.classList.remove('ora-entra');void b.offsetWidth;b.classList.add('ora-entra');}
 }else{
-nccPagina(PAG,TITOLO,h,'nccOraleIndietro()');
+nccPagina(PAG,(S&&S.rip)?TITOLO_RIP:TITOLO,h,'nccOraleIndietro()');
 }
 orologio();
 }
@@ -19299,12 +19348,14 @@ var t=document.getElementById('oraT');if(t)t.textContent='⏱ '+mmss(secondi());
 }
 window.nccOrale=function(){
 try{
-if(S&&S.fine)S=null;           /* finito: si riparte dall'inizio */
+ORIG=null;
+if(S&&(S.fine||S.rip))S=null;  /* finito (o un ripasso): si riparte dall'inizio */
 sospendi();                    /* a meta': prima la pagina con «Riprendi» */
 disegna(true);vibra();
 }catch(e){}
 };
-window.nccOraleSes=function(s){try{SCELTA=s||'';disegna();vibra();}catch(e){}};
+window.nccOraleSes=function(s){try{SCELTA=s||'';disegna(false,true);vibra();
+var c=document.querySelector('#scnBody .ora-ses .ch-chip.on');if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest',inline:'center'});}catch(e){}};   /* (v157) la sessione scelta: la pagina resta ferma */
 window.nccOraleInizia=function(){
 try{
 var n=prepara(SCELTA);
@@ -19323,9 +19374,11 @@ var p=S.prove[S.i];p.v=v;ripasso(p);
 vibra(v==='no'?'e':undefined);
 if(S.i<S.prove.length-1){S.i++;S.mostra=false;disegna();return;}
 S.fine=Date.now();
-var e=esito(),st=lgj('nccOrale',[])||[];
+var e=esito();
+if(!S.rip){var st=lgj('nccOrale',[])||[];   /* il ripasso non e' un orale: non va nello storico */
 st.push({t:S.fine,s:e.ok?1:0,d:secondi(),ses:S.ses,p:S.prove.map(function(q){return {x:q.x,k:q.k,v:q.v};})});
-lsj('nccOrale',st.slice(-30));
+lsj('nccOrale',st.slice(-30));}
+if(S.rip){e={ok:S.prove.every(function(q){return q.v==='si';})};}
 disegna();
 if(e.ok){try{if(typeof confetti==='function')confetti();}catch(x){}}
 }catch(e){}
@@ -19349,14 +19402,41 @@ if(e&&e.v&&e.v!=='si')out.push({x:x,k:k,t:+e.t||0,v:e.v,n:+e.n||1});});});
 out.sort(function(a,b){return a.t-b.t;});}catch(e){}
 return out;
 };
+/* uscendo: l'orale finito si chiude, quello a meta' resta in pausa (il ripasso no: i voti dati sono gia' salvati) */
+function lascia(){clearInterval(TM);TM=0;if(S&&(S.fine||S.rip))S=null;else sospendi();}
+/* e si torna da dove eri entrato: la pagina Quiz o il Ripasso errori */
+function allOrigine(){
+if(ORIG==='ripasso'&&window.nccRipassoTorna){ORIG=null;nccRipassoTorna();return;}
+nccSez('quiz');
+}
 window.nccOraleIndietro=function(){
 try{
-clearInterval(TM);TM=0;
-if(S&&S.fine)S=null;else sospendi();
-nccSez('quiz');
+lascia();
+var rip=ORIG==='ripasso';
+allOrigine();
 var s=document.getElementById('scnOv');
-if(s){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+if(s&&!rip){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}
+};
+/* (v157) dal Ripasso errori: le prove dell'orale andate male, una dopo l'altra (al massimo quattro) */
+window.nccOraleRipassa=function(){
+try{
+var l=window.nccOraleDaRipassare?nccOraleDaRipassare():[],m=M();if(!l.length||!m)return false;
+var C=m.conti(),prove=[];
+l.forEach(function(x){
+if(prove.length>=4)return;
+var p={x:x.x,k:x.k,v:''};
+if(x.x==='perc'&&!C.P[x.k])return;
+if(x.x==='pz'&&!C.K[x.k])return;
+if(x.x==='reg'){var r=C.R[x.k];if(!r||!RISP[x.k]||!r.dom.length)return;p.d=r.dom[Math.floor(Math.random()*r.dom.length)].d;}
+prove.push(p);
+});
+if(!prove.length)return false;
+S={ses:'',t0:Date.now(),el:0,last:Date.now(),pausa:0,i:0,mostra:false,fine:0,rip:1,prove:prove};
+ORIG='ripasso';
+disegna(true);vibra();
+return true;
+}catch(e){return false;}
 };
 /* il tasto del telefono: torni alla pagina Quiz (l'orale a meta' resta: lo riprendi) */
 window.addEventListener('popstate',function(){
@@ -19367,9 +19447,11 @@ var s=document.getElementById('scnOv');
 if(!s||s.getAttribute('data-p')!==PAG)return;
 if(!(s.classList.contains('fuori')||!s.classList.contains('dentro')))return;
 try{s.remove();}catch(e){}
-clearInterval(TM);TM=0;if(S&&S.fine)S=null;else sospendi();
-nccSez('quiz');
+lascia();
+var rip=ORIG==='ripasso';
+allOrigine();
 var n=document.getElementById('scnOv');
+if(rip)return;
 if(n&&!n.classList.contains('dentro')){n.classList.add('sc-indietro');setTimeout(function(){try{n.classList.remove('sc-indietro');}catch(e){}},600);}
 }catch(e){}});
 }catch(e){}
@@ -19523,4 +19605,313 @@ lsj('nccOraleUlt',{perc:[n.prove[0].k,n.prove[1].k],pz:[n.prove[2].k],reg:[n.pro
 S=n;disegna();return true;}catch(e){return false;}
 };
 window.nccOraleStato=function(){return S?{i:S.i,mostra:S.mostra,fine:!!S.fine,pausa:!!S.pausa,sec:secondi(),ses:S.ses,prove:S.prove.map(function(p){return {x:p.x,k:p.k,d:p.d||'',v:p.v};})}:null;};
+})();
+/* ═══════════════════════════════════════════════════
+   🔁 IL RIPASSO UNICO (v157)
+   Il riquadro «Ripasso errori» della Home apre una pagina sola con tutto
+   quello che c'e' da ripassare oggi, in una coda: prima quello che aspetta
+   da piu' tempo.
+   · le domande del quiz sbagliate e in scadenza (la loro spirale)
+   · i percorsi che la spirale ti ripropone oggi (in Cieco)
+   · le vie sbagliate nel Quiz vie e non ancora rifatte giuste
+   · le piazze in scadenza (Verifica: tutte le vie a memoria)
+   · le prove della simulazione dell'orale andate male
+   Tocchi una riga e parte; «Ripassa adesso» parte dalla prima. Finito, o
+   tornando indietro, sei di nuovo qui con la coda aggiornata.
+   Sulla Home il riquadro dice quante sono oggi.
+   Le vie: una via sbagliata esce dalla coda quando la rifai giusta nel Quiz
+   vie (se la sbagli di nuovo, rientra). Vale anche per «Vie da ripassare»
+   della pagina Topografia e per il conto del coach.
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var PAG='ripasso',TITOLO='Ripasso errori',GIORNO=86400000;
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function lgj(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function lsj(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function ogg(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function corpoEl(){return document.getElementById('scnBody');}
+function vibra(t){try{hap(t);}catch(e){}}
+function oggi0(){var d=new Date();d.setHours(0,0,0,0);return d.getTime();}
+function plur(n,a,b){return n+'\u00a0'+(n===1?a:b);}   /* «1 piazza» non va mai a capo in mezzo */
+/* "PIAZZA DEL DUOMO" -> "Piazza del Duomo"; i percorsi "SAN SIRO - LINATE (pag. 48)" -> "San Siro → Linate" */
+function bello(s){
+return String(s||'').toLowerCase()
+.replace(/(^|[\s\-\/('’.])([a-zà-ù])/g,function(m,a,b){return a+b.toUpperCase();})
+.replace(/(\s)(Di|Del|Della|Dello|Dei|Degli|Delle|E|Al|Alla|Da|In)(?=\s)/g,function(m,a,b){return a+b.toLowerCase();})
+.replace(/\b[IVX][ivx]+\b/g,function(m){return /^x{0,3}(ix|iv|v?i{0,3})$/i.test(m)?m.toUpperCase():m;});
+}
+function nomeR(r){return bello(String((r&&r.title)||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,'')).replace(/\s+-\s+/g,'\u00a0→ ');}   /* la freccia non apre mai una riga */
+function nomePz(n){return bello(n).replace(/\s*\([^)]*\)\s*$/,'');}
+function elenca(l,max){max=max||2;var a=l.slice(0,max).join(', ');return l.length>max?a+' e '+(l.length-max)+(l.length-max===1?' altro':' altri'):a;}
+/* da quanto aspetta: «Da oggi», «Da ieri», «Da 3 giorni» */
+function da(t){
+if(!t||t<1577836800000)return 'Da tempo';
+var o=oggi0();if(t>=o)return 'Da oggi';
+var g=Math.ceil((o-t)/GIORNO);return g<=1?'Da ieri':'Da '+g+' giorni';
+}
+
+/* ── le vie: quando una via sbagliata torna giusta nel Quiz vie ── */
+var VK='nccVieOk';
+function vieOk(){return ogg(lgj(VK,{}));}
+function percorsi(){try{return (typeof routes!=='undefined'&&Array.isArray(routes))?routes:[];}catch(e){return [];}}
+function statVie(){try{return (typeof qStats!=='undefined'&&qStats)?qStats:{};}catch(e){return {};}}
+/* le vie ancora da rifare: sbagliate (anche una volta sola) e non rifatte giuste dopo l'ultimo errore */
+function vieAperte(){
+var out=[],ok=vieOk(),qs=statVie();
+percorsi().forEach(function(r){
+var w=r&&qs[r.id]&&qs[r.id].wrong;if(!w||!Array.isArray(r.steps))return;
+Object.keys(w).forEach(function(si){
+var i=parseInt(si,10),c=+w[si]||0;
+if(!(c>0)||!(i>=0)||i>=r.steps.length)return;
+var f=ok[r.id+'_'+i];if(f&&c<=(+f.n||0))return;
+out.push({r:r,i:i,cnt:c});
+});
+});
+out.sort(function(a,b){return (b.cnt-a.cnt)||(a.i-b.i);});
+return out;
+}
+window.nccVieAperte=vieAperte;
+window.nccVieConta=function(){try{return vieAperte().length;}catch(e){return 0;}};
+function segnaVia(id,i,n){var o=vieOk();o[id+'_'+i]={n:n,t:Date.now()};lsj(VK,o);}
+/* il Quiz vie: una via che avevi sbagliato, scritta giusta (anche con un refuso perdonato), esce dalla coda */
+function agganciaQuizVie(){
+try{
+if(typeof checkQ!=='function'||checkQ.__rip)return;
+var _c=checkQ;
+checkQ=function(){
+var r0=null,s0=-1,ok0=0;
+try{if(typeof cur!=='undefined'&&cur&&typeof mode!=='undefined'&&mode==='q'){r0=cur;s0=step;ok0=+((statVie()[cur.id]||{}).correct)||0;}}catch(e){}
+var res=_c.apply(this,arguments);
+try{if(r0&&s0>=0){var q=statVie()[r0.id]||{};
+if((+q.correct||0)>ok0){var w=+((q.wrong||{})[s0])||0;if(w>0)segnaVia(r0.id,s0,w);}}}catch(e){}
+return res;
+};
+checkQ.__rip=true;
+}catch(e){}
+}
+setTimeout(agganciaQuizVie,4300);   /* dopo quello dei refusi (2,6 s): cosi' vedo anche la risposta perdonata */
+/* «Vie da ripassare» (Topografia): le stesse della coda, non piu' tutte quelle sbagliate da sempre */
+setTimeout(function(){
+try{
+if(typeof openWrong!=='function'||openWrong.__rip)return;
+openWrong=function(){
+var m=document.getElementById('wrModal'),b=document.getElementById('wrBody'),bt=document.getElementById('wrBtn');
+if(!m||!b)return;
+m.classList.add('open');b.innerHTML='';
+var l=vieAperte();
+try{wrList=l.map(function(x){return {r:x.r,i:x.i,cnt:x.cnt};});}catch(e){}
+if(!l.length){b.innerHTML='<div class="emp"><div class="e">🎉</div><p>Nessuna via da ripassare!</p></div>';if(bt)bt.style.display='none';return;}
+var h='';
+l.forEach(function(x){h+='<div class="strow"><span class="stlbl">'+E(x.r.title)+' → '+E(x.r.steps[x.i])+'</span><span class="wb">'+x.cnt+'✗</span></div>';});
+b.innerHTML=h;if(bt)bt.style.display='block';
+};
+openWrong.__rip=true;
+}catch(e){}
+},4300);
+
+/* ── la coda ── */
+function piazze(){
+try{if(typeof window.pzTutte==='function'){var t=window.pzTutte();if(t&&t.length)return t;}}catch(e){}
+try{var ed=ogg(lgj('pzEdit',{})),u=lgj('pzUser',[]);
+return (window.__PIAZZE__||[]).concat(Array.isArray(u)?u:[]).filter(function(p){return p&&p.id&&p.n&&!(ed[p.id]&&ed[p.id].del);})
+.map(function(p){return (ed[p.id]&&ed[p.id].n)?{id:p.id,n:ed[p.id].n,v:p.v}:p;});}catch(e){return [];}
+}
+function spiraleR(){try{return (typeof rSR!=='undefined'&&rSR)?rSR:ogg(lgj('rSR',{}));}catch(e){return ogg(lgj('rSR',{}));}}
+function erroriQuiz(){try{return (typeof qtStats!=='undefined'&&qtStats&&qtStats.err)?qtStats.err:{};}catch(e){return {};}}
+function scadeQ(id){try{return srDue(id);}catch(e){var x=erroriQuiz()[id];return (x&&typeof x==='object')?(+x.due||0):0;}}
+function titoloOrale(x){
+try{var m=window.nccChiestoMotore;if(!m)return x.k;
+if(x.x==='perc'){var o=m.conti().P[x.k];return o?(m.nome(o.a)+' → '+m.nome(o.b)):x.k;}
+if(x.x==='pz')return m.nome(x.k);
+var T=(m.TEMI||{})[x.k];return T?T.t:x.k;}catch(e){return x.k;}
+}
+/* ogni blocco: {k,ic,c,t,n,ord,s} — n quanti oggi, ord da quando aspetta (prima i piu' vecchi) */
+function coda(){
+var ora=Date.now(),B=[];
+/* domande del quiz in scadenza */
+try{var err=erroriQuiz(),ids=Object.keys(err),qd=0,tq=Infinity;
+ids.forEach(function(id){var d=scadeQ(id);if(d<=ora){qd++;if(d<tq)tq=d;}});
+if(qd)B.push({k:'quiz',ic:'📝',c:'#FF9500',qn:'#B86B00',t:'Domande del quiz',n:qd,ord:tq,
+s:da(tq)+(ids.length>qd?' · '+ids.length+' errori in tutto':'')});}catch(e){}
+/* percorsi: la spirale li ripropone */
+try{var sr=spiraleR(),rs=[];
+percorsi().forEach(function(r){var x=r&&sr[r.id];if(x&&x.due&&x.due<=ora)rs.push({r:r,d:+x.due});});
+rs.sort(function(a,b){return a.d-b.d;});
+if(rs.length)B.push({k:'perc',ic:'🗺️',c:'#007AFF',qn:'#0058B8',t:'Percorsi',n:rs.length,ord:rs[0].d,
+s:da(rs[0].d)+' · '+elenca(rs.map(function(x){return nomeR(x.r);}))});}catch(e){}
+/* vie sbagliate nel Quiz vie */
+try{var va=vieAperte();
+if(va.length){var per={},ord=[];va.forEach(function(x){var k=x.r.id;if(!per[k]){per[k]={r:x.r,n:0};ord.push(k);}per[k].n++;});
+ord.sort(function(a,b){return per[b].n-per[a].n;});
+B.push({k:'vie',ic:'✍️',c:'#FF2D55',qn:'#C41E3F',t:'Vie sbagliate',n:va.length,ord:ora,
+s:'Nel Quiz vie · '+elenca(ord.map(function(k){return nomeR(per[k].r)+' ('+per[k].n+')';}))});}}catch(e){}
+/* piazze in scadenza */
+try{var ps=ogg(lgj('pzSR',{})),pz=[];
+piazze().forEach(function(p){var c=ps[p.id];if(c&&c.due&&c.due<=ora)pz.push({p:p,d:+c.due});});
+pz.sort(function(a,b){return a.d-b.d;});
+if(pz.length)B.push({k:'pz',ic:'🕸',c:'#30B0C7',qn:'#1F7F8F',t:'Piazze',n:pz.length,ord:pz[0].d,
+s:da(pz[0].d)+' · '+elenca(pz.map(function(x){return nomePz(x.p.n);}))});}catch(e){}
+/* l'orale: le prove andate male */
+try{var od=window.nccOraleDaRipassare?nccOraleDaRipassare():[];
+if(od.length)B.push({k:'orale',ic:'🎤',c:'#AF52DE',qn:'#7E3BA0',t:'Prove dell’orale',n:od.length,ord:od[0].t||ora,
+s:da(od[0].t)+' · '+elenca(od.map(titoloOrale))});}catch(e){}
+var FISSO=['quiz','perc','vie','pz','orale'];
+B.sort(function(a,b){return (a.ord-b.ord)||(FISSO.indexOf(a.k)-FISSO.indexOf(b.k));});
+return B;
+}
+/* quello che arriva domani, e gli errori del quiz non ancora in scadenza */
+function dopo(){
+var ora=Date.now(),fine=oggi0()+2*GIORNO,o={q:0,p:0,z:0,tot:0};
+try{var err=erroriQuiz();Object.keys(err).forEach(function(id){var d=scadeQ(id);o.tot++;if(d>ora&&d<fine)o.q++;});}catch(e){}
+try{var sr=spiraleR();percorsi().forEach(function(r){var x=r&&sr[r.id];if(x&&x.due>ora&&x.due<fine)o.p++;});}catch(e){}
+try{var ps=ogg(lgj('pzSR',{}));piazze().forEach(function(p){var c=ps[p.id];if(c&&c.due>ora&&c.due<fine)o.z++;});}catch(e){}
+return o;
+}
+function parti(B){
+var nomi={quiz:['domanda','domande'],perc:['percorso','percorsi'],vie:['via','vie'],pz:['piazza','piazze'],orale:['prova dell’orale','prove dell’orale']};
+return B.map(function(b){return plur(b.n,nomi[b.k][0],nomi[b.k][1]);});
+}
+/* per la Home: quante oggi e in due parole cosa */
+window.nccRipassoConto=function(){
+try{var B=coda(),n=0;B.forEach(function(b){n+=b.n;});
+var s=n?parti(B).slice(0,3).join(' · '):(Object.keys(erroriQuiz()).length?'Niente in scadenza oggi':'Niente da ripassare');
+return {n:n,s:s,blocchi:B.length};}catch(e){return null;}
+};
+
+/* ── la pagina ── */
+var ULT=[];   /* la coda disegnata: le righe toccate partono da qui */
+function html(){
+var B=coda(),n=0,h='';ULT=B;
+B.forEach(function(b){n+=b.n;});
+if(!n){
+var d=dopo(),dd=[];
+if(d.q)dd.push(plur(d.q,'domanda','domande'));if(d.p)dd.push(plur(d.p,'percorso','percorsi'));if(d.z)dd.push(plur(d.z,'piazza','piazze'));
+h+='<div class="rip-cima vuota"><div class="rip-ic">🎉</div><div class="rip-tt">Niente da ripassare oggi</div>'
++'<div class="rip-d">'+(dd.length?'Fra oggi e domani: '+E(dd.join(' · '))+'.':(d.tot?'Gli errori del quiz tornano quando scadono.':'Quando sbagli qualcosa, lo trovi qui.'))+'</div>'
++'<button class="ora-go2 rip-min" onclick="nccRipassoMinuto()">Una scheda da un minuto</button></div>';
+return h;
+}
+h+='<div class="rip-cima"><div class="rip-n">'+n+'</div><div class="rip-l">'+(n===1?'cosa da ripassare oggi':'cose da ripassare oggi')+'</div>'
++'<div class="rip-d">'+E(parti(B).join(' · '))+'</div>'
++'<button class="ora-go rip-go" onclick="nccRipassoVai(0)">▶ Ripassa adesso<span class="rip-go-c"> · '+E(B[0].t)+'</span></button></div>';
+h+='<div class="pf-sez">🔁 La coda di oggi</div><div class="qc-gr rip-gr">';
+B.forEach(function(b,i){
+h+='<div class="qc qc-riga rip-r'+(i===0?' prima':'')+'" role="button" tabindex="0" style="--qc:'+b.c+';--qn:'+b.qn+'" onclick="nccRipassoVai('+i+')">'
++'<span class="qc-li">'+b.ic+'</span>'
++'<span class="qc-lt"><b>'+E(b.t)+'<em class="qc-n">'+b.n+'</em></b><span>'+E(b.s)+'</span></span>'
++'<span class="qc-ch">›</span></div>';
+});
+h+='</div>';
+var d2=dopo(),x=[];
+if(d2.q)x.push(plur(d2.q,'domanda','domande'));if(d2.p)x.push(plur(d2.p,'percorso','percorsi'));if(d2.z)x.push(plur(d2.z,'piazza','piazze'));
+if(x.length)h+='<div class="rip-dopo">📅 Fra oggi e domani ne arrivano altre: '+E(x.join(' · '))+'.</div>';
+return h;
+}
+/* piano: si aggiorna sul posto (stessa pagina, stesso punto) */
+function disegna(piano){
+var b=corpoEl(),h=html();
+if(b&&pag()===PAG&&piano){var y=b.scrollTop;b.innerHTML=h;b.scrollTop=y;return;}
+nccPagina(PAG,TITOLO,h,'nccSezChiudi()');
+}
+window.nccRipasso=function(){try{RIT=null;disegna();vibra();}catch(e){}};
+/* il ritorno qui (dal quiz, dalla mappa, dall'orale): la pagina arriva da sinistra */
+window.nccRipassoTorna=function(){
+try{
+var c=pag()===PAG;
+disegna(c);
+var s=document.getElementById('scnOv');
+if(!c&&s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+}catch(e){}
+};
+window.nccRipassoMinuto=function(){try{nccSezChiudi();}catch(e){}setTimeout(function(){try{nccUnMinuto();}catch(e){}},60);};
+
+/* ── toccando una riga ── */
+function registra(id,fn){try{if(document.getElementById(id)&&window.nccOvApri&&!(window.nccOvInCima&&nccOvInCima(id)))nccOvApri(id,fn);}catch(e){}}
+var RIT=null;
+/* la mappa (percorsi, vie): la pagina resta finche' la mappa e' pronta; uscendo dalla mappa torni qui */
+function mappa(fn){
+try{
+RIT={t:Date.now()};
+try{if(window.nccTopoDa)nccTopoDa('');}catch(e){}
+window.__nccTieniPagina=true;
+try{goTopografia();}catch(e){}
+setTimeout(function(){try{fn();}catch(e){}},320);
+var t0=Date.now();
+(function att(){try{
+if(document.body.classList.contains('on-topo')){window.__nccTieniPagina=false;
+setTimeout(function(){try{if(pag()===PAG)nccSezChiudi(true);}catch(e){}},0);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;RIT=null;
+}catch(e){}})();
+}catch(e){window.__nccTieniPagina=false;}
+}
+var _rit=window.nccRitorno;
+window.nccRitorno=function(k){
+if(RIT&&k==='topo'){RIT=null;try{nccRipassoTorna();return true;}catch(e){return false;}}
+return _rit?_rit(k):false;
+};
+document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))RIT=null;}catch(e){}},true);
+var AZ={
+quiz:function(){
+try{window.__nccTieniPagina=true;window.__nccQuizOrigine=PAG;
+nccAvvio(function(){try{buildQuiz();qStartCat('errata');}catch(e){}});}catch(e){window.__nccTieniPagina=false;}
+},
+perc:function(){mappa(function(){routeOfDay();});},
+vie:function(){
+var l=vieAperte();if(!l.length)return;
+/* il percorso con piu' vie da rifare, dalla prima di quelle */
+var per={};l.forEach(function(x){var k=x.r.id;(per[k]=per[k]||[]).push(x);});
+var ks=Object.keys(per).sort(function(a,b){return per[b].length-per[a].length;});
+var g=per[ks[0]].slice().sort(function(a,b){return a.i-b.i;}),r=g[0].r,i=g[0].i;
+mappa(function(){
+selectRoute(r);step=i;setMode('q');
+try{renderList();}catch(e){}try{updateUI();}catch(e){}try{goStep();}catch(e){}
+try{toast2('🔁 '+plur(g.length,'via da rifare','vie da rifare')+' in questo percorso');}catch(e){}
+});
+},
+pz:function(){
+var ps=ogg(lgj('pzSR',{})),ora=Date.now(),pz=[];
+piazze().forEach(function(p){var c=ps[p.id];if(c&&c.due&&c.due<=ora)pz.push({p:p,d:+c.due});});
+pz.sort(function(a,b){return a.d-b.d;});if(!pz.length)return;
+var id=pz[0].p.id;
+try{pzApri(id);}catch(e){return;}
+registra('pzOv',function(){try{pzChiudi();}catch(e){var x=document.getElementById('pzOv');if(x)x.remove();}});
+setTimeout(function(){try{window.__nccVerDaPagina=Date.now();if(document.getElementById('pzOv'))pzVerifica();}catch(e){}},220);
+},
+orale:function(){try{nccOraleRipassa();}catch(e){}}
+};
+window.nccRipassoVai=function(i){
+try{
+var b=ULT[i];if(!b||!AZ[b.k])return;
+vibra();AZ[b.k]();
+}catch(e){}
+};
+/* chiusa la piazza (o un riquadro sopra la pagina), la coda si aggiorna; chiusa una pagina, sotto c'e' la Home:
+   i suoi numeri si rifanno (prima il riquadro restava col conto vecchio finche' non passavi dalla mappa o dal quiz) */
+try{new MutationObserver(function(ms){
+try{
+var via=false,pagina=false;
+ms.forEach(function(m){[].forEach.call(m.removedNodes||[],function(n){
+if(n&&(n.id==='pzOv'||n.id==='popOv'))via=true;
+if(n&&n.id==='scnOv')pagina=true;});});
+if(via&&pag()===PAG)setTimeout(function(){try{if(pag()===PAG&&!document.getElementById('pzOv'))disegna(true);}catch(e){}},30);
+if(pagina&&!document.getElementById('scnOv'))requestAnimationFrame(function(){try{if(!document.getElementById('scnOv')&&window.nccHomeRiquadri)nccHomeRiquadri();}catch(e){}});
+}catch(e){}
+}).observe(document.body,{childList:true});}catch(e){}
+/* la (i) in alto */
+try{
+var _ni=window.nccInfo;
+window.nccInfo=function(k){
+if(k===PAG){try{nccPopup({icona:'🔁',titolo:TITOLO,testo:'Tutto quello che c’è da ripassare oggi, in una coda sola: le domande del quiz sbagliate e in scadenza, '
++'i percorsi e le piazze che la spirale ti ripropone, le vie sbagliate nel Quiz vie e le prove dell’orale andate male. '
++'Prima viene quello che aspetta da più tempo. Tocca una riga, oppure «Ripassa adesso»: finito, torni qui. '
++'Una via sbagliata esce dalla coda quando la riscrivi giusta nel Quiz vie.',azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){}return;}
+return _ni?_ni.apply(this,arguments):null;
+};
+}catch(e){}
+/* per i giri di prova */
+window.nccRipassoStato=function(){try{return coda().map(function(b){return {k:b.k,n:b.n,s:b.s};});}catch(e){return [];}};
 })();

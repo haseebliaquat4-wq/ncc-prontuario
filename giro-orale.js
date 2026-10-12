@@ -198,7 +198,7 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
   ok(K.lib&&K.no&&K.pz,'non trovo un percorso del libro, uno da preparare e una piazza che manca: '+J(K));
   ok(await p.evaluate(k=>nccOraleProva([k.lib,k.no,k.pz,'obblighi']),K),'nccOraleProva non parte');
   await p.waitForTimeout(500);
-  for(const v of ['no','quasi','no','si']){await tocca('#scnBody .ora-go');await p.waitForTimeout(350);await tocca('#scnBody .ora-v.'+v);await p.waitForTimeout(450);}
+  for(const v of ['no','quasi','no','si']){await tocca('#scnBody .ora-go');await p.waitForTimeout(600);await tocca('#scnBody .ora-v.'+v);await p.waitForTimeout(550);}
   let az=await p.evaluate(()=>[...document.querySelectorAll('#scnBody .ora-r')].map(x=>{const a=x.querySelector('.ora-a');return a?a.textContent:'';}));
   console.log(' tasti del risultato              ',J(az));
   ok(/Aggiungilo/.test(az[0])&&/Preparalo/.test(az[1])&&/Aggiungi la piazza/.test(az[2])&&az[3]==='','i tasti del risultato: '+J(az));
