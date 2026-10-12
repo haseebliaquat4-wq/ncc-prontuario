@@ -3057,6 +3057,86 @@ background:transparent;color:var(--a,#2447D6);font:italic 700 17px Georgia,'Time
 .pop-b.tenue{background:var(--ios-card);color:var(--ios-lbl);box-shadow:inset 0 0 0 1.5px var(--ios-sep);}
 /* Scrivi le vie: il nome lungo della piazza (PIAZZA SANTA MARIA DEL SUFFRAGIO) su due righe, non tagliato */
 .sc-ti{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2;}
+
+/* ══ (v155) la spiegazione dopo l'errore ══ */
+/* il tasto sotto le risposte */
+.sp-btn{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:4px 0 0;padding:11px 14px;
+border-radius:16px;border:1.5px solid rgba(36,71,214,.28);background:rgba(36,71,214,.06);
+color:var(--ios-lbl);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
+animation:fu .25s ease both;transition:transform .12s;}
+.sp-btn:active{transform:scale(.98);}
+.sp-btn .sp-ic{flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:rgba(36,71,214,.12);
+display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;}
+.sp-btn .sp-tx{flex:1;min-width:0;}
+.sp-btn .sp-tx b{display:block;font-size:16px;font-weight:800;letter-spacing:-.2px;color:var(--a,#2447D6);}
+.sp-btn .sp-tx small{display:block;margin-top:1px;font-size:13px;font-weight:600;color:var(--ios-lbl2);}
+.sp-btn .sp-ar,.sp-qac .sp-ar{flex:0 0 auto;font-size:24px;font-weight:600;line-height:1;color:var(--ios-lbl3);}
+@supports (background:color-mix(in srgb,red 10%,blue)){
+.sp-btn{border-color:color-mix(in srgb,var(--a,#2447D6) 30%,transparent);background:color-mix(in srgb,var(--a,#2447D6) 7%,transparent);}
+.sp-btn .sp-ic{background:color-mix(in srgb,var(--a,#2447D6) 14%,transparent);}
+}
+/* il foglio */
+#popOv.sp-ov .pop-box{text-align:left;}
+#popOv.sp-ov .pop-t{text-align:center;margin-bottom:12px;}
+.sp-pop{max-height:min(62vh,560px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+margin:0 -20px 16px;padding:0 20px 2px;}
+/* c'e' altro sotto: il fondo sfuma (si capisce che il foglio scorre) */
+.sp-pop.coda{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent);}
+.sp-q{margin:0 0 12px;font-size:14.5px;font-weight:600;line-height:1.42;color:var(--ios-lbl2);}
+/* la domanda lunga (quelle con le delibere) in tre righe: toccandola si legge tutta */
+.sp-q.corta{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;}
+.sp-r{display:flex;align-items:flex-start;gap:10px;margin:0 0 8px;padding:10px 12px;border-radius:14px;
+font-size:15px;font-weight:650;line-height:1.38;color:var(--ios-lbl);}
+.sp-r>b{flex:0 0 28px;width:28px;height:28px;margin-top:1px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-size:13px;font-weight:800;color:#fff;}
+.sp-r>span{flex:1;min-width:0;}
+.sp-r small{display:block;margin-bottom:1px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+.sp-r.ok{background:rgba(18,148,98,.11);}
+.sp-r.ok>b{background:var(--ok,#129462);}
+.sp-r.ok small{color:var(--ok,#129462);}
+.sp-r.ko{background:rgba(229,72,77,.10);}
+.sp-r.ko>b{background:var(--err,#E5484D);}
+.sp-r.ko small{color:var(--err,#E5484D);}
+.sp-r.no{background:var(--ios-bg);}
+.sp-r.no>b{background:var(--ios-lbl3);}
+.sp-r.no small{color:var(--ios-lbl2);}
+.sp-corpo{margin-top:14px;}
+.sp-lab{margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--a,#2447D6);}
+.sp-t{margin:0;font-size:16px;line-height:1.55;color:var(--ios-lbl);}
+.sp-t b{font-weight:800;}
+.sp-t.sp-no{font-size:15px;color:var(--ios-lbl2);}
+.sp-f{display:flex;align-items:flex-start;gap:8px;margin-top:12px;font-size:13px;font-weight:700;line-height:1.35;color:var(--ios-lbl2);}
+.sp-sch{margin-top:12px;border:1.5px solid var(--ios-sep);border-radius:14px;overflow:hidden;}
+.sp-sch summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;
+list-style:none;cursor:pointer;font-size:14px;font-weight:600;line-height:1.35;color:var(--ios-lbl);-webkit-tap-highlight-color:transparent;}
+.sp-sch summary::-webkit-details-marker{display:none;}
+.sp-sch summary b{font-weight:800;}
+.sp-sch summary i{font-style:normal;white-space:nowrap;color:var(--ios-lbl2);}
+.sp-sch summary::after{content:'›';flex:0 0 auto;font-size:22px;line-height:1;color:var(--ios-lbl3);transform:rotate(90deg);transition:transform .2s;}
+.sp-sch[open] summary::after{transform:rotate(-90deg);}
+.sp-sch ol{margin:0;padding:0 14px 12px 34px;font-size:14px;line-height:1.45;color:var(--ios-lbl2);}
+.sp-sch li+li{margin-top:6px;}
+.sp-nota{display:flex;gap:8px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--ios-bg);
+font-size:14px;line-height:1.4;color:var(--ios-lbl);}
+.sp-att{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14.5px;font-weight:600;color:var(--ios-lbl2);}
+.sp-att i{flex:0 0 16px;width:16px;height:16px;box-sizing:border-box;border-radius:50%;border:2.5px solid var(--ios-sep);border-top-color:var(--a,#2447D6);
+animation:spGira .8s linear infinite;}
+@keyframes spGira{to{transform:rotate(360deg);}}
+/* nel Risultato */
+.sp-qac{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 calc(100% - 32px);width:calc(100% - 32px);
+box-sizing:border-box;margin:2px 16px 14px;padding:9px 12px 9px 14px;border-radius:12px;border:1.5px solid var(--ios-sep);
+background:transparent;color:var(--a,#2447D6);font:inherit;font-size:14.5px;font-weight:800;text-align:left;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.sp-qac:active{transform:scale(.98);}
+@media (prefers-reduced-motion:reduce){.sp-btn{animation:none;}.sp-att i{animation-duration:2.4s;}}
+/* iPad in orizzontale: «Scrivi la regola con parole tue» stava schiacciato in alto a destra e, comparendo, stringeva
+   le colonne (tutto si spostava). Ora va sotto le risposte, su una riga sua, e le colonne gli lasciano posto */
+@media(min-width:960px) and (orientation:landscape){
+#qRun>#qNoteBox{order:3;flex:0 0 100%;box-sizing:border-box;margin:0;padding:0 max(32px,calc((100% - 1160px)/2)) 20px calc(50% + 8px);}
+#qRun:has(>#qNoteBox) .qrun-body,#qRun:has(>#qNoteBox) #qRunAns{min-height:calc(100vh - 230px);}
+}
+/* Profilo: la scritta in fondo «NCC Milano» era troppo chiara per leggerla bene */
+.pf-piede{color:var(--ios-lbl2);}
 `;
 }catch(e){}
 })();
@@ -18472,4 +18552,306 @@ pulisci();
 }catch(e){}
 }
 setTimeout(quando,25000);
+})();
+/* ═══════════════════════════════════════════════════
+   📖 LA SPIEGAZIONE DOPO L'ERRORE (v155)
+   · nell'allenamento, dopo una risposta sbagliata, sotto le risposte c'e'
+     «📖 Spiegazione»: dal basso sale il foglio con la risposta giusta, la tua,
+     il perche' e la fonte (solo quando e' certa). Se la regola sta in una
+     scheda delle Norme, la scheda si apre li' dentro, senza cambiare pagina
+   · tornando a una domanda sbagliata il tasto c'e' ancora
+   · nel Risultato (anche dopo una simulazione d'esame) ogni domanda sbagliata
+     o saltata ha il suo «📖 Spiegazione»
+   · le spiegazioni stanno in spiegazioni-data.js: arriva da solo quando apri un
+     quiz e poi resta nella memoria dell'app (anche senza rete)
+   · con la tastiera: S apre la spiegazione
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var FILE='spiegazioni-data.js?v=1';
+var I1=null,I2=null,STATO=0,ATTESE=[],GIRO=0;      /* STATO: 0 da caricare, 1 in arrivo, 2 pronte */
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* la stessa chiave della domanda che usa l'app (testo + risposte, senza spazi, maiuscole e punteggiatura) */
+function nq(t){return String(t==null?'':t).toLowerCase().replace(/[^a-z0-9]/g,'');}
+function chiave(it){return nq(it.q)+'#'+(it.choices||[]).map(nq).sort().join('|');}
+function hh(s){var x=0x811c9dc5;for(var i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)>>>0;}return x.toString(36);}
+
+/* ── i dati: arrivano una volta, quando servono ── */
+function indicizza(){
+try{
+var D=window.__SPIEGAZIONI__;if(!D||!Array.isArray(D.d))return false;
+var a={},b={};
+D.d.forEach(function(r){if(!r||!r[0])return;var o={t:String(r[2]||''),f:String(r[3]||''),s:String(r[4]||'')};a[r[0]]=o;if(r[1])b[r[1]]=o;});
+I1=a;I2=b;return true;
+}catch(e){return false;}
+}
+function fine(ok){var a=ATTESE;ATTESE=[];a.forEach(function(f){try{f(!!ok);}catch(e){}});}
+function carica(cb){
+try{
+if(STATO===2){if(cb)cb(true);return;}
+if(cb)ATTESE.push(cb);
+if(STATO===1)return;
+if(window.__SPIEGAZIONI__&&indicizza()){STATO=2;fine(true);return;}
+STATO=1;
+var s=document.createElement('script'),fatto=false;
+function esito(ok){
+if(fatto)return;fatto=true;clearTimeout(t);
+if(ok&&indicizza()){STATO=2;fine(true);}
+else{STATO=0;try{s.remove();}catch(e){}fine(false);}     /* la prossima volta si riprova */
+}
+var t=setTimeout(function(){esito(false);},15000);         /* rete lentissima: non aspetto per sempre */
+s.src=FILE;s.async=true;
+s.onload=function(){esito(true);};
+s.onerror=function(){esito(false);};
+document.head.appendChild(s);
+}catch(e){STATO=0;fine(false);}
+}
+function trova(it){
+try{
+if(!I1&&window.__SPIEGAZIONI__&&indicizza())STATO=2;      /* i dati sono gia' arrivati per un'altra strada */
+if(!I1||!it)return null;
+var r=I1[hh(chiave(it))];
+if(!r&&it.choices&&it.correct!=null)r=I2[hh('q#'+nq(it.q)+'#'+nq(it.choices[it.correct]))];
+return r||null;
+}catch(e){return null;}
+}
+window.nccSpiegazione=function(it){return trova(it);};          /* per i test */
+window.nccSpiegazioniPronte=function(){return STATO===2;};
+
+/* ── il foglio con la spiegazione ── */
+function scheda(id){
+try{
+var N=window.__NORME__;if(!id||!N||!N.sez)return '';
+var s=N.sez.filter(function(x){return x.id===id;})[0];if(!s)return '';
+return '<details class="sp-sch"><summary><span>📜 Rileggi la scheda <b>'+E(s.t)+'</b> <i>art. '+E(s.art)+'</i></span></summary><ol>'
++s.p.map(function(p){return '<li>'+E(p)+'</li>';}).join('')+'</ol></details>';
+}catch(e){return '';}
+}
+function corpo(it,r,ok){
+if(r){
+return '<div class="sp-lab">Perché</div>'
++'<p class="sp-t">'+E(r.t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')+'</p>'
++(r.f?'<div class="sp-f"><span>📚</span><span>'+E(r.f)+'</span></div>':'')
++scheda(r.s);
+}
+if(!ok)return '<p class="sp-t sp-no">La spiegazione non si è caricata: la prima volta serve la rete. Riprova quando sei online.</p>';
+return '<p class="sp-t sp-no">Per questa domanda non c’è ancora una spiegazione. Scrivi la regola con parole tue: la ritrovi ogni volta che la incontri.</p>';
+}
+function nota(it){
+try{var n=(typeof window.qNoteFor==='function')?window.qNoteFor(it.id):'';
+return n?'<div class="sp-nota"><span>✎</span><span><b>La tua regola:</b> '+E(n)+'</span></div>':'';}catch(e){return '';}
+}
+function apri(it,tua){
+try{
+if(!it||typeof window.nccPopup!=='function')return;
+var n=++GIRO,ch=it.choices||[],LET='ABCDEFGH';
+var giusta=ch[it.correct];
+var h='<div class="sp-pop" id="spPop">'
++'<div class="sp-q corta" id="spQ">'+E(it.q)+'</div>'
++'<div class="sp-r ok"><b>'+(LET[it.correct]||'✓')+'</b><span><small>Giusta</small>'+E(giusta)+'</span></div>'
++((tua!=null&&tua>=0&&tua!==it.correct)?'<div class="sp-r ko"><b>'+(LET[tua]||'✕')+'</b><span><small>La tua</small>'+E(ch[tua])+'</span></div>'
+:((tua==null||tua<0)?'<div class="sp-r no"><b>—</b><span><small>La tua</small>Non hai risposto</span></div>':''))
++'<div class="sp-corpo" id="spCorpo">'+(STATO===2?corpo(it,trova(it),true):'<div class="sp-att"><i></i>Un attimo, arriva la spiegazione…</div>')+'</div>'
++nota(it)
++'</div>';
+window.nccPopup({titolo:'📖 La spiegazione',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
+try{var v=document.getElementById('popOv');if(v)v.classList.add('sp-ov');}catch(e){}
+try{var q=document.getElementById('spQ');if(q)q.onclick=function(){q.classList.remove('corta');};}catch(e){}
+scorri();
+if(STATO!==2)carica(function(ok){
+try{
+if(n!==GIRO)return;                                  /* nel frattempo hai aperto un'altra spiegazione */
+var c=document.getElementById('spCorpo');if(!c)return;  /* o l'hai gia' chiusa */
+c.innerHTML=corpo(it,ok?trova(it):null,ok);
+coda();
+}catch(e){}
+});
+}catch(e){}
+}
+/* c'e' altro sotto? il fondo del foglio sfuma finche' non sei arrivato in fondo */
+function coda(){
+try{var p=document.getElementById('spPop');if(!p)return;
+p.classList.toggle('coda',p.scrollTop+p.clientHeight<p.scrollHeight-6);}catch(e){}
+}
+/* il foglio scorre dentro di se': trascinando giu' quando hai scorso il testo si torna su, non si chiude il foglio */
+function scorri(){
+try{
+var p=document.getElementById('spPop');if(!p)return;
+coda();p.addEventListener('scroll',coda,{passive:true});
+p.addEventListener('toggle',function(){setTimeout(coda,0);},true);     /* la scheda delle Norme aperta o chiusa */
+var q=document.getElementById('spQ');if(q)q.addEventListener('click',function(){setTimeout(coda,0);});
+var su=false;
+p.addEventListener('touchstart',function(e){su=p.scrollTop>0;if(su)e.stopPropagation();},{passive:true});
+p.addEventListener('touchmove',function(e){if(su)e.stopPropagation();},{passive:true});
+p.addEventListener('touchend',function(e){if(su){e.stopPropagation();su=false;}},{passive:true});
+p.addEventListener('touchcancel',function(e){if(su){e.stopPropagation();su=false;}},{passive:true});
+}catch(e){}
+}
+window.nccApriSpiegazione=apri;
+
+/* ── il tasto sotto le risposte (allenamento) ── */
+function quiz(){return typeof Q!=='undefined'&&Q&&Q.items&&typeof qCurView!=='undefined';}
+function metti(fresca){
+try{
+if(!quiz())return;
+var host=document.getElementById('qRunAns'),old=document.getElementById('spBtn');
+var it=Q.items[Q.idx],a=Q.ans?Q.ans[Q.idx]:-1;
+var serve=qCurView==='run'&&host&&Q.mode!=='exam'&&it&&a!=null&&a>=0&&a!==it.correct;
+if(!serve){if(old)old.remove();return;}
+var bar=host.querySelector('.why-bar');
+if(old&&old.parentNode===host&&old.__it===it&&old.__a===a&&(!bar||old.nextSibling===bar))return;   /* c'e' gia', al suo posto */
+if(old)old.remove();
+var b=document.createElement('button');b.type='button';b.id='spBtn';b.className='sp-btn';
+b.innerHTML='<span class="sp-ic">📖</span><span class="sp-tx"><b>Spiegazione</b><small>Perché la giusta è la '
++String.fromCharCode(65+(+it.correct||0))+'</small></span><span class="sp-ar">›</span>';
+b.__it=it;b.__a=a;
+b.onclick=function(e){try{e.stopPropagation();}catch(x){}apri(it,a);};
+if(bar)host.insertBefore(b,bar);else host.appendChild(b);
+carica();                                               /* intanto arriva, se non c'e' gia' */
+if(fresca){var i0=Q.idx;setTimeout(function(){try{if(Q&&Q.idx===i0&&document.getElementById('spBtn')===b)inVista(b);}catch(e){}},280);}
+}catch(e){}
+}
+/* subito dopo l'errore la pagina scorre quel tanto che serve a vedere la spiegazione e il perche' dell'errore,
+   ma mai tanto da nascondere la risposta giusta (sul telefono piccolo il resto si vede scorrendo) */
+function inVista(b){
+try{
+var sc=document.getElementById('qRun');if(!sc||!b||!sc.contains(b))return;
+var R=sc.getBoundingClientRect(),bar=b.nextElementSibling;
+if(!bar||!bar.classList||!bar.classList.contains('why-bar'))bar=b;
+var serve=bar.getBoundingClientRect().bottom-R.bottom+14;
+if(serve<=0)return;
+var su=R.top,hd=sc.querySelector('.qrun-top');
+if(hd){var rh=hd.getBoundingClientRect();if(rh.bottom>su&&rh.bottom<R.top+R.height/2)su=rh.bottom;}
+var g=document.querySelector('#qRunAns .qans.good');
+var lim=g?g.getBoundingClientRect().top-su-10:serve;
+var d=Math.min(serve,lim);
+if(d<30)return;                                        /* due pixel non valgono uno scatto */
+var calma=false;try{calma=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+try{sc.scrollTo({top:sc.scrollTop+d,behavior:calma?'auto':'smooth'});}catch(e){sc.scrollTop+=d;}
+}catch(e){}
+}
+/* sull'iPad la domanda sta al centro dello schermo: quando dopo l'errore compaiono il tasto e il perche',
+   tutto saliva di colpo per ricentrarsi (la risposta appena toccata scappava via sotto il dito).
+   · in verticale (c'e' spazio) quello che c'e' resta fermo dov'e' e le cose nuove si aggiungono sotto
+   · in orizzontale (lo spazio e' poco) domanda e risposte restano ferme un istante e poi scivolano piano al
+     nuovo posto, invece di saltarci
+   Alla domanda dopo torna tutto come prima */
+var FISSO=null,VOLO=null;
+function ipad(){try{return !!(window.matchMedia&&matchMedia('(min-width:700px)').matches);}catch(e){return false;}}
+function calma(){try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){return false;}}
+function atterra(){try{if(VOLO){VOLO.forEach(function(el){el.style.transition='';el.style.transform='';});VOLO=null;}}catch(e){}}
+function sciogli(){try{if(FISSO){FISSO.f.forEach(function(x){x[0].style.removeProperty(x[1]);});FISSO=null;}}catch(e){}atterra();}
+/* prima della risposta: in verticale fermo la domanda; in orizzontale mi segno dove sono domanda e risposte */
+function decolla(){
+try{
+sciogli();
+if(!quiz()||qCurView!=='run'||Q.mode==='exam'||!ipad())return null;
+var a0=Q.ans?Q.ans[Q.idx]:-1;if(a0!=null&&a0>=0)return null;             /* gia' risposta: non arriva niente di nuovo */
+var corpo=document.querySelector('#qRun .qrun-body'),ans=document.getElementById('qRunAns');if(!corpo||!ans)return null;
+var mt=parseFloat(getComputedStyle(corpo).marginTop)||0;
+if(mt>4){                                                                 /* verticale: centrata con i margini */
+corpo.style.setProperty('margin-top',mt+'px','important');
+FISSO={Q:Q,idx:Q.idx,f:[[corpo,'margin-top']]};
+return null;
+}
+var ca=getComputedStyle(ans),dom=document.getElementById('qRunQ'),r1=ans.querySelector('.qans');
+if(calma()||ca.justifyContent!=='center'||!dom||!r1)return null;          /* orizzontale: colonne centrate */
+return {Q:Q,i:Q.idx,c:corpo,a:ans,yq:dom.getBoundingClientRect().top,ya:r1.getBoundingClientRect().top};
+}catch(e){return null;}
+}
+function plana(v){
+try{
+var dom=function(){var x=document.getElementById('qRunQ');return x?x.getBoundingClientRect().top:null;};
+var ris=function(){var x=v.a.querySelector('.qans');return x?x.getBoundingClientRect().top:null;};
+var els=[[v.c,v.yq,dom],[v.a,v.ya,ris]];
+/* ferme dove erano: misuro il posto nuovo senza spostamenti, poi le rimetto dove si vedevano */
+function tieni(){
+els.forEach(function(e){e[0].style.transition='none';e[0].style.transform='';});
+var d=els.map(function(e){var y=e[2]();return (y==null)?0:e[1]-y;});
+els.forEach(function(e,k){if(Math.abs(d[k])>=1&&Math.abs(d[k])<600)e[0].style.transform='translateY('+d[k]+'px)';});
+VOLO=[v.c,v.a];
+}
+tieni();
+/* «Scrivi la regola» arriva un attimo dopo e sposta di nuovo tutto: lo ricompenso prima che si veda */
+var mo=null;
+try{mo=new MutationObserver(function(){try{if(VOLO)tieni();}catch(x){}});mo.observe(document.getElementById('qRun'),{childList:true});}catch(x){mo=null;}
+setTimeout(function(){
+try{
+if(mo)mo.disconnect();
+if(typeof Q==='undefined'||!Q||Q!==v.Q||Q.idx!==v.i||qCurView!=='run'){atterra();return;}
+tieni();
+void v.a.offsetHeight;
+els.forEach(function(e){if(e[0].style.transform){e[0].style.transition='transform .34s cubic-bezier(.25,.8,.25,1)';e[0].style.transform='';}});
+setTimeout(function(){try{if(VOLO&&VOLO[0]===v.c){els.forEach(function(e){e[0].style.transition='';});VOLO=null;}}catch(x){}},420);
+}catch(x){atterra();}
+},90);
+}catch(e){atterra();}
+}
+try{window.addEventListener('resize',sciogli);}catch(e){}
+function installa(){
+try{
+if(typeof qPick==='function'&&!qPick.__spieg){
+var _qp=qPick;
+qPick=function(){var v=null;try{v=decolla();}catch(e){}var r=_qp.apply(this,arguments);try{metti(true);setTimeout(metti,0);if(v)plana(v);}catch(e){}return r;};
+qPick.__spieg=true;
+}
+if(typeof qRenderRun==='function'&&!qRenderRun.__spieg){
+var _qr=qRenderRun;
+qRenderRun=function(){try{if(FISSO&&(typeof Q==='undefined'||!Q||FISSO.Q!==Q||FISSO.idx!==Q.idx))sciogli();}catch(e){}
+var r=_qr.apply(this,arguments);try{metti();setTimeout(metti,0);}catch(e){}return r;};
+qRenderRun.__spieg=true;
+}
+if(typeof renderResult==='function'&&!renderResult.__spieg){
+var _rr=renderResult;
+renderResult=function(){var r=_rr.apply(this,arguments);try{risultato();setTimeout(risultato,0);setTimeout(risultato,400);}catch(e){}return r;};
+renderResult.__spieg=true;
+}
+if(typeof startQuiz==='function'&&!startQuiz.__spieg){
+var _sq=startQuiz;
+startQuiz=function(){sciogli();var r=_sq.apply(this,arguments);setTimeout(function(){carica();},1200);return r;};
+startQuiz.__spieg=true;
+}
+}catch(e){}
+}
+/* ── nel Risultato: un tasto per ogni domanda sbagliata o saltata ── */
+function risultato(){
+try{
+if(!quiz())return;
+var cards=document.querySelectorAll('#qAnalysis .qac'),n=0;
+Q.items.forEach(function(it,i){
+var a=Q.ans[i],c=cards[i];
+if(!c||a===it.correct||c.querySelector('.sp-qac'))return;
+var b=document.createElement('button');b.type='button';b.className='sp-qac';
+b.innerHTML='<span>📖 Spiegazione</span><span class="sp-ar">›</span>';
+b.onclick=function(e){try{e.stopPropagation();}catch(x){}apri(it,a);};
+c.appendChild(b);n++;
+});
+if(n)carica();
+}catch(e){}
+}
+installa();
+setTimeout(installa,3500);   /* dopo i moduli che si agganciano tardi */
+/* la prima volta (e dopo ogni aggiornamento dell'app) il file entra nella memoria dell'app, con calma:
+   cosi' le spiegazioni ci sono anche senza rete */
+setTimeout(function(){
+try{
+if(STATO===2||document.hidden||navigator.onLine===false)return;
+if(window.caches&&typeof caches.match==='function'){
+caches.match(FILE).then(function(r){if(!r)carica();}).catch(function(){});
+}
+}catch(e){}
+},20000);
+/* tastiera: S apre la spiegazione */
+document.addEventListener('keydown',function(e){
+try{
+if(e.metaKey||e.ctrlKey||e.altKey||e.defaultPrevented)return;
+if(e.key!=='s'&&e.key!=='S')return;
+var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+if(document.getElementById('popOv'))return;
+var b=document.getElementById('spBtn');
+if(!b||!b.getClientRects().length)return;
+e.preventDefault();e.stopPropagation();b.click();
+}catch(x){}
+});
 })();
