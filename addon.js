@@ -3137,6 +3137,107 @@ background:transparent;color:var(--a,#2447D6);font:inherit;font-size:14.5px;font
 }
 /* Profilo: la scritta in fondo «NCC Milano» era troppo chiara per leggerla bene */
 .pf-piede{color:var(--ios-lbl2);}
+
+/* ══ (v156) la simulazione dell'orale ══ */
+#scnOv .pf-body.ora-entra{animation:scEntra .38s var(--ios-spring) both;}
+.ora-intro{margin:6px 16px 18px;padding:20px 18px 16px;border-radius:var(--t-r,20px);background:var(--ios-card);text-align:center;
+box-shadow:0 1px 0 rgba(0,0,0,.03);}
+.ora-intro p{margin:8px 0 0;font-size:15px;line-height:1.5;color:var(--ios-lbl2);}
+.ora-intro p b{color:var(--ios-lbl);}
+.ora-ic{font-size:40px;line-height:1;margin-bottom:8px;}
+.ora-tt{font-size:22px;font-weight:800;letter-spacing:-.3px;color:var(--ios-lbl);}
+.ora-sez{margin:6px 20px 8px;}
+.ora-ses{margin-bottom:8px;}
+.ora-go{display:block;width:calc(100% - 32px);box-sizing:border-box;margin:8px 16px 10px;min-height:54px;padding:14px 18px;
+border:none;border-radius:999px;background:var(--a,#2447D6);color:#fff;font:inherit;font-size:17px;font-weight:800;letter-spacing:-.2px;
+cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.ora-go:active,.ora-go2:active,.ora-v:active,.ora-a:active{transform:scale(.97);}
+.ora-go2{display:block;width:calc(100% - 32px);box-sizing:border-box;margin:0 16px 14px;min-height:48px;padding:12px 18px;border:none;
+border-radius:999px;background:transparent;color:var(--ios-lbl2);font:inherit;font-size:16px;font-weight:700;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.ora-ult{margin:4px 16px 24px;text-align:center;font-size:14px;color:var(--ios-lbl2);}
+/* la sessione scelta: il colore dei tasti di questa pagina */
+.ora-ses .ch-chip.on{background:var(--a,#2447D6);border-color:var(--a,#2447D6);color:#fff;}
+/* un orale lasciato a meta': Riprendi sopra, poi lo spazio e un tasto vero per ricominciare */
+.ora-go.ora-rip{margin-bottom:26px;}   /* .pf-sez ha i margini con !important: lo spazio lo do al tasto */
+.ora-go2.ora-nuovo{margin-top:6px;border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--a,#2447D6);}
+.ora-ult b.ok{color:var(--ok,#129462);}
+.ora-ult b.ko{color:#C76E00;}
+/* la prova */
+.ora-cima{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 20px 12px;}
+.ora-pall{display:flex;gap:6px;}
+.ora-pall i{width:26px;height:6px;border-radius:999px;background:var(--ios-sep);transition:background .25s;}
+.ora-pall i.cur{background:var(--a,#2447D6);}
+.ora-pall i.si{background:var(--ok,#129462);}
+.ora-pall i.quasi{background:#E8A33D;}
+.ora-pall i.no{background:var(--err,#E5484D);}
+.ora-tempo{font-size:15px;font-weight:700;color:var(--ios-lbl2);font-variant-numeric:tabular-nums;}
+.ora-card{margin:0 16px 14px;padding:18px 18px 16px;border-radius:var(--t-r,20px);background:var(--ios-card);box-shadow:0 1px 0 rgba(0,0,0,.03);}
+.ora-num{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--ios-lbl3);margin-bottom:4px;}
+.ora-tipo{font-size:13px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--a,#2447D6);margin-bottom:10px;}
+.ora-dom{font-size:24px;font-weight:600;line-height:1.3;letter-spacing:-.3px;color:var(--ios-lbl);}
+.ora-dom b{font-weight:800;}
+.ora-dom.ora-reg{font-size:20px;font-weight:700;line-height:1.35;}
+.ora-nota{margin-top:10px;font-size:14px;font-weight:600;color:var(--ios-lbl2);}
+.ora-aiuto{margin-top:12px;font-size:14px;line-height:1.4;color:var(--ios-lbl2);}
+.ora-risp{margin:0 16px 14px;padding:14px 16px;border-radius:var(--t-r,20px);background:var(--ios-card);animation:fu .25s ease both;}
+.ora-fonte{font-size:14.5px;line-height:1.4;padding:10px 12px;border-radius:12px;margin:0 0 10px;color:var(--ios-lbl);}
+.ora-fonte.si{background:rgba(18,148,98,.11);}
+.ora-fonte.lib{background:rgba(36,71,214,.09);}
+.ora-fonte.no{background:var(--ios-bg);color:var(--ios-lbl2);margin:0;}
+.ora-vie{margin:0;padding-left:30px;font-size:15.5px;line-height:1.6;color:var(--ios-lbl);}
+.ora-punti{margin:0;padding-left:20px;font-size:15.5px;line-height:1.5;color:var(--ios-lbl);}
+.ora-punti li+li{margin-top:8px;}
+.ora-punti b{font-weight:800;}
+/* i voti restano in vista in fondo quando la risposta e' lunga. Il margine sotto della pagina lo tolgo e lo rimetto
+   come spazio vero in fondo: cosi' il fondo che resta attaccato e' proprio il bordo dello schermo (anche su Safari) */
+#scnOv[data-p="simorale"] .pf-body{padding-bottom:0;}
+#scnOv[data-p="simorale"] .pf-body::after{content:'';display:block;height:30px;}
+.ora-fondo{position:sticky;bottom:0;z-index:2;background:var(--ios-bg);padding:6px 0 2px;}
+.ora-fondo::before{content:'';position:absolute;left:0;right:0;top:-14px;height:14px;pointer-events:none;
+background:linear-gradient(to bottom,transparent,var(--ios-bg));}
+.ora-fondo .ora-voti{margin-bottom:12px;}
+.ora-com{margin:4px 20px 8px;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--ios-lbl2);}
+.ora-voti{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 16px 24px;}
+.ora-v{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:64px;padding:10px 6px;border-radius:16px;border:1.5px solid var(--ios-sep);
+background:var(--ios-card);color:var(--ios-lbl);font:inherit;font-size:13.5px;font-weight:700;line-height:1.2;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.ora-v b{font-size:22px;line-height:1.1;}
+.ora-v.si b{color:var(--ok,#129462);}
+.ora-v.quasi b{color:#E8A33D;}
+.ora-v.no b{color:var(--err,#E5484D);}
+/* il risultato */
+.ora-esito{margin:6px 16px 18px;padding:22px 18px 18px;border-radius:var(--t-r,20px);text-align:center;background:var(--ios-card);}
+.ora-esito.ok{background:rgba(18,148,98,.11);}
+.ora-esito.ko{background:rgba(232,163,61,.14);}
+.ora-esito .ora-tt{font-size:26px;}
+.ora-esito.ok .ora-tt{color:var(--ok,#129462);}
+.ora-esito.ko .ora-tt{color:#C76E00;}
+.ora-sub{margin-top:6px;font-size:15px;line-height:1.45;color:var(--ios-lbl2);}
+.ora-dur{margin-top:8px;font-size:15px;font-weight:700;color:var(--ios-lbl2);font-variant-numeric:tabular-nums;}
+.ora-lista{display:flex;flex-direction:column;gap:10px;margin:0 16px 18px;}
+.ora-r{padding:12px 14px;border-radius:16px;background:var(--ios-card);border-left:5px solid var(--ok,#129462);}
+.ora-r.quasi{border-left-color:#E8A33D;}
+.ora-r.no{border-left-color:var(--err,#E5484D);}
+.ora-rt{display:flex;align-items:flex-start;gap:10px;font-size:15.5px;font-weight:700;line-height:1.35;color:var(--ios-lbl);}
+.ora-rv{flex:0 0 22px;font-size:18px;line-height:1.2;text-align:center;}
+.ora-r.si .ora-rv{color:var(--ok,#129462);}
+.ora-r.quasi .ora-rv{color:#E8A33D;}
+.ora-r.no .ora-rv{color:var(--err,#E5484D);}
+.ora-rn{flex:1;min-width:0;}
+.ora-a{display:block;width:100%;box-sizing:border-box;margin:10px 0 0;padding:10px 14px;border-radius:12px;border:1.5px solid var(--ios-sep);
+background:transparent;color:var(--a,#2447D6);font:inherit;font-size:15px;font-weight:800;text-align:left;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+/* la regola riletta nel foglio */
+#popOv .ora-pop{text-align:left;max-height:min(58vh,520px);overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px 16px;padding:0 4px;}
+.ora-pq{font-size:17px;margin-bottom:12px;}
+.dark .ora-ult b.ko,.dark .ora-esito.ko .ora-tt{color:#F0A040;}
+/* iPad: le vie di un percorso lungo in due colonne, si legge tutto senza scorrere */
+@media(min-width:700px){.ora-vie.lunga{columns:2;column-gap:44px;}.ora-vie.lunga li{break-inside:avoid;}}
+/* telefono piccolo: l'introduzione piu' raccolta, cosi' «Inizia» si vede subito */
+@media (max-height:620px){.ora-intro{padding:14px 16px 12px;margin-bottom:12px;}.ora-ic{font-size:30px;margin-bottom:4px;}
+.ora-intro p{font-size:14px;line-height:1.45;}.ora-intro p+p{margin-top:6px;}}
+@media (prefers-reduced-motion:reduce){#scnOv .pf-body.ora-entra,.ora-risp{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -11681,7 +11782,8 @@ quiz:{t:'Quiz',c:C.arancio,
 testa:(n.tot?{t:'Banca dati: sai '+n.sai+' su '+n.tot+' domande',p:pct(n.sai,n.tot)}:null),
 g:[
 {t:'ESAME',v:[
-{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))}]},
+{ic:'\ud83c\udfc1',c:C.verde,n:'Simulazione d\u2019esame',s:'Stesse domande, stesso tempo, stessi criteri',a:az('q1',quiz('qStartExam'))},
+{ic:'🎤',c:C.viola,n:'Simulazione dell’orale',s:'Due percorsi, una piazza, una regola: a voce',a:az('q12',function(){nccOrale();}),resta:true}]},
 {t:'ALLENAMENTO',v:[
 {ic:'\ud83d\udcdd',c:C.arancio,n:'Scheda di allenamento',s:'Il mix scelto dal coach',a:az('q2',quiz('qStartMix'))},
 {ic:'\ud83c\udd95',c:C.blu,n:'Domande nuove',s:'Solo quelle mai viste',a:az('q3',quiz('qStartNew'))},
@@ -11791,6 +11893,7 @@ q7:['Ripassa','Le domande che sbagli da sempre: qui non basta ripetere, serve ca
 q8:['Ripassa','Le domande che scambi con un\u2019altra simile. Le vedi vicine, cos\u00ec impari la differenza.'],
 q9:['Verifica','Domande che sapevi da settimane: se le sai ancora, restano; se no, tornano in ripasso.'],
 q10:['Apri','Le domande che hai salvato col segnalibro.'],
+q12:['Inizia','Come all’orale vero: due percorsi da dire a voce, le confluenze di una piazza e una domanda sul regolamento, presi da quello che hanno chiesto agli orali (le domande più chieste escono più spesso). Rispondi a voce, controlli la risposta e dici tu com’è andata: alla fine sai se saresti passato e cosa ripassare.'],
 t1:['Apri','Milano a tutto schermo, a livello strada. La Pencil disegna, il dito sposta e zooma.'],
 t14:['Apri','La cartina stampata di Milano a tutto schermo, in alta definizione: con due dita ingrandisci e sposti, la Pencil ci scrive sopra (penna, evidenziatore, gomma). La scegli una volta dalle foto o dai file e resta su questo dispositivo, anche senza rete.'],
 t3:['Studia','Il percorso con tutte le vie in vista: lo leggi tappa per tappa sulla mappa.'],
@@ -12952,7 +13055,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats'];
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip'];   /* (v156) anche l'orale */
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -12988,6 +13091,17 @@ if(ob.d<oa.d)return;
 var ch=0;['q','e'].forEach(function(f){if(!ob[f])return;oa[f]=oa[f]||{};Object.keys(ob[f]).forEach(function(id){if(!oa[f][id]){oa[f][id]=1;ch++;}});});
 if((+ob.t||0)&&(+ob.t||0)<(+oa.t||Infinity)){oa.t=ob.t;oa.pz=ob.pz||oa.pz;oa.pr=ob.pr||oa.pr;if(ob.e0!=null)oa.e0=ob.e0;ch++;}
 if(ch){localStorage.setItem(k,JSON.stringify(oa));n+=ch;}}catch(e){}return;}
+/* (v156) la simulazione dell'orale: gli orali fatti si sommano (uno per ora di fine, gli ultimi 30);
+   quello da ripassare: per ogni prova vince il voto dato per ultimo, su qualunque dispositivo (anche il ✓ che la toglie) */
+if(k==='nccOrale'){try{var sa=JSON.parse(loc),sb=JSON.parse(cl);if(!Array.isArray(sa)||!Array.isArray(sb))return;
+var vis={},tut=[];sa.concat(sb).forEach(function(x){if(x&&x.t&&!vis[x.t]){vis[x.t]=1;tut.push(x);}});
+tut.sort(function(x,y){return x.t-y.t;});tut=tut.slice(-30);
+if(tut.length!==sa.length||tut.some(function(x,i){return sa[i].t!==x.t;})){localStorage.setItem(k,JSON.stringify(tut));n++;}}catch(e){}return;}
+if(k==='nccOraleRip'){try{var ra=JSON.parse(loc),rb=JSON.parse(cl),cr=0;if(!ra||!rb||typeof ra!=='object'||typeof rb!=='object')return;
+Object.keys(rb).forEach(function(g){var B2=rb[g];if(!B2||typeof B2!=='object')return;var A2=ra[g]||(ra[g]={});
+Object.keys(B2).forEach(function(id){var y=B2[id],x=A2[id];if(!y||typeof y!=='object')return;
+if(!x||(+y.t||0)>(+x.t||0)){A2[id]=y;cr++;}});});
+if(cr){localStorage.setItem(k,JSON.stringify(ra));n+=cr;}}catch(e){}return;}
 try{var a=JSON.parse(loc),b=JSON.parse(cl);
 if(a&&b&&typeof a==='object'&&!Array.isArray(a)){
 var agg=0;Object.keys(b).forEach(function(id){
@@ -15097,9 +15211,10 @@ var h='<div class="kb-l">'
 +'<div class="kb-g"><b>Home</b>'+riga(['Q'],'quiz')+riga(['T'],'topografia')+riga(['P'],'piazze')+riga(['E'],'ripasso errori')+riga(['N'],'norme e tariffe')+riga(['/'],'cerca')+'</div>'
 +'<div class="kb-g"><b>Mappa</b>'+riga(['←','→'],'tappa prima e dopo')+riga(['spazio'],'scopri la via (Cieco)')+riga(['S','C','V'],'Studio, Cieco, Quiz vie')
 +riga(['L'],'la linea')+riga(['A'],'ascolta il percorso')+riga(['R'],'un percorso a caso')+riga(['Tab'],'suggerimento mentre scrivi la via')+'</div>'
-+'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
++'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['S'],'la spiegazione, dopo un errore')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
 +'<div class="kb-g"><b>Cartina</b>'+riga(['+','−'],'più vicino, più lontano')+riga(['0'],'tutta la cartina')+riga(['←','↑','→','↓'],'sposta')+riga(['⌘','Z'],'annulla il segno')+'</div>'
 +'<div class="kb-g"><b>Piazze</b>'+riga(['←','→'],'via prima e dopo')+riga(['spazio'],'scopri la via')+riga(['1','2'],'Mi verifico: non la sapevo, la sapevo')+'</div>'
++'<div class="kb-g"><b>Simulazione dell’orale</b>'+riga(['Invio'],'controlla la risposta')+riga(['1','2','3'],'giusto, quasi, non lo sapevo')+'</div>'
 +'</div>';
 nccPopup({icona:'⌨️',titolo:'Comandi da tastiera',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
 }catch(e){}
@@ -18854,4 +18969,558 @@ if(!b||!b.getClientRects().length)return;
 e.preventDefault();e.stopPropagation();b.click();
 }catch(x){}
 });
+})();
+/* ═══════════════════════════════════════════════════
+   🎤 LA SIMULAZIONE DELL'ORALE (v156)
+   Quiz › Esame › «Simulazione dell'orale»: come all'orale vero, quattro prove prese da
+   quello che hanno chiesto davvero (Chiesto all'esame, ottobre 2025 – febbraio 2026),
+   le piu' chieste piu' spesso:
+   · due percorsi da dire a voce, una piazza (le confluenze), una domanda sul regolamento
+   · per ogni prova: la dici a voce, tocchi «Controlla» e vedi la risposta (il tuo percorso o
+     quello del libro, le vie della piazza, i punti da dire sul regolamento), poi dici tu com'e'
+     andata: ✓ giusto, ≈ quasi, ✗ non lo sapevo
+   · alla fine: Superato o Da ripassare, il tempo, e per ogni prova andata male cosa fare
+     subito (studiare il percorso sulla mappa, aggiungerlo, aprire la piazza, rileggere la regola);
+     dalla mappa e dalle altre schermate torni qui
+   · puoi scegliere un mese (come in quella sessione); un orale lasciato a meta' si riprende
+   · quello che va male resta segnato da ripassare (per il ripasso unico)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var PAG='simorale',TITOLO='Simulazione dell’orale';
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function B(s){return E(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
+function M(){return window.nccChiestoMotore||null;}
+function lgj(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function lsj(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('data-p'):null;}
+function corpoEl(){return document.getElementById('scnBody');}
+function vibra(t){try{hap(t);}catch(e){}}
+/* le risposte da dare all'orale, tema per tema: i punti che l'esaminatore si aspetta di sentire.
+   Gli stessi fatti delle spiegazioni dei quiz (v155) e delle schede delle Norme; la fonte quando e' certa */
+var RISP={
+obblighi:{p:[
+'**Inizio corsa**: accertarsi della destinazione e **azionare il tassametro** (controllando che funzioni); aiutare a salire e caricare i bagagli consentiti.',
+'**Durante**: tassametro sempre acceso; il **percorso più breve** o quello che chiede il cliente; la corsa **si finisce anche a turno scaduto**.',
+'**Fine corsa**: far vedere l’importo con gli eventuali supplementi (funzione «cassa»), la **ricevuta se la chiede**, **azzerare** il tassametro.',
+'Aiutare a scendere, scaricare i bagagli e **controllare che il cliente non dimentichi niente**.'],f:'Regolamento taxi bacino aeroportuale, art. 41'},
+doveri:{p:[
+'**Comportamento corretto** con chiunque e servizio svolto **con decoro**; **abbigliamento decoroso**.',
+'Auto **pulita ed efficiente**, con licenza e documenti a bordo; tariffe e contrassegni esposti.',
+'Una **guida aggiornata delle vie** del comune e **moneta spicciola** per il resto.',
+'Rispettare i **turni** e l’ordine di fila ai posteggi.'],f:'Regolamento taxi bacino aeroportuale, artt. 40-44'},
+divieti:{p:[
+'**Fumare** e **mangiare** durante la guida; vestire con canottiera, pantaloncini, ciabatte o tuta.',
+'Far salire **estranei senza il consenso** del cliente; tenere a bordo persone, animali o cose che non c’entrano col servizio.',
+'Fare la corsa **senza tassametro acceso**, chiedere **più del tassametro** e dei supplementi, **allungare il percorso**.',
+'**Interrompere** la corsa o il turno (salvo forza maggiore), **occultare** tassametro o contrassegni, prenotazioni in forme non autorizzate.'],f:'Regolamento taxi bacino aeroportuale, art. 44'},
+cliente:{p:[
+'**Fumare** e sporcare o danneggiare l’auto.',
+'**Aprire la portiera dal lato del traffico**: si scende dal lato del marciapiede.',
+'Chiedere al tassista di **violare il Codice della Strada** (fermate vietate, velocità) o di far salire **più persone dei posti** consentiti.']},
+diff:{p:[
+'**Taxi**: utenza **indifferenziata**, sosta in **luogo pubblico** (posteggi), servizio **obbligatorio** nel comune, **tassametro** con tariffe fissate dalle autorità; segnale «TAXI» sul tetto, numero d’ordine.',
+'**NCC**: utenza **specifica** che prenota alla **sede o rimessa**, stazionamento **in rimessa**, servizio **non obbligatorio**, prezzo **concordato** (tariffe chilometriche minime e massime), niente tassametro.',
+'L’NCC ha la scritta **«noleggio»** sul parabrezza e sul lunotto e la **targa «NCC»**.',
+'Licenza taxi e autorizzazione NCC **non si cumulano** (con l’autovettura); più autorizzazioni NCC sì.'],f:'Legge 21/1992, artt. 2, 3, 8, 12, 13'},
+bacino:{p:[
+'È il territorio delle **province di Milano, Varese e Bergamo**: quelle dei tre scali, **Linate, Malpensa e Orio al Serio**.',
+'Tariffe e regole **uguali per tutti**, decise dalla **Giunta Regionale**; c’è la **reciprocità di carico**.',
+'Negli aeroporti si carica **solo dai posteggi**, in **ordine di arrivo**, rispettando i **turni** e con i **contrassegni** del turno esposti.'],f:'DGR 11948/2003, art. 1'},
+sedime:{p:[
+'Il sedime è l’**area dell’aeroporto**: i **comuni dove ricade** lo scalo.',
+'**Linate**: Peschiera Borromeo e Segrate (San Donato no). **Malpensa**: comuni del Varesotto (Ferno, Somma Lombardo, Cardano al Campo…).',
+'Il bacino invece è molto più grande: le province di Milano, Varese e Bergamo.']},
+predet:{p:[
+'Sono le **tariffe fisse** fra aeroporti e destinazioni: Milano–Malpensa, Malpensa–Fiera, Malpensa–Linate, Linate–Fiera, Malpensa–Varese, Orio–Milano.',
+'Valgono **senza soste né fermate intermedie** e **senza supplementi**; il percorso lo sceglie il tassista.',
+'**Decadono** se il cliente chiede un **percorso diverso** o delle fermate: si passa al **tassametro**, e glielo dici **prima di partire**.',
+'Oggi (2024): 114 € Milano–Malpensa, 94 € Malpensa–Fiera, 128 € Malpensa–Linate, 68 € Linate–Fiera, 80 € Malpensa–Varese, 128 € Orio–Milano.'],f:'Tariffe taxi Comune di Milano (2024)'},
+aeroporti:{p:[
+'Dagli **aeroporti** (e dalle stazioni) il servizio è **obbligatorio** per le destinazioni in **Lombardia e nelle province confinanti**.',
+'Si carica in **ordine di arrivo** dalle aree di stazionamento, senza scegliere il cliente in base alla destinazione.'],f:'L.R. 22/1998, art. 25'},
+fuori:{p:[
+'L’obbligo dagli aeroporti vale per **Lombardia e province confinanti**.',
+'**Verona** confina con la Lombardia (Mantova e Brescia): **devi portarlo**.',
+'**Vicenza** non confina: **non sei obbligato**, puoi accettare la corsa se vuoi.'],f:'L.R. 22/1998, art. 25'},
+provincia:{p:[
+'Nel **comune della licenza** (e nei comuni integrati o comprensoriali) il servizio è **obbligatorio**, nei limiti dei posti della carta di circolazione.',
+'Per andare **fuori** dall’area comunale o comprensoriale serve l’**assenso del tassista**.',
+'Nel bacino, per le corse che **non partono dagli aeroporti**, c’è l’obbligo su **tutto il territorio del bacino** (salvo alcuni comuni).'],f:'Legge 21/1992, art. 2 · DGR 11948/2003, art. 4'},
+attesa:{p:[
+'Il cliente può chiedere al taxi di **aspettarlo**: al massimo **60 minuti**.',
+'Paga **in anticipo** l’importo del tassametro più **un’ora di sosta** (34,48 €) come cauzione, con **ricevuta**.',
+'Su prenotazione o chiamata l’attesa **gratuita** è di **5 minuti**.'],f:'Regolamento taxi bacino aeroportuale, art. 46'},
+sosta:{p:[
+'La sosta di attesa su richiesta dura **al massimo un’ora**, solo **dove non intralcia il traffico**.',
+'Il cliente paga **prima**: importo del tassametro più il costo di **un’ora** (34,48 €), con ricevuta.'],f:'Regolamento taxi bacino aeroportuale, art. 46'},
+servizio:{p:[
+'Sei **fuori servizio** se: non sei in turno, l’**auto è guasta**, il **tassametro non funziona**, sei in ferie o riposo, la **licenza è sospesa**.',
+'Fuori servizio esponi la scritta **ben visibile** e **non fai corse**, mai.',
+'Segnale «TAXI» spento: **occupato** (c’è un cliente) oppure **fuori servizio**.'],f:'Regolamento taxi bacino aeroportuale, art. 39'},
+tassametro:{p:[
+'Con il tassametro **guasto** il taxi **non può lavorare**: sei **fuori servizio** finché non è riparato e **risigillato**.',
+'Senza tassametro in funzione il cliente **non è tenuto a pagare** la corsa.',
+'Tassametro **senza sigilli** o non omologato: sospensione di **classe 4**; **manomissione**: si perde la licenza.',
+'Per l’importo di una corsa interrotta dal guasto controlla il regolamento comunale: è la parte che ai quiz non c’è.'],f:'Regolamento taxi bacino aeroportuale, artt. 39, 56, 57'},
+reciproc:{p:[
+'Nel bacino i taxi di un comune possono **caricare anche negli altri comuni** del bacino e **negli aeroporti**: è l’**integrazione del servizio**.',
+'Esempio: porti un cliente da Milano a Malpensa e lì, rispettando la **fila**, puoi prendere un cliente per il ritorno.'],f:'L.R. 1/2002 · DGR 11948/2003, art. 4'},
+sigilli:{p:[
+'Sono i **piombi** che l’**ufficio comunale** mette sul **tassametro** e sul suo collegamento con le ruote (il «giro gomme»): così nessuno può manometterlo.',
+'Tassametro **senza sigilli**: sospensione di classe 4. **Manomissione**: decadenza o revoca della licenza.']},
+trasf:{p:[
+'Su richiesta del titolare, a una persona **iscritta al ruolo** e con i requisiti, se il titolare: è titolare **da 5 anni**, ha **60 anni**, o è **inabile in modo permanente** (o ha perso la patente).',
+'Se muore: a un **erede del nucleo familiare** con i requisiti, o entro **2 anni** a chi indicano gli eredi, con l’**autorizzazione del Sindaco**.',
+'Chi trasferisce non può averne un’altra per **5 anni**; il nuovo titolare inizia entro **90 giorni**.'],f:'Legge 21/1992, art. 9'},
+collab:{p:[
+'Il titolare può farsi aiutare alla guida da **familiari**: al massimo **due**.',
+'**Coniuge, parenti entro il terzo grado, affini entro il secondo**, tutti **iscritti al ruolo**; risultano da un **elenco allegato alla licenza**.',
+'Possono avere un altro lavoro solo **part-time**; non fa maturare anzianità per il concorso; se manca un requisito l’autorizzazione **decade**.'],f:'Legge 21/1992, art. 10 · Regolamento Comunale, art. 15'},
+idonea:{p:[
+'**Revisione ogni anno** alla Motorizzazione e **visita di controllo** all’ufficio Autopubbliche (prima di iniziare e poi periodica; quella straordinaria in qualunque momento).',
+'Auto pulita ed efficiente, **tassametro omologato e sigillato**, contrassegni e scritte in regola.',
+'Chi non va alla visita: **ritiro della licenza**; più volte: **revoca**.'],f:'Codice della Strada, art. 80'},
+oggetti:{p:[
+'A fine corsa **controlli** che il cliente non dimentichi niente.',
+'Quello che trovi **non si tiene** e non si recapita a pagamento: va all’**ufficio oggetti smarriti del Comune**; i **documenti** alla vigilanza urbana (Polizia Locale).']},
+cane:{p:[
+'Il **cane guida** dei non vedenti si trasporta **sempre**: è un obbligo.',
+'Gli altri animali sono una **facoltà** del tassista: puoi rifiutare quelli **non compatibili** con l’auto.',
+'È vietato tenere a bordo i **propri** cani.'],f:'Regolamento taxi bacino aeroportuale, artt. 42-43'},
+ncc:{p:[
+'L’NCC **non ha il tassametro** (il prezzo si concorda, controlla il contachilometri): fa servizio taxi solo nei **comuni piccoli**.',
+'**Non sosta nei posteggi dei taxi**: sta **in rimessa**, nel comune che gli ha dato l’autorizzazione; su suolo pubblico solo dove non c’è il servizio taxi.',
+'Torna in rimessa alla fine di ogni servizio, salvo che il **foglio di servizio** ne preveda un altro.'],f:'Legge 21/1992, artt. 3, 11'}
+};
+
+/* ── le quattro prove: pescate in proporzione a quante volte sono uscite, mai le stesse dell'ultima volta ── */
+function pesca(l,peso,n,via){
+var pool=l.filter(function(o){return via.indexOf(o.k)<0&&peso(o)>0;});
+if(pool.length<n)pool=l.filter(function(o){return peso(o)>0;});
+var out=[];
+while(out.length<n&&pool.length){
+var tot=0;pool.forEach(function(o){tot+=peso(o);});
+var r=Math.random()*tot,i=0;
+for(;i<pool.length;i++){r-=peso(pool[i]);if(r<=0)break;}
+if(i>=pool.length)i=pool.length-1;
+out.push(pool[i]);pool.splice(i,1);
+}
+return out;
+}
+function prepara(ses){
+var m=M();if(!m)return null;
+var C=m.conti(),ult=lgj('nccOraleUlt',{})||{};
+var peso=function(o){return ses?(o.ses[ses]||0):o.n;};
+var perc=pesca(C.perc,peso,2,ult.perc||[]);
+var pz=pesca(C.pz,peso,1,ult.pz||[]);
+var reg=pesca(C.reg.filter(function(o){return !!RISP[o.k];}),peso,1,ult.reg||[]);
+if(perc.length<2||!pz.length||!reg.length)return null;
+var r=reg[0],dd=r.dom.filter(function(d){return !ses||d.ses.indexOf(ses)>=0;});if(!dd.length)dd=r.dom;
+var d=dd[Math.floor(Math.random()*dd.length)];
+lsj('nccOraleUlt',{perc:perc.map(function(o){return o.k;}),pz:[pz[0].k],reg:[r.k]});
+return {ses:ses||'',t0:Date.now(),el:0,last:Date.now(),pausa:0,i:0,mostra:false,fine:0,
+prove:[{x:'perc',k:perc[0].k,v:''},{x:'perc',k:perc[1].k,v:''},{x:'pz',k:pz[0].k,v:''},{x:'reg',k:r.k,d:d?d.d:'',v:''}]};
+}
+var S=null;            /* l'orale in corso (resta se esci a meta': lo riprendi) */
+var TM=0;
+function obj(p){var m=M(),C=m.conti();return p.x==='perc'?C.P[p.k]:(p.x==='pz'?C.K[p.k]:C.R[p.k]);}
+/* il tempo conta solo mentre l'orale e' davanti a te: uscito a meta', con l'app in secondo piano
+   o su un'altra schermata l'orologio si ferma */
+function tic(){
+if(!S||S.fine)return;
+var n=Date.now();
+if(!S.pausa&&pag()===PAG&&!document.hidden){var d=n-(S.last||n);if(d>0&&d<3000)S.el+=d;}
+S.last=n;
+}
+function secondi(){return S?Math.max(0,Math.round((S.el||0)/1000)):0;}
+/* uscito a meta': rientrando vedi prima la pagina con «Riprendi» */
+function sospendi(){if(S&&!S.fine&&!S.pausa){tic();S.pausa=Date.now();}}
+function mmss(s){return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
+
+/* ── la risposta di ogni prova ── */
+function vie(l){var h='<ol class="ora-vie'+((l&&l.length>=10)?' lunga':'')+'">';(l||[]).forEach(function(v){h+='<li>'+E(v)+'</li>';});return h+'</ol>';}
+function rispPerc(p){
+var m=M(),o=obj(p);if(!o)return '';
+var s=m.stato(o);
+if(s.mio)return '<div class="ora-fonte si">✓ Il tuo percorso: <b>'+E(s.mio.title)+'</b></div>'+vie(s.mio.steps);
+if(s.lib)return '<div class="ora-fonte lib">📖 Nel libro della scuola, '+E(m.pagLib(s.lib))+'</div>'+vie(s.lib.s);
+if(s.mioInv)return '<div class="ora-fonte si">↔ Ce l’hai solo al contrario: <b>'+E(s.mioInv.title)+'</b></div>'+vie(s.mioInv.steps);
+if(s.libInv)return '<div class="ora-fonte lib">↔ Nel libro c’è solo al contrario, '+E(m.pagLib(s.libInv))+'</div>'+vie(s.libInv.s);
+return '<div class="ora-fonte no">Non è fra i tuoi percorsi e non è nel libro della scuola: lo prepari tu, tappa per tappa.</div>';
+}
+function rispPz(p){
+var m=M(),q=m.piazzaDi(p.k);
+if(!q)return '<div class="ora-fonte no">'+E(m.nome(p.k))+' non è fra le piazze dell’app: la aggiungi tu, con le sue vie.</div>';
+return '<div class="ora-fonte si">'+E(q.n)+' · '+q.v.length+(q.v.length===1?' via':' vie')+'</div>'+vie(q.v);
+}
+function scheda(id){
+try{var N=window.__NORME__,s=(N&&N.sez||[]).filter(function(x){return x.id===id;})[0];if(!s)return '';
+return '<details class="sp-sch"><summary><span>📜 Rileggi la scheda <b>'+E(s.t)+'</b> <i>art. '+E(s.art)+'</i></span></summary><ol>'
++s.p.map(function(x){return '<li>'+E(x)+'</li>';}).join('')+'</ol></details>';}catch(e){return '';}
+}
+function rispReg(p){
+var R=RISP[p.k]||{p:[]},T=(M().TEMI||{})[p.k]||{};
+return '<ul class="ora-punti">'+R.p.map(function(x){return '<li>'+B(x)+'</li>';}).join('')+'</ul>'
++(R.f?'<div class="sp-f"><span>📚</span><span>'+E(R.f)+'</span></div>':'')
++(T.art?scheda(T.art):'');
+}
+function domanda(p){
+var m=M(),o=obj(p);
+if(p.x==='perc'){
+var nt=(o&&o.note&&o.note.length)?'<div class="ora-nota">📝 '+E(o.note.join(' · '))+'</div>':'';
+return '<div class="ora-tipo">🚕 Percorso</div><div class="ora-dom">Da <b>'+E(m.nome(o.a))+'</b><br>a <b>'+E(m.nome(o.b))+'</b></div>'+nt
++'<div class="ora-aiuto">Dillo a voce, via per via, dalla partenza all’arrivo.</div>';
+}
+if(p.x==='pz')return '<div class="ora-tipo">🕸 Piazza</div><div class="ora-dom">Le confluenze di<br><b>'+E(m.nome(p.k))+'</b></div>'
++'<div class="ora-aiuto">Dimmi tutte le vie che sboccano nella piazza.</div>';
+var T=(m.TEMI||{})[p.k]||{};
+return '<div class="ora-tipo">⚖️ Regolamento · '+E(T.t||'')+'</div><div class="ora-dom ora-reg">«'+E(p.d||T.t||'')+'»</div>'
++'<div class="ora-aiuto">Rispondi a voce, come all’esaminatore.</div>';
+}
+function risposta(p){return p.x==='perc'?rispPerc(p):(p.x==='pz'?rispPz(p):rispReg(p));}
+var VOTI={si:['✓','Giusto'],quasi:['≈','Quasi'],no:['✗','Non lo sapevo']};
+
+/* ── le schermate ── */
+function chip(ses,on,t){return '<button class="ch-chip'+(on?' on':'')+'" onclick="nccOraleSes(\''+ses+'\')">'+E(t)+'</button>';}
+var SCELTA='';
+function htmlInizio(){
+var m=M(),h='';
+var st=lgj('nccOrale',[])||[],u=st[st.length-1];
+h+='<div class="ora-intro"><div class="ora-ic">🎤</div><div class="ora-tt">Come all’orale</div>'
++'<p>Due percorsi da dire a voce, le confluenze di una piazza e una domanda sul regolamento: le prove che hanno fatto davvero agli orali, le più chieste più spesso.</p>'
++'<p>Rispondi <b>a voce</b>, poi tocca <b>Controlla</b> e di’ tu com’è andata.</p></div>';
+var aperto=!!(S&&!S.fine);
+/* un orale lasciato a meta': prima di tutto lo riprendi */
+if(aperto)h+='<button class="ora-go ora-rip" onclick="nccOraleRiprendi()">▶ Riprendi l’orale · prova '+(S.i+1)+' di '+S.prove.length+'</button>';
+if(m){
+h+='<div class="pf-sez ora-sez">'+(aperto?'Oppure un orale nuovo':'Le domande della sessione')+'</div><div class="ch-ses ora-ses">'+chip('',!SCELTA,'Tutte');
+m.SES.forEach(function(s){h+=chip(s.id,SCELTA===s.id,s.c);});
+h+='</div>';
+h+=aperto?'<button class="ora-go2 ora-nuovo" onclick="nccOraleInizia()">Ricomincia da capo</button>'
+:'<button class="ora-go" onclick="nccOraleInizia()">▶ Inizia l’orale</button>';
+}
+if(u)h+='<div class="ora-ult">L’ultima volta: <b class="'+(u.s?'ok':'ko')+'">'+(u.s?'✓ Superato':'↻ Da ripassare')+'</b> · '
++new Date(u.t).toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+mmss(u.d||0)+'</div>';
+if(!m)h+='<div class="sc-vuoto">Le domande degli orali non sono pronte: riprova fra un attimo.</div>';
+return h;
+}
+function htmlProva(){
+var p=S.prove[S.i],h='<div class="ora-cima"><div class="ora-pall">';
+S.prove.forEach(function(q,i){h+='<i class="'+(i===S.i?'cur':(q.v?q.v:''))+'"></i>';});
+h+='</div><div class="ora-tempo" id="oraT">⏱ '+mmss(secondi())+'</div></div>';
+h+='<div class="ora-card ora-n'+S.i+'"><div class="ora-num">Prova '+(S.i+1)+' di '+S.prove.length+'</div>'+domanda(p)+'</div>';
+if(!S.mostra){
+h+='<button class="ora-go" onclick="nccOraleControlla()">Controlla</button>';
+}else{
+h+='<div class="ora-risp"><div class="sp-lab">La risposta</div>'+risposta(p)+'</div>'
++'<div class="ora-fondo"><div class="ora-com">Com’è andata?</div><div class="ora-voti">';
+['si','quasi','no'].forEach(function(v){h+='<button class="ora-v '+v+'" onclick="nccOraleVoto(\''+v+'\')"><b>'+VOTI[v][0]+'</b>'+VOTI[v][1]+'</button>';});
+h+='</div></div>';
+}
+return h;
+}
+function esito(){var no=0,qu=0;S.prove.forEach(function(p){if(p.v==='no')no++;if(p.v==='quasi')qu++;});return {ok:no===0&&qu<=1,no:no,qu:qu};}
+function azioni(p,i){
+var m=M(),o=obj(p);
+if(p.x==='perc'){var s=m.stato(o);
+if(s.mio)return '<button class="ora-a" onclick="nccOraleFai('+i+',\'mappa\')">🗺️ Studialo sulla mappa</button>';
+if(s.lib)return '<button class="ora-a" onclick="nccOraleFai('+i+',\'aggiungi\')">➕ Aggiungilo ai tuoi percorsi</button>';
+if(s.mioInv)return '<button class="ora-a" onclick="nccOraleFai('+i+',\'inv\')">🗺️ Apri quello al contrario</button>';
+if(s.libInv)return '<button class="ora-a" onclick="nccOraleFai('+i+',\'aggiungiinv\')">➕ Aggiungi quello al contrario</button>';
+return '<button class="ora-a" onclick="nccOraleFai('+i+',\'nuovo\')">✏️ Preparalo: nuovo percorso</button>';}
+if(p.x==='pz')return m.piazzaDi(p.k)?'<button class="ora-a" onclick="nccOraleFai('+i+',\'piazza\')">🕸 Studia la piazza</button>'
+:'<button class="ora-a" onclick="nccOraleFai('+i+',\'aggpz\')">➕ Aggiungi la piazza</button>';
+return '<button class="ora-a" onclick="nccOraleFai('+i+',\'regola\')">📜 Rileggi la risposta</button>';
+}
+function titoloProva(p){
+var m=M(),o=obj(p);
+if(p.x==='perc')return '🚕 '+E(m.nome(o.a))+' → '+E(m.nome(o.b));
+if(p.x==='pz')return '🕸 '+E(m.nome(p.k));
+var T=(m.TEMI||{})[p.k]||{};return '⚖️ '+E(T.t||p.k);
+}
+function htmlFine(){
+var e=esito(),h='<div class="ora-esito '+(e.ok?'ok':'ko')+'"><div class="ora-ic">'+(e.ok?'🎉':'📚')+'</div>'
++'<div class="ora-tt">'+(e.ok?'Superato':'Da ripassare')+'</div>'
++'<div class="ora-sub">'+(e.ok?(e.qu?'Una risposta incerta, le altre giuste.':'Tutte le prove giuste.'):
+(e.no?(e.no===1?'Una prova non la sapevi.':e.no+' prove non le sapevi.'):'Troppe risposte incerte.')+' Qui sotto, cosa ripassare.')
++'</div><div class="ora-dur">⏱ '+mmss(secondi())+'</div></div>';
+h+='<div class="pf-sez ora-sez">Le prove</div><div class="ora-lista">';
+S.prove.forEach(function(p,i){
+var v=p.v||'no';
+h+='<div class="ora-r '+v+'"><div class="ora-rt"><span class="ora-rv">'+VOTI[v][0]+'</span><span class="ora-rn">'+titoloProva(p)+'</span></div>'
++(v!=='si'?azioni(p,i):'')+'</div>';
+});
+h+='</div>';
+h+='<button class="ora-go" onclick="nccOraleInizia()">🔁 Un altro orale</button>'
++'<button class="ora-go2" onclick="nccOraleIndietro()">Fine</button>';
+return h;
+}
+
+/* ── disegno: la pagina e' una sola, cambia il contenuto ── */
+/* piano: stessa prova, compare solo la risposta (niente pagina che rientra da destra) */
+function disegna(nuova,piano){
+var h=(!S||S.pausa)?htmlInizio():(S.fine?htmlFine():htmlProva());
+var b=corpoEl();
+if(b&&pag()===PAG&&!nuova){
+b.innerHTML=h;
+if(piano){b.classList.remove('ora-entra');}
+else{b.scrollTop=0;b.classList.remove('ora-entra');void b.offsetWidth;b.classList.add('ora-entra');}
+}else{
+nccPagina(PAG,TITOLO,h,'nccOraleIndietro()');
+}
+orologio();
+}
+function ridotto(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
+/* dopo «Controlla»: se la risposta resta nascosta sotto i voti (telefono piccolo), la porto su */
+function allaRisposta(){
+try{
+var b=corpoEl();if(!b)return;
+var r=b.querySelector('.ora-risp'),f=b.querySelector('.ora-fondo');if(!r)return;
+var vb=b.getBoundingClientRect(),rr=r.getBoundingClientRect();
+if(vb.bottom-(f?f.offsetHeight:0)-rr.top>=140)return;
+var dove=Math.max(0,b.scrollTop+(rr.top-vb.top)-10);
+try{b.scrollTo({top:dove,behavior:ridotto()?'auto':'smooth'});}catch(e){b.scrollTop=dove;}
+}catch(e){}
+}
+function orologio(){
+clearInterval(TM);TM=0;
+if(!S||S.fine||S.pausa)return;
+S.last=Date.now();
+TM=setInterval(function(){
+try{
+if(pag()!==PAG||!S||S.fine||S.pausa){clearInterval(TM);TM=0;sospendi();return;}
+tic();
+if(document.hidden)return;
+var t=document.getElementById('oraT');if(t)t.textContent='⏱ '+mmss(secondi());
+}catch(e){}
+},1000);
+}
+window.nccOrale=function(){
+try{
+if(S&&S.fine)S=null;           /* finito: si riparte dall'inizio */
+sospendi();                    /* a meta': prima la pagina con «Riprendi» */
+disegna(true);vibra();
+}catch(e){}
+};
+window.nccOraleSes=function(s){try{SCELTA=s||'';disegna();vibra();}catch(e){}};
+window.nccOraleInizia=function(){
+try{
+var n=prepara(SCELTA);
+if(!n){try{toast2('⚠️ Le domande degli orali non sono pronte');}catch(e){}return;}
+S=n;disegna();vibra();
+}catch(e){}
+};
+window.nccOraleRiprendi=function(){try{if(S&&!S.fine){S.pausa=0;S.last=Date.now();disegna();vibra();}}catch(e){}};
+window.nccOraleControlla=function(){try{if(!S||S.fine||S.pausa||S.mostra)return;tic();S.mostra=true;disegna(false,true);vibra();
+requestAnimationFrame(allaRisposta);}catch(e){}};
+window.nccOraleVoto=function(v){
+try{
+if(!S||S.fine||S.pausa||!S.mostra||!VOTI[v])return;
+tic();
+var p=S.prove[S.i];p.v=v;ripasso(p);
+vibra(v==='no'?'e':undefined);
+if(S.i<S.prove.length-1){S.i++;S.mostra=false;disegna();return;}
+S.fine=Date.now();
+var e=esito(),st=lgj('nccOrale',[])||[];
+st.push({t:S.fine,s:e.ok?1:0,d:secondi(),ses:S.ses,p:S.prove.map(function(q){return {x:q.x,k:q.k,v:q.v};})});
+lsj('nccOrale',st.slice(-30));
+disegna();
+if(e.ok){try{if(typeof confetti==='function')confetti();}catch(x){}}
+}catch(e){}
+};
+/* quello che va male resta da ripassare; quello che va bene esce. Il ✓ non cancella la voce: la segna
+   (v:'si') con la sua ora, cosi' passando dal cloud vince anche sull'altro dispositivo. n = le volte andata male */
+function ripasso(p){
+try{
+var r=lgj('nccOraleRip',{})||{},g=r[p.x]||(r[p.x]={}),x=g[p.k];
+if(p.v==='si'){if(x)g[p.k]={t:Date.now(),v:'si',n:x.n||0};else return;}
+else g[p.k]={t:Date.now(),v:p.v,n:((x&&x.n)||0)+1};
+lsj('nccOraleRip',r);
+}catch(e){}
+}
+/* quello che resta da ripassare (per il ripasso unico): [{x,k,t,v,n}], i piu' vecchi prima */
+window.nccOraleDaRipassare=function(){
+var out=[];
+try{var r=lgj('nccOraleRip',{})||{};
+['perc','pz','reg'].forEach(function(x){var g=r[x]||{};Object.keys(g).forEach(function(k){var e=g[k];
+if(e&&e.v&&e.v!=='si')out.push({x:x,k:k,t:+e.t||0,v:e.v,n:+e.n||1});});});
+out.sort(function(a,b){return a.t-b.t;});}catch(e){}
+return out;
+};
+window.nccOraleIndietro=function(){
+try{
+clearInterval(TM);TM=0;
+if(S&&S.fine)S=null;else sospendi();
+nccSez('quiz');
+var s=document.getElementById('scnOv');
+if(s){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+}catch(e){}
+};
+/* il tasto del telefono: torni alla pagina Quiz (l'orale a meta' resta: lo riprendi) */
+window.addEventListener('popstate',function(){
+try{
+if(pag()!==PAG)return;
+requestAnimationFrame(function(){try{
+var s=document.getElementById('scnOv');
+if(!s||s.getAttribute('data-p')!==PAG)return;
+if(!(s.classList.contains('fuori')||!s.classList.contains('dentro')))return;
+try{s.remove();}catch(e){}
+clearInterval(TM);TM=0;if(S&&S.fine)S=null;else sospendi();
+nccSez('quiz');
+var n=document.getElementById('scnOv');
+if(n&&!n.classList.contains('dentro')){n.classList.add('sc-indietro');setTimeout(function(){try{n.classList.remove('sc-indietro');}catch(e){}},600);}
+}catch(e){}});
+}catch(e){}
+},true);
+
+/* ── dal risultato: studiare subito quello che e' andato male ── */
+function registra(id,fn){try{if(document.getElementById(id)&&window.nccOvApri&&!(window.nccOvInCima&&nccOvInCima(id)))nccOvApri(id,fn);}catch(e){}}
+var RIT=null;
+function apriMappa(r,nuovo){
+try{
+RIT={t:Date.now()};
+try{if(window.nccTopoDa)nccTopoDa(nuovo?'t0':'');}catch(e){}
+window.__nccTieniPagina=true;
+try{goTopografia();}catch(e){}
+setTimeout(function(){try{
+if(nuovo){openAdd();var t=document.getElementById('mRT');if(t&&!t.value)t.value=nuovo;}
+else{selectRoute(r);setMode('s');}}catch(e){}},320);
+var t0=Date.now();
+(function att(){try{
+if(document.body.classList.contains('on-topo')){window.__nccTieniPagina=false;
+setTimeout(function(){try{if(pag()===PAG)nccSezChiudi(true);}catch(e){}},0);return;}
+if(Date.now()-t0<1300){setTimeout(att,50);return;}
+window.__nccTieniPagina=false;RIT=null;
+}catch(e){}})();
+}catch(e){window.__nccTieniPagina=false;}
+}
+/* uscendo dalla mappa (‹, Annulla, tasto del telefono) torni al risultato dell'orale */
+var _rit=window.nccRitorno;
+window.nccRitorno=function(k){
+if(RIT&&k==='topo'){RIT=null;try{disegna(true);var s=document.getElementById('scnOv');
+if(s&&!s.classList.contains('dentro')){s.classList.add('sc-indietro');setTimeout(function(){try{s.classList.remove('sc-indietro');}catch(e){}},600);}
+return true;}catch(e){return false;}}
+return _rit?_rit(k):false;
+};
+document.addEventListener('click',function(ev){try{if(ev.target&&ev.target.closest&&ev.target.closest('#tabbar'))RIT=null;}catch(e){}},true);
+function nT(s){return String(s||'').replace(/\s*\(pag\.?\s*\d+\)\s*$/i,'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function aggiungi(p){
+try{
+var miei=(typeof routes!=='undefined'&&Array.isArray(routes))?routes:null;if(!miei)return null;
+var gia=miei.filter(function(r){return r&&r.pdf===p.id;})[0];if(gia)return gia;
+var nomi={},doc={};
+miei.forEach(function(r){if(r)nomi[nT(r.title)]=1;});
+(window.__PERCORSI_PDF__||[]).forEach(function(x){var k=nT(x.t);doc[k]=(doc[k]||0)+1;});
+var k=nT(p.t),t=(nomi[k]||doc[k]>1)?(p.t+' (pag. '+p.p+')'):p.t;
+var nr={id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:t,steps:p.s.slice(),pdf:p.id};if(p.a)nr.alt=p.a;
+routes.push(nr);
+try{if(window.nccMarkerAuto)nccMarkerAuto.avvia();}catch(e){}
+try{save();autoSave();}catch(e){}
+try{if(typeof renderMgr==='function')renderMgr();}catch(e){}
+try{if(typeof buildList==='function')buildList();}catch(e){}
+return nr;
+}catch(e){return null;}
+}
+function aggiungiPiazza(k){
+var m=M(),nomeP=(m.PZN&&m.PZN[k])||m.nome(k).toUpperCase();
+nccPopup({icona:'➕',titolo:'Aggiungi '+m.nome(k),
+testo:'Non è fra le piazze dell’app. Scrivi le vie che vi sboccano, una per riga: la piazza va fra le tue e la studi come le altre.',
+html:'<input class="es-in" id="oraPzN" type="text" autocomplete="off" spellcheck="false" value="'+E(nomeP)+'" aria-label="Nome della piazza">'
++'<textarea class="es-in ch-ta" id="oraPzV" rows="6" placeholder="Una via per riga" aria-label="Le vie"></textarea>'
++'<div class="au-err" id="oraPzE"></div>',
+azioni:[{t:'Aggiungi la piazza',stile:'pieno',subito:true,fn:function(){
+var n=((document.getElementById('oraPzN')||{}).value||'').trim().toUpperCase().replace(/\s+/g,' ');
+var v=((document.getElementById('oraPzV')||{}).value||'').split(/[\n,;]/).map(function(x){return x.trim().replace(/\s+/g,' ');}).filter(Boolean);
+var er=document.getElementById('oraPzE');
+function no(t){if(er){er.textContent=t;er.classList.remove('scuoti');void er.offsetWidth;er.classList.add('scuoti');}return false;}
+if(!n)return no('Scrivi il nome della piazza');
+if(!v.length)return no('Scrivi almeno una via');
+if(m.piazzaDi(m.luogo(n)))return no('Questa piazza c’è già');
+var u=[];try{u=JSON.parse(localStorage.getItem('pzUser')||'[]');if(!Array.isArray(u))u=[];}catch(e){u=[];}
+u.push({id:'pzU'+Date.now(),n:n,t:n.indexOf('LARGO')===0?'largo':(n.indexOf('PIAZZALE')===0?'piazzale':'piazza'),v:v});
+try{localStorage.setItem('pzUser',JSON.stringify(u));}catch(e){return no('Non sono riuscito a salvarla');}
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}
+try{toast2('✓ '+n+' aggiunta con '+v.length+(v.length===1?' via':' vie'));}catch(e){}
+setTimeout(function(){try{if(pag()===PAG)disegna();}catch(e){}},0);
+}},{t:'Annulla',stile:'vuoto'}]});
+setTimeout(function(){try{var t=document.getElementById('oraPzV');if(t)t.focus();}catch(e){}},420);
+}
+/* l'articolo delle Norme aperto da qui: ‹ lo chiude e sei di nuovo qui (non sull'indice delle norme) */
+var NM=null;
+function firmaDi(h){try{return h?(((h.querySelector('.nm-ti')||{}).textContent||'')+'|'+((h.querySelector('.nm-su')||{}).textContent||'')).trim():'';}catch(e){return '';}}
+function apriArticolo(id){
+try{
+nmArt(id);
+registra('nmOv',function(){NM=null;try{nmChiudi();}catch(e){var x=document.getElementById('nmOv');if(x)x.remove();}});
+var h=document.querySelector('#nmOv .nm-dx .nm-hd')||document.querySelector('#nmOv .nm-hd');
+NM={firma:firmaDi(h)};
+}catch(e){}
+}
+window.addEventListener('click',function(ev){
+try{
+if(!NM)return;
+var t=ev.target;if(!t||!t.closest)return;
+var x=t.closest('#nmOv .nm-x');
+if(!x){if(!document.getElementById('nmOv'))NM=null;return;}
+var hd=x.closest('.nm-hd');
+if(hd&&firmaDi(hd)===NM.firma){ev.stopPropagation();ev.preventDefault();NM=null;
+try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}}
+}catch(e){}
+},true);
+window.nccOraleFai=function(i,cosa){
+try{
+if(!S||!S.prove[i])return;
+var p=S.prove[i],m=M(),o=obj(p);vibra();
+if(cosa==='mappa'||cosa==='inv'){var s=m.stato(o),r=cosa==='inv'?s.mioInv:s.mio;if(r)apriMappa(r);return;}
+if(cosa==='aggiungi'||cosa==='aggiungiinv'){var s2=m.stato(o),lp=cosa==='aggiungiinv'?s2.libInv:s2.lib;if(!lp)return;
+var nr=aggiungi(lp);
+try{toast2(nr?'✓ Aggiunto ai tuoi percorsi · i marker li metto io':'⚠️ Non sono riuscito ad aggiungerlo');}catch(e){}
+disegna();return;}
+if(cosa==='nuovo'){apriMappa(null,(m.nome(o.a)+' - '+m.nome(o.b)).toUpperCase());return;}
+if(cosa==='piazza'){var q=m.piazzaDi(p.k);if(!q)return;
+try{pzApri(q.id);}catch(e){return;}
+registra('pzOv',function(){try{pzChiudi();}catch(e){var x=document.getElementById('pzOv');if(x)x.remove();}});return;}
+if(cosa==='aggpz'){aggiungiPiazza(p.k);return;}
+if(cosa==='regola'){
+var T=(m.TEMI||{})[p.k]||{},az=[];
+if(T.art)az.push({t:'Leggi l’articolo',stile:'pieno',fn:function(){apriArticolo(T.art);}});
+az.push({t:'Ho capito',stile:az.length?'vuoto':'pieno'});
+nccPopup({titolo:(T.ic?T.ic+' ':'')+(T.t||''),html:'<div class="ora-pop"><div class="ora-dom ora-reg ora-pq">«'+E(p.d||'')+'»</div>'+rispReg(p)+'</div>',azioni:az});
+try{var v=document.getElementById('popOv');if(v)v.classList.add('sp-ov');}catch(e){}
+return;}
+}catch(e){}
+};
+/* con la tastiera: Invio o spazio controllano, 1 2 3 votano (giusto, quasi, non lo sapevo) */
+document.addEventListener('keydown',function(e){
+try{
+if(e.metaKey||e.ctrlKey||e.altKey||e.defaultPrevented)return;
+if(pag()!==PAG||!S||S.fine||S.pausa||document.getElementById('popOv'))return;
+var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+if(!S.mostra&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();nccOraleControlla();return;}
+if(S.mostra){var v={'1':'si','2':'quasi','3':'no'}[e.key];if(v){e.preventDefault();e.stopPropagation();nccOraleVoto(v);}}
+}catch(x){}
+},true);
+/* la (i) in alto: cos'e' questa pagina */
+try{
+var _ni=window.nccInfo;
+window.nccInfo=function(k){
+if(k===PAG){try{nccPopup({icona:'🎤',titolo:TITOLO,testo:'Come all’orale vero: due percorsi da dire a voce, le confluenze di una piazza e una domanda sul regolamento, '
++'presi da quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026 (le più chieste escono più spesso; puoi scegliere una sessione). '
++'Rispondi a voce, poi tocca Controlla: vedi il tuo percorso o quello del libro, le vie della piazza, i punti da dire sul regolamento. '
++'Poi di’ tu com’è andata. Superato se non ne sbagli nessuna e al massimo una è incerta; quello che va male resta da ripassare.',
+azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){}return;}
+return _ni?_ni.apply(this,arguments):null;
+};
+}catch(e){}
+/* per i giri di prova */
+window.nccOraleProva=function(l){
+try{var m=M(),C=m.conti(),n=prepara('');if(!n)return false;
+(l||[]).forEach(function(k,i){var p=n.prove[i];if(!p||!k)return;p.k=k;
+if(p.x==='reg'){var r=C.R[k];p.d=(r&&r.dom[0])?r.dom[0].d:'';}});
+lsj('nccOraleUlt',{perc:[n.prove[0].k,n.prove[1].k],pz:[n.prove[2].k],reg:[n.prove[3].k]});
+S=n;disegna();return true;}catch(e){return false;}
+};
+window.nccOraleStato=function(){return S?{i:S.i,mostra:S.mostra,fine:!!S.fine,pausa:!!S.pausa,sec:secondi(),ses:S.ses,prove:S.prove.map(function(p){return {x:p.x,k:p.k,d:p.d||'',v:p.v};})}:null;};
 })();
