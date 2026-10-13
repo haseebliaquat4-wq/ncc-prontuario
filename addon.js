@@ -3267,7 +3267,7 @@ box-shadow:0 1px 0 rgba(0,0,0,.03);}
 .sp-seg{margin-top:14px;}
 .sp-segb{border:none;background:transparent;color:var(--ios-lbl2);font:inherit;font-size:14px;font-weight:700;padding:6px 0;
 cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.sp-segf .sp-segn{display:block;width:100%;box-sizing:border-box;min-height:78px;resize:vertical;margin:0 0 8px;font-size:15px;line-height:1.4;}
+.sp-segf .sp-segn{display:block;width:100%;box-sizing:border-box;min-height:78px;resize:vertical;margin:0 0 8px;font-size:16px;line-height:1.4;}   /* (v161) 16: sotto, iPhone ingrandisce la pagina */
 .sp-sega{display:flex;gap:8px;justify-content:flex-end;}
 .sp-segv,.sp-segs{border:none;border-radius:999px;font:inherit;font-size:14.5px;font-weight:800;padding:9px 16px;cursor:pointer;
 -webkit-tap-highlight-color:transparent;transition:transform .12s;}
@@ -3370,6 +3370,31 @@ animation:fu .25s ease both;}
 .ora-com .ora-sug{display:block;margin-top:3px;text-transform:none;letter-spacing:0;font-size:14px;font-weight:700;color:var(--a,#2447D6);}
 .ora-v.sug{border-color:var(--a,#2447D6);box-shadow:inset 0 0 0 1px var(--a,#2447D6);}
 @media (prefers-reduced-motion:reduce){.ora-rec,.ora-asc{animation:none;}}
+
+/* ══ (v161) la caccia ai bug ══ */
+/* iPhone ingrandisce la pagina quando tocchi una casella col testo sotto i 16 punti (e resta ingrandita) */
+/* ...e la casella puo' stringersi: col testo piu' grande, sul telefono piccolo spingeva fuori dallo schermo il tasto «↕ Nome» */
+.finp,#mgrF{font-size:16px;min-width:0;}
+/* i fogli dal basso piu' alti dello schermo (telefono piccolo, telefono girato) scorrono invece di uscire in alto */
+.pop-box{max-height:calc(100% - 8px - env(safe-area-inset-top,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+/* ...e (se lo schermo e' abbastanza alto) i tasti restano in vista in fondo, il testo ci scorre sotto.
+   Non nei fogli con le caselle da scrivere (nome, email, le vie): li' i tasti fermi coprivano la casella */
+@media (min-height:500px){
+.pop-box:not(.pop-campi)>.pop-az{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));z-index:1;background:var(--ios-card);
+padding-top:10px;margin-top:-10px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));margin-bottom:calc(-20px - env(safe-area-inset-bottom,0px));}
+.pop-box:not(.pop-campi)>.pop-az::before{content:'';position:absolute;left:0;right:0;top:-18px;height:18px;pointer-events:none;
+background:linear-gradient(to bottom,rgba(0,0,0,0),var(--ios-card));}
+}
+/* telefono girato, sulla mappa: il pannello non ci sta tutto e i tasti ◀ 👁️ ▶ finivano sotto la barra in basso.
+   Ora il pannello scorre e i tasti restano attaccati in fondo */
+@media (max-height:500px) and (orientation:landscape){
+/* (la via in cui sei resta sopra i tasti: quando scorre per mostrarla, si ferma prima dei tasti) */
+body.on-topo:not(.topo-full) #panel{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:calc(var(--pfh,64px) + 6px);}
+body.on-topo:not(.topo-full) #panel #sList{flex:0 0 auto;max-height:none;overflow:visible;}
+body.on-topo:not(.topo-full) #panel .pfoot{position:sticky;bottom:0;z-index:2;background:var(--ph,var(--ios-card));}
+/* (il pannello e' stretto: la via coperta del Cieco non spinge fuori dallo schermo il 📍 della riga) */
+body.on-topo:not(.topo-full) #panel .sr.act .sname.hid{min-width:0;}
+}
 `;
 }catch(e){}
 })();
@@ -5671,15 +5696,40 @@ startQuiz(deck,{mode:'study',title:title,scheda:true});
 try{
 if(!('serviceWorker' in navigator))return;
 var reloading=false;
-function reloadOnce(tag){
+/* (v161) si ricarica solo dalla Home, senza niente aperto sopra e senza scrivere: a meta' di un quiz, dell'orale
+   o di una nota aspetta che torni alla Home. La prima volta in assoluto (il service worker che si installa) niente */
+function libero(){
+try{
+var h=document.getElementById('homeScreen');if(!h||getComputedStyle(h).display==='none')return false;
+if(document.getElementById('popOv')||document.getElementById('scnOv'))return false;
+var q=document.getElementById('quizApp');if(q&&q.classList.contains('open'))return false;
+if(document.body.classList.contains('on-topo'))return false;
+var a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return false;
+var e=document.elementFromPoint(Math.round(innerWidth/2),Math.round(innerHeight*0.45));
+return !!(e&&h.contains(e));
+}catch(e){return false;}
+}
+function ricarica(){
 if(reloading)return;reloading=true;
 try{toast2('⬆️ Nuova versione: aggiorno…');}catch(e){}
 setTimeout(function(){try{location.reload();}catch(e){}},700);
 }
-navigator.serviceWorker.addEventListener('controllerchange',function(){reloadOnce('ctrl');});
+var attesa=false;
+function reloadOnce(tag){
+if(reloading)return;
+if(libero()){ricarica();return;}
+if(attesa)return;attesa=true;
+try{toast2('⬆️ C’è una versione nuova: la metto quando torni alla Home',3400);}catch(e){}
+(function aspetta(){if(reloading)return;if(libero()){ricarica();return;}setTimeout(aspetta,1500);})();
+}
+var primaVolta=!navigator.serviceWorker.controller,ctrlVisti=0,vPrima=null;
+window.nccAggiornaLibero=libero;   /* per i giri di prova */
+navigator.serviceWorker.addEventListener('controllerchange',function(){ctrlVisti++;if(primaVolta&&ctrlVisti===1)return;reloadOnce('ctrl');});
 navigator.serviceWorker.addEventListener('message',function(ev){
 try{if(ev.data&&ev.data.t==='sw-updated'&&sessionStorage.getItem('swv')!==ev.data.v){
-sessionStorage.setItem('swv',ev.data.v);reloadOnce('msg');}}catch(e){}
+sessionStorage.setItem('swv',ev.data.v);
+if(primaVolta&&(vPrima===null||vPrima===ev.data.v)){vPrima=ev.data.v;return;}
+reloadOnce('msg');}}catch(e){}
 });
 function checkUpdate(){try{navigator.serviceWorker.getRegistration().then(function(r){if(r)r.update();});}catch(e){}}
 setTimeout(checkUpdate,2500);
@@ -8822,7 +8872,8 @@ var CHIAVI=['routes','coords','qStats','done','qtStats','studyProg','qExamHist',
 'promosse','chronSusp','rDoneLog','mixRound','errBal','coldHist','checkupHist',
 'modelBias','modelN','coldDone','checkupDone','lapDone','azzerato2026','seenIds','wrongN',
 'pzUser','pzEdit','pzCoords','pzSR','pzStats','pzDoneLog','pzDel','pzMod',
-'nmStats','nmSR','pescaStoria','dmStats','mmStats','pencilGeo'];
+'nmStats','nmSR','pescaStoria','dmStats','mmStats','pencilGeo',
+'nomeUtente','nomeTs','dailyGoal','streak','crescitaLog','srMul','mission'];   /* (v161) */
 
 function raccogli(){
 var d={},n=0;
@@ -8853,7 +8904,7 @@ chiavi:r.quante,
 dati:r.dati
 };
 var testo=JSON.stringify(pacco);
-var nome='ncc-copia-'+new Date().toISOString().slice(0,10)+'.json';
+var nome='ncc-copia-'+(function(d){return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();})(new Date())+'.json';   /* (v161) */
 var blob=new Blob([testo],{type:'application/json'});
 var url=URL.createObjectURL(blob);
 var a=document.createElement('a');
@@ -9373,7 +9424,7 @@ return {giorni:giorni,oggi:fatteOggi,salva:Math.max(0,5-fatteOggi)};
 function crescita(){
 try{
 var st=L('crescitaLog',{})||{};
-var oggi=new Date().toISOString().slice(0,10);
+var oggi=(function(d){return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();})(new Date());   /* (v161) */
 var c=conta();
 st[oggi]=c.dom;
 /* tengo 30 giorni */
@@ -9725,7 +9776,7 @@ try{alert('⚠️ Non sono riuscito ad aggiungerli.');}catch(e2){}
 'use strict';
 function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
 function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function oggi(){return new Date().toISOString().slice(0,10);}
+function oggi(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}   /* (v161) il giorno di qui, non quello di Greenwich */
 
 /* sceglie una volta al giorno e poi non cambia più */
 function delGiorno(chiave,candidati,idDi){
@@ -9922,7 +9973,7 @@ return t;
 'use strict';
 function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
 function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function oggi(){return new Date().toISOString().slice(0,10);}
+function oggi(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}   /* (v161) il giorno di qui, non quello di Greenwich */
 function fermo(chiave,cand,idDi){
 try{
 if(!cand||!cand.length)return null;
@@ -10679,9 +10730,9 @@ return [
 {t:'IL MIO ESAME',v:[
 {ic:'\ud83d\udc64',c:C.grigio,n:'Il tuo nome',d:(function(){try{return localStorage.getItem('nomeUtente')||'Aggiungi';}catch(e){return 'Aggiungi';}})(),f:'nccPfNome'},
 {ic:'\ud83c\udfaf',c:C.rosso,n:'Data dell\u2019esame',
- d:esame?(dataIt(esame)+(ge!==null?(' \u00b7 fra '+ge+' giorni'):'')):'Non impostata',f:'setExamDate'},
+ d:esame?(dataIt(esame)+(ge!==null?(' \u00b7 '+(window.nccFra?nccFra(ge):'fra '+ge+' giorni')):'')):'Non impostata',f:'setExamDate'},
 {ic:'\ud83c\udfc1',c:C.arancio,n:'Traguardo',
- d:trag?(dataIt(trag)+(gt!==null?(' \u00b7 fra '+gt+' giorni'):'')):'Non impostato',f:'setTargetDate'}
+ d:trag?(dataIt(trag)+(gt!==null?(' \u00b7 '+(window.nccFra?nccFra(gt):'fra '+gt+' giorni')):'')):'Non impostato',f:'setTargetDate'}
 ]},
 {t:'I MIEI DATI',v:[
 {ic:'\ud83d\udcca',c:C.viola,n:'Statistiche vie',f:'openStats'},
@@ -11740,8 +11791,8 @@ return [
 {k:'pz',t:'Piazze',s:'Le vie che vi sboccano',c:'#30B0C7',b:fr(n.pz||0,n.pzTot),w:'sai',fn:'nccSezPz'},
 {k:'luoghi',t:'Cosa & Dove',s:'I luoghi con le schede',c:'#FF2D55',b:fr(n.luoghi||0,n.luoghiTot),w:'visti',fn:'openStudy'},
 {k:'norme',t:'Norme e tariffe',s:'Regolamento e prontuario',c:'#5856D6',b:fr(n.norme||0,n.normeTot),w:'sai',fn:'nccSezNorme'},
-{k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?'fra '+n.esame+' giorni':'data passata'):'Imposta la data'),
- c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?String(n.esame):''),w:(n.esame===1?'giorno':'giorni'),fn:'nccHmEsame'},
+{k:'esame',t:'Il mio esame',s:(n.esame!=null?(n.esame>=0?(window.nccFra?nccFra(n.esame,true):'fra '+n.esame+' giorni'):'data passata'):'Imposta la data'),   /* (v161) */
+ c:'#FF3B30',b:(n.esame!=null&&n.esame>=0?(n.esame===0?'Oggi':String(n.esame)):''),w:(n.esame===0?'':(n.esame===1?'giorno':'giorni')),fn:'nccHmEsame'},
 {k:'stat',t:'Statistiche',s:'Piano, progressi, costanza',c:'#AF52DE',
  b:(n.striscia?'\ud83d\udd25 '+n.striscia:''),w:(n.striscia===1?'giorno':'giorni'),fn:'nccStat'},
 /* (v149) quello che hanno chiesto agli orali: un riquadro largo in fondo */
@@ -12788,8 +12839,13 @@ if(a&&a.subito){var resta=false;try{resta=(a.fn()===false);}catch(e){}if(!resta)
 v.querySelector('.pop-velo').onclick=function(){chiudi(o.annulla);};
 /* trascinando giu' si chiude */
 var box=v.querySelector('.pop-box'),y0=null,dy=0;
-box.addEventListener('touchstart',function(e){y0=e.touches[0].clientY;dy=0;box.style.transition='none';},{passive:true});
-box.addEventListener('touchmove',function(e){if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);
+/* (v161) dentro una parte che scorre, tornare su col dito scorre e basta: il foglio si trascina solo da in cima */
+var sc=null;
+function scorre(t){try{for(var x=t;x&&x!==v;x=x.parentElement){if(x.scrollHeight>x.clientHeight+2){var oy=getComputedStyle(x).overflowY;if(oy==='auto'||oy==='scroll')return x;}}}catch(e){}return null;}
+box.addEventListener('touchstart',function(e){sc=scorre(e.target);if(sc&&sc.scrollTop>0){y0=null;return;}y0=e.touches[0].clientY;dy=0;box.style.transition='none';},{passive:true});
+box.addEventListener('touchmove',function(e){if(y0===null)return;
+if(sc&&sc.scrollTop>0){box.style.transition='';box.style.transform='';y0=null;return;}
+dy=Math.max(0,e.touches[0].clientY-y0);
 box.style.transform='translateY('+dy+'px)';},{passive:true});
 box.addEventListener('touchend',function(){if(y0===null)return;box.style.transition='';
 if(dy>90)chiudi(o.annulla);else box.style.transform='';y0=null;},{passive:true});
@@ -13057,7 +13113,7 @@ o.mediaErr=media(ult.map(function(x){return x.err||0;}));o.nUlt=ult.length;
 try{o.errTot=Object.keys(qtStats.err||{}).length;}catch(e){o.errTot=0;}
 var st=L('streak',null);o.striscia=(st&&st.n)||0;
 o.sett=[];o.tot7=0;
-for(var i=6;i>=0;i--){var d=new Date(Date.now()-i*864e5),n=+daily[chiave(d)]||0;
+for(var i=6;i>=0;i--){var d0=new Date(),d=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()-i,12),n=+daily[chiave(d)]||0;   /* (v161) */
 o.sett.push({g:['D','L','M','M','G','V','S'][d.getDay()],n:n,oggi:i===0});o.tot7+=n;}
 try{var m=studentModel();SUBS=(m&&m.subs)?m.subs.slice():[];var s=0,t=0;
 SUBS.forEach(function(x){t+=x.n||0;s+=Math.round((x.n||0)*(x.m||0)/100);});o.sai=t?Math.round(s/t*100):0;}catch(e){SUBS=[];}
@@ -13193,7 +13249,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk','nccSpSegn'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate */
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk','nccSpSegn','nccGiorni'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate; (v161) i giorni di studio */
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -13235,6 +13291,10 @@ if(k==='nccOrale'){try{var sa=JSON.parse(loc),sb=JSON.parse(cl);if(!Array.isArra
 var vis={},tut=[];sa.concat(sb).forEach(function(x){if(x&&x.t&&!vis[x.t]){vis[x.t]=1;tut.push(x);}});
 tut.sort(function(x,y){return x.t-y.t;});tut=tut.slice(-30);
 if(tut.length!==sa.length||tut.some(function(x,i){return sa[i].t!==x.t;})){localStorage.setItem(k,JSON.stringify(tut));n++;}}catch(e){}return;}
+/* (v161) i giorni in cui hai aperto l'app: si sommano (gli ultimi 400), la striscia si ricalcola dall'unione */
+if(k==='nccGiorni'){try{var ga=JSON.parse(loc),gb=JSON.parse(cl);if(!Array.isArray(ga)||!Array.isArray(gb))return;
+var gu=ga.concat(gb).filter(function(x,i,l){return typeof x==='string'&&l.indexOf(x)===i;}).sort().slice(-400);
+if(gu.join()!==ga.slice().sort().join()){localStorage.setItem(k,JSON.stringify(gu));n++;}}catch(e){}return;}
 if(k==='nccOraleRip'){try{var ra=JSON.parse(loc),rb=JSON.parse(cl),cr=0;if(!ra||!rb||typeof ra!=='object'||typeof rb!=='object')return;
 Object.keys(rb).forEach(function(g){var B2=rb[g];if(!B2||typeof B2!=='object')return;var A2=ra[g]||(ra[g]={});
 Object.keys(B2).forEach(function(id){var y=B2[id],x=A2[id];if(!y||typeof y!=='object')return;
@@ -13867,7 +13927,9 @@ qStartNew=function(){
 buildQuiz();
 var v=viste(),items=QUIZ_ALL.filter(function(it){return !v[it.id];});
 if(!items.length){var n=nuovoGiro();festa(n,QUIZ_ALL.length);items=QUIZ_ALL.slice();}
-startQuiz(qShuffle(items.slice()).slice(0,30),{mode:'study',title:'Domande nuove'});
+var _k=window.nccChiaveDomanda,_c={},_o=[];   /* (v161) le domande doppie (stesso testo e risposte) contano una volta: si pesca la prossima */
+qShuffle(items.slice()).forEach(function(it){if(_o.length>=30||!it)return;var k=_k?_k(it):it.id;if(_c[k])return;_c[k]=1;_o.push(it);});
+startQuiz(_o,{mode:'study',title:'Domande nuove'});
 };
 }catch(e){}
 /* a fine sessione: se il giro e' completo, parte il prossimo */
@@ -19614,7 +19676,7 @@ return h+'</ol>'+sentito(p);
 function riassunto(V){
 if(!V.tot)return '';
 var t=V.ok===V.tot?('Hai detto tutte le '+V.tot+' vie'+(V.ord?', in ordine':'')):
-('Hai detto <b>'+(V.ok+V.fp)+' vie su '+V.tot+'</b>'+(V.fp?' · '+V.fp+' fuori posto':''));
+('Hai detto <b>'+(V.ok+V.fp)+((V.ok+V.fp)===1?' via':' vie')+' su '+V.tot+'</b>'+(V.fp?' · '+V.fp+' fuori posto':''));
 return '<div class="ora-vsum '+(V.ok===V.tot?'tutte':'')+'">🎙 '+t+'</div>';
 }
 function sentito(p){
@@ -20247,7 +20309,8 @@ function elenca(l,max){max=max||2;var a=l.slice(0,max).join(', ');return l.lengt
 function da(t){
 if(!t||t<1577836800000)return 'Da tempo';
 var o=oggi0();if(t>=o)return 'Da oggi';
-var g=Math.ceil((o-t)/GIORNO);return g<=1?'Da ieri':'Da '+g+' giorni';
+var d=new Date(t),g=Math.round((o-new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime())/GIORNO);   /* (v161) col calendario: il cambio dell'ora non sposta il giorno */
+return g<=1?'Da ieri':'Da '+g+' giorni';
 }
 
 /* ── le vie: quando una via sbagliata torna giusta nel Quiz vie ── */
@@ -20601,4 +20664,296 @@ window.nmQuiz.__rip=true;
 }catch(e){}
 }
 setTimeout(aggancia,4800);   /* dopo chi lo avvolge per il tasto indietro (4,5 s) */
+})();
+/* ═══════════════════════════════════════════════════
+   🐞 LA CACCIA AI BUG (v161)
+   · la striscia «giorni di fila»: il giorno dopo il cambio dell'ora (25 o 23 ore) non torna piu' a 1, e conta
+     anche i giorni in cui l'app viene ripresa dal sottofondo senza ricaricarsi (iPhone la tiene aperta)
+   · la Home si aggiorna riprendendo l'app, a mezzanotte e quando cambia il saluto: prima restava quella di ieri
+     (Buonasera la mattina, il ripasso e il coach vecchi)
+   · «Percorsi gemelli» (un consiglio del coach): ogni via una volta sola e il risultato tenuto finche' i percorsi
+     non cambiano. Prima, con i 208 percorsi del libro, 33 mila confronti a ogni ritorno alla Home
+   · la scheda del coach vecchia, nascosta, non si calcola piu' a ogni ritorno alla Home
+   · i singolari: «1 domanda», «1 percorso», «fra 1 giorno», «1 marker rimosso», «C'e' 1 via doppia»…
+     anche nelle scritte del nucleo, che qui non si toccano: le sistema chi le mostra
+   · la data dell'esame: «oggi», «domani», «3 giorni fa» (prima «fra 0 giorni», «fra 1 giorni», «fra -3 giorni»)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function lgj(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function lsj(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+/* la mezzanotte di oggi (o di un altro giorno): col calendario, non togliendo 24 ore */
+function mezzanotte(piu){var d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate()+(piu||0)).getTime();}
+
+/* ── la striscia ──
+   I giorni in cui hai aperto l'app (nccGiorni, gli ultimi 400) viaggiano col cloud e si sommano fra i dispositivi:
+   la striscia sono i giorni di fila fino a oggi, su qualunque dispositivo. Prima ogni dispositivo contava i suoi e,
+   passando dal cloud, vinceva l'ultimo aperto: iPhone un giorno e iPad il giorno dopo la riportavano a 1 */
+function giornoDi(t){var d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+function diFila(set,t0){var n=0,d=new Date(t0);while(n<1000&&set[giornoDi(d.getTime())]){n++;d=new Date(d.getFullYear(),d.getMonth(),d.getDate()-1);}return n;}
+var IO=false;   /* le scritture fatte da qui */
+function scrivi(k,v){IO=true;try{return lsj(k,v);}finally{IO=false;}}
+function giorniSalvati(){var g=lgj('nccGiorni',null);return Array.isArray(g)?g.filter(function(x){return typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x);}):null;}
+function salvaStriscia(n,last){
+var s=lgj('streak',null);
+if(s&&s.n===n&&s.last===last)return;
+scrivi('streak',{n:n,last:last});
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}
+}
+function striscia(){
+try{
+var oggi=mezzanotte(),s=lgj('streak',null),g=giorniSalvati();
+if(!g){   /* la prima volta: i giorni li ricavo dalla striscia di prima */
+g=[];
+if(s&&s.n>0&&(s.last===oggi||s.last===mezzanotte(-1))){var d=new Date(s.last);
+for(var i=0;i<s.n&&i<400;i++)g.push(giornoDi(new Date(d.getFullYear(),d.getMonth(),d.getDate()-i).getTime()));}
+}
+var k=giornoDi(oggi);
+if(g.indexOf(k)<0||!lgj('nccGiorni',null)){
+if(g.indexOf(k)<0)g.push(k);
+g=g.filter(function(x,i,a){return a.indexOf(x)===i;}).sort().slice(-400);
+scrivi('nccGiorni',g);
+}
+var set={};g.forEach(function(x){set[x]=1;});
+var n=diFila(set,oggi);
+salvaStriscia(n,oggi);
+return n;
+}catch(e){return 0;}
+}
+/* arrivati i giorni da un altro dispositivo (o la striscia vecchia dal cloud): la ricalcolo dall'unione */
+function ricalcola(){
+try{
+var g=giorniSalvati();if(!g)return;
+var set={};g.forEach(function(x){set[x]=1;});
+var oggi=mezzanotte(),ieri=mezzanotte(-1);
+var last=set[giornoDi(oggi)]?oggi:(set[giornoDi(ieri)]?ieri:0);
+if(!last)return;
+salvaStriscia(diFila(set,last),last);
+try{showStreak();}catch(e){}
+}catch(e){}
+}
+try{
+var _si=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k){
+var a=arguments;
+/* i giorni di studio si aggiungono e basta: una copia vecchia ripristinata (o il cloud) non ne toglie */
+try{if(!IO&&this===window.localStorage&&k==='nccGiorni'){
+var nuovi=JSON.parse(String(a[1])),vecchi=giorniSalvati()||[];
+if(Array.isArray(nuovi)&&vecchi.length){
+var u=vecchi.concat(nuovi.filter(function(x){return typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x);}))
+.filter(function(x,i,l){return l.indexOf(x)===i;}).sort().slice(-400);
+a=[k,JSON.stringify(u)];
+}}}catch(e){a=arguments;}
+var r=_si.apply(this,a);
+try{if(!IO&&this===window.localStorage&&(k==='nccGiorni'||k==='streak'))setTimeout(ricalcola,0);}catch(e){}
+return r;
+};
+}catch(e){}
+try{bumpStreak=striscia;}catch(e){}   /* il nucleo la chiama all'avvio */
+window.nccStriscia=striscia;
+function giornoCambiato(){
+try{var s=lgj('streak',null);if(s&&s.last===mezzanotte()&&(giorniSalvati()||[]).indexOf(giornoDi(mezzanotte()))>=0)return false;
+striscia();try{showStreak();}catch(e){}return true;}catch(e){return false;}
+}
+
+/* ── la Home: ripresa dal sottofondo, mezzanotte, il saluto ── */
+function rinfresca(){try{if(window.nccHomeRiquadri)nccHomeRiquadri();}catch(e){}}
+var GIORNO=mezzanotte(),FASCIA=fascia();
+function fascia(){var h=new Date().getHours();return h<13?0:(h<18?1:2);}   /* Buongiorno, Buon pomeriggio, Buonasera */
+document.addEventListener('visibilitychange',function(){
+try{if(document.hidden)return;giornoCambiato();GIORNO=mezzanotte();FASCIA=fascia();rinfresca();}catch(e){}
+});
+setInterval(function(){
+try{
+if(document.hidden)return;
+var g=mezzanotte(),f=fascia();
+if(g!==GIORNO){GIORNO=g;FASCIA=f;giornoCambiato();rinfresca();return;}
+if(f!==FASCIA){FASCIA=f;rinfresca();}
+}catch(e){}
+},60000);
+
+/* ── percorsi gemelli: un indice via → percorsi, e il risultato finche' i percorsi non cambiano ── */
+var GEM=null;
+function gemelli(){
+try{
+var R=(typeof routes!=='undefined'&&Array.isArray(routes))?routes:[];
+var firma=R.length+'|'+R.map(function(r){return r?(r.id+':'+(r.steps||[]).join('\u0001')):'';}).join('\u0002');
+if(GEM&&GEM.f===firma)return GEM.v;
+var idx={},out=[];
+R.forEach(function(r,i){if(!r||!r.steps)return;var vis={};r.steps.forEach(function(s){if(vis[s])return;vis[s]=1;(idx[s]=idx[s]||[]).push(i);});});
+R.forEach(function(a,i){
+if(!a||!a.steps)return;
+var cnt={},vis={};
+a.steps.forEach(function(s){if(vis[s])return;vis[s]=1;(idx[s]||[]).forEach(function(j){if(j>i)cnt[j]=(cnt[j]||0)+1;});});
+Object.keys(cnt).forEach(function(j){
+if(cnt[j]<5)return;
+var b=R[j],setB={};b.steps.forEach(function(s){setB[s]=1;});
+var common=a.steps.filter(function(s){return setB[s];});   /* come prima: le vie di a che stanno anche in b */
+if(common.length>=5)out.push({a:a,b:b,n:common.length,vie:common});
+});
+});
+var v=out.sort(function(x,y){return y.n-x.n;}).slice(0,6);
+GEM={f:firma,v:v};
+return v;
+}catch(e){return [];}
+}
+window.twinRoutes=gemelli;
+
+/* ── la scheda del coach vecchia sta nascosta sotto la Home nuova: non serve calcolarla ── */
+try{
+if(typeof renderCoach==='function'&&!renderCoach.__nascosta){
+var _rc=renderCoach;
+renderCoach=function(){
+try{var w=document.getElementById('coachCard');if(w&&getComputedStyle(w).display==='none')return;}catch(e){}
+return _rc.apply(this,arguments);
+};
+renderCoach.__nascosta=true;
+}
+}catch(e){}
+
+/* ── la data dell'esame (e del traguardo) a parole ── */
+window.nccFra=function(g,casa){
+g=+g;if(!isFinite(g))return '';
+if(g===0)return casa?'È oggi: in bocca al lupo!':'oggi';
+if(g===1)return 'domani';
+if(g===-1)return 'ieri';
+if(g<0)return (-g)+' giorni fa';
+return 'fra '+g+' giorni';
+};
+
+/* ── i singolari. Le scritte col numero davanti («1 domande», «fra 1 giorni»), anche quelle del nucleo:
+   le sistemo nel momento in cui compaiono (avvisi, finestre, pagine). Mai dentro le caselle, la mappa
+   o il testo che hai detto tu ── */
+var SING={domande:'domanda',errori:'errore',risposte:'risposta',vie:'via',percorsi:'percorso',piazze:'piazza',giorni:'giorno',
+volte:'volta',schede:'scheda',minuti:'minuto',secondi:'secondo',tappe:'tappa',luoghi:'luogo',simulazioni:'simulazione',
+prove:'prova',cose:'cosa',articoli:'articolo',argomenti:'argomento',ore:'ora',settimane:'settimana',orali:'orale',
+segnalazioni:'segnalazione',spiegazioni:'spiegazione',confluenze:'confluenza',ripassi:'ripasso',sessioni:'sessione'};
+var PART={salvate:'salvata',salvati:'salvato',aperti:'aperto',aperte:'aperta',duplicati:'duplicato',duplicate:'duplicata',
+rimossi:'rimosso',rimosse:'rimossa',mancate:'mancata',mancati:'mancato',azzerati:'azzerato',azzerate:'azzerata',
+nuove:'nuova',nuovi:'nuovo',viste:'vista',visti:'visto',trovati:'trovato',trovate:'trovata',sbagliate:'sbagliata',
+sbagliati:'sbagliato',fatte:'fatta',fatti:'fatto',rimaste:'rimasta',rimasti:'rimasto',imparate:'imparata',imparati:'imparato',
+segnate:'segnata',segnati:'segnato',segnalate:'segnalata',giuste:'giusta',giusti:'giusto',aggiunti:'aggiunto',aggiunte:'aggiunta',
+croniche:'cronica',uscite:'uscita',usciti:'uscito',passati:'passato',ripassate:'ripassata',ripassati:'ripassato',
+scadute:'scaduta',scaduti:'scaduto',dette:'detta',detti:'detto',corrette:'corretta',corretti:'corretto',
+consecutive:'consecutiva',consecutivi:'consecutivo',doppie:'doppia',doppi:'doppio',messi:'messo',messe:'messa',
+spostati:'spostato',spostate:'spostata',controllati:'controllato',controllate:'controllata',tolti:'tolto',tolte:'tolta',
+completati:'completato',completate:'completata',sicuri:'sicuro',sicure:'sicura',pronte:'pronta',pronti:'pronto'};
+var L='A-Za-zÀ-ÿ',SP='[ \\u00a0]';
+var RE=new RegExp('(^|[^0-9'+L+'.,/])1('+SP+')('+Object.keys(SING).join('|')+')(?!['+L+'])((?:'+SP+'(?:ancora|mai|già|non|più))*)(?:('+SP+')('+Object.keys(PART).join('|')+')(?!['+L+']))?','g');
+var REM=new RegExp('(^|[^0-9'+L+'.,/])1('+SP+')marker('+SP+')('+Object.keys(PART).join('|')+')(?!['+L+'])','g');
+function singolare(t){
+if(!t||t.indexOf('1')<0)return t;
+var n=t.replace(RE,function(m,a,s1,nome,mezzo,s2,part){return a+'1'+s1+SING[nome]+(mezzo||'')+(part?s2+PART[part]:'');});
+n=n.replace(REM,function(m,a,s1,s2,part){return a+'1'+s1+'marker'+s2+PART[part];});
+if(n!==t){
+n=n.replace(/\b[Cc]i sono 1([ \u00a0])/g,function(m,s){return (m.charAt(0)==='C'?'C':'c')+'’è 1'+s;})
+.replace(/\b[Ss]ono passati 1([ \u00a0])giorno\b/g,function(m,s){return (m.charAt(0)==='S'?'È':'è')+' passato 1'+s+'giorno';})
+.replace(/\b[Rr]estano( ~?)1([ \u00a0])/g,function(m,a,s){return (m.charAt(0)==='R'?'R':'r')+'esta'+a+'1'+s;})
+.replace(/\b[Mm]ancano 1([ \u00a0])/g,function(m,s){return (m.charAt(0)==='M'?'M':'m')+'anca 1'+s;});
+}
+return n;
+}
+window.nccSingolare=singolare;
+var SALTA='INPUT,TEXTAREA,SCRIPT,STYLE,CODE,PRE';
+function saltare(el){
+try{for(var x=el;x&&x!==document.body;x=x.parentElement){
+if(x.nodeType===1){if(SALTA.indexOf(x.tagName)>=0)return true;
+if(x.isContentEditable)return true;
+var c=x.classList;if(c&&(c.contains('leaflet-container')||c.contains('ora-sentito')||c.contains('ora-asc-x')))return true;}}}catch(e){}
+return false;
+}
+function sistemaTesto(nd){
+try{var t=nd.nodeValue;if(!t||t.indexOf('1')<0)return;
+var n=singolare(t);if(n!==t&&!saltare(nd.parentElement))nd.nodeValue=n;}catch(e){}
+}
+function sistemaNodo(nd){
+try{
+if(nd.nodeType===3){sistemaTesto(nd);return;}
+if(nd.nodeType!==1)return;
+var tc=nd.textContent;if(!tc||tc.indexOf('1')<0)return;
+if(saltare(nd))return;
+var w=document.createTreeWalker(nd,NodeFilter.SHOW_TEXT,null),x;
+while((x=w.nextNode()))sistemaTesto(x);
+/* «<b>1</b> domande»: il numero in grassetto e il nome nel testo dopo */
+var bs=nd.querySelectorAll?nd.querySelectorAll('b,strong,em,span'):[];
+for(var i=0;i<bs.length;i++){var b=bs[i];if((b.textContent||'').trim()!=='1')continue;
+var dopo=b.nextSibling;if(!dopo||dopo.nodeType!==3)continue;
+var m=dopo.nodeValue.match(/^([ \u00a0])([a-zà-ù]+)/);if(!m||!SING[m[2]])continue;
+dopo.nodeValue=dopo.nodeValue.replace(/^([ \u00a0])([a-zà-ù]+)/,function(z,s,p){return s+SING[p];});}
+}catch(e){}
+}
+try{
+var MO=new MutationObserver(function(lista){
+for(var i=0;i<lista.length;i++){
+var r=lista[i];
+if(r.type==='characterData'){sistemaTesto(r.target);continue;}
+for(var j=0;j<r.addedNodes.length;j++)sistemaNodo(r.addedNodes[j]);
+}
+});
+var parti=function(){try{MO.observe(document.body,{childList:true,subtree:true,characterData:true});sistemaNodo(document.body);}catch(e){}};
+if(document.body)parti();else document.addEventListener('DOMContentLoaded',parti);
+}catch(e){}
+
+/* ── col telefono girato, sulla mappa: il pannello scorre e i tasti ◀ 👁️ ▶ restano fermi in fondo (v161.css).
+   L'altezza dei tasti serve perche' la riga della via in cui sei si fermi sopra di loro, non dietro ── */
+try{
+var pfo=document.querySelector('#panel .pfoot'),pan=document.getElementById('panel');
+var GIR=window.matchMedia?window.matchMedia('(max-height:500px) and (orientation:landscape)'):null;
+var girato=function(){try{var c=document.body.classList;return !!(GIR&&GIR.matches&&c.contains('on-topo')&&!c.contains('topo-full'));}catch(e){return false;}};
+/* la riga della via in cui sei, in vista: cambiando modo i tasti in fondo cambiano altezza, e toccando la casella
+   del Quiz vie il pannello scorreva fino in fondo */
+var mostraVia=function(){try{if(!girato())return;var r=(typeof listRows!=='undefined'&&listRows&&typeof step==='number')?listRows[step]:null;
+if(r&&r.scrollIntoView)r.scrollIntoView({block:'nearest'});}catch(e){}};
+if(pfo&&pan&&window.ResizeObserver){
+new ResizeObserver(function(){try{pan.style.setProperty('--pfh',Math.round(pfo.getBoundingClientRect().height)+'px');requestAnimationFrame(mostraVia);}catch(e){}}).observe(pfo);
+}
+document.addEventListener('focusin',function(e){try{if(e.target&&e.target.id==='qa'&&girato()){requestAnimationFrame(mostraVia);setTimeout(mostraVia,150);}}catch(x){}},true);
+}catch(e){}
+
+/* ── «📍 Nessun marker»: l'avviso rosso compariva sopra Studio · Cieco · Quiz vie (a ogni tappa senza marker, per
+   2 secondi e mezzo: in quel momento i tre tasti non si toccavano). Ora sta subito sotto ── */
+try{
+if(typeof showNM==='function'&&!showNM.__sotto){
+var _snm=showNM;
+showNM=function(){
+var r=_snm.apply(this,arguments);
+try{var h=document.getElementById('nmHint'),sg=document.getElementById('segCtrl');
+if(h&&sg){var b=sg.getBoundingClientRect();h.style.top=(b.height>0&&b.bottom>0)?(Math.round(b.bottom+10)+'px'):'';}
+/* col pannello a destra (telefono girato, iPad) sta in mezzo alla mappa, non a cavallo del pannello */
+var pn=document.getElementById('panel'),pr=pn?pn.getBoundingClientRect():null;
+if(h)h.style.left=(pr&&pr.width>0&&pr.left>innerWidth*0.4&&pr.top<innerHeight*0.5)?(Math.round(pr.left/2)+'px'):'';}catch(e){}
+return r;
+};
+showNM.__sotto=true;
+}
+}catch(e){}
+
+/* ── i fogli con le caselle da scrivere (il tuo nome, email e password, le vie di una piazza, la nota di
+   «Non mi convince»): li' i tasti non restano fermi in fondo, su un telefono piccolo coprivano la casella.
+   Il foglio scorre come una pagina e la casella che tocchi si vede tutta ── */
+var CAMPI='input:not([type=hidden]):not([readonly]):not([disabled]),textarea:not([readonly]):not([disabled]),select';
+function segnaCampi(box){
+try{if(box&&box.classList&&!box.classList.contains('pop-campi')&&box.querySelector(CAMPI))box.classList.add('pop-campi');}catch(e){}
+}
+try{
+if(typeof window.nccPopup==='function'&&!window.nccPopup.__campi){
+var _pp=window.nccPopup;
+window.nccPopup=function(){
+var r=_pp.apply(this,arguments);
+try{segnaCampi(document.querySelector('#popOv .pop-box'));}catch(e){}
+return r;
+};
+window.nccPopup.__campi=true;
+}
+/* le caselle che arrivano dopo (la nota di «Non mi convince»): quando le tocchi */
+document.addEventListener('focusin',function(e){
+try{var t=e.target,b=(t&&t.closest)?t.closest('.pop-box'):null;
+if(b&&t.matches&&t.matches(CAMPI)&&!b.classList.contains('pop-campi')){
+b.classList.add('pop-campi');
+setTimeout(function(){try{if(document.activeElement!==t)return;
+var r=t.getBoundingClientRect(),q=b.getBoundingClientRect();
+if(r.bottom>q.bottom-8)b.scrollTop+=Math.min(r.bottom-q.bottom+8,r.top-q.top-8);else if(r.top<q.top+8)b.scrollTop-=q.top+8-r.top;}catch(x){}},30);
+}}catch(x){}
+},true);
+}catch(e){}
 })();
