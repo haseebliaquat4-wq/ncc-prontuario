@@ -3261,6 +3261,115 @@ box-shadow:0 1px 0 rgba(0,0,0,.03);}
    profondo, non su quello chiaro: non si leggeva), anche la sessione scelta dell'orale */
 .dark :is(.ora-go,.ora-ses .ch-chip.on){--a:#4462EE;--sac:#4462EE;}
 .berlina.dark :is(.ora-go,.ora-ses .ch-chip.on){--a:#8B6B21;--sac:#8B6B21;}
+
+/* ══ (v158) «Non mi convince» e il 📖 sulle risposte giuste ══ */
+/* nel foglio della spiegazione */
+.sp-seg{margin-top:14px;}
+.sp-segb{border:none;background:transparent;color:var(--ios-lbl2);font:inherit;font-size:14px;font-weight:700;padding:6px 0;
+cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.sp-segf .sp-segn{display:block;width:100%;box-sizing:border-box;min-height:78px;resize:vertical;margin:0 0 8px;font-size:15px;line-height:1.4;}
+.sp-sega{display:flex;gap:8px;justify-content:flex-end;}
+.sp-segv,.sp-segs{border:none;border-radius:999px;font:inherit;font-size:14.5px;font-weight:800;padding:9px 16px;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.sp-segv:active,.sp-segs:active,.sp-segx:active,.sg-x:active{transform:scale(.96);}
+.sp-segv{background:transparent;color:var(--ios-lbl2);}
+.sp-segs{background:#C62828;color:#fff;}
+.sp-segok{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(229,72,77,.09);
+font-size:14px;line-height:1.4;color:var(--ios-lbl);animation:fu .25s ease both;}
+.sp-segok span{flex:1;min-width:0;}
+.sp-segx,.sg-x{flex:0 0 auto;border:1.5px solid var(--ios-sep);background:var(--ios-card);border-radius:999px;color:var(--ios-lbl2);
+font:inherit;font-size:13px;font-weight:700;padding:5px 11px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+/* Profilo › Spiegazioni segnalate */
+#popOv .sg-l{text-align:left;max-height:min(46vh,420px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+margin:0 -4px 14px;padding:0 4px;display:flex;flex-direction:column;gap:10px;}
+.sg-r{position:relative;padding:12px 14px;border-radius:14px;background:var(--ios-bg);}
+.sg-q{font-size:14.5px;font-weight:700;line-height:1.35;color:var(--ios-lbl);padding-right:62px;
+display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.sg-g{margin-top:6px;font-size:13.5px;line-height:1.35;color:var(--ok,#129462);}
+.sg-n{margin-top:6px;font-size:13.5px;line-height:1.35;color:var(--ios-lbl2);font-style:italic;}
+.sg-r .sg-x{position:absolute;top:10px;right:10px;}
+/* la risposta giusta: «📖 Perché è giusta», piccolo, sotto l'ultima risposta e fuori dal flusso (niente si sposta) */
+#qRunAns{position:relative;}
+.sp-btn.giusta{position:absolute;left:0;right:0;width:auto;justify-content:center;gap:6px;margin:0;padding:7px 12px;
+border:none;background:transparent;}
+.sp-btn.giusta .sp-ic{flex:0 0 auto;width:auto;height:auto;background:transparent;font-size:16px;}
+.sp-btn.giusta .sp-tx{flex:0 0 auto;}
+.sp-btn.giusta .sp-tx b{font-size:14.5px;font-weight:800;}
+@supports (background:color-mix(in srgb,red 10%,blue)){.sp-btn.giusta,.sp-btn.giusta .sp-ic{background:transparent;}}
+/* il suo posto e' sotto lo schermo: galleggia in fondo, sopra le risposte (che a quel punto non si toccano piu') */
+.sp-btn.giusta.galleggia{position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100% - 32px);top:auto!important;
+bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;padding:9px 16px;border-radius:999px;border:1.5px solid var(--ios-sep);
+background:var(--ios-card);box-shadow:0 6px 22px rgba(0,0,0,.16);white-space:nowrap;}
+@supports (background:color-mix(in srgb,red 10%,blue)){.sp-btn.giusta.galleggia{background:var(--ios-card);}}
+/* nel Risultato: per le giuste un tasto piu' leggero */
+.sp-qac.giusta{margin-top:0;padding:6px 12px;border-color:transparent;color:var(--ios-lbl2);font-size:13.5px;font-weight:700;}
+.sp-qac.giusta .sp-ar{font-size:20px;}
+
+/* ══ (v159) l'orale: la domanda letta ad alta voce, e la sua scheda nelle Statistiche ══ */
+/* 🔊 in alto a destra nella prova: rilegge la domanda (mentre parla pulsa) */
+.ora-card{position:relative;}
+.ora-card .ora-num,.ora-card .ora-tipo{padding-right:48px;}
+.ora-ascolta{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;border:none;padding:0;margin:0;
+background:var(--ios-bg);color:var(--ios-lbl);font:inherit;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;
+cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .2s;}
+.ora-ascolta:active{transform:scale(.92);}
+.ora-ascolta.parla{background:rgba(36,71,214,.14);animation:oraParla 1.3s ease-in-out infinite;}
+.dark .ora-ascolta.parla{background:rgba(68,98,238,.28);}
+@keyframes oraParla{0%,100%{box-shadow:0 0 0 0 rgba(36,71,214,.32);}60%{box-shadow:0 0 0 8px rgba(36,71,214,0);}}
+/* l'interruttore della voce, in fondo alla pagina iniziale */
+.ora-vgr{margin-top:18px!important;}
+.ora-ult+.ora-vgr{margin-top:0!important;}
+.ora-voce .pf-n{white-space:normal;line-height:1.3;font-size:15.5px!important;}
+/* nelle Statistiche */
+.sx-fiam.sx-mic{background:#AF52DE;}
+.sx-ostr{display:flex;align-items:center;gap:5px;margin:0 0 4px;}
+.sx-ostr i{flex:1;max-width:30px;height:8px;border-radius:999px;background:#E8A33D;}
+.sx-ostr i.ok{background:var(--ok,#129462);}
+.sx-ostr em{font-style:normal;font-size:13px;font-weight:800;color:var(--ios-lbl2);margin-left:auto;padding-left:8px;white-space:nowrap;}
+.sx-osez{margin:16px 0 4px;font-size:11.5px;font-weight:800;letter-spacing:.07em;color:var(--ios-lbl2);}
+.sx-ol{margin:0 0 14px;}
+.sx-or{padding:10px 0;border-bottom:1px solid var(--ios-sep);}
+.sx-or:last-child{border-bottom:none;padding-bottom:2px;}
+.sx-ot{font-size:15.5px;font-weight:700;line-height:1.35;color:var(--ios-lbl);}
+.sx-od{margin-top:2px;font-size:13.5px;line-height:1.35;color:var(--ios-lbl2);}
+.sx-od b{color:#B45309;font-weight:800;}
+.dark .sx-od b{color:#F0A040;}
+.sx-go.sx-ogo{background:#7E3BA0;margin-top:16px;}
+.sx-ol+.sx-go.sx-ogo{margin-top:4px;}
+@media (prefers-reduced-motion:reduce){.ora-ascolta.parla{animation:none;}}
+
+/* ══ (v160, in prova) «Ascoltami e correggimi»: il percorso detto al telefono ══ */
+.ora-go2.ora-mic{border:1.5px solid var(--ios-sep);background:var(--ios-card);color:var(--a,#2447D6);}
+.ora-asc{margin:0 16px 12px;padding:14px 16px;border-radius:var(--t-r,20px);background:var(--ios-card);border:1.5px solid rgba(229,72,77,.4);
+animation:fu .25s ease both;}
+.ora-asc-t{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:var(--ios-lbl);}
+.ora-rec{flex:0 0 12px;width:12px;height:12px;border-radius:50%;background:#E5484D;animation:oraRec 1.1s ease-in-out infinite;}
+@keyframes oraRec{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.45);}60%{box-shadow:0 0 0 7px rgba(229,72,77,0);}}
+.ora-asc-x{margin-top:10px;min-height:46px;max-height:min(30vh,220px);overflow-y:auto;-webkit-overflow-scrolling:touch;font-size:16px;line-height:1.45;color:var(--ios-lbl);}
+.ora-asc-x span,.ora-asc-x em{font-style:normal;color:var(--ios-lbl2);}
+.ora-go.ora-fine{background:#C62828;}
+/* mentre ascolta la prova si stringe (via l'aiuto) e su un telefono piccolo quello che sente sta tutto sopra «Ho finito» */
+.ora-card.asc .ora-aiuto,.ora-card.asc .ora-nota{display:none;}
+@media (max-height:700px){.ora-asc-x{max-height:max(66px,calc(100vh - 480px));}}
+.ora-fasc .ora-go{margin-top:6px;}
+.ora-fasc .ora-go2{margin-bottom:8px;}
+/* la risposta con i segni: ✓ detta, ↕ fuori posto, ✗ non detta */
+.ora-vsum{margin:0 0 10px;padding:9px 12px;border-radius:12px;background:rgba(232,163,61,.15);font-size:14.5px;line-height:1.4;color:var(--ios-lbl);}
+.ora-vsum.tutte{background:rgba(18,148,98,.12);}
+.ora-vie.voce li b{margin-left:8px;font-size:15px;font-weight:900;}
+.ora-vie.voce li.ok b{color:var(--ok,#129462);}
+.ora-vie.voce li.fp b{color:#B45309;}
+.ora-vie.voce li.no{color:var(--ios-lbl2);}
+.ora-vie.voce li.no b{color:#C62828;}
+.dark .ora-vie.voce li.fp b{color:#F0A040;}
+.dark .ora-vie.voce li.no b{color:#FF6B6B;}
+.ora-sentito{margin-top:12px;font-size:14px;color:var(--ios-lbl2);}
+.ora-sentito summary{cursor:pointer;font-weight:700;-webkit-tap-highlight-color:transparent;}
+.ora-sentito p{margin:6px 0 0;line-height:1.45;color:var(--ios-lbl);}
+/* il voto che consiglia lui (lo dai sempre tu) */
+.ora-com .ora-sug{display:block;margin-top:3px;text-transform:none;letter-spacing:0;font-size:14px;font-weight:700;color:var(--a,#2447D6);}
+.ora-v.sug{border-color:var(--a,#2447D6);box-shadow:inset 0 0 0 1px var(--a,#2447D6);}
+@media (prefers-reduced-motion:reduce){.ora-rec,.ora-asc{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -10580,7 +10689,7 @@ return [
 {ic:'\ud83d\udcbe',c:C.verde,n:'Salva una copia',f:'nccSalvaCopia'},
 {ic:'\u21a9\ufe0f',c:C.grigio,n:'Ripristina',f:'nccRiprendiCopia'},
 {ic:'\u2601\ufe0f',c:C.blu,n:'Aggiorna dal cloud',d:(window.nccUltimoCloud?nccUltimoCloud():''),f:'nccAggiornaCloud'}
-]},
+].concat((function(){try{var n=window.nccSegnalateN?nccSegnalateN():0;return n?[{ic:'🚩',c:C.rosso,n:'Spiegazioni segnalate',d:n+(n===1?' da correggere':' da correggere'),f:'nccSegnalate'}]:[];}catch(e){return [];}})())},
 {t:'IMPOSTAZIONI',v:[
 {ic:'\ud83c\udf13',c:C.indaco,n:'Tema',d:(window.nccTemaAttuale?nccTemaAttuale():''),f:'nccPfTema'},
 {ic:'\ud83d\udd0a',c:C.rosa,n:'Suoni',s:acceso('sndOn'),f:'togSnd',k:'sndOn'},
@@ -11573,7 +11682,10 @@ return o;
 /* ── i suggerimenti: SOLO quello che sbagli ── */
 function suggerimenti(n){
 var s=[];
-if(n.erroriTot>0){
+if(n.rip&&n.rip.n>0){   /* (v159) tutto quello che c'e' da ripassare oggi, in una pagina sola */
+s.push({ic:'\ud83d\udd01',c:'#FF3B30',t:n.rip.n+(n.rip.n===1?' cosa da ripassare oggi':' cose da ripassare oggi'),
+d:n.rip.s||'',b:'Ripassa',fn:'nccRipasso'});
+}else if(n.erroriTot>0){
 s.push({ic:'\ud83d\udd01',c:'#FF3B30',
 t:n.erroriTot+(n.erroriTot===1?' errore da rivedere':' errori da rivedere'),
 d:(n.errori?(n.errori+' in scadenza oggi'):'')+(n.errori&&n.peggiore?' \u00b7 ':'')+(n.peggiore?('soprattutto '+n.peggiore):(n.errori?'':'Le domande che hai sbagliato')),
@@ -11586,7 +11698,7 @@ if(w.m<70&&w.n>=8)s.push({ic:'\ud83d\udd2c',c:'#FF9500',
 t:'Tema debole: '+String(w.label).split('\u00b7')[0].trim(),
 d:'Padronanza '+w.m+'% \u00b7 12 domande solo su questo',b:'Allenati',fn:'nccHmDebole'});}
 }catch(e){}
-if(n.vie>0)s.push({ic:'\ud83d\uddfa\ufe0f',c:'#007AFF',
+if(n.vie>0&&!(n.rip&&n.rip.n>0))s.push({ic:'\ud83d\uddfa\ufe0f',c:'#007AFF',   /* (v159) le vie sono nel ripasso */
 t:n.vie+(n.vie===1?' via sbagliata':' vie sbagliate'),
 d:'Nel Quiz vie dei percorsi',b:'Rivedi',fn:'openWrong'});
 if(!s.length)s.push({ic:'\u2705',c:'#34C759',t:'Nessun errore in sospeso',
@@ -12755,7 +12867,7 @@ norme:['\ud83d\udcdc','Norme e tariffe','Il regolamento comunale, articoli 38-61
 tariffe:['\ud83d\udcd0','Tariffe','Il prontuario: scatti, tariffe fisse, minimi per gli aeroporti.'],
 studio:['\ud83d\udccd','Cosa & Dove','I luoghi di Milano con le schede: leggi la scheda, poi rispondi dove si trova.'],
 profilo:['\ud83d\udc64','Profilo','Le impostazioni dell\u2019app e i tuoi dati: la data dell\u2019esame, il backup, i suoni, la voce.'],
-stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto e la tua costanza.'],
+stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto, la tua costanza e come vanno le simulazioni dell’orale.'],
 senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemmeno un marker. Tocca un percorso: si apre sulla mappa pronto per posizionarli.'],
 dubbi:['\u2753','Marker da controllare','I marker li mette l\u2019app cercando le vie su OpenStreetMap, solo vicino alle tappe accanto. Il punto di domanda vuol dire che quella via non l\u2019ha trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso e sistemalo: trascina il marker nel punto giusto, oppure toccalo e scegli \u00ab\u00c8 giusto qui\u00bb.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
@@ -12990,6 +13102,7 @@ o.sett.forEach(function(x){
 h+='<div class="sx-col'+(x.oggi?' oggi':'')+'"><em>'+(x.n||'')+'</em><div class="sx-bar"><i style="height:'
 +Math.max(x.n?8:0,Math.round(x.n/mx*100))+'%"></i></div><span>'+x.g+'</span></div>';});
 h+='</div></div>'
++(window.nccOraleStatHTML?nccOraleStatHTML():'')   /* (v159) l'orale */
 +'<button class="qc qc-link" style="--qc:#6B7280" onclick="nccStatPiano()">'
 +'<span class="qc-li">\ud83d\uddd3</span><span class="qc-lt"><b>Il piano, il traguardo e i percorsi</b>'
 +'<span>Prontezza, ripassi dei percorsi, salvataggi</span></span><span class="qc-ch">\u203a</span></button>';
@@ -13080,7 +13193,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste */
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk','nccSpSegn'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate */
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -13134,7 +13247,7 @@ var x=a[id],y=b[id];
 if(!(id in a)){a[id]=y;agg++;return;}
 if(!x||!y||typeof x!=='object'||typeof y!=='object')return;
 /* ripasso a spirale: vince l'ultimo ripasso fatto, su qualunque dispositivo */
-if(k==='nccVieOk'){if((+y.t||0)>(+x.t||0)){a[id]=y;agg++;}return;}   /* (v157) */
+if(k==='nccVieOk'||k==='nccSpSegn'){if((+y.t||0)>(+x.t||0)){a[id]=y;agg++;}return;}   /* (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate */
 if(k==='pzSR'||k==='nmSR'){if((+y.last||+y.due||0)>(+x.last||+x.due||0)){a[id]=y;agg++;}return;}
 /* i marker delle piazze: vince quello spostato per ultimo (l'ora la mette chi lo sposta) */
 if(k==='pzCoords'){if((+y.t||0)>(+x.t||0)&&(x.lat!==y.lat||x.lon!==y.lon||(+x.t||0)!==(+y.t||0))){a[id]=y;agg++;}
@@ -15240,7 +15353,7 @@ var h='<div class="kb-l">'
 +'<div class="kb-g"><b>Quiz</b>'+riga(['1','2','3','4'],'la risposta (anche A B C D)')+riga(['←','→'],'domanda prima e dopo')+riga(['Invio'],'la domanda dopo')+riga(['S'],'la spiegazione, dopo un errore')+riga(['Esc'],'esci: le risposte restano salvate')+'</div>'
 +'<div class="kb-g"><b>Cartina</b>'+riga(['+','−'],'più vicino, più lontano')+riga(['0'],'tutta la cartina')+riga(['←','↑','→','↓'],'sposta')+riga(['⌘','Z'],'annulla il segno')+'</div>'
 +'<div class="kb-g"><b>Piazze</b>'+riga(['←','→'],'via prima e dopo')+riga(['spazio'],'scopri la via')+riga(['1','2'],'Mi verifico: non la sapevo, la sapevo')+'</div>'
-+'<div class="kb-g"><b>Simulazione dell’orale</b>'+riga(['Invio'],'controlla la risposta')+riga(['1','2','3'],'giusto, quasi, non lo sapevo')+'</div>'
++'<div class="kb-g"><b>Simulazione dell’orale</b>'+riga(['Invio'],'controlla la risposta')+riga(['1','2','3'],'giusto, quasi, non lo sapevo')+riga(['L'],'rileggi la domanda ad alta voce')+'</div>'
 +'</div>';
 nccPopup({icona:'⌨️',titolo:'Comandi da tastiera',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
 }catch(e){}
@@ -18783,7 +18896,7 @@ function nota(it){
 try{var n=(typeof window.qNoteFor==='function')?window.qNoteFor(it.id):'';
 return n?'<div class="sp-nota"><span>✎</span><span><b>La tua regola:</b> '+E(n)+'</span></div>':'';}catch(e){return '';}
 }
-function apri(it,tua){
+function apri(it,tua,opz){
 try{
 if(!it||typeof window.nccPopup!=='function')return;
 var n=++GIRO,ch=it.choices||[],LET='ABCDEFGH';
@@ -18795,10 +18908,13 @@ var h='<div class="sp-pop" id="spPop">'
 :((tua==null||tua<0)?'<div class="sp-r no"><b>—</b><span><small>La tua</small>Non hai risposto</span></div>':''))
 +'<div class="sp-corpo" id="spCorpo">'+(STATO===2?corpo(it,trova(it),true):'<div class="sp-att"><i></i>Un attimo, arriva la spiegazione…</div>')+'</div>'
 +nota(it)
++'<div class="sp-seg" id="spSeg">'+segHTML(hh(chiave(it)))+'</div>'
 +'</div>';
 window.nccPopup({titolo:'📖 La spiegazione',html:h,azioni:[{t:'Ho capito',stile:'pieno'}]});
 try{var v=document.getElementById('popOv');if(v)v.classList.add('sp-ov');}catch(e){}
 try{var q=document.getElementById('spQ');if(q)q.onclick=function(){q.classList.remove('corta');};}catch(e){}
+segCollega(it,hh(chiave(it)));
+if(opz&&opz.tieni)tieni();
 scorri();
 if(STATO!==2)carica(function(ok){
 try{
@@ -18831,6 +18947,90 @@ p.addEventListener('touchcancel',function(e){if(su){e.stopPropagation();su=false
 }
 window.nccApriSpiegazione=apri;
 
+/* ── (v158) «Non mi convince»: segnali una spiegazione che non torna, con una nota se vuoi.
+   Restano in Profilo › Spiegazioni segnalate: da li' copi l'elenco e lo mandi per correggerle.
+   Viaggiano col cloud: tolta una segnalazione, si toglie anche sull'altro dispositivo ── */
+var SK='nccSpSegn';
+function segni(){var o;try{o=JSON.parse(localStorage.getItem(SK)||'{}');}catch(e){o={};}return (o&&typeof o==='object'&&!Array.isArray(o))?o:{};}
+function segniSalva(o){try{localStorage.setItem(SK,JSON.stringify(o));}catch(e){}}
+function segnata(k){var x=segni()[k];return !!(x&&!x.del&&x.q);}
+function segHTML(k){
+if(segnata(k))return '<div class="sp-segok"><span>🚩 Segnalata: la trovi in Profilo › Spiegazioni segnalate.</span>'
++'<button type="button" class="sp-segx" data-a="togli">Togli</button></div>';
+return '<button type="button" class="sp-segb" data-a="apri">🚩 Non mi convince</button>';
+}
+function segForm(){
+return '<div class="sp-segf"><textarea class="es-in sp-segn" id="spSegN" rows="3" maxlength="400" placeholder="Cosa non torna? (facoltativo)" aria-label="Cosa non torna"></textarea>'
++'<div class="sp-sega"><button type="button" class="sp-segv" data-a="annulla">Annulla</button>'
++'<button type="button" class="sp-segs" data-a="invia">Segnala</button></div></div>';
+}
+function segCollega(it,k){
+try{
+var box=document.getElementById('spSeg');if(!box)return;
+box.onclick=function(e){
+var b=(e.target&&e.target.closest)?e.target.closest('[data-a]'):null;if(!b)return;
+try{e.stopPropagation();}catch(x){}
+var a=b.getAttribute('data-a');
+if(a==='apri'){box.innerHTML=segForm();coda();setTimeout(function(){try{var t=document.getElementById('spSegN');if(t)t.focus();}catch(x){}},80);return;}
+if(a==='annulla'){box.innerHTML=segHTML(k);coda();return;}
+if(a==='invia'){
+var t2=document.getElementById('spSegN'),o=segni();
+o[k]={t:Date.now(),q:String(it.q||''),g:String((it.choices||[])[it.correct]||''),n:t2?String(t2.value||'').trim().slice(0,400):'',id:it.id};
+segniSalva(o);box.innerHTML=segHTML(k);coda();
+try{hap();}catch(x){}
+return;}
+if(a==='togli'){var o2=segni();if(o2[k])o2[k]={t:Date.now(),del:1};segniSalva(o2);box.innerHTML=segHTML(k);coda();return;}
+};
+}catch(e){}
+}
+function aperte(){var o=segni();return Object.keys(o).filter(function(k){return o[k]&&!o[k].del&&o[k].q;}).sort(function(a,b){return (+o[a].t||0)-(+o[b].t||0);});}
+window.nccSegnalateN=function(){try{return aperte().length;}catch(e){return 0;}};
+function testoCopia(){
+var o=segni(),ks=aperte(),r='Spiegazioni segnalate ('+ks.length+') · Prontuario NCC\n';
+ks.forEach(function(k,i){var x=o[k];
+r+='\n'+(i+1)+'. '+x.q+'\n   Giusta: '+x.g+(x.n?'\n   Cosa non torna: '+x.n:'')+'\n   [codice '+k+']\n';});
+return r;
+}
+function copia(t){
+function ok(){try{toast2('✓ Copiato: incollalo nella chat');}catch(e){}}
+function vecchio(){
+try{var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');
+a.style.cssText='position:fixed;top:0;left:-9999px;opacity:0;';document.body.appendChild(a);
+a.select();try{a.setSelectionRange(0,t.length);}catch(x){}
+var r=false;try{r=document.execCommand('copy');}catch(x){}a.remove();
+if(r)ok();else{try{toast2('⚠️ Non sono riuscito a copiare');}catch(x){}}}catch(e){}
+}
+try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,vecchio);return;}}catch(e){}
+vecchio();
+}
+window.nccSegnalateTesto=testoCopia;   /* per i giri di prova */
+function profilo(){try{if(document.getElementById('pfOv')&&window.nccProfilo)nccProfilo();}catch(e){}}
+window.nccSegnalate=function(){
+try{
+var o=segni(),ks=aperte();
+if(!ks.length){nccPopup({icona:'🚩',titolo:'Spiegazioni segnalate',
+testo:'Non ne hai segnalata nessuna. Quando una spiegazione non ti convince, nel suo foglio tocca «🚩 Non mi convince».',
+azioni:[{t:'Ho capito',stile:'pieno'}]});return;}
+var h='<div class="sg-l" id="sgL">';
+ks.forEach(function(k){var x=o[k];
+h+='<div class="sg-r" data-k="'+E(k)+'"><div class="sg-q">'+E(x.q)+'</div><div class="sg-g">✓ '+E(x.g)+'</div>'
++(x.n?'<div class="sg-n">«'+E(x.n)+'»</div>':'')+'<button type="button" class="sg-x" data-k="'+E(k)+'">Togli</button></div>';});
+h+='</div>';
+nccPopup({icona:'🚩',titolo:'Spiegazioni segnalate',
+testo:'Copia l’elenco e incollalo nella chat con Claude: le correggo nella prossima versione.',html:h,
+azioni:[{t:'📋 Copia l’elenco',stile:'pieno',subito:true,fn:function(){copia(testoCopia());}},{t:'Chiudi',stile:'vuoto'}]});
+var l=document.getElementById('sgL');
+if(l)l.onclick=function(e){
+var b=(e.target&&e.target.closest)?e.target.closest('.sg-x'):null;if(!b)return;
+try{e.stopPropagation();}catch(x){}
+var k=b.getAttribute('data-k'),o2=segni();if(o2[k])o2[k]={t:Date.now(),del:1};segniSalva(o2);
+var r=b.closest('.sg-r');if(r)r.remove();
+profilo();
+if(!aperte().length){try{nccChiudiPopup();}catch(x){}try{toast2('✓ Nessuna spiegazione segnalata');}catch(x){}}
+};
+}catch(e){}
+};
+
 /* ── il tasto sotto le risposte (allenamento) ── */
 function quiz(){return typeof Q!=='undefined'&&Q&&Q.items&&typeof qCurView!=='undefined';}
 function metti(fresca){
@@ -18838,8 +19038,11 @@ try{
 if(!quiz())return;
 var host=document.getElementById('qRunAns'),old=document.getElementById('spBtn');
 var it=Q.items[Q.idx],a=Q.ans?Q.ans[Q.idx]:-1;
-var serve=qCurView==='run'&&host&&Q.mode!=='exam'&&it&&a!=null&&a>=0&&a!==it.correct;
+var serve=qCurView==='run'&&host&&Q.mode!=='exam'&&it&&a!=null&&a>=0;
 if(!serve){if(old)old.remove();return;}
+if(a===it.correct){
+if(Q.limit){if(old){try{if(old.__ro)old.__ro.disconnect();}catch(x){}old.remove();}return;}   /* a tempo (Sprint): niente, si corre */
+tastoGiusta(host,old,it,a);return;}
 var bar=host.querySelector('.why-bar');
 if(old&&old.parentNode===host&&old.__it===it&&old.__a===a&&(!bar||old.nextSibling===bar))return;   /* c'e' gia', al suo posto */
 if(old)old.remove();
@@ -18851,6 +19054,49 @@ b.onclick=function(e){try{e.stopPropagation();}catch(x){}apri(it,a);};
 if(bar)host.insertBefore(b,bar);else host.appendChild(b);
 carica();                                               /* intanto arriva, se non c'e' gia' */
 if(fresca){var i0=Q.idx;setTimeout(function(){try{if(Q&&Q.idx===i0&&document.getElementById('spBtn')===b)inVista(b);}catch(e){}},280);}
+}catch(e){}
+}
+/* (v158) la risposta giusta: «📖 Perché è giusta», piccolo, subito sotto l'ultima risposta. Sta fuori dal flusso
+   della pagina (niente si sposta, nemmeno sull'iPad dove tutto e' centrato). Se lo tocchi prima che arrivi la domanda
+   dopo, la domanda dopo aspetta: arriva quando chiudi il foglio */
+function tastoGiusta(host,old,it,a){
+if(old&&old.parentNode===host&&old.__it===it&&old.__a===a&&old.classList.contains('giusta')){posa(old);return;}
+if(old){try{if(old.__ro)old.__ro.disconnect();}catch(x){}old.remove();}
+var b=document.createElement('button');b.type='button';b.id='spBtn';b.className='sp-btn giusta';
+b.innerHTML='<span class="sp-ic">📖</span><span class="sp-tx"><b>Perché è giusta</b></span>';
+b.__it=it;b.__a=a;
+b.onclick=function(e){try{e.stopPropagation();}catch(x){}apri(it,a,{tieni:true});};
+host.appendChild(b);posa(b);
+/* le risposte si spostano ancora un attimo dopo (sull'iPad arriva «Scrivi la regola» e tutto si ricentra): lo seguo */
+try{b.__ro=new ResizeObserver(function(){try{if(b.parentNode)posa(b);else if(b.__ro)b.__ro.disconnect();}catch(x){}});b.__ro.observe(host);}catch(e){}
+carica();
+}
+/* subito sotto l'ultima risposta; se li' non si vede (telefono, risposte lunghe) galleggia in fondo allo schermo */
+function posa(b){
+try{
+var host=b.parentNode,l=host?host.querySelectorAll('.qans'):[],u=l[l.length-1];if(!u)return;
+b.classList.remove('galleggia');
+b.style.top=(u.offsetTop+u.offsetHeight+8)+'px';
+var sc=document.getElementById('qRun');
+if(sc){var R=sc.getBoundingClientRect(),r=b.getBoundingClientRect();if(r.bottom>R.bottom-4||r.top<R.top)b.classList.add('galleggia');}
+}catch(e){}
+}
+function riposa(){try{var b=document.getElementById('spBtn');if(b&&b.classList.contains('giusta'))posa(b);}catch(e){}}
+try{window.addEventListener('resize',riposa);}catch(e){}
+/* scorrendo, se il suo posto torna in vista ci torna */
+try{document.addEventListener('scroll',function(e){if(e.target&&e.target.id==='qRun')riposa();},{capture:true,passive:true});}catch(e){}
+/* la domanda dopo che arriva da sola mentre leggi: aspetta il foglio chiuso */
+var TIENI=null;
+function tieni(){
+try{
+if(typeof Q==='undefined'||!Q)return;
+var t={Q:Q,i:Q.idx,pend:0};TIENI=t;
+var mo=new MutationObserver(function(){
+if(document.getElementById('popOv'))return;
+mo.disconnect();if(TIENI===t)TIENI=null;
+if(t.pend&&typeof Q!=='undefined'&&Q===t.Q&&Q.idx===t.i)setTimeout(function(){try{if(Q===t.Q&&Q.idx===t.i)qGo(t.pend);}catch(e){}},160);
+});
+mo.observe(document.body,{childList:true});
 }catch(e){}
 }
 /* subito dopo l'errore la pagina scorre quel tanto che serve a vedere la spiegazione e il perche' dell'errore,
@@ -18948,6 +19194,13 @@ var _rr=renderResult;
 renderResult=function(){var r=_rr.apply(this,arguments);try{risultato();setTimeout(risultato,0);setTimeout(risultato,400);}catch(e){}return r;};
 renderResult.__spieg=true;
 }
+if(typeof qGo==='function'&&!qGo.__spieg){
+var _qg=qGo;
+qGo=function(d){
+try{if(TIENI&&typeof Q!=='undefined'&&Q===TIENI.Q&&Q.idx===TIENI.i&&document.getElementById('popOv')){TIENI.pend=d;return;}}catch(e){}
+return _qg.apply(this,arguments);};
+qGo.__spieg=true;
+}
 if(typeof startQuiz==='function'&&!startQuiz.__spieg){
 var _sq=startQuiz;
 startQuiz=function(){sciogli();var r=_sq.apply(this,arguments);setTimeout(function(){carica();},1200);return r;};
@@ -18962,9 +19215,10 @@ if(!quiz())return;
 var cards=document.querySelectorAll('#qAnalysis .qac'),n=0;
 Q.items.forEach(function(it,i){
 var a=Q.ans[i],c=cards[i];
-if(!c||a===it.correct||c.querySelector('.sp-qac'))return;
-var b=document.createElement('button');b.type='button';b.className='sp-qac';
-b.innerHTML='<span>📖 Spiegazione</span><span class="sp-ar">›</span>';
+if(!c||c.querySelector('.sp-qac'))return;
+var ok=(a===it.correct);
+var b=document.createElement('button');b.type='button';b.className='sp-qac'+(ok?' giusta':'');
+b.innerHTML=ok?'<span>📖 Perché è giusta</span><span class="sp-ar">›</span>':'<span>📖 Spiegazione</span><span class="sp-ar">›</span>';
 b.onclick=function(e){try{e.stopPropagation();}catch(x){}apri(it,a);};
 c.appendChild(b);n++;
 });
@@ -19010,11 +19264,14 @@ e.preventDefault();e.stopPropagation();b.click();
      dalla mappa e dalle altre schermate torni qui
    · puoi scegliere un mese (come in quella sessione); un orale lasciato a meta' si riprende
    · quello che va male resta segnato da ripassare (per il ripasso unico)
+   · (v159) la domanda la legge l'app ad alta voce (si spegne dalla pagina iniziale; 🔊 la rilegge)
+   · (v159) nelle Statistiche la scheda dell'orale: superati, tempo medio, gli ultimi orali, le prove che sbagli di piu'
+   · (v160, in prova) «Ascoltami e correggimi»: il percorso o le vie della piazza detti al telefono, e lui li corregge
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
 var PAG='simorale',TITOLO='Simulazione dell’orale',TITOLO_RIP='Ripasso dell’orale';
-var ORIG=null;   /* (v157) da dove sei entrato: null la pagina Quiz, 'ripasso' la pagina Ripasso errori */
+var ORIG=null;   /* (v157) da dove sei entrato: null la pagina Quiz, 'ripasso' la pagina Ripasso errori; (v159) 'stat' le Statistiche */
 function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
 return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function B(s){return E(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');}
@@ -19163,7 +19420,7 @@ S.last=n;
 }
 function secondi(){return S?Math.max(0,Math.round((S.el||0)/1000)):0;}
 /* uscito a meta': rientrando vedi prima la pagina con «Riprendi» */
-function sospendi(){if(S&&!S.fine&&!S.pausa){tic();S.pausa=Date.now();}}
+function sospendi(){fermaAsc();if(S&&!S.fine&&!S.pausa){tic();S.pausa=Date.now();S.letta=-1;zitto();}}   /* (v159) ripresa, la domanda si rilegge */
 function mmss(s){return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
 
 /* ── la risposta di ogni prova ── */
@@ -19171,16 +19428,16 @@ function vie(l){var h='<ol class="ora-vie'+((l&&l.length>=10)?' lunga':'')+'">';
 function rispPerc(p){
 var m=M(),o=obj(p);if(!o)return '';
 var s=m.stato(o);
-if(s.mio)return '<div class="ora-fonte si">✓ Il tuo percorso: <b>'+E(s.mio.title)+'</b></div>'+vie(s.mio.steps);
-if(s.lib)return '<div class="ora-fonte lib">📖 Nel libro della scuola, '+E(m.pagLib(s.lib))+'</div>'+vie(s.lib.s);
-if(s.mioInv)return '<div class="ora-fonte si">↔ Ce l’hai solo al contrario: <b>'+E(s.mioInv.title)+'</b></div>'+vie(s.mioInv.steps);
-if(s.libInv)return '<div class="ora-fonte lib">↔ Nel libro c’è solo al contrario, '+E(m.pagLib(s.libInv))+'</div>'+vie(s.libInv.s);
-return '<div class="ora-fonte no">Non è fra i tuoi percorsi e non è nel libro della scuola: lo prepari tu, tappa per tappa.</div>';
+if(s.mio)return '<div class="ora-fonte si">✓ Il tuo percorso: <b>'+E(s.mio.title)+'</b></div>'+vieV(s.mio.steps,p);
+if(s.lib)return '<div class="ora-fonte lib">📖 Nel libro della scuola, '+E(m.pagLib(s.lib))+'</div>'+vieV(s.lib.s,p);
+if(s.mioInv)return '<div class="ora-fonte si">↔ Ce l’hai solo al contrario: <b>'+E(s.mioInv.title)+'</b></div>'+vieV(s.mioInv.steps,p);
+if(s.libInv)return '<div class="ora-fonte lib">↔ Nel libro c’è solo al contrario, '+E(m.pagLib(s.libInv))+'</div>'+vieV(s.libInv.s,p);
+return '<div class="ora-fonte no">Non è fra i tuoi percorsi e non è nel libro della scuola: lo prepari tu, tappa per tappa.</div>'+sentito(p);
 }
 function rispPz(p){
 var m=M(),q=m.piazzaDi(p.k);
-if(!q)return '<div class="ora-fonte no">'+E(m.nome(p.k))+' non è fra le piazze dell’app: la aggiungi tu, con le sue vie.</div>';
-return '<div class="ora-fonte si">'+E(q.n)+' · '+q.v.length+(q.v.length===1?' via':' vie')+'</div>'+vie(q.v);
+if(!q)return '<div class="ora-fonte no">'+E(m.nome(p.k))+' non è fra le piazze dell’app: la aggiungi tu, con le sue vie.</div>'+sentito(p);
+return '<div class="ora-fonte si">'+E(q.n)+' · '+q.v.length+(q.v.length===1?' via':' vie')+'</div>'+vieV(q.v,p);
 }
 function scheda(id){
 try{var N=window.__NORME__,s=(N&&N.sez||[]).filter(function(x){return x.id===id;})[0];if(!s)return '';
@@ -19209,6 +19466,251 @@ return '<div class="ora-tipo">⚖️ Regolamento · '+E(T.t||'')+'</div><div cla
 function risposta(p){return p.x==='perc'?rispPerc(p):(p.x==='pz'?rispPz(p):rispReg(p));}
 var VOTI={si:['✓','Giusto'],quasi:['≈','Quasi'],no:['✗','Non lo sapevo']};
 
+/* ── (v159) la domanda letta ad alta voce, come la fa l'esaminatore ──
+   Parte da sola a ogni prova nuova (si spegne dalla pagina iniziale); 🔊 nella prova la rilegge, o la ferma.
+   Si ferma toccando Controlla, uscendo e con l'app in secondo piano. La voce e' quella scelta nel Profilo. */
+var VOCE='nccOraleVoce',GEN=0,MIA=false;
+function puoParlare(){try{return ('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance==='function';}catch(e){return false;}}
+function voceOn(){try{return localStorage.getItem(VOCE)!=='0';}catch(e){return true;}}
+function maiusc(s){s=String(s||'');return s.charAt(0).toUpperCase()+s.slice(1);}
+function daLeggere(p){
+try{
+var m=M(),o=obj(p);if(!m||!p)return '';
+if(p.x==='perc'){if(!o)return '';
+return 'Da '+m.nome(o.a)+', a '+m.nome(o.b)+'.'+((o.note&&o.note.length)?' '+maiusc(o.note.join(', '))+'.':'');}
+if(p.x==='pz')return 'Le confluenze di '+m.nome(p.k)+'.';
+var T=(m.TEMI||{})[p.k]||{};
+return String(p.d||T.t||'').replace(/[«»"]/g,'').trim();
+}catch(e){return '';}
+}
+function tasto(on){try{var b=document.getElementById('oraVoce');if(b){b.classList.toggle('parla',!!on);b.setAttribute('aria-pressed',on?'true':'false');}}catch(e){}}
+/* ferma solo la voce dell'orale (quella del quiz, se c'e', non la tocco) */
+function zitto(){GEN++;if(MIA){MIA=false;try{speechSynthesis.cancel();}catch(e){}}tasto(false);}
+function leggiProva(){
+if(!S||S.fine||!puoParlare())return false;
+var t=daLeggere(S.prove[S.i]);if(!t)return false;
+zitto();
+try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();}catch(e){}
+var g=GEN;
+try{
+var u=new SpeechSynthesisUtterance(t);u.lang='it-IT';
+var v=window.nccVoceMigliore?nccVoceMigliore():null;if(v)u.voice=v;
+u.rate=0.98;u.pitch=1;u.volume=1;
+u.onend=u.onerror=function(){if(g===GEN){MIA=false;tasto(false);}};
+MIA=true;tasto(true);
+speechSynthesis.speak(u);
+return true;
+}catch(e){MIA=false;tasto(false);return false;}
+}
+/* dopo ogni disegno: una prova nuova si legge una volta sola (non quando compare la risposta) */
+function voce(){
+try{
+if(!S||S.pausa||S.fine){zitto();return;}
+if(S.mostra||S.letta===S.i)return;
+S.letta=S.i;
+if(voceOn())leggiProva();
+}catch(e){}
+}
+document.addEventListener('visibilitychange',function(){try{if(document.hidden){zitto();if(ASC){fermaAsc();if(pag()===PAG)disegna(false,true);}}}catch(e){}});
+
+/* ── (v160, in prova) «Ascoltami e correggimi»: il percorso o le vie della piazza li dici al telefono,
+   lui scrive quello che sente e alla risposta segna ogni via: ✓ detta (al suo posto), ↕ detta ma fuori posto,
+   ✗ non detta. Ti dice anche com'e' andata secondo lui (il voto lo dai sempre tu).
+   Usa il riconoscimento della voce del browser (su iPhone quello di Safari): se non c'e', il tasto non compare. ── */
+var REC=null,ASC=null;
+function SRc(){try{return window.SpeechRecognition||window.webkitSpeechRecognition||null;}catch(e){return null;}}
+function puoAscoltare(p){return !!SRc()&&!!p&&(p.x==='perc'||p.x==='pz');}
+/* le vie scritte e le parole sentite, nella stessa forma: minuscole senza accenti, senza «via», «piazza»...,
+   i numeri in cifre (XX SETTEMBRE e «venti settembre» diventano «20 settembre»), San/Santa/S. uguali */
+var NUMERI={uno:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,
+quattordici:14,quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,ventuno:21,ventidue:22,ventitre:23,
+ventiquattro:24,venticinque:25,ventisei:26,ventisette:27,ventotto:28,ventinove:29,trenta:30,trentuno:31};
+var TIPO=/^(via|viale|corso|piazza|piazzale|largo|vicolo|bastioni|foro|ripa|alzaia|galleria|strada|passaggio|piazzetta|ponte|cavalcavia|sottopasso|tangenziale|autostrada)$/;
+var VUOTE=/^(di|de|del|della|dello|dell|dei|degli|delle|d|e|ed|al|alla|allo|ai|agli|alle|il|lo|la|i|gli|le|l|a|da|dal|dalla|dai|in|nel|nella|per|su|sul|sulla|poi|quindi|dopo|giro|giri|prendo|prendi|destra|sinistra|dritto|diritto|fino|arrivo|arrivi|sempre|entro|esco|svolto|svolta|imbocco|continuo|proseguo|ancora|fondo|che|si|vado|vai|passo|passando|attraverso|verso|tutto|tutta|eh|ehm|allora|ok|okay)$/;
+function romano(t){
+if(!/^[ivx]+$/.test(t)||!/^x{0,3}(ix|iv|v?i{0,3})$/.test(t))return null;
+var v={i:1,v:5,x:10},n=0;for(var k=0;k<t.length;k++){var a=v[t[k]],b=v[t[k+1]]||0;n+=a<b?-a:a;}return n>0?n:null;
+}
+function parole(s,via){
+var t=String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+.replace(/[’‘'`´]/g,' ')
+.replace(/\bp\.\s*zz?a\b|\bpza\b/g,' piazza ').replace(/\bp\.\s*le\b|\bp\.\s*zale\b/g,' piazzale ').replace(/\bv\.\s*le\b|\bvle\b/g,' viale ')
+.replace(/\bc\.\s*so\b|\bcso\b/g,' corso ').replace(/\bl\.\s*go\b|\blgo\b/g,' largo ').replace(/\bp\.\s*ta\b|\bpta\b/g,' porta ')
+.replace(/\bstaz\.\s*/g,' stazione ').replace(/\bv\.\s*/g,' via ').replace(/\bs\.\s*/g,' san ')
+.replace(/\bsant([aeiou][a-z]+)/g,'san $1')
+.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(Boolean);
+var o=[];
+t.forEach(function(w){
+if(/^(san|santa|santo|sant|ss)$/.test(w)){o.push('s');return;}
+if(NUMERI[w]){o.push(String(NUMERI[w]));return;}
+if(via){var r=romano(w);if(r&&w!=='i'){o.push(String(r));return;}}
+if(TIPO.test(w)||VUOTE.test(w))return;
+o.push(w);
+});
+return o;
+}
+function dist(a,b){   /* lettere da cambiare (due vicine scambiate contano una) */
+if(a===b)return 0;var m=a.length,n=b.length;if(!m)return n;if(!n)return m;if(Math.abs(m-n)>4)return 99;
+var pp=null,pre=[],cur,i,j;for(j=0;j<=n;j++)pre[j]=j;
+for(i=1;i<=m;i++){cur=[i];for(j=1;j<=n;j++){var c=a.charCodeAt(i-1)===b.charCodeAt(j-1)?0:1;
+cur[j]=Math.min(pre[j]+1,cur[j-1]+1,pre[j-1]+c);
+if(pp&&j>1&&a.charCodeAt(i-1)===b.charCodeAt(j-2)&&a.charCodeAt(i-2)===b.charCodeAt(j-1))cur[j]=Math.min(cur[j],pp[j-2]+1);}
+pp=pre;pre=cur;}
+return pre[n];
+}
+function soglia(n){return n<=3?0:(n<=5?1:(n<=9?2:3));}
+/* la via K (le sue parole) fra le parole sentite T, dalla posizione da in poi: {a,b} o null */
+function trova(K,T,da){
+var n=K.length;if(!n)return null;
+var kj=K.join(''),sk=soglia(kj.length);
+for(var j=da;j<T.length;j++){
+var tutte=true;
+for(var q=0;q<n;q++){var t=T[j+q],k=K[q];
+if(t==null||(k.length===1&&/[a-z]/.test(k)?t.charAt(0)!==k:dist(k,t)>soglia(k.length))){tutte=false;break;}}   /* «B. AIRES»: l'iniziale */
+if(tutte)return {a:j,b:j+n-1};
+for(var w=Math.max(1,n-1);w<=n+1&&j+w<=T.length;w++){var tj=T.slice(j,j+w).join('');if(dist(kj,tj)<=sk)return {a:j,b:j+w-1};}
+if(n>=2){var ul=K[n-1];if(ul.length>=5&&dist(ul,T[j])<=soglia(ul.length))return {a:j,b:j};}   /* il cognome da solo («viale Testi») */
+}
+return null;
+}
+/* le vie che ti aspetti: quelle che vedi nella risposta */
+function attese(p){
+try{
+var m=M();if(!m)return null;
+if(p.x==='perc'){var o=obj(p);if(!o)return null;var s=m.stato(o);
+if(s.mio)return {l:s.mio.steps,ord:true};if(s.lib)return {l:s.lib.s,ord:true};
+if(s.mioInv)return {l:s.mioInv.steps,ord:false};if(s.libInv)return {l:s.libInv.s,ord:false};return null;}
+if(p.x==='pz'){var q=m.piazzaDi(p.k);return q?{l:q.v,ord:false}:null;}
+}catch(e){}
+return null;
+}
+function confronto(p,testo,A){
+A=A||attese(p);var out={t:testo,m:null,ok:0,fp:0,tot:0,ord:false,sug:''};
+if(!A||!A.l||!A.l.length)return out;
+var T=parole(testo,false),pos=0;out.ord=A.ord;
+out.m=A.l.map(function(v){
+var K=parole(v,true);if(!K.length)return 'na';
+out.tot++;
+var r=trova(K,T,A.ord?pos:0);
+if(r){if(A.ord)pos=r.b+1;out.ok++;return 'ok';}
+if(A.ord&&trova(K,T,0)){out.fp++;return 'fp';}
+return 'no';
+});
+if(out.tot)out.sug=out.ok===out.tot?'si':((out.ok+out.fp)/out.tot>=0.75?'quasi':'no');
+return out;
+}
+window.nccOraleConfronta=function(vie,testo,ord){try{return confronto(null,testo,{l:vie,ord:ord!==false});}catch(e){return null;}};   /* per i giri di prova */
+window.nccOraleAttese=function(i){try{return S?attese(S.prove[i==null?S.i:i]):null;}catch(e){return null;}};
+window.nccOraleSentito=function(){try{return S&&S.prove[S.i].voce?S.prove[S.i].voce:null;}catch(e){return null;}};
+/* la risposta con i segni */
+var SEGNI={ok:['✓','detta'],fp:['↕','detta fuori posto'],no:['✗','non detta'],na:['','']};
+function vieV(l,p){
+var V=p&&p.voce;
+if(!V||!V.m||V.m.length!==(l||[]).length)return vie(l)+sentito(p);
+var h=riassunto(V)+'<ol class="ora-vie voce'+((l&&l.length>=10)?' lunga':'')+'">';
+l.forEach(function(v,i){var k=V.m[i];h+='<li class="'+k+'"><span>'+E(v)+'</span>'+(SEGNI[k][0]?'<b aria-label="'+SEGNI[k][1]+'">'+SEGNI[k][0]+'</b>':'')+'</li>';});
+return h+'</ol>'+sentito(p);
+}
+function riassunto(V){
+if(!V.tot)return '';
+var t=V.ok===V.tot?('Hai detto tutte le '+V.tot+' vie'+(V.ord?', in ordine':'')):
+('Hai detto <b>'+(V.ok+V.fp)+' vie su '+V.tot+'</b>'+(V.fp?' · '+V.fp+' fuori posto':''));
+return '<div class="ora-vsum '+(V.ok===V.tot?'tutte':'')+'">🎙 '+t+'</div>';
+}
+function sentito(p){
+var V=p&&p.voce;if(!V)return '';
+return '<details class="ora-sentito"><summary>Ho sentito</summary><p>«'+E(V.t)+'»</p></details>';
+}
+/* l'ascolto */
+/* certi telefoni ripetono in ogni pezzo anche quello detto prima: allora il pezzo nuovo prende il posto del vecchio */
+function nudo(x){return String(x||'').toLowerCase().replace(/[^a-z0-9à-ù]+/g,' ').trim();}
+function unisci(a,t){var na=nudo(a),nt=nudo(t);if(!na)return t;if(!nt)return a;if(nt.indexOf(na)===0)return t;if(na.indexOf(nt)===0)return a;return a+' '+t;}
+function sp(t){return String(t||'').replace(/\s+/g,' ').trim();}
+/* tutto quello sentito: le volte prima (prima) e questa (le parole definitive e quelle ancora provvisorie) */
+function testoAsc(){return ASC?sp(unisci(ASC.prima,unisci(ASC.fin,ASC.int))):'';}
+function mostraAsc(){
+try{var x=document.getElementById('oraAscX');if(!x||!ASC)return;
+var rip=!!(ASC.fin&&ASC.int&&nudo(ASC.int).indexOf(nudo(ASC.fin))===0);   /* le provvisorie ripetono le definitive */
+var f=sp(rip?ASC.prima:unisci(ASC.prima,ASC.fin)),i=sp(ASC.int);
+x.innerHTML=(f||i)?(E(f)+(i?' <span>'+E(i)+'</span>':'')):'<em>Parla pure: qui scrivo quello che sento.</em>';
+x.scrollTop=x.scrollHeight;}catch(e){}
+}
+function avviaRec(){
+var C=SRc();if(!C||!ASC)return false;
+var r;try{r=new C();}catch(e){return false;}
+try{r.lang='it-IT';r.continuous=true;r.interimResults=true;r.maxAlternatives=1;}catch(e){}
+r.onresult=function(ev){
+if(REC!==r||!ASC)return;var f='',i='';
+try{for(var k=0;k<ev.results.length;k++){var x=ev.results[k],t=(x&&x[0]&&x[0].transcript)||'';if(x.isFinal)f=unisci(f,t);else i=unisci(i,t);}}catch(e){}
+ASC.fin=f;ASC.int=i;mostraAsc();
+};
+r.onerror=function(ev){if(REC!==r||!ASC)return;ASC.err=(ev&&ev.error)||'errore';};
+r.onend=function(){
+if(REC!==r)return;REC=null;if(!ASC)return;
+ASC.prima=testoAsc();ASC.fin='';ASC.int='';
+if(ASC.stop){fineAsc();return;}
+/* si e' fermato da solo (una pausa lunga, su iPhone succede): riparto, finche' non tocchi «Ho finito» */
+if((!ASC.err||ASC.err==='no-speech')&&ASC.riavvii<40&&Date.now()-ASC.t0<300000){ASC.riavvii++;ASC.err='';if(avviaRec())return;}
+/* ripartire non si puo' (iPhone puo' volere un tocco): resta quello sentito fin qui */
+fineAsc();
+};
+REC=r;
+try{r.start();}catch(e){REC=null;return false;}
+return true;
+}
+function fermaRec(){try{if(REC){var r=REC;REC=null;r.onend=null;r.onresult=null;r.onerror=null;try{r.abort();}catch(e){try{r.stop();}catch(x){}}}}catch(e){}}
+/* uscito dalla prova mentre ascoltava: si butta via */
+function fermaAsc(){if(!ASC)return;ASC=null;fermaRec();}
+function fineAsc(){
+if(!ASC)return;var a=ASC;ASC=null;fermaRec();
+if(a.annulla||!S||S.fine||S.pausa||S.i!==a.i||S.mostra){if(pag()===PAG)disegna(false,true);return;}
+var t=(a.prima||'').trim();
+if(!t){
+disegna(false,true);
+/* l'errore alla ripartenza dopo una pausa (non al primo tocco) vuol dire solo che non hai detto niente */
+if(!a.err||a.err==='no-speech'||a.riavvii>0){try{toast2('🎙 Non ho sentito niente: riprova',3000);}catch(e){}}
+else nonParte(a.err);
+return;}
+var p=S.prove[S.i];p.voce=confronto(p,t);
+tic();S.mostra=true;disegna(false,true);vibra();requestAnimationFrame(allaRisposta);
+}
+/* la voce non parte: perche', e cosa fare. Dall'icona sulla schermata Home iPhone non da' il riconoscimento della voce
+   alle web app (in Safari si'): lo dico */
+function daIcona(){try{return navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);}catch(e){return false;}}
+function nonParte(err){
+var t=err==='not-allowed'?'Il microfono non è permesso. Su iPhone: Impostazioni › Safari › Microfono, poi riprova.'
+:(err==='service-not-allowed'?'Il riconoscimento della voce è spento. Su iPhone si accende con la Dettatura: Impostazioni › Generali › Tastiera › Abilita dettatura.'
+:(err==='audio-capture'?'Non trovo il microfono.':(err==='network'?'Per capire la voce serve la rete: riprova quando sei connesso.'
+:'Il riconoscimento della voce non è partito'+(err&&err!=='avvio'?' ('+err+')':'')+'.')));
+if(daIcona())t+=' Attenzione: aperta dall’icona sulla schermata Home, iPhone può non dare il riconoscimento della voce alle web app. Se succede, apri il sito in Safari e riprova da lì.';
+try{nccPopup({icona:'🎙',titolo:'La voce non parte',testo:t,azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){try{toast2('🎙 '+t,4000);}catch(x){}}
+}
+/* telefono piccolo: se quello che sente resterebbe nascosto dietro «Ho finito», porto su il pannello */
+function alPannello(){
+try{var b=corpoEl();if(!b)return;var a=b.querySelector('.ora-asc'),f=b.querySelector('.ora-fasc');if(!a)return;
+var vb=b.getBoundingClientRect(),ra=a.getBoundingClientRect();
+if(vb.bottom-(f?f.offsetHeight:0)-ra.top>=150)return;
+var dove=Math.max(0,b.scrollTop+(ra.top-vb.top)-10);
+try{b.scrollTo({top:dove,behavior:ridotto()?'auto':'smooth'});}catch(e){b.scrollTop=dove;}}catch(e){}
+}
+window.nccOraleAscolto=function(){
+try{
+if(!S||S.fine||S.pausa||S.mostra||ASC)return;
+var p=S.prove[S.i];if(!puoAscoltare(p))return;
+zitto();   /* la domanda letta non deve finire nel microfono */
+ASC={i:S.i,prima:'',fin:'',int:'',t0:Date.now(),riavvii:0,stop:false,annulla:false,err:''};
+if(!avviaRec()){ASC=null;nonParte('avvio');return;}
+disegna(false,true);vibra();requestAnimationFrame(alPannello);
+}catch(e){}
+};
+window.nccOraleAscoltoFine=function(){
+try{if(!ASC)return;ASC.stop=true;vibra();
+var a=ASC;
+if(REC){try{REC.stop();}catch(e){}setTimeout(function(){if(ASC===a){a.prima=testoAsc();fineAsc();}},1800);}   /* se non risponde, chiudo io */
+else fineAsc();}catch(e){}
+};
+window.nccOraleAscoltoAnnulla=function(){try{if(!ASC)return;ASC.annulla=true;ASC.stop=true;vibra();fineAsc();}catch(e){}};
+
 /* ── le schermate ── */
 function chip(ses,on,t){return '<button class="ch-chip'+(on?' on':'')+'" onclick="nccOraleSes(\''+ses+'\')">'+E(t)+'</button>';}
 var SCELTA='';
@@ -19231,19 +19733,34 @@ h+=aperto?'<button class="ora-go2 ora-nuovo" onclick="nccOraleInizia()">Ricominc
 if(u)h+='<div class="ora-ult">L’ultima volta: <b class="'+(u.s?'ok':'ko')+'">'+(u.s?'✓ Superato':'↻ Da ripassare')+'</b> · '
 +new Date(u.t).toLocaleDateString('it-IT',{day:'numeric',month:'short'})+' · '+mmss(u.d||0)+'</div>';
 if(!m)h+='<div class="sc-vuoto">Le domande degli orali non sono pronte: riprova fra un attimo.</div>';
+/* (v159) la voce che legge le domande: si spegne qui */
+if(m&&puoParlare()){var on=voceOn();
+h+='<div class="pf-gr ora-vgr"><button class="pf-r ora-voce" role="switch" aria-checked="'+(on?'true':'false')+'" onclick="nccOraleVoce()">'
++'<span class="pf-ic" style="background:#AF52DE">🔊</span><span class="pf-txt"><span class="pf-n">Leggi le domande ad\u00a0alta\u00a0voce</span></span>'
++'<span class="pf-sw'+(on?' on':'')+'"><i></i></span></button></div>';}
 return h;
 }
 function htmlProva(){
-var p=S.prove[S.i],h='<div class="ora-cima"><div class="ora-pall">';
+var p=S.prove[S.i],sg=(p.voce&&p.voce.sug)||'',h='<div class="ora-cima"><div class="ora-pall">';
 S.prove.forEach(function(q,i){h+='<i class="'+(i===S.i?'cur':(q.v?q.v:''))+'"></i>';});
 h+='</div><div class="ora-tempo" id="oraT">⏱ '+mmss(secondi())+'</div></div>';
-h+='<div class="ora-card ora-n'+S.i+'"><div class="ora-num">Prova '+(S.i+1)+' di '+S.prove.length+'</div>'+domanda(p)+'</div>';
+h+='<div class="ora-card ora-n'+S.i+(ASC&&ASC.i===S.i?' asc':'')+'">'
++(puoParlare()&&!ASC?'<button class="ora-ascolta'+(MIA?' parla':'')+'" id="oraVoce" aria-label="Ascolta la domanda" aria-pressed="'+(MIA?'true':'false')+'" onclick="nccOraleAscolta()">🔊</button>':'')   /* (v159) */
++'<div class="ora-num">Prova '+(S.i+1)+' di '+S.prove.length+'</div>'+domanda(p)+'</div>';
 if(!S.mostra){
+if(ASC&&ASC.i===S.i){   /* (v160) ti sta ascoltando */
+h+='<div class="ora-asc" role="status"><div class="ora-asc-t"><i class="ora-rec"></i>Ti ascolto: dimmi '+(p.x==='pz'?'le vie':'il percorso')+'</div>'
++'<div class="ora-asc-x" id="oraAscX" aria-live="polite"></div></div>'
++'<div class="ora-fondo ora-fasc"><button class="ora-go ora-fine" onclick="nccOraleAscoltoFine()">⏹ Ho finito</button>'
++'<button class="ora-go2" onclick="nccOraleAscoltoAnnulla()">Annulla</button></div>';   /* i tasti restano in vista in fondo */
+}else{
 h+='<button class="ora-go" onclick="nccOraleControlla()">Controlla</button>';
+if(puoAscoltare(p))h+='<button class="ora-go2 ora-mic" onclick="nccOraleAscolto()">🎙 Ascoltami e correggimi</button>';
+}
 }else{
 h+='<div class="ora-risp"><div class="sp-lab">La risposta</div>'+risposta(p)+'</div>'
-+'<div class="ora-fondo"><div class="ora-com">Com’è andata?</div><div class="ora-voti">';
-['si','quasi','no'].forEach(function(v){h+='<button class="ora-v '+v+'" onclick="nccOraleVoto(\''+v+'\')"><b>'+VOTI[v][0]+'</b>'+VOTI[v][1]+'</button>';});
++'<div class="ora-fondo"><div class="ora-com">Com’è andata?'+(sg?'<span class="ora-sug">Secondo me: '+VOTI[sg][0]+' '+VOTI[sg][1]+'</span>':'')+'</div><div class="ora-voti">';
+['si','quasi','no'].forEach(function(v){h+='<button class="ora-v '+v+(v===sg?' sug':'')+'" onclick="nccOraleVoto(\''+v+'\')"><b>'+VOTI[v][0]+'</b>'+VOTI[v][1]+'</button>';});
 h+='</div></div>';
 }
 return h;
@@ -19320,6 +19837,8 @@ else{b.scrollTop=0;b.classList.remove('ora-entra');void b.offsetWidth;b.classLis
 nccPagina(PAG,(S&&S.rip)?TITOLO_RIP:TITOLO,h,'nccOraleIndietro()');
 }
 orologio();
+voce();   /* (v159) */
+if(ASC)mostraAsc();   /* (v160) */
 }
 function ridotto(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
 /* dopo «Controlla»: se la risposta resta nascosta sotto i voti (telefono piccolo), la porto su */
@@ -19346,14 +19865,15 @@ var t=document.getElementById('oraT');if(t)t.textContent='⏱ '+mmss(secondi());
 }catch(e){}
 },1000);
 }
-window.nccOrale=function(){
-try{
-ORIG=null;
+function apri(da){
+ORIG=da||null;
 if(S&&(S.fine||S.rip))S=null;  /* finito (o un ripasso): si riparte dall'inizio */
 sospendi();                    /* a meta': prima la pagina con «Riprendi» */
 disegna(true);vibra();
-}catch(e){}
-};
+}
+window.nccOrale=function(){try{apri(null);}catch(e){}};
+/* (v159) dalle Statistiche: finito, o tornando indietro, sei di nuovo li' */
+window.nccOraleDaStat=function(){try{apri('stat');}catch(e){}};
 window.nccOraleSes=function(s){try{SCELTA=s||'';disegna(false,true);vibra();
 var c=document.querySelector('#scnBody .ora-ses .ch-chip.on');if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest',inline:'center'});}catch(e){}};   /* (v157) la sessione scelta: la pagina resta ferma */
 window.nccOraleInizia=function(){
@@ -19364,8 +19884,31 @@ S=n;disegna();vibra();
 }catch(e){}
 };
 window.nccOraleRiprendi=function(){try{if(S&&!S.fine){S.pausa=0;S.last=Date.now();disegna();vibra();}}catch(e){}};
-window.nccOraleControlla=function(){try{if(!S||S.fine||S.pausa||S.mostra)return;tic();S.mostra=true;disegna(false,true);vibra();
+window.nccOraleControlla=function(){try{if(ASC){nccOraleAscoltoFine();return;}if(!S||S.fine||S.pausa||S.mostra)return;tic();zitto();S.mostra=true;disegna(false,true);vibra();
 requestAnimationFrame(allaRisposta);}catch(e){}};
+/* (v159) 🔊: rilegge la domanda (se sta parlando, la ferma) */
+window.nccOraleAscolta=function(){
+try{
+if(!S||S.fine||S.pausa||ASC)return;
+if(MIA){zitto();vibra();return;}
+if(!leggiProva()){try{toast2('🔇 Questo browser non legge ad alta voce',2600);}catch(e){}return;}
+vibra();
+var g=GEN;   /* come nel quiz: se dopo un secondo e mezzo non e' partita, lo dico */
+setTimeout(function(){try{if(g===GEN&&MIA&&!speechSynthesis.speaking&&!speechSynthesis.pending){MIA=false;tasto(false);
+toast2('🔇 Niente voce: alza il volume e togli il silenzioso',3200);}}catch(e){}},1500);
+}catch(e){}
+};
+/* (v159) l'interruttore della pagina iniziale */
+window.nccOraleVoce=function(){
+try{
+var on=!voceOn();
+try{localStorage.setItem(VOCE,on?'1':'0');}catch(e){}
+var r=document.querySelector('#scnBody .ora-voce');
+if(r){r.setAttribute('aria-checked',on?'true':'false');var w=r.querySelector('.pf-sw');if(w)w.classList.toggle('on',on);}
+if(!on)zitto();
+vibra();
+}catch(e){}
+};
 window.nccOraleVoto=function(v){
 try{
 if(!S||S.fine||S.pausa||!S.mostra||!VOTI[v])return;
@@ -19403,10 +19946,11 @@ out.sort(function(a,b){return a.t-b.t;});}catch(e){}
 return out;
 };
 /* uscendo: l'orale finito si chiude, quello a meta' resta in pausa (il ripasso no: i voti dati sono gia' salvati) */
-function lascia(){clearInterval(TM);TM=0;if(S&&(S.fine||S.rip))S=null;else sospendi();}
-/* e si torna da dove eri entrato: la pagina Quiz o il Ripasso errori */
+function lascia(){clearInterval(TM);TM=0;zitto();fermaAsc();if(S&&(S.fine||S.rip))S=null;else sospendi();}
+/* e si torna da dove eri entrato: la pagina Quiz, il Ripasso errori o (v159) le Statistiche */
 function allOrigine(){
 if(ORIG==='ripasso'&&window.nccRipassoTorna){ORIG=null;nccRipassoTorna();return;}
+if(ORIG==='stat'&&window.nccStatTorna){ORIG=null;nccStatTorna();return;}
 nccSez('quiz');
 }
 window.nccOraleIndietro=function(){
@@ -19581,6 +20125,7 @@ if(e.metaKey||e.ctrlKey||e.altKey||e.defaultPrevented)return;
 if(pag()!==PAG||!S||S.fine||S.pausa||document.getElementById('popOv'))return;
 var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
 if(!S.mostra&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();nccOraleControlla();return;}
+if((e.key==='l'||e.key==='L')&&puoParlare()){e.preventDefault();e.stopPropagation();nccOraleAscolta();return;}   /* (v159) */
 if(S.mostra){var v={'1':'si','2':'quasi','3':'no'}[e.key];if(v){e.preventDefault();e.stopPropagation();nccOraleVoto(v);}}
 }catch(x){}
 },true);
@@ -19590,12 +20135,62 @@ var _ni=window.nccInfo;
 window.nccInfo=function(k){
 if(k===PAG){try{nccPopup({icona:'🎤',titolo:TITOLO,testo:'Come all’orale vero: due percorsi da dire a voce, le confluenze di una piazza e una domanda sul regolamento, '
 +'presi da quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026 (le più chieste escono più spesso; puoi scegliere una sessione). '
++'La domanda te la leggo ad alta voce, come l’esaminatore (🔊 la rilegge; la voce si spegne dalla pagina iniziale). '
 +'Rispondi a voce, poi tocca Controlla: vedi il tuo percorso o quello del libro, le vie della piazza, i punti da dire sul regolamento. '
-+'Poi di’ tu com’è andata. Superato se non ne sbagli nessuna e al massimo una è incerta; quello che va male resta da ripassare.',
++'Poi di’ tu com’è andata. Superato se non ne sbagli nessuna e al massimo una è incerta; quello che va male resta da ripassare. '
++'Come vai lo vedi nelle Statistiche. '
++'In prova: con «🎙 Ascoltami e correggimi» il percorso o le vie della piazza li dici al telefono, che scrive quello che sente e segna ogni via: ✓ detta, ↕ detta fuori posto, ✗ non detta.',
 azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){}return;}
 return _ni?_ni.apply(this,arguments):null;
 };
 }catch(e){}
+/* ── (v159) nelle Statistiche: com'e' andata la simulazione dell'orale ──
+   quante superate, il tempo medio, gli ultimi dieci orali (verde superato, arancio da ripassare)
+   e le prove che sbagli di piu' (con «da ripassare» se sono ancora nella coda del ripasso) */
+function giorno(t){
+try{var d=new Date(t),o=new Date();o.setHours(0,0,0,0);var g=Math.round((o-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);
+if(g===0)return 'oggi';if(g===1)return 'ieri';
+return d.toLocaleDateString('it-IT',{day:'numeric',month:'short'});}catch(e){return '';}
+}
+window.nccOraleStatHTML=function(){
+try{
+var st=(lgj('nccOrale',[])||[]).filter(function(x){return x&&x.t;}),n=st.length;
+var h='<div class="sx-card sx-ora"><div class="sx-lab">SIMULAZIONE DELL’ORALE</div>';
+if(!n)return h+'<div class="sx-cos"><div class="sx-fiam sx-mic">🎤</div><div><b>Non l’hai ancora provata</b>'
++'<span>Due percorsi, una piazza e una regola, a voce: come all’orale vero.</span></div></div>'
++'<button class="sx-go sx-ogo" onclick="nccOraleDaStat()">🎤 Fai il primo orale</button></div>';
+var k=0,sd=0,nd=0,u=st[n-1];
+st.forEach(function(x){if(x.s)k++;if(x.d>0){sd+=x.d;nd++;}});
+var tit=n===1?(u.s?'Il primo orale: superato':'Il primo orale: da ripassare')
+:(k===0?'Nessuno superato su '+n:(k===1?'Superato 1 su '+n:'Superati '+k+' su '+n));
+var sub=n===1?((u.d?'In '+mmss(u.d)+' · ':'')+giorno(u.t))
+:((nd?'Tempo medio '+mmss(Math.round(sd/nd))+' · ':'')+'l’ultimo:\u00a0'+giorno(u.t));
+h+='<div class="sx-cos"><div class="sx-fiam sx-mic">🎤</div><div><b>'+E(tit)+'</b><span>'+E(sub)+'</span></div></div>';
+if(n>1){var ul=st.slice(-10);
+h+='<div class="sx-ostr" role="img" aria-label="Gli ultimi '+ul.length+' orali: '+ul.filter(function(x){return x.s;}).length+' superati">';
+ul.forEach(function(x){h+='<i class="'+(x.s?'ok':'ko')+'"></i>';});
+h+='<em>ultimi '+ul.length+'</em></div>';}
+/* le prove che sbagli di piu': quante volte uscite, quante giuste */
+var per={},ord=[];
+st.forEach(function(x){(x.p||[]).forEach(function(p){
+if(!p||!p.x||!p.k)return;var id=p.x+'|'+p.k,o=per[id];
+if(!o){o=per[id]={x:p.x,k:p.k,tot:0,g:0,t:0};ord.push(id);}
+o.tot++;if(p.v==='si')o.g++;o.t=x.t;});});
+var rip=lgj('nccOraleRip',{})||{},righe='',quante=0;
+ord.map(function(id){return per[id];}).filter(function(o){return o.tot>o.g;})
+.sort(function(a,b){return ((b.tot-b.g)-(a.tot-a.g))||((a.g/a.tot)-(b.g/b.tot))||(b.t-a.t);})
+.forEach(function(o){
+if(quante>=3||!M())return;
+var t='';try{t=titoloProva({x:o.x,k:o.k});}catch(e){t='';}if(!t)return;
+var r=(rip[o.x]||{})[o.k],da=!!(r&&r.v&&r.v!=='si');
+var fr=o.g===0?(o.tot===1?'Non giusta l’unica volta':'Mai giusta in '+o.tot+' volte'):('Giusta '+o.g+(o.g===1?' volta':' volte')+' su '+o.tot);
+righe+='<div class="sx-or"><div class="sx-ot">'+t+'</div><div class="sx-od">'+E(fr)+(da?' · <b>da ripassare</b>':'')+'</div></div>';
+quante++;
+});
+if(righe)h+='<div class="sx-osez">LE PROVE CHE SBAGLI DI PIÙ</div><div class="sx-ol">'+righe+'</div>';
+return h+'<button class="sx-go sx-ogo" onclick="nccOraleDaStat()">🎤 Fai un orale</button></div>';
+}catch(e){return '';}
+};
 /* per i giri di prova */
 window.nccOraleProva=function(l){
 try{var m=M(),C=m.conti(),n=prepara('');if(!n)return false;
@@ -19604,7 +20199,9 @@ if(p.x==='reg'){var r=C.R[k];p.d=(r&&r.dom[0])?r.dom[0].d:'';}});
 lsj('nccOraleUlt',{perc:[n.prove[0].k,n.prove[1].k],pz:[n.prove[2].k],reg:[n.prove[3].k]});
 S=n;disegna();return true;}catch(e){return false;}
 };
-window.nccOraleStato=function(){return S?{i:S.i,mostra:S.mostra,fine:!!S.fine,pausa:!!S.pausa,sec:secondi(),ses:S.ses,prove:S.prove.map(function(p){return {x:p.x,k:p.k,d:p.d||'',v:p.v};})}:null;};
+window.nccOraleStato=function(){return S?{i:S.i,mostra:S.mostra,fine:!!S.fine,pausa:!!S.pausa,sec:secondi(),ses:S.ses,orig:ORIG,letta:S.letta,parla:MIA,
+prove:S.prove.map(function(p){return {x:p.x,k:p.k,d:p.d||'',v:p.v};})}:null;};
+window.nccOraleTesto=function(i){try{return S?daLeggere(S.prove[i==null?S.i:i]):'';}catch(e){return '';}};   /* (v159) quello che legge */
 })();
 /* ═══════════════════════════════════════════════════
    🔁 IL RIPASSO UNICO (v157)
@@ -19754,11 +20351,15 @@ piazze().forEach(function(p){var c=ps[p.id];if(c&&c.due&&c.due<=ora)pz.push({p:p
 pz.sort(function(a,b){return a.d-b.d;});
 if(pz.length)B.push({k:'pz',ic:'🕸',c:'#30B0C7',qn:'#1F7F8F',t:'Piazze',n:pz.length,ord:pz[0].d,
 s:da(pz[0].d)+' · '+elenca(pz.map(function(x){return nomePz(x.p.n);}))});}catch(e){}
+/* (v158) le norme: le schede con domande in scadenza */
+try{var nd=window.nccNormeDue?nccNormeDue():null;
+if(nd&&nd.n)B.push({k:'norme',ic:'📜',c:'#5856D6',qn:'#3634A3',t:'Norme',n:nd.n,ord:nd.tmin||ora,
+s:da(nd.tmin)+' · '+elenca(nd.titoli)});}catch(e){}
 /* l'orale: le prove andate male */
 try{var od=window.nccOraleDaRipassare?nccOraleDaRipassare():[];
 if(od.length)B.push({k:'orale',ic:'🎤',c:'#AF52DE',qn:'#7E3BA0',t:'Prove dell’orale',n:od.length,ord:od[0].t||ora,
 s:da(od[0].t)+' · '+elenca(od.map(titoloOrale))});}catch(e){}
-var FISSO=['quiz','perc','vie','pz','orale'];
+var FISSO=['quiz','perc','vie','pz','norme','orale'];
 B.sort(function(a,b){return (a.ord-b.ord)||(FISSO.indexOf(a.k)-FISSO.indexOf(b.k));});
 return B;
 }
@@ -19771,7 +20372,7 @@ try{var ps=ogg(lgj('pzSR',{}));piazze().forEach(function(p){var c=ps[p.id];if(c&
 return o;
 }
 function parti(B){
-var nomi={quiz:['domanda','domande'],perc:['percorso','percorsi'],vie:['via','vie'],pz:['piazza','piazze'],orale:['prova dell’orale','prove dell’orale']};
+var nomi={quiz:['domanda','domande'],perc:['percorso','percorsi'],vie:['via','vie'],pz:['piazza','piazze'],norme:['scheda delle norme','schede delle norme'],orale:['prova dell’orale','prove dell’orale']};
 return B.map(function(b){return plur(b.n,nomi[b.k][0],nomi[b.k][1]);});
 }
 /* per la Home: quante oggi e in due parole cosa */
@@ -19881,8 +20482,25 @@ try{pzApri(id);}catch(e){return;}
 registra('pzOv',function(){try{pzChiudi();}catch(e){var x=document.getElementById('pzOv');if(x)x.remove();}});
 setTimeout(function(){try{window.__nccVerDaPagina=Date.now();if(document.getElementById('pzOv'))pzVerifica();}catch(e){}},220);
 },
-orale:function(){try{nccOraleRipassa();}catch(e){}}
+orale:function(){try{nccOraleRipassa();}catch(e){}},
+/* (v158) il quiz delle norme, sopra la pagina: parte dalle domande in scadenza; ‹ torna qui */
+norme:function(){
+/* la pagina resta sotto il quiz (chi apre le norme chiude la pagina, a meno che le si chieda di restare) */
+try{NMR={t:Date.now()};window.__nccTieniPagina=true;nmQuiz();}catch(e){NMR=null;}
+window.__nccTieniPagina=false;
+}
 };
+var NMR=null;
+document.addEventListener('click',function(ev){
+try{
+if(!NMR)return;
+var t=ev.target,x=(t&&t.closest)?t.closest('#nmOv .nm-x'):null;if(!x)return;
+var hd=x.closest('.nm-hd'),ti=hd?((hd.querySelector('.nm-ti')||{}).textContent||''):'';
+if(!/^Quiz norme/.test(ti))return;                /* il quiz o il suo risultato: si chiude e sei di nuovo qui */
+ev.stopPropagation();ev.preventDefault();
+try{nmChiudi();}catch(e){var o=document.getElementById('nmOv');if(o)o.remove();}
+}catch(e){}
+},true);
 window.nccRipassoVai=function(i){
 try{
 var b=ULT[i];if(!b||!AZ[b.k])return;
@@ -19895,9 +20513,10 @@ try{new MutationObserver(function(ms){
 try{
 var via=false,pagina=false;
 ms.forEach(function(m){[].forEach.call(m.removedNodes||[],function(n){
-if(n&&(n.id==='pzOv'||n.id==='popOv'))via=true;
+if(n&&(n.id==='pzOv'||n.id==='popOv'||n.id==='nmOv'))via=true;
+if(n&&n.id==='nmOv')NMR=null;
 if(n&&n.id==='scnOv')pagina=true;});});
-if(via&&pag()===PAG)setTimeout(function(){try{if(pag()===PAG&&!document.getElementById('pzOv'))disegna(true);}catch(e){}},30);
+if(via&&pag()===PAG)setTimeout(function(){try{if(pag()===PAG&&!document.getElementById('pzOv')&&!document.getElementById('nmOv'))disegna(true);}catch(e){}},30);
 if(pagina&&!document.getElementById('scnOv'))requestAnimationFrame(function(){try{if(!document.getElementById('scnOv')&&window.nccHomeRiquadri)nccHomeRiquadri();}catch(e){}});
 }catch(e){}
 }).observe(document.body,{childList:true});}catch(e){}
@@ -19906,7 +20525,7 @@ try{
 var _ni=window.nccInfo;
 window.nccInfo=function(k){
 if(k===PAG){try{nccPopup({icona:'🔁',titolo:TITOLO,testo:'Tutto quello che c’è da ripassare oggi, in una coda sola: le domande del quiz sbagliate e in scadenza, '
-+'i percorsi e le piazze che la spirale ti ripropone, le vie sbagliate nel Quiz vie e le prove dell’orale andate male. '
++'i percorsi, le piazze e le norme che la spirale ti ripropone, le vie sbagliate nel Quiz vie e le prove dell’orale andate male. '
 +'Prima viene quello che aspetta da più tempo. Tocca una riga, oppure «Ripassa adesso»: finito, torni qui. '
 +'Una via sbagliata esce dalla coda quando la riscrivi giusta nel Quiz vie.',azioni:[{t:'Ho capito',stile:'pieno'}]});}catch(e){}return;}
 return _ni?_ni.apply(this,arguments):null;
@@ -19914,4 +20533,72 @@ return _ni?_ni.apply(this,arguments):null;
 }catch(e){}
 /* per i giri di prova */
 window.nccRipassoStato=function(){try{return coda().map(function(b){return {k:b.k,n:b.n,s:b.s};});}catch(e){return [];}};
+})();
+/* ═══════════════════════════════════════════════════
+   📜 LE NORME NEL RIPASSO (v158)
+   · il «Quiz sulle norme» non pesca piu' a caso: prima le domande degli articoli
+     in scadenza (la spirale delle norme), poi quelle degli articoli mai visti,
+     poi le altre. «Provami su questo articolo» resta com'era
+   · le schede delle norme in scadenza entrano nella coda del Ripasso errori
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function lgj(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v;}catch(e){return d;}}
+function ogg(v){return (v&&typeof v==='object'&&!Array.isArray(v))?v:{};}
+function D(){try{return window.__NORME__||null;}catch(e){return null;}}
+function mescola(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+/* la voce della spirale che una domanda aggiorna: la stessa regola del quiz delle norme
+   (gli articoli in mezzo a una scheda, come il 41 nella 40-44, hanno una voce loro: «art41») */
+function voce(d,art){
+art=String(art);
+var s=d.sez.filter(function(x){return x.art.indexOf(art)>=0||art.indexOf(String(x.art).split('-')[0])===0;})[0];
+return s?s.id:('art'+art);
+}
+/* la scheda in cui sta davvero un articolo: 41 nella 40-44 */
+function schedaDi(d,art){
+var n=parseInt(art,10);
+return d.sez.filter(function(s){var p=String(s.art).split('-').map(function(x){return parseInt(x,10);});
+return n>=p[0]&&n<=(isNaN(p[1])?p[0]:p[1]);})[0]||null;
+}
+/* per il Ripasso errori: le schede con domande in scadenza, la piu' vecchia prima */
+window.nccNormeDue=function(){
+try{
+var d=D();if(!d||!Array.isArray(d.quiz)||!Array.isArray(d.sez))return null;
+var sr=ogg(lgj('nmSR',{})),ora=Date.now(),sch={},ids=[],tmin=Infinity,dom=0;
+d.quiz.forEach(function(q){
+var c=sr[voce(d,q[3])];if(!(c&&c.due&&c.due<=ora))return;
+dom++;var s=schedaDi(d,q[3]),id=s?s.id:('art'+q[3]),du=+c.due;
+if(!sch[id]){sch[id]={t:s?s.t:('Articolo '+q[3]),due:du};ids.push(id);}
+if(du<sch[id].due)sch[id].due=du;
+if(du<tmin)tmin=du;
+});
+ids.sort(function(a,b){return sch[a].due-sch[b].due;});
+return {n:ids.length,dom:dom,tmin:tmin===Infinity?0:tmin,titoli:ids.map(function(k){return sch[k].t;})};
+}catch(e){return null;}
+};
+/* il mazzo del quiz: prima le domande in scadenza, poi quelle degli articoli mai visti, poi le altre; dieci */
+function mazzo(d){
+var sr=ogg(lgj('nmSR',{})),st=ogg(lgj('nmStats',{})),ora=Date.now(),a=[],b=[],c=[];
+d.quiz.forEach(function(q){var k=voce(d,q[3]),x=sr[k];
+if(x&&x.due&&x.due<=ora)a.push(q);else if(!x&&!st[k])b.push(q);else c.push(q);});
+return mescola(a).concat(mescola(b)).concat(mescola(c)).slice(0,10);
+}
+window.nccNormeMazzo=function(){var d=D();return d&&Array.isArray(d.quiz)?mazzo(d):[];};   /* per i giri di prova */
+function aggancia(){
+try{
+var o=window.nmQuiz;if(typeof o!=='function'||o.__rip)return;
+window.nmQuiz=function(soloArt){
+if(soloArt)return o.apply(this,arguments);                     /* un articolo solo: come prima */
+var d=D();if(!d||!Array.isArray(d.quiz)||d.quiz.length<3)return o.apply(this,arguments);
+var orig=d.quiz,m=mazzo(d);if(m.length<3)return o.apply(this,arguments);
+/* il quiz delle norme pesca da d.quiz con un filtro: per un istante il filtro da' questo mazzo.
+   Tutto il resto vede le domande vere (l'indice delle norme dice sempre quante sono) */
+var finto=orig.slice();finto.filter=function(){return m.slice();};
+d.quiz=finto;
+try{return o.apply(this,arguments);}finally{d.quiz=orig;}
+};
+window.nmQuiz.__rip=true;
+}catch(e){}
+}
+setTimeout(aggancia,4800);   /* dopo chi lo avvolge per il tasto indietro (4,5 s) */
 })();
