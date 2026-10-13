@@ -10,11 +10,12 @@ const fails=[];const ok=(c,m)=>{if(!c)fails.push(m);};
     if(/leaflet(\.min)?\.js/.test(u)&&!/decorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:MOCK_JS});
     if(/leaflet\.css/.test(u))return r.fulfill({status:200,contentType:'text/css',body:MOCK_CSS});
     if(/firebase|polylinedecorator/.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:''});return r.abort();});
-  /* 6 errori in scadenza, per avere una riga Errori da fare */
+  /* 6 errori in scadenza, per avere una riga Errori da fare (gia' viste, come sono gli errori veri: se no le Domande nuove
+     potevano pescarne una e contarla fra gli errori ripassati) */
   const now=Date.now(),err={};[3,4,5,6,7,8].forEach(i=>err[i]={box:1,due:now-3600000});
   const s=seed();
   await ctx.addInitScript(a=>{if(!localStorage.getItem('routes')){localStorage.setItem('routes',JSON.stringify(a.s.routes));localStorage.setItem('coords',JSON.stringify(a.s.coords));
-    localStorage.setItem('ob1','true');localStorage.setItem('antiFretta','false');localStorage.setItem('wkRepTs',String(Date.now()));localStorage.setItem('azzerato2026',String(Date.now()));localStorage.setItem('qtStats',JSON.stringify({cat:{},err:a.err,seenIds:{},idV:2}));}},{s,err});
+    localStorage.setItem('ob1','true');localStorage.setItem('antiFretta','false');localStorage.setItem('wkRepTs',String(Date.now()));localStorage.setItem('azzerato2026',String(Date.now()));localStorage.setItem('qtStats',JSON.stringify({cat:{},err:a.err,seenIds:Object.keys(a.err).reduce((o,k)=>(o[k]=1,o),{}),idV:2}));}},{s,err});
   const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   /* ── A · avvio: fotogrammi dall'inizio ── */
   const t0=Date.now();p.goto(BASE+'index.html',{waitUntil:'commit'});
