@@ -76,7 +76,7 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
   await foto('1-inizio');
   let v=await vista();ok(v.inizio&&!v.prova,'la pagina dell’orale non mostra l’inizio: '+J(v));
   const chips=await p.evaluate(()=>[...document.querySelectorAll('#scnBody .ch-chip')].map(c=>c.textContent));
-  ok(chips.length===6&&chips[0]==='Tutte','le sessioni: '+J(chips));
+  ok(chips.length===7&&chips[0]==='Tutte'&&chips[6]==='Elenco esame','le sessioni: '+J(chips));   /* (v165) anche l’elenco d’esame */
   f=await film(()=>tocca('#scnOv .t-back'),1100);pulito('‹ → Quiz',f,'pagina:quiz','pagina:simorale');
   await tocca('#scnOv .qc-riga >> nth='+riga.i);await p.waitForTimeout(900);
   f=await film(()=>p.evaluate(()=>history.back()),1100);pulito('telefono → Quiz',f,'pagina:quiz','pagina:simorale');
@@ -110,7 +110,7 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
       f=await film(()=>tocca('#scnOv .qc-riga >> nth='+riga.i),1100);pulito('Quiz → orale a metà',f,'pagina:simorale','pagina:quiz');
       const rip=await p.evaluate(()=>({go:document.querySelector('#scnBody .ora-go').textContent,nuovo:!!document.querySelector('#scnBody .ora-nuovo'),
         chips:document.querySelectorAll('#scnBody .ch-chip').length,card:!!document.querySelector('#scnBody .ora-card')}));
-      ok(/Riprendi.*prova 3 di 4/.test(rip.go)&&rip.nuovo&&rip.chips===6&&!rip.card,'l’orale a metà non si riprende: '+J(rip));
+      ok(/Riprendi.*prova 3 di 4/.test(rip.go)&&rip.nuovo&&rip.chips===7&&!rip.card,'l’orale a metà non si riprende: '+J(rip));
       await foto('2b-riprendi');
       f=await film(()=>tocca('#scnBody .ora-go'),700);pulito('Riprendi',f,'pagina:simorale','pagina:simorale');
       o=await st();ok(o.i===2&&!o.pausa&&o.prove[0].v==='si'&&o.prove[1].v==='quasi','ripreso dalla prova sbagliata: '+J(o));

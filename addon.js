@@ -3565,6 +3565,31 @@ vertical-align:1px;white-space:nowrap;}
 .sx-body.sx-cambio,.sim-r.lampo,.sim-r.fresca{animation:none;}
 .sim-rd,.sim-ch,.sb-th,.sb-lista{transition:none;}
 }
+
+/* ═══ (v165) Chiesto all'esame: la risposta da dare, nel riquadro di un tema (chiusa: la apri quando vuoi controllarti) ═══ */
+#popOv .ch-risp{margin:12px 0 2px;border-radius:14px;background:color-mix(in srgb,#5856D6 7%,var(--ios-card));
+border:1.5px solid color-mix(in srgb,#5856D6 24%,transparent);}
+#popOv .ch-risp summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:46px;padding:0 14px;
+list-style:none;cursor:pointer;font-size:15px;font-weight:800;line-height:1.3;color:#4845C9;border-radius:12px;
+-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.dark #popOv .ch-risp summary{color:#ABA9FF;}
+#popOv .ch-risp summary::-webkit-details-marker{display:none;}
+#popOv .ch-risp summary::after{content:'›';flex:0 0 auto;font-size:22px;line-height:1;transform:rotate(90deg);transition:transform .22s;opacity:.75;}
+#popOv .ch-risp[open] summary::after{transform:rotate(-90deg);}
+#popOv .ch-risp summary:active{background:color-mix(in srgb,#5856D6 12%,transparent);}
+#popOv .ch-punti{margin:0;padding:2px 14px 6px 32px;font-size:14.5px;line-height:1.5;color:var(--ios-lbl);text-align:left;}
+#popOv .ch-punti li+li{margin-top:7px;}
+#popOv .ch-punti b{font-weight:800;}
+#popOv .ch-fonte{padding:6px 14px 12px;font-size:12.5px;font-weight:700;line-height:1.35;color:var(--ios-lbl2);text-align:left;}
+#popOv .ch-risp[open] .ch-punti,#popOv .ch-risp[open] .ch-fonte{animation:chRispIn .3s ease both;}
+@keyframes chRispIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+/* ═══ (v165) la simulazione dell'orale: i punti che rispondono proprio a questa domanda ═══ */
+/* lo sfondo e' dietro al punto e al suo pallino: il testo e i pallini restano allineati agli altri */
+.ora-punti li.qui{position:relative;isolation:isolate;}
+.ora-punti li.qui::before{content:'';position:absolute;top:-3px;bottom:-3px;left:-22px;right:-8px;z-index:-1;border-radius:10px;
+background:color-mix(in srgb,#FFD60A 28%,transparent);}
+.dark .ora-punti li.qui::before{background:color-mix(in srgb,#FFD60A 17%,transparent);}
+@media (prefers-reduced-motion:reduce){#popOv .ch-risp[open] .ch-punti,#popOv .ch-risp[open] .ch-fonte{animation:none;}}
 `;
 }catch(e){}
 })();
@@ -4971,10 +4996,10 @@ function binom(n,k,p){
 var c=1;for(var i=0;i<k;i++)c=c*(n-i)/(i+1);
 return c*Math.pow(p,k)*Math.pow(1-p,n-k);
 }
-var _mCache=null,_mTs=0;
+var _mCache=null,_mTs=0,_mN=-1;   /* (v164) _mN: quante domande c'erano quando l'ho calcolato */
 window.studentModel=function(){
 try{
-if(_mCache&&Date.now()-_mTs<4000)return _mCache;/*[FIX] niente doppio calcolo per render (scatti)*/
+if(_mCache&&Date.now()-_mTs<4000&&_mN===((typeof QUIZ_ALL!=='undefined'&&QUIZ_ALL)?QUIZ_ALL.length:-1))return _mCache;/*[FIX] niente doppio calcolo per render (scatti)*/
 buildQuiz();
 try{_susp=lg('chronSusp',{})||{};}catch(e0){_susp={};}/*[FIX 2000] letto UNA volta, non 919*/
 var cats=QARG.map(function(c){
@@ -5005,7 +5030,7 @@ var subList=Object.keys(subs).map(function(k){
 return {sub:k,label:SUBLAB[k]||k,n:subs[k].n,m:Math.round(subs[k].s/subs[k].n*100)};
 }).sort(function(a,b){return a.m-b.m;});
 _mCache={expScore:Math.max(0,16-expErr),fail:Math.round((1-pass)*100),cats:cats,worst:worst,subs:subList};
-_mTs=Date.now();
+_mTs=Date.now();_mN=QUIZ_ALL.length;
 return _mCache;
 }catch(e){return null;}
 };
@@ -9054,7 +9079,7 @@ var viste={};
 CHIAVI.forEach(function(k){viste[k]=1;});
 for(var i=0;i<localStorage.length;i++){
 var k=localStorage.key(i);
-if(!k||k==='qLedPend')continue;   /* le risposte in sospeso restano sul telefono, non nella copia */
+if(!k||k==='qLedPend'||k==='nccPrimaDelRipristino')continue;   /* le risposte in sospeso restano sul telefono, non nella copia; (v164) e la copia di prima del ripristino */
 if(!viste[k]&&!/^(ncc|pz|nm|q|r)/.test(k))continue;
 var v=localStorage.getItem(k);
 if(v===null)continue;
@@ -9064,6 +9089,7 @@ d[k]=v;n++;
 return {dati:d,quante:n};
 }
 
+window.nccRaccogliCopia=function(){return raccogli();};   /* (v164) */
 window.nccEsporta=function(){
 try{
 var r=raccogli();
@@ -9109,11 +9135,16 @@ try{
 var pacco=JSON.parse(String(fr.result||''));
 if(!pacco||!pacco.dati||typeof pacco.dati!=='object'){
 alert('\u26a0\ufe0f Questo non sembra un file dell\u2019app.');return;}
-var n=Object.keys(pacco.dati).length;
+var n=Object.keys(pacco.dati).filter(function(k){return k!=='nccPrimaDelRipristino'&&k!=='qLedPend';}).length;   /* (v164) */
 var quando=pacco.quando?new Date(pacco.quando).toLocaleString('it-IT'):'data sconosciuta';
-if(!confirm('Copia del '+quando+'\n'+n+' voci.\n\n'
+var msg='Copia del '+quando+'\n'+n+' voci.\n\n'
 +'Questo SOSTITUISCE quello che hai adesso sul dispositivo.\n'
-+'Vuoi procedere?'))return;
++'Vuoi procedere?';
+/* (v164) la domanda arriva dopo aver scelto il file: il popup dell'app, non il riquadro del browser */
+if(typeof window.nccConferma==='function'){nccConferma(msg,procedi,{titolo:'Ripristina',si:'Ripristina',icona:'\u21a9\ufe0f'});return;}
+if(!confirm(msg))return;
+procedi();
+function procedi(){
 /* metto da parte lo stato attuale, non si sa mai */
 try{
 var prima=raccogli();
@@ -9121,11 +9152,13 @@ localStorage.setItem('nccPrimaDelRipristino',JSON.stringify(prima.dati));
 }catch(e){}
 var messe=0;
 Object.keys(pacco.dati).forEach(function(k){
+if(k==='nccPrimaDelRipristino'||k==='qLedPend')return;   /* (v164) quella del file e' vecchia: resta la mia di adesso */
 try{localStorage.setItem(k,pacco.dati[k]);messe++;}catch(e){}
 });
 alert('\u2705 Ripristinate '+messe+' voci su '+n+'.\n\n'
 +'L\u2019app si ricarica adesso.');
 setTimeout(function(){location.reload();},400);
+}
 }catch(e){
 try{alert('\u26a0\ufe0f Il file \u00e8 rovinato o non \u00e8 leggibile.');}catch(e2){}
 }
@@ -10020,7 +10053,7 @@ var tot=0,fatte=0;
 try{tot=(typeof LUOGHI!=='undefined'&&LUOGHI&&LUOGHI.length)?LUOGHI.length:0;}catch(e){}
 try{
 var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:L('studyProg',{});
-fatte=sp?Object.keys(sp).length:0;
+fatte=sp?Object.keys(sp).filter(function(k){return /^L\d+$/.test(k);}).length:0;   /* (v164) solo i luoghi */
 }catch(e){}
 var nuove=Math.max(0,tot-fatte);
 return {tot:tot,fatte:fatte,nuove:nuove};
@@ -11250,6 +11283,49 @@ r:['attesa|L’attesa','reciproc|Reciprocità di carico','obblighi|Obblighi dell
 'aeroporti|Obblighi di trasporto da stazioni e aeroporti','sedime|Sedime aeroportuale','doveri|Doveri del conducente']}]}
 ];
 
+/* (v165) l'elenco d'esame (ottobre 2026): i percorsi, le confluenze e le domande dell'orale, nell'ordine del foglio.
+   Non conta come una volta in piu' (le domande sono quelle dei resoconti): quello che c'e' solo qui vale 1 e ha 📋 */
+SES.push({id:'elenco',m:'Elenco d’esame (ottobre 2026)',c:'Elenco esame',el:1,aule:[{a:'',
+p:['Bande Nere>Cimitero Monumentale','Bande Nere>Piazza Bonomelli','Bande Nere>Lambrate','Bande Nere>Niguarda~con la circonvallazione 90/91','Bande Nere>Loreto','Loreto>Piazza Sant’Eufemia',
+'Piazzale Lotto>Cadorna','Piazzale Lotto>Piazza XXIV Maggio','Duomo>Piazzale Lotto','Piazza 5 Giornate>Piazzale Lotto','Piazza 5 Giornate>Piazza Firenze','Piazza 5 Giornate>Niguarda',
+'Lampugnano>Piazza 5 Giornate','Porta Genova>Centrale','Centrale>Porta Genova','Porta Genova>Rogoredo','Porta Genova>San Siro','Porta Genova>IEO',
+'Porta Genova>Linate','Linate>Porta Genova','Centrale>San Siro','San Paolo>Corvetto','San Paolo>Centrale','San Paolo>Garibaldi',
+'San Paolo>Piazzale Dateo','Linate>Niguarda~da Centrale e Segrino','Linate>Centrale','Centrale>Linate','Linate>Pinacoteca di Brera','Linate>Garibaldi',
+'Linate>Duomo','Duomo>Linate','Piazzale Accursio>Linate','Garibaldi>Piazza Piemonte','Garibaldi>Tribunale','Garibaldi>Duomo',
+'Garibaldi>Piazzale Perucchetti','Garibaldi>Università Cattolica','Garibaldi>Orio al Serio','Garibaldi>San Siro','Cadorna>IEO','IEO>Centrale',
+'Centrale>IEO','IEO>Piazza Giulio Cesare','Piazza Caiazzo>IEO','Centrale>Piazza Piemonte~dal centro','Piazza Piemonte>Centrale','Piazza Piemonte>Linate',
+'Niguarda>Linate','Piazza Firenze>Centrale','Centrale>Cadorna','Humanitas>Centrale','Piazzale Baracca>Centrale','Centrale>Forum di Assago',
+'Centrale>Malpensa','Linate>Cadorna','Cadorna>Linate','Centrale>Piazza VI Febbraio','Centrale>Piazza Resistenza Partigiana','Centrale>Rho Fiera',
+'Piazza Tirana>Centrale','Duomo>San Siro','San Siro>Duomo','San Siro>Garibaldi','San Siro>Linate~passando dal centro','Linate>San Siro',
+'Piazza Diocleziano>Centrale','Piazza Novelli>Centrale','Piazza Piemonte>Niguarda','Piazza Piemonte>Duomo','Piazza Piemonte>Piazza della Repubblica','Piazza Piemonte>Tribunale',
+'Duomo>IEO','Duomo>Piazza Missori','Duomo>Rogoredo','Duomo>Malpensa','Duomo>Piazzale Zavattari','Duomo>Piazza Giulio Cesare~vecchia Fiera',
+'Duomo>Motorizzazione','Duomo>Ospedale San Carlo','Duomo>Porta Genova','Via Parri>Duomo','San Babila>San Raffaele','Piazza della Repubblica>Piazza Abbiategrasso',
+'Piazza Abbiategrasso>Niguarda','Piazza Abbiategrasso>Duomo','Piazza Abbiategrasso>Centrale','Duomo>Piazza Firenze','Niguarda>Piazza Firenze','Niguarda>Duomo',
+'Duomo>Niguarda~anche da via Ceresio','Niguarda>Cadorna','Niguarda>Piazza Castello','Cadorna>Cadorna~cerchia dei Navigli','Bisceglie>Cadorna','Bisceglie>Policlinico',
+'Bisceglie>Centrale','Piazza Bottini>CityLife','Piazza Bottini>Piazza Resistenza Partigiana','Piazza Diaz>Piazza Ovidio','Piazza Napoli>Ospedale San Giuseppe','Piazza Napoli>Piazza Cavour',
+'Largo Cairoli>Piazzale Dateo','Piazza XXIV Maggio>Malpensa','Piazza Miani>Cadorna','Piazza Miani>Duomo','Piazza Maggi>Piazzale Maciachini','Piazza Maggi>Malpensa',
+'Piazza XXIV Maggio>Piazza Firenze','Piazza XXIV Maggio>Orio al Serio','Piazza XXIV Maggio>Garbagnate','Piazza XXIV Maggio>Linate','Piazza XXIV Maggio>Rho Fiera','Piazza XXIV Maggio>San Siro',
+'Piazza Piola>Piazza XXIV Maggio','San Cristoforo>Policlinico','San Cristoforo>Centrale','San Cristoforo>Tribunale','Rogoredo>Policlinico','Piazzale Lodi>Piazza Firenze',
+'Piazzale Lodi>Centrale','Piazzale Lodi>Largo Cairoli','Corvetto>Cimitero Maggiore','Corvetto>Rho Fiera','Corvetto>San Siro','Piazzale Cuoco>Rho Fiera',
+'Piazzale Medaglie d’Oro>Rho Fiera','Piazzale Ferrara>Cimitero Maggiore','Cimitero Maggiore>Ospedale Maggiore','Cimitero Maggiore>San Babila','Rho Fiera>Pinacoteca di Brera','Piazzale Nigra>Ospedale San Carlo',
+'Ospedale San Carlo>Cordusio','Piazza Meda>Ospedale San Carlo','Piazzale Baiamonti>Caronno Pertusella','Piazzale Biancamano>Caronno Pertusella','Piazzale Baiamonti>Ospedale Sacco','Piazza Agrippa>Fatebenefratelli',
+'Piazzale Lagosta>Piazzale Accursio','Piazza Firenze>Porta Genova','Piazza Caiazzo>Rogoredo','Caronno Pertusella>Cadorna','Lambrate>Malpensa','Centrale>Rogoredo',
+'Piazza Axum>Linate','Piazzale Dateo>Piazza Tirana','Piazza del Rosario>Linate'],
+k:['Cadorna','Piazza Cavour','Corvetto','Piazzale Baracca','Piazza Tricolore','Piazza 5 Giornate',
+'Piazzale Medaglie d’Oro','Cimitero Monumentale','Loreto','Bande Nere','Largo Treves','Piazzale Lagosta',
+'Piazzale Lodi','Piazza Piola','Piazza Firenze','Piazza Abbiategrasso','Piazzale Susa','Piazza Missori'],
+r:['sedi|Principali sedi istituzionali di Milano','obblighi|Obblighi a inizio corsa','obblighi|Obblighi durante la corsa',
+'obblighi|Obblighi a fine corsa','divieti|Atti vietati al conducente','cliente|Atti vietati al cliente',
+'oggetti|Come ci si comporta se qualcuno dimentica qualcosa in auto','attesa|L’attesa: come mi comporto e come funziona','cane|Come ti comporti con il cane',
+'servizio|Quando un taxi è fuori servizio','servizio|Quando il segnale del taxi è spento (occupato e fuori servizio: spiegare cosa bisogna fare fuori servizio)','tassametro|Rottura del tassametro: cosa fai e quant’è la tariffa',
+'idonea|Se la vettura è idonea','sigilli|Cosa sono i sigilli di garanzia (tassametro e giro gomme)','reciproc|Reciprocità di carico: cos’è, con un esempio',
+'aeroporti|Obblighi di prestazione dagli aeroporti e dalle stazioni (domanda unica)','fuori|Arriva all’aeroporto un cliente che vuole andare a Verona: sei obbligato a portarlo?','fuori|Se da Malpensa chiedono di andare a Vicenza, come mi comporto',
+'provincia|Obbligo di prestazione in provincia','provincia|Se la corsa ha come destinazione una provincia del bacino ma non parte dall’aeroporto','predet|Quando ci sono importi diversi fra corsa e tassametro',
+'predet|Tariffe predeterminate: quali sono (senza cifre), come funzionano e quando decadono','predet|Da Malpensa al Duomo, se il cliente chiede di fare la tangenziale: a tariffa predeterminata il percorso lo sceglie il tassista; se il percorso lo sceglie il cliente si va a tassametro, e glielo DEVI dire prima di partire','predet|Due clienti a Malpensa, uno al T1 e l’altro al T2: quant’è la tariffa?',
+'bacino|Bacino aeroportuale lombardo','sedime|Definizione di sedime aeroportuale','collab|Collaborazione familiare',
+'trasf|Trasferimento della licenza','trasf|Requisiti per la trasferibilità della licenza','diff|Differenze fra NCC e taxi',
+'ncc|Può capitare di trovare un NCC con il tassametro? Se sì, quando? (in teoria no: gli NCC possono fare servizio taxi solo nei comuni più piccoli, che non è detto abbiano il tassametro, ma potrebbero averlo)','ncc|L’NCC può sostare nei posteggi dei taxi?','ncc|L’NCC deve avere la rimessa nel comune dell’autorizzazione? Se ne ha più di una, devono stare tutte nello stesso comune? (va bene anche nella provincia di appartenenza)']}]});
+
 /* ── i temi del regolamento: titolo, l'articolo da leggere, le domande del quiz sullo stesso argomento ── */
 var TEMI={
 obblighi:{t:'Obblighi a inizio, durante e fine corsa',ic:'🚦',art:'n40',q:[/inizio (della )?corsa|fine (della )?corsa|durante la corsa|aziona\w* (il )?tassametro|azzera\w* (il )?tassametro/i]},
@@ -11274,7 +11350,8 @@ collab:{t:'La collaborazione familiare',ic:'👨‍👩‍👦',q:[/collaborator
 idonea:{t:'Se la vettura è idonea',ic:'🔧',q:[/visita di controllo|revision|idone\w*[^?]*(vettur|veicol)/i]},
 oggetti:{t:'Oggetti dimenticati in auto',ic:'🎒',q:[/dimentic|smarrit|rinvenut|\boggetti\b|trova dei documenti/i]},
 cane:{t:'Il cane a bordo',ic:'🐕',art:'n40',q:[/\bcan[ei]\b|animali (non )?compatibil|trasporto (di |degli )?animali/i]},
-ncc:{t:'NCC: tassametro, posteggi e rimessa',ic:'🚘',q:[/rimess/i]}
+ncc:{t:'NCC: tassametro, posteggi e rimessa',ic:'🚘',q:[/rimess/i]},
+sedi:{t:'Le sedi istituzionali di Milano',ic:'🏛️'}   /* (v165) dal foglio delle domande d'esame */
 };
 
 /* ── i luoghi: i nomi diversi dello stesso posto, e come si chiama nella riga ── */
@@ -11291,7 +11368,7 @@ DATEO:['Piazzale Dateo'],X24MAGGIO:['Piazza XXIV Maggio','XXIVMAGGIO'],FIRENZE:[
 CIMMAGGIORE:['Cimitero Maggiore','CIMITEROMAGGIORE'],LODI:['Piazzale Lodi'],BONOMELLI:['Piazza Bonomelli'],MIANI:['Piazza Miani'],
 FERRARA:['Piazzale Ferrara'],LOTTO:['Piazzale Lotto'],
 RHOFIERA:['Rho Fiera','FIERARHO','RHOFIERAMILANO','FIERAMILANO','FIERAMILANORHO','RHO'],
-BRERA:['Pinacoteca di Brera','PINACOTECADIBRERA','PINACOTECABRERA'],PERUCCHETTI:['Piazzale Perucchetti'],
+BRERA:['Pinacoteca di Brera','PINACOTECADIBRERA','PINACOTECABRERA'],PERUCCHETTI:['Piazzale Perucchetti','PERRUCCHETTI'],
 TRIBUNALE:['Tribunale','PALAZZOGIUSTIZIA','PALAZZODIGIUSTIZIA','FREGUGLIA'],MISSORI:['Piazza Missori','GIUSEPPEMISSORI'],
 CATTOLICA:['Università Cattolica','UNIVERSITACATTOLICA'],SANCRISTOFORO:['San Cristoforo','SCRISTOFORO'],POLICLINICO:['Policlinico'],
 MOTORIZZAZIONE:['Motorizzazione'],BISCEGLIE:['Bisceglie'],NOVELLI:['Piazza Novelli'],LAMPUGNANO:['Lampugnano'],
@@ -11348,16 +11425,16 @@ SES.forEach(function(s,si){s.aule.forEach(function(au,ai){
 var nt='',y=x;var i=y.indexOf('~');if(i>=0){nt=y.slice(i+1);y=y.slice(0,i);}
 var ab=y.split('>'),a=luogo(ab[0]),b=luogo(ab[1]),k=a+'>'+b;
 var o=P[k];if(!o){o=P[k]={k:k,a:a,b:b,n:0,ses:{},note:[],dove:[]};ordP.push(k);}
-o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);if(nt&&o.note.indexOf(nt)<0)o.note.push(nt);
+if(!s.el)o.n++;else{o.el=1;if(!o.n){o.n=1;o.solo=1;}}o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);if(nt&&o.note.indexOf(nt)<0)o.note.push(nt);
 });
 (au.k||[]).forEach(function(x){
 var k=luogo(x);var o=K[k];if(!o){o=K[k]={k:k,n:0,ses:{},dove:[]};ordK.push(k);}
-o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
+if(!s.el)o.n++;else{o.el=1;if(!o.n){o.n=1;o.solo=1;}}o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
 });
 (au.r||[]).forEach(function(x){
 var i=x.indexOf('|'),t=x.slice(0,i),d=x.slice(i+1);
 var o=R[t];if(!o){o=R[t]={k:t,n:0,ses:{},dom:[],dove:[]};ordR.push(t);}
-o.n++;o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
+if(!s.el)o.n++;else{o.el=1;if(!o.n){o.n=1;o.solo=1;}}o.ses[s.id]=(o.ses[s.id]||0)+1;o.dove.push([si,ai]);
 var g=o.dom.filter(function(z){return z.d===d;})[0];if(!g){g={d:d,ses:[]};o.dom.push(g);}
 if(g.ses.indexOf(s.id)<0)g.ses.push(s.id);
 });
@@ -11437,7 +11514,7 @@ o.dove.forEach(function(d){var s=SES[d[0]],a=s.aule[d[1]];if(!g[s.id]){g[s.id]={
 var x=g[s.id];var k=a.a||'';if(!x.a[k]){x.a[k]=0;x.ao.push(k);}x.a[k]++;});
 return ord.map(function(id){var x=g[id];
 var au=x.ao.map(function(k){return (k||'')+(x.a[k]>1?(k?' ×':'×')+x.a[k]:'');}).filter(Boolean).join(', ');
-return '<b>'+E(x.s.m)+'</b>'+(au?' · '+E(au):'');}).join('<br>');
+return x.s.el?'📋 Anche nell’elenco d’esame':('<b>'+E(x.s.m)+'</b>'+(au?' · '+E(au):''));}).join('<br>');   /* (v165) */
 }
 function toast(t){try{toast2(t);}catch(e){}}
 
@@ -11534,11 +11611,11 @@ if(ST.ses&&(g.a||gruppi.length>1))h+='<div class="pf-sez ch-sez">'+E((g.a||'Perc
 h+='<div class="qc-gr ch-lista">';
 g.l.forEach(function(o){
 var i=ST.lista.length;ST.lista.push(o);n++;
-if(ST.tab==='perc')h+=riga(i,COL.perc,{n:1,h:o.n+'×'},E(nome(o.a))+' → '+E(nome(o.b)),
+if(ST.tab==='perc')h+=riga(i,COL.perc,o.solo?{h:'📋'}:{n:1,h:o.n+'×'},E(nome(o.a))+' → '+E(nome(o.b)),   /* (v165) 📋 solo nell'elenco */
 E(sigle(o))+(o.note.length?' · '+E(o.note.join(' · ')):''),statoPerc(o,M));
-else if(ST.tab==='pz')h+=riga(i,COL.pz,{n:1,h:o.n+'×'},E(nome(o.k)),E(sigle(o)),statoPz(o));
+else if(ST.tab==='pz')h+=riga(i,COL.pz,o.solo?{h:'📋'}:{n:1,h:o.n+'×'},E(nome(o.k)),E(sigle(o)),statoPz(o));
 else{var T=TEMI[o.k]||{t:o.k,ic:'❓'};
-h+=riga(i,COL.reg,{h:T.ic},E(T.t)+'<em class="qc-n">'+o.n+'×</em>',
+h+=riga(i,COL.reg,{h:T.ic},E(T.t)+(o.solo?'':'<em class="qc-n">'+o.n+'×</em>'),
 E(o.dom[0]?('«'+o.dom[0].d+'»'):'')+(o.dom.length>1?' e altre '+(o.dom.length-1):''),'<em class="ch-st ses">'+E(sigle(o))+'</em>');}
 });
 h+='</div>';
@@ -11574,14 +11651,14 @@ h+='</div>';
 if(ST.tab==='perc'){
 var M=indiceMiei(),c={si:0,lib:0,no:0};
 C.perc.forEach(function(o){var t=stato(o,M).tipo;c[(t==='mio'||t==='mioinv')?'si':((t==='lib'||t==='libinv')?'lib':'no')]++;});
-h+='<div class="sc-nota ch-nota">'+(ST.ses?'Come nel resoconto, aula per aula. ':'I percorsi chiesti agli orali, i più frequenti in cima: il numero è quante volte sono usciti. ')
+h+='<div class="sc-nota ch-nota">'+(ST.ses==='elenco'?'L’elenco d’esame (ottobre 2026), nell’ordine del foglio. ':(ST.ses?'Come nel resoconto, aula per aula. ':'I percorsi chiesti agli orali, i più frequenti in cima: il numero è quante volte sono usciti (📋: solo nell’elenco d’esame). '))
 +'Tocca un percorso per vederlo o aggiungerlo.</div>'
 +'<div class="ch-somma"><span class="si">✓ '+c.si+' fra i tuoi</span><span class="lib">📖 '+c.lib+' nel libro</span><span class="no">'+c.no+' da preparare</span></div>';
 }else if(ST.tab==='pz'){
-h+='<div class="sc-nota ch-nota">Le confluenze chieste: dici a voce tutte le vie che sboccano nella piazza. Tocca una piazza per studiarla; quelle che mancano le aggiungi tu.</div>';
+h+='<div class="sc-nota ch-nota">'+(ST.ses==='elenco'?'Le confluenze dell’elenco d’esame, nell’ordine del foglio: ':'Le confluenze chieste: ')+'dici a voce tutte le vie che sboccano nella piazza. Tocca una piazza per studiarla; quelle che mancano le aggiungi tu.</div>';
 if(!ST.ses||ST.ses==='2025-11')h+='<div class="ch-avviso">⚠️ '+E(sesDi('2025-11').aule[0].n)+'</div>';
 }else if(ST.tab==='reg'){
-h+='<div class="sc-nota ch-nota">Le domande sul regolamento, tema per tema, come le hanno fatte. Tocca un tema: le domande, l’articolo e il quiz.</div>';
+h+='<div class="sc-nota ch-nota">'+(ST.ses==='elenco'?'Le domande dell’elenco d’esame, nell’ordine del foglio. ':'Le domande sul regolamento, tema per tema, come le hanno fatte. ')+'Tocca un tema: le domande, la risposta da dare, l’articolo e il quiz.</div>';
 if(!ST.ses||ST.ses==='2026-01')h+='<div class="ch-avviso">⚠️ Gennaio 2026: '+E(sesDi('2026-01').aule[0].n.replace(/^A/,'a'))+'</div>';
 }else{
 h+='<div class="sc-nota ch-nota">Le domande dei quiz uscite all’esame fuori dispensa: '+nq+'. Quelle che mancavano ('+domandeDi('nuove').length+') sono state aggiunte alla banca dati ed escono anche nelle simulazioni.</div>';
@@ -11591,10 +11668,18 @@ return h;
 }
 
 /* ── disegno e ridisegno ── */
+/* (v165) la sessione scelta resta in vista nella fila (ridisegnata, ripartiva da «Tutte»: «Elenco esame» spariva a destra) */
+function chipInVista(){
+try{var b=corpoEl();if(!b)return;var r=b.querySelector('.ch-ses'),c=r&&r.querySelector('.ch-chip.on');if(!r||!c)return;
+var x=c.getBoundingClientRect().left-r.getBoundingClientRect().left+r.scrollLeft-(r.clientWidth-c.offsetWidth)/2;
+r.scrollLeft=Math.max(0,x);}catch(e){}
+}
 function disegna(){
 var b=corpoEl();
-if(b&&pag()==='chiesto'){var y=b.scrollTop;b.innerHTML=corpo();b.scrollTop=y;return;}
+if(b&&pag()==='chiesto'){var y=b.scrollTop;b.innerHTML=corpo();b.scrollTop=y;chipInVista();return;}
 nccPagina('chiesto','Chiesto all’esame',corpo(),'nccChiestoIndietro()');
+/* la pagina nuova: al fotogramma dopo (misurarla subito fissava la pagina fuori schermo e il ritorno scivolava: si vedeva la Home) */
+if(ST.ses)requestAnimationFrame(chipInVista);
 }
 window.nccChiesto=function(o){
 try{
@@ -11610,7 +11695,7 @@ try{hap();}catch(e){}
 };
 window.nccChiestoTab=function(t){
 try{ST.tab=t;var b=corpoEl();if(!b||pag()!=='chiesto')return disegna();b.innerHTML=corpo();
-b.scrollTop=0;try{hap();}catch(e){}}catch(e){}
+b.scrollTop=0;chipInVista();try{hap();}catch(e){}}catch(e){}
 };
 window.nccChiestoSes=function(s){
 try{ST.ses=s;var b=corpoEl();if(!b||pag()!=='chiesto')return disegna();b.innerHTML=corpo();b.scrollTop=0;
@@ -11650,7 +11735,8 @@ var h='<ol class="ch-vie">';l.forEach(function(v){h+='<li>'+E(v)+'</li>';});retu
 }
 function popPerc(o){
 var s=stato(o);
-var h='<div class="ch-pop"><div class="ch-dove">Chiesto '+o.n+(o.n===1?' volta':' volte')+'<br>'+dove(o)+'</div>';
+var h='<div class="ch-pop"><div class="ch-dove">'+(o.solo?'📋 Non è nei resoconti degli orali: è nell’<b>elenco d’esame</b> (ottobre 2026).'   /* (v165) */
+:'Chiesto '+o.n+(o.n===1?' volta':' volte')+'<br>'+dove(o))+'</div>';
 if(o.note.length)h+='<div class="ch-box nt">📝 '+E(o.note.join(' · '))+'</div>';
 if(s.mio){var m=marcati(s.mio);
 h+='<div class="ch-box si">✓ È fra i tuoi percorsi: <b>'+E(s.mio.title)+'</b><br>'+s.mio.steps.length+' tappe · '+(m===s.mio.steps.length?'tutte col marker':(m+' col marker'))+'</div>';}
@@ -11751,19 +11837,46 @@ setTimeout(function(){try{var t=document.getElementById('chPzV');if(t)t.focus();
 }
 
 /* ── un tema del regolamento ── */
+/* (v165) la risposta da dare: la stessa della simulazione dell'orale, chiusa; aprendola scorre in vista, piano */
+function rispostaHTML(k){
+try{var R=(window.nccRisp||{})[k];if(!R||!R.p||!R.p.length)return '';
+return '<details class="ch-risp"><summary>👀 La risposta da dare</summary><ul class="ch-punti">'
++R.p.map(function(x){return '<li>'+E(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')+'</li>';}).join('')+'</ul>'
++(R.f?'<div class="ch-fonte">📚 '+E(R.f)+'</div>':'')+'</details>';}catch(e){return '';}
+}
+function apriRisp(){
+try{var d=document.querySelector('#popOv .ch-risp'),c=document.querySelector('#popOv .ch-pop'),box=document.querySelector('#popOv .pop-box');
+if(!d||!c)return;var su=d.querySelector('summary');if(!su)return;
+/* aprendo (o chiudendo) il riquadro cresce piano, non a scatti; aperta, la risposta scorre in vista */
+su.addEventListener('click',function(ev){
+try{ev.preventDefault();try{hap();}catch(e){}
+var h0=box?box.getBoundingClientRect().height:0;
+d.open=!d.open;
+var piano=true;try{piano=!matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+if(box&&piano){var h1=box.getBoundingClientRect().height;
+if(Math.abs(h1-h0)>2){box.style.height=h0+'px';box.style.overflow='hidden';void box.offsetHeight;
+var tr0='';try{tr0=getComputedStyle(box).transition||'';if(/^all 0s/.test(tr0))tr0='';}catch(e){}
+box.style.transition=(tr0?tr0+',':'')+'height .32s cubic-bezier(.2,.8,.2,1)';box.style.height=h1+'px';   /* la sua (chiudendo scende) piu' l'altezza */
+clearTimeout(box.__rt);box.__rt=setTimeout(function(){try{box.style.height='';box.style.transition='';box.style.overflow='';}catch(e){}},360);}}
+if(d.open){var y=d.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop-4;
+if(c.scrollTo)c.scrollTo({top:Math.max(0,y),behavior:piano?'smooth':'auto'});else c.scrollTop=Math.max(0,y);}
+}catch(e){}});
+}catch(e){}
+}
 function articolo(id){try{var s=(window.__NORME__.sez||[]).filter(function(x){return x.id===id;})[0];return s?('Art. '+s.art):'';}catch(e){return '';}}
 function popTema(o){
 var T=TEMI[o.k]||{t:o.k,ic:'❓'};
 var dom=domandeTema(o.k);
-var h='<div class="ch-pop"><div class="ch-dove">Chiesto '+o.n+(o.n===1?' volta':' volte')+' · '+E(sigle(o))+'</div><ul class="ch-dom">';
+var h='<div class="ch-pop"><div class="ch-dove">'+(o.solo?'📋 Nell’<b>elenco d’esame</b> (ottobre 2026): non è nei resoconti degli orali':('Chiesto '+o.n+(o.n===1?' volta':' volte')+' · '+E(sigle(o))))+'</div><ul class="ch-dom">';   /* (v165) */
 o.dom.forEach(function(d){h+='<li>«'+E(d.d)+'»<small>'+E(d.ses.map(mese).join(', '))+'</small></li>';});
-h+='</ul></div>';
+h+='</ul>'+rispostaHTML(o.k)+'</div>';   /* (v165) */
 var az=[];
 if(T.art&&articolo(T.art))az.push({t:'Leggi l’articolo ('+articolo(T.art)+')',stile:'pieno',fn:function(){apriArticolo(T.art);}});
 if(T.tar)az.push({t:'Il prontuario delle tariffe',stile:az.length?'pieno2':'pieno',fn:apriTariffe});
 if(dom.length>=2)az.push({t:'Fai '+Math.min(20,dom.length)+' domande sul tema',stile:az.length?'pieno2':'pieno',fn:function(){avviaTema(o.k);}});
 az.push({t:'Chiudi',stile:'vuoto'});
 nccPopup({icona:T.ic,titolo:T.t,html:h,azioni:az});
+apriRisp();   /* (v165) */
 }
 var NM=null;
 /* la firma della schermata: titolo e sottotitolo, non i tasti (la (i) arriva un attimo dopo e cambiava il testo:
@@ -11889,7 +12002,8 @@ try{if(window.pzAvanzamento){var a=pzAvanzamento();o.pz=a.fatte;o.pzTot=a.tot;}}
    contando le sue chiavi usciva "17/3" */
 try{o.luoghiTot=(typeof LUOGHI!=='undefined'&&LUOGHI&&LUOGHI.length)?LUOGHI.length:0;
 var sp=(typeof studyProg!=='undefined'&&studyProg)?studyProg:{};
-o.luoghi=Math.min(Object.keys(sp).length,o.luoghiTot||Object.keys(sp).length);}catch(e){}
+var spL=Object.keys(sp).filter(function(k){return /^L\d+$/.test(k);}).length;   /* (v164) solo i luoghi, non metro e strade */
+o.luoghi=Math.min(spL,o.luoghiTot||spL);}catch(e){}
 try{var N=window.__NORME__;if(N){o.normeTot=N.sez.length;var st=L('nmStats',{})||{};
 o.norme=N.sez.filter(function(x){var y=st[x.id];if(!y)return false;var t2=(y.ok||0)+(y.ko||0);
 return t2>0&&(y.ok||0)/t2>=0.8;}).length;}}catch(e){}
@@ -13100,7 +13214,7 @@ senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemm
 dubbi:['\u2753','Marker da controllare','I marker li mette l\u2019app cercando le vie su OpenStreetMap, solo vicino alle tappe accanto. Il punto di domanda vuol dire che quella via non l\u2019ha trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso e sistemalo: trascina il marker nel punto giusto, oppure toccalo e scegli \u00ab\u00c8 giusto qui\u00bb.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
 correggi:['\u270f\ufe0f','Correggi le tappe','Correggi il nome o le vie di un percorso sulla mappa piccola. Con \u201cPosiziona in sequenza\u201d tocchi la mappa e il marker passa da solo alla tappa dopo.'],
-chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. Nella scheda Quiz trovi le domande dei quiz uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati. È l’unico posto con tutto quello che hanno chiesto.']
+chiesto:['\ud83c\udf93','Chiesto all\u2019esame','Quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026, dai resoconti scritti dai candidati, sessione per sessione: i percorsi da dire a voce, le confluenze delle piazze e le domande sul regolamento. Il numero dice quante volte \u00e8 uscito. Nella scheda Quiz trovi le domande dei quiz uscite fuori dispensa: quelle che mancavano sono state aggiunte alla banca dati. È l’unico posto con tutto quello che hanno chiesto. «Elenco esame» è l’elenco d’esame (ottobre 2026): i suoi percorsi, le confluenze e le domande dell’orale, nell’ordine del foglio (📋 vuol dire che c’è solo lì). Toccando un tema leggi anche la risposta da dare.']
 };
 window.nccInfo=function(k){
 var i=INFO[k]||INFO.quiz;
@@ -13321,7 +13435,7 @@ h+='<div class="sx-card"><div class="sx-ix"><svg class="sx-ring" viewBox="0 0 11
 +'<div><b>'+o.sai+'%</b><span>DOMANDE CHE SAI</span></div></div></div>';
 }
 h+='<div class="sx-box3"><div><b>'+o.risposte+'</b><span>DOMANDE RISPOSTE</span></div>'
-+'<div class="sx-vai" role="button" tabindex="0" onclick="nccStatTab(\'sim\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')nccStatTab(\'sim\')"><b>'+o.sim+'</b><span>SIMULAZIONI FATTE ›</span></div>'   /* (v163) */
++'<div class="sx-vai" role="button" tabindex="0" onclick="nccStatTab(\'sim\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')nccStatTab(\'sim\')"><b>'+(o.sim>=50?'50+':o.sim)+'</b><span>SIMULAZIONI FATTE ›</span></div>'   /* (v163); (v164) lo storico tiene le ultime 50: dopo, «50+» */
 +'<div><b class="rosso">'+o.errTot+'</b><span>ERRORI DA RIVEDERE</span></div></div>';
 var mx=Math.max.apply(null,o.sett.map(function(x){return x.n;}).concat([1]));
 h+='<div class="sx-card"><div class="sx-lab">COSTANZA</div><div class="sx-cos"><div class="sx-fiam">\ud83d\udd25</div>'
@@ -19522,102 +19636,178 @@ function pag(){var s=document.getElementById('scnOv');return s?s.getAttribute('d
 function corpoEl(){return document.getElementById('scnBody');}
 function vibra(t){try{hap(t);}catch(e){}}
 /* le risposte da dare all'orale, tema per tema: i punti che l'esaminatore si aspetta di sentire.
-   Gli stessi fatti delle spiegazioni dei quiz (v155) e delle schede delle Norme; la fonte quando e' certa */
+   Gli stessi fatti delle spiegazioni dei quiz (v155) e delle schede delle Norme; la fonte quando e' certa.
+   (v165) Riviste col foglio delle domande d'esame (ottobre 2026): le sue risposte, unite a quelle che c'erano, senza i
+   punti in dubbio. Dove una domanda chiede solo una parte del tema, q dice quali punti sono la risposta (nell'orale si
+   vedono evidenziati): [regola sulla domanda, [punti]]; vince la prima che va bene */
 var RISP={
 obblighi:{p:[
-'**Inizio corsa**: accertarsi della destinazione e **azionare il tassametro** (controllando che funzioni); aiutare a salire e caricare i bagagli consentiti.',
-'**Durante**: tassametro sempre acceso; il **percorso più breve** o quello che chiede il cliente; la corsa **si finisce anche a turno scaduto**.',
-'**Fine corsa**: far vedere l’importo con gli eventuali supplementi (funzione «cassa»), la **ricevuta se la chiede**, **azzerare** il tassametro.',
-'Aiutare a scendere, scaricare i bagagli e **controllare che il cliente non dimentichi niente**.'],f:'Regolamento taxi bacino aeroportuale, art. 41'},
+'**A inizio corsa**: accertarsi della **destinazione**; aiutare a salire e a caricare i bagagli; **azionare il tassametro** e controllare che funzioni.',
+'**Durante la corsa**: il tassametro deve **funzionare regolarmente**; il **percorso più breve**, salvo che il cliente ne chieda un altro; la corsa **si finisce anche se il turno scade**.',
+'**A fine corsa**: **fermare il tassametro**, far vedere l’importo e spiegare gli eventuali **supplementi** (funzione «cassa»); la **ricevuta** se la chiede; aiutare a scendere e scaricare i bagagli; controllare che **non abbia dimenticato niente**; **azzerare** il tassametro.'],
+f:'Regolamento taxi bacino aeroportuale, art. 41',
+q:[[/inizio.*(durante|fine|dopo)|prima.*dopo|della corsa \(/i,[]],[/inizio/i,[0]],[/durante/i,[1]],[/fine|dopo/i,[2]]]},
 doveri:{p:[
 '**Comportamento corretto** con chiunque e servizio svolto **con decoro**; **abbigliamento decoroso**.',
 'Auto **pulita ed efficiente**, con licenza e documenti a bordo; tariffe e contrassegni esposti.',
 'Una **guida aggiornata delle vie** del comune e **moneta spicciola** per il resto.',
 'Rispettare i **turni** e l’ordine di fila ai posteggi.'],f:'Regolamento taxi bacino aeroportuale, artt. 40-44'},
 divieti:{p:[
-'**Fumare** e **mangiare** durante la guida; vestire con canottiera, pantaloncini, ciabatte o tuta.',
-'Far salire **estranei senza il consenso** del cliente; tenere a bordo persone, animali o cose che non c’entrano col servizio.',
-'Fare la corsa **senza tassametro acceso**, chiedere **più del tassametro** e dei supplementi, **allungare il percorso**.',
-'**Interrompere** la corsa o il turno (salvo forza maggiore), **occultare** tassametro o contrassegni, prenotazioni in forme non autorizzate.'],f:'Regolamento taxi bacino aeroportuale, art. 44'},
+'**Fumare** e **mangiare** durante la corsa; vestire con **canottiera, pantaloni corti, ciabatte o tuta** da ginnastica.',
+'Far salire **estranei** senza il consenso del cliente; tenere a bordo persone, animali o cose che **non c’entrano col servizio**.',
+'**Interrompere** la corsa; chiedere **somme maggiori** o diverse da quelle autorizzate; fare la corsa **senza tassametro** acceso.',
+'**Togliere o coprire** il tassametro e i segni distintivi; attaccare contrassegni o adesivi, salvo la **pubblicità** consentita.',
+'Far guidare il taxi in servizio a **chi non è autorizzato**; usare l’auto per **vendere o esporre merce**; accettare **prenotazioni in forme non autorizzate**.'],
+f:'Regolamento taxi bacino aeroportuale, art. 44'},
 cliente:{p:[
-'**Fumare** e sporcare o danneggiare l’auto.',
-'**Aprire la portiera dal lato del traffico**: si scende dal lato del marciapiede.',
-'Chiedere al tassista di **violare il Codice della Strada** (fermate vietate, velocità) o di far salire **più persone dei posti** consentiti.']},
+'**Salire o scendere** con l’auto in movimento; **aprire la portiera dal lato del traffico**: si scende dal lato del marciapiede.',
+'Portare **materiali infiammabili** o comunque pericolosi.',
+'**Fumare**; **sporcare o danneggiare** l’auto.',
+'**Distribuire** oggetti di pubblicità o **vendere** oggetti.',
+'Fare **schiamazzi** o rumori molesti; **distrarre o disturbare** il conducente.']},
 diff:{p:[
-'**Taxi**: utenza **indifferenziata**, sosta in **luogo pubblico** (posteggi), servizio **obbligatorio** nel comune, **tassametro** con tariffe fissate dalle autorità; segnale «TAXI» sul tetto, numero d’ordine.',
-'**NCC**: utenza **specifica** che prenota alla **sede o rimessa**, stazionamento **in rimessa**, servizio **non obbligatorio**, prezzo **concordato** (tariffe chilometriche minime e massime), niente tassametro.',
-'L’NCC ha la scritta **«noleggio»** sul parabrezza e sul lunotto e la **targa «NCC»**.',
-'Licenza taxi e autorizzazione NCC **non si cumulano** (con l’autovettura); più autorizzazioni NCC sì.'],f:'Legge 21/1992, artt. 2, 3, 8, 12, 13'},
+'**Chi servono**: il taxi un’utenza **indifferenziata**; l’NCC un’utenza **specifica**, che chiede il servizio **alla sede o alla rimessa** (a tempo o per un viaggio).',
+'**Dove stanno**: il taxi in **luogo pubblico** (i posteggi); l’NCC **in rimessa** (o ai pontili). Il servizio taxi è **obbligatorio** nel comune, l’NCC **no**.',
+'**L’NCC** parte e torna **in rimessa** (salvo più prenotazioni già sul foglio) e compila il **foglio di servizio**: targa, conducente, data, luogo e km di partenza e di arrivo, orari, destinazione, dati del cliente.',
+'**I segni**: il taxi ha **tassametro**, contrassegno luminoso **«TAXI»**, **numero d’ordine**, targa **«servizio pubblico»** e il **colore** stabilito; l’NCC ha la scritta **«noleggio»** sul parabrezza e sul lunotto e la **targa «NCC»** con lo stemma del Comune e un numero.',
+'**Il prezzo**: il taxi col **tassametro**, a tariffe fissate dalle autorità (salvo le predeterminate); l’NCC lo **concorda** col cliente, fra tariffe chilometriche **minime e massime**.',
+'Licenza taxi e autorizzazione NCC **non si cumulano**; più autorizzazioni NCC sì.'],f:'Legge 21/1992, artt. 2, 3, 8, 11, 12, 13'},
 bacino:{p:[
-'È il territorio delle **province di Milano, Varese e Bergamo**: quelle dei tre scali, **Linate, Malpensa e Orio al Serio**.',
-'Tariffe e regole **uguali per tutti**, decise dalla **Giunta Regionale**; c’è la **reciprocità di carico**.',
+'È il territorio delle **province** dove ci sono **aeroporti** con almeno **2 milioni di passeggeri** l’anno: **Milano, Varese e Bergamo** (Linate, Malpensa e Orio al Serio), con tutti i loro comuni.',
+'Tariffe e regole **uguali per tutti**, decise dalla **Giunta Regionale**; **turni coordinati**; l’**obbligo di prestazione** e la **reciprocità di carico**.',
 'Negli aeroporti si carica **solo dai posteggi**, in **ordine di arrivo**, rispettando i **turni** e con i **contrassegni** del turno esposti.'],f:'DGR 11948/2003, art. 1'},
 sedime:{p:[
-'Il sedime è l’**area dell’aeroporto**: i **comuni dove ricade** lo scalo.',
-'**Linate**: Peschiera Borromeo e Segrate (San Donato no). **Malpensa**: comuni del Varesotto (Ferno, Somma Lombardo, Cardano al Campo…).',
-'Il bacino invece è molto più grande: le province di Milano, Varese e Bergamo.']},
+'Il sedime sono i **comuni su cui si trova** l’aeroporto.',
+'**Malpensa**: Cardano al Campo, Casorate Sempione, Ferno, Lonate Pozzolo, Samarate, Somma Lombardo e Vizzola Ticino.',
+'**Linate**: Peschiera Borromeo e Segrate (San Donato no). **Orio al Serio**: Grassobbio, Orio al Serio e Seriate.',
+'Il **bacino** invece è molto più grande: le province di Milano, Varese e Bergamo.']},
 predet:{p:[
-'Sono le **tariffe fisse** fra aeroporti e destinazioni: Milano–Malpensa, Malpensa–Fiera, Malpensa–Linate, Linate–Fiera, Malpensa–Varese, Orio–Milano.',
-'Valgono **senza soste né fermate intermedie** e **senza supplementi**; il percorso lo sceglie il tassista.',
-'**Decadono** se il cliente chiede un **percorso diverso** o delle fermate: si passa al **tassametro**, e glielo dici **prima di partire**.',
-'Oggi (2024): 114 € Milano–Malpensa, 94 € Malpensa–Fiera, 128 € Malpensa–Linate, 68 € Linate–Fiera, 80 € Malpensa–Varese, 128 € Orio–Milano.'],f:'Tariffe taxi Comune di Milano (2024)'},
+'**Cosa sono**: importi **fissi** stabiliti per **tratte precise**, che non dipendono da **traffico** e **tempo** e comprendono **tutti i supplementi**.',
+'**Come funzionano**: valgono solo per quella tratta, **senza soste** intermedie; il **percorso lo sceglie il tassista**.',
+'**Quando decadono**: se il cliente chiede un **percorso diverso** o una **sosta** oltre a quella finale: si va a **tassametro**, e glielo dici **prima di partire**.',
+'**Malpensa–Duomo, il cliente vuole la tangenziale**: con la tariffa predeterminata il percorso lo sceglie il tassista; se lo sceglie il cliente si va a tassametro, e va **avvisato**.',
+'**Due clienti, uno al T1 e uno al T2**: si paga **la tariffa fissa** della tratta: Malpensa vuol dire T1 o T2 indifferentemente, anche con due clienti nello stesso taxi.',
+'**Importi diversi fra corsa e tassametro**: succede con la **tariffa predeterminata** (si paga il fisso, non il tassametro) o col tassametro **guasto** (tariffa chilometrica).',
+'Le tratte (2024): Milano–Malpensa 114 €, Malpensa–Fiera 94 €, Malpensa–Linate 128 €, Linate–Fiera 68 €, Malpensa–Varese 80 €, Orio–Milano 128 €.'],
+f:'Tariffe taxi Comune di Milano (2024)',
+q:[[/tangenziale/i,[3]],[/T1|T2|terminal/i,[4]],[/importi diversi/i,[5]],[/quali sono|come funzionano|decadono|caratteristiche/i,[0,1,2,6]]]},
 aeroporti:{p:[
 'Dagli **aeroporti** (e dalle stazioni) il servizio è **obbligatorio** per le destinazioni in **Lombardia e nelle province confinanti**.',
 'Si carica in **ordine di arrivo** dalle aree di stazionamento, senza scegliere il cliente in base alla destinazione.'],f:'L.R. 22/1998, art. 25'},
 fuori:{p:[
 'L’obbligo dagli aeroporti vale per **Lombardia e province confinanti**.',
 '**Verona** confina con la Lombardia (Mantova e Brescia): **devi portarlo**.',
-'**Vicenza** non confina: **non sei obbligato**, puoi accettare la corsa se vuoi.'],f:'L.R. 22/1998, art. 25'},
+'**Vicenza** non confina: **non sei obbligato**, puoi accettare la corsa se vuoi.'],f:'L.R. 22/1998, art. 25',
+q:[[/verona/i,[0,1]],[/vicenza/i,[0,2]]]},
 provincia:{p:[
-'Nel **comune della licenza** (e nei comuni integrati o comprensoriali) il servizio è **obbligatorio**, nei limiti dei posti della carta di circolazione.',
-'Per andare **fuori** dall’area comunale o comprensoriale serve l’**assenso del tassista**.',
-'Nel bacino, per le corse che **non partono dagli aeroporti**, c’è l’obbligo su **tutto il territorio del bacino** (salvo alcuni comuni).'],f:'Legge 21/1992, art. 2 · DGR 11948/2003, art. 4'},
+'Nel **comune della licenza** e nei **comuni integrati** nel bacino il servizio è **obbligatorio**, per qualsiasi destinazione (nei limiti dei posti della carta di circolazione).',
+'Per una destinazione **fuori** da quei comuni il tassista **può rifiutare**: serve il suo assenso.',
+'Se la corsa va in una **provincia del bacino** ma **non parte da un aeroporto**, c’è **comunque l’obbligo** di prestazione (salvo alcuni comuni).'],
+f:'Legge 21/1992, art. 2 · DGR 11948/2003, art. 4',
+q:[[/non parte/i,[2]]]},
 attesa:{p:[
-'Il cliente può chiedere al taxi di **aspettarlo**: al massimo **60 minuti**.',
-'Paga **in anticipo** l’importo del tassametro più **un’ora di sosta** (34,48 €) come cauzione, con **ricevuta**.',
+'Il cliente può chiedere al taxi di **aspettarlo**: al massimo **60 minuti**, e solo se si può **sostare regolarmente**.',
+'Paga **subito** l’importo del tassametro più il costo di **un’ora di attesa** (34,48 €) come cauzione, e gli dai la **ricevuta**.',
+'Passati i **60 minuti** il taxi è **libero** e torna in servizio.',
 'Su prenotazione o chiamata l’attesa **gratuita** è di **5 minuti**.'],f:'Regolamento taxi bacino aeroportuale, art. 46'},
 sosta:{p:[
 'La sosta di attesa su richiesta dura **al massimo un’ora**, solo **dove non intralcia il traffico**.',
-'Il cliente paga **prima**: importo del tassametro più il costo di **un’ora** (34,48 €), con ricevuta.'],f:'Regolamento taxi bacino aeroportuale, art. 46'},
+'Il cliente paga **prima**: importo del tassametro più il costo di **un’ora** (34,48 €), con ricevuta.',
+'Passata l’ora il taxi è **libero** e torna in servizio.'],f:'Regolamento taxi bacino aeroportuale, art. 46'},
 servizio:{p:[
-'Sei **fuori servizio** se: non sei in turno, l’**auto è guasta**, il **tassametro non funziona**, sei in ferie o riposo, la **licenza è sospesa**.',
-'Fuori servizio esponi la scritta **ben visibile** e **non fai corse**, mai.',
-'Segnale «TAXI» spento: **occupato** (c’è un cliente) oppure **fuori servizio**.'],f:'Regolamento taxi bacino aeroportuale, art. 39'},
+'Sei **fuori servizio** quando: **non sei in turno**; l’**auto è guasta** o il **tassametro non funziona**; hai un **malore**; ti hanno **ritirato i documenti** durante il turno; sei in **ferie o riposo**; la **licenza è sospesa**.',
+'Fuori servizio esponi la scritta **«fuori servizio» ben visibile** e **non fai corse**.',
+'Il segnale **«TAXI» spento** vuol dire **occupato** (c’è un cliente) oppure **fuori servizio**.'],f:'Regolamento taxi bacino aeroportuale, art. 39',
+q:[[/spento|segnale/i,[2]],[/fuori servizio/i,[0,1]]]},
 tassametro:{p:[
-'Con il tassametro **guasto** il taxi **non può lavorare**: sei **fuori servizio** finché non è riparato e **risigillato**.',
-'Senza tassametro in funzione il cliente **non è tenuto a pagare** la corsa.',
-'Tassametro **senza sigilli** o non omologato: sospensione di **classe 4**; **manomissione**: si perde la licenza.',
-'Per l’importo di una corsa interrotta dal guasto controlla il regolamento comunale: è la parte che ai quiz non c’è.'],f:'Regolamento taxi bacino aeroportuale, artt. 39, 56, 57'},
+'Se si **rompe durante la corsa**: **avvisi** subito il cliente e gli proponi di finire la corsa a **tariffa chilometrica**, leggendo i km sul **contachilometri** dell’auto.',
+'Finita la corsa esponi **«fuori servizio»** e **interrompi** il servizio: con il tassametro guasto il taxi **non può lavorare**.',
+'**Segnali il guasto** e lo fai **riparare** (e risigillare) prima di tornare in servizio.',
+'Tassametro **senza sigilli** o non omologato: sospensione di **classe 4**; **manomesso** per alterare l’importo: si perde la licenza.'],f:'Regolamento taxi bacino aeroportuale, artt. 39, 56, 57'},
 reciproc:{p:[
-'Nel bacino i taxi di un comune possono **caricare anche negli altri comuni** del bacino e **negli aeroporti**: è l’**integrazione del servizio**.',
-'Esempio: porti un cliente da Milano a Malpensa e lì, rispettando la **fila**, puoi prendere un cliente per il ritorno.'],f:'L.R. 1/2002 · DGR 11948/2003, art. 4'},
+'È il principio per cui i taxi del **bacino** possono **caricare clienti** e fare corse anche nel territorio degli **altri comuni** del bacino e negli **aeroporti**: l’**integrazione del servizio**.',
+'Esempio: porti un cliente da **Milano a Malpensa** e lì, rispettando la **fila**, puoi caricarne uno per il ritorno.',
+'Fra i comuni del bacino, per esempio: Milano, Assago, Legnano, Peschiera Borromeo, Rho, San Donato, Bergamo, Busto Arsizio, Gallarate, Varese.'],f:'L.R. 1/2002 · DGR 11948/2003, art. 4'},
 sigilli:{p:[
-'Sono i **piombi** che l’**ufficio comunale** mette sul **tassametro** e sul suo collegamento con le ruote (il «giro gomme»): così nessuno può manometterlo.',
-'Tassametro **senza sigilli**: sospensione di classe 4. **Manomissione**: decadenza o revoca della licenza.']},
+'Sono i **sigilli numerati** (i piombi) che l’**ufficio comunale** competente mette sull’impianto del **tassametro**, a **spese del titolare**; quanti e dove li decide il Comune capoluogo.',
+'Collegata al sigillo c’è la **misura delle gomme** dell’auto (il «giro gomme»): così nessuno può manomettere il tassametro.',
+'Tassametro **senza sigilli**: sospensione di classe 4. **Manomissione**: decadenza o revoca della licenza.'],f:'Regolamento regionale 2/2014, art. 25'},
 trasf:{p:[
-'Su richiesta del titolare, a una persona **iscritta al ruolo** e con i requisiti, se il titolare: è titolare **da 5 anni**, ha **60 anni**, o è **inabile in modo permanente** (o ha perso la patente).',
-'Se muore: a un **erede del nucleo familiare** con i requisiti, o entro **2 anni** a chi indicano gli eredi, con l’**autorizzazione del Sindaco**.',
-'Chi trasferisce non può averne un’altra per **5 anni**; il nuovo titolare inizia entro **90 giorni**.'],f:'Legge 21/1992, art. 9'},
+'Su richiesta del titolare, a una persona da lui **designata**, **iscritta al ruolo** e con i requisiti, se il titolare: è titolare **da 5 anni**, oppure ha **60 anni**, oppure è diventato **inabile o inidoneo** in modo permanente (anche per il ritiro definitivo della patente).',
+'**I requisiti** di chi la riceve: cittadino dell’UE o con permesso di soggiorno, residente in Italia, **iscritto al ruolo**, **proprietario dell’auto**, senza impedimenti; **non titolare** di licenza nei **5 anni prima**; niente **cumulo** di licenze (né taxi con NCC) e nessun’altra attività economica fatta con continuità.',
+'Se il titolare **muore**: il decesso si comunica al Comune **entro 60 giorni**; la licenza va a un **erede del nucleo familiare** con i requisiti, o, **entro 2 anni**, a chi indicano gli eredi, con l’**autorizzazione del Sindaco**.',
+'Chi l’ha trasferita non può averne un’altra (né per concorso né per trasferimento) prima di **5 anni**; il nuovo titolare inizia il servizio **entro 90 giorni**.',
+'**I 55 anni** sono il limite di età per **partecipare al concorso**: per cedere la licenza contano i 5 anni di titolarità o i 60 anni di età.'],
+f:'Legge 21/1992, art. 9 · Regolamento regionale 2/2014, artt. 7, 16',
+q:[[/requisiti/i,[0,1,4]],[/trasfer/i,[0,2,3]]]},
 collab:{p:[
-'Il titolare può farsi aiutare alla guida da **familiari**: al massimo **due**.',
-'**Coniuge, parenti entro il terzo grado, affini entro il secondo**, tutti **iscritti al ruolo**; risultano da un **elenco allegato alla licenza**.',
-'Possono avere un altro lavoro solo **part-time**; non fa maturare anzianità per il concorso; se manca un requisito l’autorizzazione **decade**.'],f:'Legge 21/1992, art. 10 · Regolamento Comunale, art. 15'},
+'Il titolare può farsi aiutare alla guida da **familiari**: al massimo **due**, fra **coniuge**, **parenti entro il terzo grado** e **affini entro il secondo**.',
+'Devono essere **iscritti al ruolo**, avere i **requisiti** e nessun impedimento, e non essere stati titolari di una licenza **dichiarata decaduta**; se manca un requisito l’autorizzazione **decade**.',
+'Si fa **domanda al Comune** che ha rilasciato la licenza e serve l’**autorizzazione**: i collaboratori risultano da un **elenco allegato alla licenza**. Rispettano i **turni e gli orari** del titolare.',
+'Possono avere un altro lavoro solo **part-time**; collaborare **non fa maturare anzianità** per il concorso.',
+'Non può collaborare chi negli ultimi **5 anni** ha avuto sospensioni per **più di 60 giorni** in tutto, o **cinque sospensioni**.'],
+f:'Legge 21/1992, art. 10 · Regolamento regionale 2/2014, art. 18 · Regolamento comunale, art. 15'},
 idonea:{p:[
-'**Revisione ogni anno** alla Motorizzazione e **visita di controllo** all’ufficio Autopubbliche (prima di iniziare e poi periodica; quella straordinaria in qualunque momento).',
-'Auto pulita ed efficiente, **tassametro omologato e sigillato**, contrassegni e scritte in regola.',
-'Chi non va alla visita: **ritiro della licenza**; più volte: **revoca**.'],f:'Codice della Strada, art. 80'},
+'**Legge 21/1992, art. 12**: **tassametro omologato** (dalla sola lettura si capisce quanto pagare), gli **avvisi dei supplementi** ben leggibili, il **contrassegno luminoso «TAXI»**, il **numero d’ordine**, la targa **«servizio pubblico»**, il **colore** stabilito e la **marmitta catalitica** (o altri dispositivi contro l’inquinamento).',
+'**Regolamento regionale, artt. 23-24**: almeno **5 posti** (4 se elettrica) e un bagagliaio adatto; il tassametro **ben visibile**, mai più in basso del lato superiore del piantone dello sterzo; il segnale «TAXI» omologato sul tetto (**acceso libero**, **spento occupato**).',
+'Sulle porte laterali la **fascia del Comune**; **due targhe** fisse col **numero della licenza** e il Comune; a bordo la **tabella delle tariffe** ben visibile, le **vetrofanie** di conformità tariffaria e i **due contrassegni del turno** (con le foto, se i conducenti sono due).',
+'Ogni anno la **revisione** alla Motorizzazione e la **visita di controllo** all’ufficio Autopubbliche (prima di iniziare e poi periodica): chi non ci va, **ritiro della licenza**; più volte, **revoca**.'],
+f:'Legge 21/1992, art. 12 · Regolamento regionale 2/2014, artt. 23-24 · Codice della Strada, art. 80'},
 oggetti:{p:[
-'A fine corsa **controlli** che il cliente non dimentichi niente.',
-'Quello che trovi **non si tiene** e non si recapita a pagamento: va all’**ufficio oggetti smarriti del Comune**; i **documenti** alla vigilanza urbana (Polizia Locale).']},
+'A fine corsa **controlli** che il cliente non abbia dimenticato niente.',
+'Se non puoi restituirlo subito, lo consegni **senza ritardo** all’ufficio del Comune dove l’hai trovato: a Milano l’**Ufficio oggetti rinvenuti, via Friuli 30**. Non si tiene e non si riporta a pagamento.',
+'I **documenti** (carta d’identità, patente…) vanno all’**ufficio di zona della vigilanza urbana** (Polizia Locale) o all’ufficio oggetti smarriti.']},
 cane:{p:[
-'Il **cane guida** dei non vedenti si trasporta **sempre**: è un obbligo.',
+'Il **cane guida** dei non vedenti si trasporta **sempre e gratis**: è un obbligo.',
 'Gli altri animali sono una **facoltà** del tassista: puoi rifiutare quelli **non compatibili** con l’auto.',
 'È vietato tenere a bordo i **propri** cani.'],f:'Regolamento taxi bacino aeroportuale, artt. 42-43'},
 ncc:{p:[
-'L’NCC **non ha il tassametro** (il prezzo si concorda, controlla il contachilometri): fa servizio taxi solo nei **comuni piccoli**.',
-'**Non sosta nei posteggi dei taxi**: sta **in rimessa**, nel comune che gli ha dato l’autorizzazione; su suolo pubblico solo dove non c’è il servizio taxi.',
-'Torna in rimessa alla fine di ogni servizio, salvo che il **foglio di servizio** ne preveda un altro.'],f:'Legge 21/1992, artt. 3, 11'}
+'**Il tassametro**: di regola l’NCC non ce l’ha (il prezzo si concorda); però nei **comuni più piccoli** può fare servizio taxi, e lì il taxi può anche lavorare **senza tassametro**.',
+'**I posteggi dei taxi**: **no**, l’NCC sosta **in rimessa** (o ai pontili); su suolo pubblico solo nei comuni dove **non c’è il servizio taxi**.',
+'**La rimessa**: la **sede** e **almeno una rimessa** devono stare nel **comune** che ha dato l’autorizzazione; le **altre** rimesse possono stare anche in altri comuni della **stessa provincia**.',
+'Torna in rimessa alla fine di ogni servizio, salvo che il **foglio di servizio** ne preveda già un altro.'],f:'Legge 21/1992, artt. 3, 11',
+q:[[/tassametro/i,[0]],[/posteggi|sostare/i,[1]],[/rimess/i,[2,3]]]},
+sedi:{p:[
+'**Palazzo Marino**: il **Comune** (il Sindaco, il Consiglio comunale) · Piazza della Scala 2.',
+'**Palazzo Isimbardi**: la **Città metropolitana** · Corso Monforte.',
+'**Palazzo Diotti** (Palazzo del Governo): la **Prefettura** · Corso Monforte 31.',
+'**Palazzo Lombardia**: la **Regione Lombardia** · Piazza Città di Lombardia 1.',
+'**Palazzo Mezzanotte**: la **Borsa italiana** · Piazza Affari 6.',
+'**Palazzo Turati**: la **Camera di commercio** · Via Meravigli 9.',
+'**Palazzo di Giustizia**: **Tribunale e Procura** · Via Freguglia 1. Il **Tribunale per i minorenni**: Via Leopardi 18.',
+'**Questura** (ex Convitto Longone): Via Fatebenefratelli 11. **Caserma Garibaldi**, Polizia di Stato: Piazza Sant’Ambrogio 5.',
+'**Palazzo del Capitano di Giustizia**: la **Polizia Locale** · Via Beccaria. La **Polizia Stradale**: Via Jacopino da Tradate 1.',
+'I **Carabinieri**, comando della regione Lombardia: Via Moscova. I **Vigili del Fuoco**, comando provinciale: Via Messina 35/37.',
+'La **Motorizzazione Civile**: Via Cilea. L’**Ufficio oggetti rinvenuti**: Via Friuli 30.']}
 };
+window.nccRisp=RISP;   /* (v165) anche per «Chiesto all'esame»: toccando un tema, la risposta da dare */
+/* (v165) la domanda come la fa l'esaminatore: nei resoconti alcune hanno accanto la nota del candidato o addirittura
+   la risposta («(risposta: Lombardia e province confinanti)»): nell'orale si vedeva e si leggeva ad alta voce */
+var PULITE=[
+['Tariffe predeterminate: quali sono (senza cifre), come funzionano','Tariffe predeterminate: quali sono, come funzionano e quando decadono'],
+['Tariffe predeterminate: quali sono (senza cifre), quando si applicano','Tariffe predeterminate: quali sono, quando si applicano e quando decadono'],
+['Da Malpensa al Duomo, se il cliente chiede','Da Malpensa al Duomo il cliente chiede di fare la tangenziale: come ti comporti?'],
+['Bacino aeroportuale in generale','Bacino aeroportuale in generale'],
+['Sedime aeroportuale: sono i comuni','Sedime aeroportuale: cos’è? Fai qualche esempio'],
+['Differenze fra taxi e NCC (','Differenze fra taxi e NCC'],
+['Obblighi di prestazione dagli aeroporti e dalle stazioni (','Obblighi di prestazione dagli aeroporti e dalle stazioni'],
+['Obblighi dalle stazioni e dagli aeroporti (','Obblighi dalle stazioni e dagli aeroporti'],
+['Quando il segnale del taxi è spento (','Quando il segnale del taxi è spento'],
+['Può capitare di trovare un NCC con il tassametro?','Può capitare di trovare un NCC con il tassametro? Se sì, quando?'],
+['L’NCC deve avere la rimessa nel comune dell’autorizzazione?','L’NCC deve avere la rimessa nel comune dell’autorizzazione? Se ne ha più di una, devono stare tutte nello stesso comune?'],
+['Cosa sono i sigilli di garanzia (','Cosa sono i sigilli di garanzia?']];
+function pulita(d){
+d=String(d==null?'':d);
+for(var i=0;i<PULITE.length;i++)if(d.indexOf(PULITE[i][0])===0)return PULITE[i][1];
+return d;
+}
+window.nccOraleDomanda=pulita;
+/* (v165) i punti che rispondono proprio a questa domanda (quando chiede solo una parte del tema) */
+function qui(R,d){
+var t=pulita(d),l=R.q||[];
+for(var i=0;i<l.length;i++)if(l[i][0].test(t)){var o={},n=0;l[i][1].forEach(function(j){if(!o[j]){o[j]=1;n++;}});return (n&&n<R.p.length)?o:{};}
+return {};
+}
 
 /* ── le quattro prove: pescate in proporzione a quante volte sono uscite, mai le stesse dell'ultima volta ── */
 function pesca(l,peso,n,via){
@@ -19685,8 +19875,8 @@ return '<details class="sp-sch"><summary><span>📜 Rileggi la scheda <b>'+E(s.t
 +s.p.map(function(x){return '<li>'+E(x)+'</li>';}).join('')+'</ol></details>';}catch(e){return '';}
 }
 function rispReg(p){
-var R=RISP[p.k]||{p:[]},T=(M().TEMI||{})[p.k]||{};
-return '<ul class="ora-punti">'+R.p.map(function(x){return '<li>'+B(x)+'</li>';}).join('')+'</ul>'
+var R=RISP[p.k]||{p:[]},T=(M().TEMI||{})[p.k]||{},h=qui(R,p.d);   /* (v165) i punti di questa domanda, evidenziati */
+return '<ul class="ora-punti">'+R.p.map(function(x,i){return '<li'+(h[i]?' class="qui"':'')+'>'+B(x)+'</li>';}).join('')+'</ul>'
 +(R.f?'<div class="sp-f"><span>📚</span><span>'+E(R.f)+'</span></div>':'')
 +(T.art?scheda(T.art):'');
 }
@@ -19700,7 +19890,7 @@ return '<div class="ora-tipo">🚕 Percorso</div><div class="ora-dom">Da <b>'+E(
 if(p.x==='pz')return '<div class="ora-tipo">🕸 Piazza</div><div class="ora-dom">Le confluenze di<br><b>'+E(m.nome(p.k))+'</b></div>'
 +'<div class="ora-aiuto">Dimmi tutte le vie che sboccano nella piazza.</div>';
 var T=(m.TEMI||{})[p.k]||{};
-return '<div class="ora-tipo">⚖️ Regolamento · '+E(T.t||'')+'</div><div class="ora-dom ora-reg">«'+E(p.d||T.t||'')+'»</div>'
+return '<div class="ora-tipo">⚖️ Regolamento · '+E(T.t||'')+'</div><div class="ora-dom ora-reg">«'+E(pulita(p.d)||T.t||'')+'»</div>'
 +'<div class="ora-aiuto">Rispondi a voce, come all’esaminatore.</div>';
 }
 function risposta(p){return p.x==='perc'?rispPerc(p):(p.x==='pz'?rispPz(p):rispReg(p));}
@@ -19720,7 +19910,7 @@ if(p.x==='perc'){if(!o)return '';
 return 'Da '+m.nome(o.a)+', a '+m.nome(o.b)+'.'+((o.note&&o.note.length)?' '+maiusc(o.note.join(', '))+'.':'');}
 if(p.x==='pz')return 'Le confluenze di '+m.nome(p.k)+'.';
 var T=(m.TEMI||{})[p.k]||{};
-return String(p.d||T.t||'').replace(/[«»"]/g,'').trim();
+return String(pulita(p.d)||T.t||'').replace(/[«»"]/g,'').trim();
 }catch(e){return '';}
 }
 function tasto(on){try{var b=document.getElementById('oraVoce');if(b){b.classList.toggle('parla',!!on);b.setAttribute('aria-pressed',on?'true':'false');}}catch(e){}}
@@ -20353,7 +20543,7 @@ if(cosa==='regola'){
 var T=(m.TEMI||{})[p.k]||{},az=[];
 if(T.art)az.push({t:'Leggi l’articolo',stile:'pieno',fn:function(){apriArticolo(T.art);}});
 az.push({t:'Ho capito',stile:az.length?'vuoto':'pieno'});
-nccPopup({titolo:(T.ic?T.ic+' ':'')+(T.t||''),html:'<div class="ora-pop"><div class="ora-dom ora-reg ora-pq">«'+E(p.d||'')+'»</div>'+rispReg(p)+'</div>',azioni:az});
+nccPopup({titolo:(T.ic?T.ic+' ':'')+(T.t||''),html:'<div class="ora-pop"><div class="ora-dom ora-reg ora-pq">«'+E(pulita(p.d))+'»</div>'+rispReg(p)+'</div>',azioni:az});
 try{var v=document.getElementById('popOv');if(v)v.classList.add('sp-ov');}catch(e){}
 return;}
 }catch(e){}
@@ -20374,7 +20564,7 @@ try{
 var _ni=window.nccInfo;
 window.nccInfo=function(k){
 if(k===PAG){try{nccPopup({icona:'🎤',titolo:TITOLO,testo:'Come all’orale vero: due percorsi da dire a voce, le confluenze di una piazza e una domanda sul regolamento, '
-+'presi da quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026 (le più chieste escono più spesso; puoi scegliere una sessione). '
++'presi da quello che hanno chiesto agli orali da ottobre 2025 a febbraio 2026 (le più chieste escono più spesso; puoi scegliere una sessione, o «Elenco esame» per stare solo nell’elenco d’esame). '
 +'La domanda te la leggo ad alta voce, come l’esaminatore (🔊 la rilegge; la voce si spegne dalla pagina iniziale). '
 +'Rispondi a voce, poi tocca Controlla: vedi il tuo percorso o quello del libro, le vie della piazza, i punti da dire sul regolamento. '
 +'Poi di’ tu com’è andata. Superato se non ne sbagli nessuna e al massimo una è incerta; quello che va male resta da ripassare. '
@@ -21789,7 +21979,7 @@ if(!h.length){VISTI={};return '<div class="sx-card sim-vuota"><div class="sim-vi
 +'<button class="sx-go" onclick="nccStatSim()">Fai la prima simulazione</button></div>';}
 var prima=VISTI;VISTI={};h.forEach(function(x){VISTI[String(x.d)]=1;});
 var out=grafico(h)+'<button class="sx-go sim-nuova" onclick="nccStatSim()">Nuova simulazione</button>'
-+'<div class="sim-tit">'+(h.length===1?'LA TUA SIMULAZIONE':'LE TUE '+h.length+' SIMULAZIONI')+'</div><div class="sim-lista">';
++'<div class="sim-tit">'+(h.length===1?'LA TUA SIMULAZIONE':(h.length>=50?'LE ULTIME 50 SIMULAZIONI':'LE TUE '+h.length+' SIMULAZIONI'))+'</div><div class="sim-lista">';   /* (v164) lo storico tiene le ultime 50 */
 h.slice().reverse().forEach(function(x){out+=riga(x,!!(prima&&!prima[String(x.d)]));});
 return out+'</div>';
 }catch(e){return '';}
@@ -21982,4 +22172,76 @@ return r;
 };
 }
 }catch(e){}
+})();
+/* ═══════════════════════════════════════════════════
+   🐞 LA CACCIA AI BUG (v164)
+   · «Reimposta tutto»: la copia di sicurezza era solo quella del nucleo (percorsi, marker, quiz): mancavano piazze
+     e i loro marker, Pencil, norme, orale, nome, data dell'esame, simulazioni riviste… E sull'iPhone la cancellazione
+     partiva dopo 0,6 s, anche col foglio «Condividi» ancora aperto: la copia poteva non salvarsi mai.
+     Ora: la copia completa (la stessa di «Salva una copia») e si cancella solo quando e' salvata; se non la salvi,
+     te lo chiede
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function oggi(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+function cancellaTutto(){
+try{localStorage.clear();}catch(e){}
+try{if(typeof fbOk!=='undefined'&&fbOk&&typeof fbRef!=='undefined'&&fbRef){fbRef.remove().finally(function(){location.reload();});return;}}catch(e){}
+location.reload();
+}
+/* la copia completa; cb(true) quando e' salvata (o scaricata), cb(false) se non c'e' */
+function copiaPrima(cb){
+try{
+var r=(typeof window.nccRaccogliCopia==='function')?nccRaccogliCopia():null;
+if(!r||!r.dati){cb(false);return;}
+var testo=JSON.stringify({app:'Prontuario NCC Milano',versione:(typeof NCC_VER!=='undefined'?NCC_VER:'')||'',quando:new Date().toISOString(),chiavi:r.quante,dati:r.dati});
+var nome='ncc-copia-prima-di-cancellare-'+oggi()+'.json';
+var file=null;try{file=new File([testo],nome,{type:'application/json'});}catch(e){}
+/* sull'iPhone il foglio «Condividi» (Salva su File): si aspetta che finisca */
+if(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+navigator.share({files:[file],title:'Copia dei dati NCC'}).then(function(){cb(true);},function(){cb(false);});
+return;
+}
+var url=URL.createObjectURL(new Blob([testo],{type:'application/json'}));
+var a=document.createElement('a');a.href=url;a.download=nome;document.body.appendChild(a);a.click();
+try{toast2('💾 Copia completa scaricata · '+r.quante+' voci',2600);}catch(e){}
+setTimeout(function(){try{a.remove();URL.revokeObjectURL(url);}catch(e){}cb(true);},1500);
+}catch(e){cb(false);}
+}
+try{
+if(typeof doReset==='function'){
+doReset=function(){
+if(!confirm('Cancellare tutti i dati, sul telefono e sul cloud?\n\nPrima salvo una copia completa (anche piazze, Pencil, norme e simulazioni).'))return;
+copiaPrima(function(ok){
+if(ok){cancellaTutto();return;}
+try{nccConferma('La copia non è stata salvata. Cancello lo stesso?',cancellaTutto,{rosso:true,si:'Cancella senza copia',titolo:'Nessuna copia'});}
+catch(e){if(confirm('La copia non è stata salvata. Cancello lo stesso?'))cancellaTutto();}
+});
+};
+}
+}catch(e){}
+})();
+/* ═══════════════════════════════════════════════════
+   🎓 L'ELENCO D'ESAME (v165)
+   · «Chiesto all'esame»: l'elenco d'esame (i fogli «Percorsi esame» e «Domande esami», ottobre 2026) e' una voce in
+     piu' accanto alle sessioni, «Elenco esame»: i suoi percorsi, le 18 confluenze e le domande dell'orale, nell'ordine
+     del foglio. Non conta come una volta in piu' (le domande sono quelle dei resoconti). Quello che c'e' solo li' (i
+     percorsi Duomo → Linate, Duomo → Piazza Firenze, Ospedale San Carlo → Cordusio e il tema «Le sedi istituzionali di
+     Milano») ha 📋 al posto del numero
+   · toccando un tema: la risposta da dare (la stessa della simulazione dell'orale), rivista col foglio delle domande
+   · la simulazione dell'orale: anche «Elenco esame»; la domanda senza le note dei resoconti; i punti che rispondono
+     proprio a quella domanda evidenziati
+   · Cosa & Dove: la Prefettura e' Palazzo Diotti (corso Monforte 31). Palazzo Isimbardi e' la Citta' metropolitana
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function correggi(l){
+try{(l||[]).forEach(function(x){
+if(!x)return;
+if(Array.isArray(x)){if(x[0]==='Prefettura (Palazzo Isimbardi)'){x[0]='Prefettura (Palazzo Diotti)';x[1]='Corso Monforte 31';}}
+else if(x.cosa==='Prefettura (Palazzo Isimbardi)'){x.cosa='Prefettura (Palazzo Diotti)';x.dove='Corso Monforte 31';}
+});}catch(e){}
+}
+try{var D=window.__LUOGHI__||{};Object.keys(D).forEach(function(c){correggi(D[c]);});}catch(e){}
+try{if(typeof LUOGHI!=='undefined'&&Array.isArray(LUOGHI))correggi(LUOGHI);}catch(e){}
 })();

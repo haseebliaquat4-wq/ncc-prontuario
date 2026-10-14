@@ -79,14 +79,14 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
       pieno:Math.abs(a.width-c.width)<2,s:r.querySelector('.hm-rq-s').scrollHeight<=r.querySelector('.hm-rq-s').clientHeight+1};});
   console.log('riquadro:',JSON.stringify(rq));
   ok(rq.largo&&rq.pieno&&/Chiesto all/.test(rq.t),'il riquadro largo in fondo alla Home non c’è '+JSON.stringify(rq));
-  ok(rq.b==='1/148','il riquadro deve dire 1/148 (Centrale → San Siro fra i tuoi): '+rq.b);ok(rq.s,'il sottotitolo del riquadro è tagliato');
+  ok(rq.b==='1/151','il riquadro deve dire 1/151 (Centrale → San Siro fra i tuoi; (v165) 148 più i 3 dell’elenco d’esame): '+rq.b);ok(rq.s,'il sottotitolo del riquadro è tagliato');
   await p.evaluate(()=>{document.querySelector('#hmNew .hm-rq-largo').scrollIntoView({block:'center'});});await p.waitForTimeout(300);
   let f=await film(()=>tocca('#hmNew .hm-rq-largo'));pulito('Home → pagina',f,'pagina:chiesto','home');
   await foto('1-percorsi');
   const conta=await p.evaluate(()=>({tab:[...document.querySelectorAll('#scnOv .ch-tabs .sx-tab')].map(t=>t.textContent),n:document.querySelectorAll('#scnOv .ch-r').length,
     si:document.querySelector('#scnOv .ch-somma').textContent}));
   console.log('schede:',conta.tab.join(' | '),'· righe',conta.n,'·',conta.si);
-  ok(conta.n===148&&/1 fra i tuoi/.test(conta.si),'percorsi: '+JSON.stringify(conta));
+  ok(conta.n===151&&/1 fra i tuoi/.test(conta.si),'percorsi: '+JSON.stringify(conta));
   f=await film(()=>tocca('#scnOv .t-back'));pulito('‹ → Home',f,'home','pagina:chiesto');
   await p.evaluate(()=>nccChiesto());await p.waitForTimeout(700);
   f=await film(()=>p.evaluate(()=>history.back()));pulito('indietro del telefono → Home',f,'home');
@@ -194,7 +194,7 @@ new ResizeObserver(function(){try{if(window.__filmOn){var v=__vedo(),L=window.__
   /* ── 9 · dopo un ricarico tutto resta ── */
   await avvia();
   const dopo=await p.evaluate(()=>({r:routes.some(r=>r.pdf==='p12a'),u:JSON.parse(localStorage.getItem('pzUser')||'[]').length,b:document.querySelector('#hmNew .hm-rq-largo .hm-rq-b').textContent}));
-  ok(dopo.r&&dopo.u===1&&dopo.b==='2/148','dopo un ricarico: '+JSON.stringify(dopo));
+  ok(dopo.r&&dopo.u===1&&dopo.b==='2/151','dopo un ricarico: '+JSON.stringify(dopo));
 
   /* ── 10 · la pagina ferma: niente di lato, le schede intere, due colonne sull'iPad ── */
   await p.evaluate(()=>nccChiesto({tab:'perc'}));await p.waitForTimeout(700);
