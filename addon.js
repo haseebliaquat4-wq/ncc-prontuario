@@ -3395,6 +3395,176 @@ body.on-topo:not(.topo-full) #panel .pfoot{position:sticky;bottom:0;z-index:2;ba
 /* (il pannello e' stretto: la via coperta del Cieco non spinge fuori dallo schermo il 📍 della riga) */
 body.on-topo:not(.topo-full) #panel .sr.act .sname.hid{min-width:0;}
 }
+
+/* ══ (v162) il quiz come un'app di quiz ══ */
+/* il testo di domande e risposte */
+html.qz-p #qRunQ{font-size:19px;}
+html.qz-p #qRunAns .qans{font-size:15.5px;}
+html.qz-g #qRunQ{font-size:24px;}
+html.qz-g #qRunAns .qans{font-size:19px;}
+html.qz-mg #qRunQ{font-size:27px;line-height:1.42;}
+html.qz-mg #qRunAns .qans{font-size:21px;}
+/* «🎲 Non ero sicuro»: sotto «📖 Perché è giusta», fuori dal flusso (niente si sposta) */
+.dado{position:absolute;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100% - 16px);box-sizing:border-box;
+display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 12px;border:none;border-radius:999px;background:transparent;
+font:inherit;font-size:14px;font-weight:750;color:var(--warn,#D97706);cursor:pointer;z-index:4;-webkit-tap-highlight-color:transparent;
+transition:background .18s,color .18s,transform .12s;}
+.dado .dd-ic{font-size:16px;line-height:1;}
+.dado:active{transform:scale(.96);}
+.dado.on{background:rgba(217,119,6,.14);}
+.dado.galleggia{position:fixed;top:auto!important;left:0;right:0;margin:0 auto;padding:9px 16px;white-space:nowrap;z-index:5;
+border:1.5px solid var(--ios-sep,rgba(0,0,0,.12));background:var(--ios-card,#fff);box-shadow:0 6px 22px rgba(0,0,0,.16);}
+.dado.galleggia.on{border-color:var(--warn,#D97706);}
+/* sulla stessa riga di «📖 Perché è giusta», la coppia al centro */
+#qRunAns.dado-affianco .sp-btn.giusta.galleggia{left:calc(50% - (var(--dd-w,160px) + var(--sp-w,160px) + 8px) / 2 + var(--dd-w,160px) + 8px);right:auto;margin:0;}
+.dado.galleggia.affianco{left:calc(50% - (var(--dd-w,160px) + var(--sp-w,160px) + 8px) / 2);right:auto;margin:0;}
+.dado .dd-ok{font-weight:900;}
+/* nel Risultato */
+.dado-qac{display:flex;align-items:center;gap:6px;margin:2px 0 0;padding:6px 12px;border:none;border-radius:10px;background:transparent;
+font:inherit;font-size:13.5px;font-weight:700;color:var(--warn,#D97706);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.dado-qac.on{background:rgba(217,119,6,.12);}
+.dado-qac:active{transform:scale(.97);}
+#rifaiBox{margin:4px 0 10px;}
+.rifai-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:13px 16px;border:2px solid var(--err,#E5484D);
+border-radius:16px;background:rgba(229,72,77,.08);color:var(--err,#E5484D);font:inherit;font-size:16.5px;font-weight:800;cursor:pointer;
+-webkit-tap-highlight-color:transparent;transition:transform .12s,background .18s;}
+.rifai-btn:active{transform:scale(.98);background:rgba(229,72,77,.16);}
+/* Profilo › Testo delle domande: l'anteprima */
+.tz-prova{margin:4px 0 12px;padding:14px;border-radius:16px;background:var(--fill2,rgba(120,120,128,.12));text-align:left;}
+.tz-q{font-size:21px;font-weight:600;line-height:1.42;color:var(--tx);margin-bottom:12px;letter-spacing:-.2px;}
+.tz-a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid var(--bd,rgba(0,0,0,.1));
+background:var(--card,#fff);color:var(--tx);font-size:17px;line-height:1.3;}
+.tz-l{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+background:var(--fill2,rgba(120,120,128,.16));color:var(--mu);font-size:13px;font-weight:750;}
+.tz-bar{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 6px;}
+.tz-b{flex:0 0 auto;min-width:64px;min-height:48px;padding:8px 14px;border-radius:14px;border:1.5px solid var(--bd,rgba(0,0,0,.12));
+background:var(--card,#fff);color:var(--a,#2447D6);font:inherit;font-size:17px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tz-b.grande{font-size:22px;}
+.tz-b:disabled{opacity:.35;cursor:default;}
+.tz-b:not(:disabled):active{transform:scale(.95);}
+.tz-n{min-width:118px;text-align:center;font-size:16px;font-weight:750;color:var(--tx);}
+/* la ripetizione: accanto a «Domanda 2» */
+.qrip{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.5px;
+color:var(--warn,#D97706);background:rgba(217,119,6,.12);vertical-align:1px;}
+/* ...e l'interruttore delle parole trabocchetto */
+.tz-tr{position:relative;display:flex;align-items:center;width:100%;box-sizing:border-box;min-height:58px;margin:8px 0 20px;padding:10px 80px 10px 14px;
+border-radius:14px;border:1.5px solid var(--bd,rgba(0,0,0,.1));background:var(--card,#fff);color:var(--tx);font:inherit;text-align:left;cursor:pointer;
+-webkit-tap-highlight-color:transparent;}
+.tz-tr:active{transform:scale(.99);}
+.tz-tr-t{min-width:0;}
+.tz-tr-t b{display:block;font-size:15.5px;font-weight:750;line-height:1.25;}
+.tz-tr-t small{display:block;margin-top:2px;font-size:12.5px;font-weight:600;color:var(--mu);line-height:1.3;}
+
+/* ══ (v163) le simulazioni, riviste ══ */
+/* Statistiche: tre schede */
+.sx-tabs .sx-tab{min-width:0;padding-left:2px;padding-right:2px;white-space:nowrap;}
+.sx-vai{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s;}
+.sx-vai:active{transform:scale(.97);}
+.sx-body.sx-cambio{animation:sxCambio .24s cubic-bezier(.2,.8,.2,1);}
+@keyframes sxCambio{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+/* l'andamento */
+.sim-gr{--gh:120px;}
+.sim-gh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.sim-gp{font-size:14px;font-weight:800;color:var(--ios-lbl);white-space:nowrap;}
+.sim-sub{font-size:13px;color:var(--ios-lbl2);margin-top:3px;}
+.sim-plot{display:flex;gap:6px;margin-top:22px;}
+.sim-y{position:relative;flex:0 0 16px;height:var(--gh);}
+.sim-y span{position:absolute;right:0;top:calc(var(--gh) * .25);transform:translateY(-50%);font-size:11px;font-weight:800;color:var(--ios-lbl2);}
+.sim-area{position:relative;flex:1;min-width:0;}
+.sim-base{position:absolute;left:0;right:0;top:var(--gh);border-top:1px solid var(--ios-sep);pointer-events:none;}
+.sim-rl{position:absolute;left:0;right:0;top:calc(var(--gh) * .25);border-top:1px solid var(--ios-lbl2);pointer-events:none;z-index:2;}
+.sim-cols{display:flex;gap:2px;}
+.sim-c{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;padding:0;border:none;background:transparent;
+font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.sim-c.ok{--c:var(--t-verde,#43A047);}
+.sim-c.ko{--c:var(--t-rosso,#C62828);}
+.sim-bx{width:100%;height:var(--gh);display:flex;align-items:flex-end;justify-content:center;}
+.sim-b{position:relative;display:block;width:min(24px,72%);min-height:3px;border-radius:4px 4px 0 0;background:var(--c);transition:opacity .15s;}
+.sim-b em{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:3px;font-style:normal;font-size:12.5px;font-weight:900;color:var(--ios-lbl);}
+.sim-c:active .sim-b{opacity:.72;}
+.sim-i{display:block;height:18px;margin-top:6px;font-size:12px;font-weight:900;line-height:18px;color:var(--c);}
+.sim-ax{display:flex;justify-content:space-between;gap:8px;margin:2px 0 0 22px;font-size:11.5px;font-weight:700;color:var(--ios-lbl2);}
+.sim-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;padding-top:12px;border-top:1.5px solid var(--ios-sep);
+font-size:12.5px;font-weight:700;color:var(--ios-lbl2);}
+.sim-leg span{display:inline-flex;align-items:center;gap:6px;}
+.sim-leg i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;
+font-style:normal;font-size:10px;font-weight:900;color:#fff;}
+.sim-leg i.ok{background:var(--t-verde,#43A047);}
+.sim-leg i.ko{background:var(--t-rosso,#C62828);}
+.sim-leg i.ln{height:0;border-radius:0;border-top:1px solid var(--ios-lbl2);}
+/* l'elenco */
+.sim-nuova{margin:0 0 22px;}
+.sim-tit{font-size:12.5px;font-weight:800;letter-spacing:.08em;color:var(--ios-lbl2);margin:0 4px 10px;}
+.sim-r{background:var(--ios-card);border:1.5px solid var(--ios-sep);border-radius:var(--t-r,18px);margin-bottom:10px;overflow:hidden;scroll-margin-top:12px;}
+.sim-r.ok{--c:var(--t-verde,#43A047);}
+.sim-r.ko{--c:var(--t-rosso,#C62828);}
+.sim-rt{display:flex;align-items:center;gap:12px;width:100%;min-height:66px;padding:12px 14px;border:none;background:transparent;
+font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.sim-rt:active{background:var(--ios-bg);}
+.sim-ic{flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;
+font-size:16px;font-weight:900;}
+.sim-rm{flex:1;min-width:0;}
+.sim-rm b{display:block;font-size:16px;font-weight:800;color:var(--ios-lbl);}
+.sim-rm small{display:block;font-size:13px;color:var(--ios-lbl2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sim-rv{flex:0 0 auto;text-align:right;}
+.sim-rv b{display:block;font-size:18px;font-weight:900;color:var(--ios-lbl);letter-spacing:-.3px;}
+.sim-rv b small{font-size:12px;font-weight:700;color:var(--ios-lbl2);letter-spacing:0;}
+.sim-rv>small{display:block;font-size:12px;font-weight:700;color:var(--ios-lbl2);margin-top:1px;white-space:nowrap;}
+.sim-ch{flex:0 0 auto;width:14px;text-align:center;font-size:22px;font-weight:600;line-height:1;color:var(--ios-lbl2);transition:transform .28s cubic-bezier(.2,.8,.2,1);}
+.sim-r.aperta .sim-ch{transform:rotate(90deg);}
+.sim-rd{height:0;overflow:hidden;transition:height .32s cubic-bezier(.2,.8,.2,1);}
+.sim-r.aperta .sim-rd{height:auto;}
+.sim-dd{padding:2px 14px 14px;border-top:1.5px solid var(--ios-sep);}
+.sim-pc{display:flex;gap:10px;align-items:flex-start;margin:14px 0 16px;padding:12px 14px;border-radius:14px;
+background:color-mix(in srgb,var(--c) 10%,transparent);font-size:14px;font-weight:650;line-height:1.45;color:var(--ios-lbl);}
+.sim-pc i{flex:0 0 auto;font-style:normal;font-weight:900;color:var(--c);}
+.sim-dd .qarg-grid{margin-bottom:16px;}
+.sim-dd .rifai-btn{margin:0 0 16px;}
+.sim-dd .sb-seg{margin-bottom:12px;}
+.sim-dd .qac{margin-bottom:10px;box-shadow:none;content-visibility:visible;contain:none;}   /* aprendo e chiudendo si vedono subito (non a vuoto per un attimo) */
+.sim-via{color:var(--mu);font-weight:600;}
+.sim-nod{margin:14px 0 2px;font-size:14px;line-height:1.45;color:var(--ios-lbl2);}
+.sim-chiudi{display:block;margin:6px auto 0;min-height:40px;padding:8px 22px;border:none;border-radius:999px;background:var(--ios-bg);
+color:var(--ios-lbl2);font:inherit;font-size:14px;font-weight:750;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.sim-chiudi:active{transform:scale(.97);}
+.sim-r.lampo,.sim-r.fresca{animation:simLampo 1.3s ease-out;}
+.sim-r.fresca{animation-delay:.3s;animation-fill-mode:backwards;}
+@keyframes simLampo{0%,35%{background:color-mix(in srgb,var(--c) 15%,var(--ios-card));}100%{background:var(--ios-card);}}
+.sim-vuota{text-align:center;}
+.sim-vic{font-size:40px;line-height:1;margin:6px 0 12px;}
+.sim-vuota b{display:block;font-size:19px;font-weight:800;color:var(--ios-lbl);margin-bottom:6px;}
+.sim-vuota span{display:block;font-size:14px;color:var(--ios-lbl2);line-height:1.45;margin:0 0 18px;}
+@media (max-width:360px){
+.sim-rt{gap:10px;padding:12px;}
+.sim-ic{flex-basis:28px;width:28px;height:28px;font-size:14px;}
+.sim-rm small{font-size:12.5px;}
+.sim-rv b{font-size:17px;}
+}
+/* «Tutte · Sbagliate»: nel Risultato e nelle simulazioni */
+.sb-seg{position:relative;display:flex;padding:3px;margin:0 0 14px;border-radius:13px;background:var(--fill2,rgba(120,120,128,.16));}
+.sb-th{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:10px;background:var(--card,#fff);
+box-shadow:0 2px 6px rgba(0,0,0,.14),0 1px 2px rgba(0,0,0,.08);transition:transform .28s cubic-bezier(.34,1,.64,1);pointer-events:none;}
+.dark .sb-th{background:#3A3A3C;box-shadow:0 2px 8px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);}
+.sb-seg.dx .sb-th{transform:translateX(100%);}
+.sb-seg button{position:relative;z-index:1;flex:1 1 0;min-width:0;min-height:38px;padding:6px 4px;border:none;background:transparent;
+font:inherit;font-size:14.5px;font-weight:700;color:var(--mu);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .2s;white-space:nowrap;}
+.sb-seg button.on{color:var(--tx);}
+.sb-seg button b{font-weight:850;margin-left:3px;}
+.sb-seg button b.sb-n{color:var(--err,#E5484D);}
+.sb-lista{transition:opacity .13s ease;}
+.sb-lista.sb-cambia{opacity:0;}
+.sb-lista.solo-sb>.qac:not(.wrong):not(.skip){display:none;}
+#qFiltro{margin:-2px 0 14px;}
+/* sopra la domanda: nuova o gia' sbagliata */
+.qsto{display:inline-block;margin:-3px 0 -3px 8px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.5px;
+vertical-align:1px;white-space:nowrap;}
+.qsto.ko{color:var(--err,#E5484D);background:rgba(229,72,77,.12);}
+.qsto.nu{color:var(--a,#2447D6);background:rgba(36,71,214,.10);}
+.dark .qsto.nu{color:#9DB0FF;background:rgba(120,140,255,.18);}
+@media (prefers-reduced-motion:reduce){
+.sx-body.sx-cambio,.sim-r.lampo,.sim-r.fresca{animation:none;}
+.sim-rd,.sim-ch,.sb-th,.sb-lista{transition:none;}
+}
 `;
 }catch(e){}
 })();
@@ -3810,7 +3980,7 @@ var _rdL=renderDash;renderDash=function(){applyLedger();_rdL();};/* la ✕ del q
 var _ghL=goHome;goHome=function(){applyLedger();_ghL();};
 var _gtL=goTopografia;goTopografia=function(){applyLedger();_gtL();};
 var _osL=openStudy;openStudy=function(){applyLedger();_osL();};
-window.addEventListener('pagehide',function(){try{applyLedger();}catch(e){}});
+window.addEventListener('pagehide',function(ev){try{if(ev&&ev.persisted)return;applyLedger();}catch(e){}});   /* (v162) messa da parte e ripresa: a fine scheda contavano due volte; se non torna, restano in qLedPend */
 }catch(e){}
 /* all'avvio: risposte rimaste in sospeso da un quiz chiuso di colpo */
 (function recupera(){
@@ -3907,6 +4077,7 @@ return t;
 'use strict';
 var TRAP=/\b(NON|MAI|SEMPRE|SOLO|SOLTANTO|ESCLUSIVAMENTE|VIETATO|OBBLIGATORIO|TUTTI|NESSUN[OA]?)\b/gi;
 function trapify(txt){
+try{if(window.nccTrappoleHTML)return nccTrappoleHTML(txt);}catch(e){}   /* (v162) */
 return esc(txt).replace(TRAP,function(m){return '<b class="trap">'+m+'</b>';});
 }
 try{
@@ -10748,6 +10919,7 @@ return [
 {ic:'\ud83d\ude98',c:C.marrone,n:'Tema Berlina',s:acceso('berlina'),f:'togBerlina',k:'berlina'},
 {ic:'\ud83d\udef0',c:C.teal,n:'Vista satellite',s:(function(){try{return !!_mapSat;}catch(e){return false;}})(),f:'togSat'},
 {ic:'\ud83c\udf99',c:C.arancio,n:'Voce del quiz',d:voce?voce.split(/[.\-]/).pop().slice(0,24):'Automatica',f:'nccScegliVoce'},
+{ic:'\ud83d\udd20',c:C.blu,n:'Testo delle domande',d:(window.nccTestoNome?nccTestoNome():''),f:'nccPfTesto'},   /* (v162) grandezza e parole trabocchetto */
 {ic:'\ud83d\udd12',c:C.verde,n:'Proteggi i dati',d:(window.nccProtettoTesto?nccProtettoTesto():''),f:'nccProteggi'}
 ].concat((function(){try{return (window.matchMedia&&matchMedia('(any-pointer:fine)').matches)
 ?[{ic:'\u2328\ufe0f',c:C.grigio,n:'Comandi da tastiera',d:'tasto ?',f:'nccTastiera'}]:[];}catch(e){return [];}})())},
@@ -12923,7 +13095,7 @@ norme:['\ud83d\udcdc','Norme e tariffe','Il regolamento comunale, articoli 38-61
 tariffe:['\ud83d\udcd0','Tariffe','Il prontuario: scatti, tariffe fisse, minimi per gli aeroporti.'],
 studio:['\ud83d\udccd','Cosa & Dove','I luoghi di Milano con le schede: leggi la scheda, poi rispondi dove si trova.'],
 profilo:['\ud83d\udc64','Profilo','Le impostazioni dell\u2019app e i tuoi dati: la data dell\u2019esame, il backup, i suoni, la voce.'],
-stat:['\ud83d\udcca','Statistiche','Il piano del coach per oggi, quanto sei pronto, la tua costanza e come vanno le simulazioni dell’orale.'],
+stat:['\ud83d\udcca','Statistiche','Panoramica: quanto sei pronto, la tua costanza, l’orale e il piano del coach. Argomenti: dal più debole al più forte. Simulazioni: come vanno, e ognuna con le domande sbagliate, la risposta giusta e la spiegazione.'],   /* (v163) */
 senza:['\ud83d\udccd','Senza marker','I percorsi a cui non hai ancora messo nemmeno un marker. Tocca un percorso: si apre sulla mappa pronto per posizionarli.'],
 dubbi:['\u2753','Marker da controllare','I marker li mette l\u2019app cercando le vie su OpenStreetMap, solo vicino alle tappe accanto. Il punto di domanda vuol dire che quella via non l\u2019ha trovata con sicurezza: il marker sta fra le tappe vicine. Tocca un percorso e sistemalo: trascina il marker nel punto giusto, oppure toccalo e scegli \u00ab\u00c8 giusto qui\u00bb.'],
 cerca:['\ud83d\udd0e','Cerca','Scrivi due lettere: cerco in piazze, vie, percorsi, norme, tariffe e nelle domande del quiz, con la risposta giusta sotto.'],
@@ -13121,7 +13293,8 @@ return o;
 }
 function tabs(){
 return '<div class="sx-tabs"><button class="sx-tab'+(TAB==='pan'?' on':'')+'" onclick="nccStatTab(\'pan\')">Panoramica</button>'
-+'<button class="sx-tab'+(TAB==='arg'?' on':'')+'" onclick="nccStatTab(\'arg\')">Argomenti</button></div>';
++'<button class="sx-tab'+(TAB==='arg'?' on':'')+'" onclick="nccStatTab(\'arg\')">Argomenti</button>'
++'<button class="sx-tab'+(TAB==='sim'?' on':'')+'" onclick="nccStatTab(\'sim\')">Simulazioni</button></div>';   /* (v163) */
 }
 function panoramica(o){
 var h='';
@@ -13148,7 +13321,7 @@ h+='<div class="sx-card"><div class="sx-ix"><svg class="sx-ring" viewBox="0 0 11
 +'<div><b>'+o.sai+'%</b><span>DOMANDE CHE SAI</span></div></div></div>';
 }
 h+='<div class="sx-box3"><div><b>'+o.risposte+'</b><span>DOMANDE RISPOSTE</span></div>'
-+'<div><b>'+o.sim+'</b><span>SIMULAZIONI FATTE</span></div>'
++'<div class="sx-vai" role="button" tabindex="0" onclick="nccStatTab(\'sim\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')nccStatTab(\'sim\')"><b>'+o.sim+'</b><span>SIMULAZIONI FATTE ›</span></div>'   /* (v163) */
 +'<div><b class="rosso">'+o.errTot+'</b><span>ERRORI DA RIVEDERE</span></div></div>';
 var mx=Math.max.apply(null,o.sett.map(function(x){return x.n;}).concat([1]));
 h+='<div class="sx-card"><div class="sx-lab">COSTANZA</div><div class="sx-cos"><div class="sx-fiam">\ud83d\udd25</div>'
@@ -13177,7 +13350,7 @@ return h;
 }
 function disegna(){
 try{var o=dati();
-var corpo=tabs()+'<div class="sx-body">'+(TAB==='arg'?argomenti():panoramica(o))+'</div>';
+var corpo=tabs()+'<div class="sx-body">'+(TAB==='arg'?argomenti():(TAB==='sim'?(window.nccSimTab?nccSimTab():''):panoramica(o)))+'</div>';   /* (v163) */
 var b=document.getElementById('scnBody');
 if(b&&document.getElementById('scnOv')&&document.getElementById('scnOv').getAttribute('data-p')==='stat')b.innerHTML=corpo;
 else nccPagina('stat','Statistiche',corpo,'nccSezChiudi()');
@@ -13228,6 +13401,7 @@ var h='<div class="fs-tre"><div class="ok"><b>'+g+'</b><span>GIUSTE</span></div>
 +'<div class="ko"><b>'+s+'</b><span>SBAGLIATE</span></div>'
 +'<div><b>'+tempo(q.elapsed)+'</b><span>TEMPO</span></div></div>'
 +(v?'<div class="fs-v">'+v+' senza risposta</div>':'');
+if(window.nccFineSessione&&nccFineSessione(q,g,s,v,tot,h))return;   /* (v162) Rifai le sbagliate */
 var az=[];
 if(s>0)az.push({t:'\ud83d\udd01 Rivedi gli errori',stile:'rosso',fn:function(){try{buildQuiz();qStartCat('errata');}catch(e){}}});
 az.push({t:'Nuova scheda',stile:'pieno',fn:function(){try{buildQuiz();qStartMix();}catch(e){}}});
@@ -13249,7 +13423,7 @@ titolo:perfetto?'Perfetto!':'Sessione finita',testo:(q.title?q.title+' \u00b7 ':
    ═══════════════════════════════════════════════════ */
 (function(){
 'use strict';
-var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk','nccSpSegn','nccGiorni'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate; (v161) i giorni di studio */
+var CHIAVI=['nmStats','nmSR','pzStats','pzSR','pzCoords','pencilGeo','nomeUtente','nomeTs','oggiNcc','dmStats','mmStats','nccOrale','nccOraleRip','nccVieOk','nccSpSegn','nccGiorni','nccSimDett'];   /* (v156) anche l'orale; (v157) le vie rifatte giuste; (v158) le spiegazioni segnalate; (v161) i giorni di studio; (v163) le simulazioni riviste */
 function raccogli(){
 var o={};
 CHIAVI.forEach(function(k){try{var v=localStorage.getItem(k);if(v==null)return;
@@ -13295,6 +13469,10 @@ if(tut.length!==sa.length||tut.some(function(x,i){return sa[i].t!==x.t;})){local
 if(k==='nccGiorni'){try{var ga=JSON.parse(loc),gb=JSON.parse(cl);if(!Array.isArray(ga)||!Array.isArray(gb))return;
 var gu=ga.concat(gb).filter(function(x,i,l){return typeof x==='string'&&l.indexOf(x)===i;}).sort().slice(-400);
 if(gu.join()!==ga.slice().sort().join()){localStorage.setItem(k,JSON.stringify(gu));n++;}}catch(e){}return;}
+/* (v163) le simulazioni riviste (le domande e le tue risposte): si sommano, le ultime 50 */
+if(k==='nccSimDett'){try{var sd=JSON.parse(loc),sc=JSON.parse(cl),cs=0;if(!sd||!sc||typeof sd!=='object'||typeof sc!=='object'||Array.isArray(sd)||Array.isArray(sc))return;
+Object.keys(sc).forEach(function(x){if(!(x in sd)&&sc[x]&&typeof sc[x]==='object'){sd[x]=sc[x];cs++;}});
+if(cs){var sk=Object.keys(sd).sort(function(p,q){return (+p)-(+q);});if(sk.length>50)sk.slice(0,sk.length-50).forEach(function(x){delete sd[x];});localStorage.setItem(k,JSON.stringify(sd));n+=cs;}}catch(e){}return;}
 if(k==='nccOraleRip'){try{var ra=JSON.parse(loc),rb=JSON.parse(cl),cr=0;if(!ra||!rb||typeof ra!=='object'||typeof rb!=='object')return;
 Object.keys(rb).forEach(function(g){var B2=rb[g];if(!B2||typeof B2!=='object')return;var A2=ra[g]||(ra[g]={});
 Object.keys(B2).forEach(function(id){var y=B2[id],x=A2[id];if(!y||typeof y!=='object')return;
@@ -20955,5 +21133,853 @@ var r=t.getBoundingClientRect(),q=b.getBoundingClientRect();
 if(r.bottom>q.bottom-8)b.scrollTop+=Math.min(r.bottom-q.bottom+8,r.top-q.top-8);else if(r.top<q.top+8)b.scrollTop-=q.top+8-r.top;}catch(x){}},30);
 }}catch(x){}
 },true);
+}catch(e){}
+})();
+/* ═══════════════════════════════════════════════════
+   🎯 IL QUIZ COME UN'APP DI QUIZ (v162)
+   · «🔁 Rifai le sbagliate»: a fine scheda (e nel Risultato) le sbagliate di questa scheda, subito, finche' non
+     sono tutte giuste. E' allenamento: statistiche, ripasso e «Oggi» non cambiano (la prova vera e' il ripasso
+     dei giorni dopo, dove le sbagliate restano come le avevi sbagliate)
+   · «🎲 Non ero sicuro»: dopo una risposta giusta (o nel Risultato, anche della simulazione) la segni tirata a
+     indovinare: conta giusta, ma la ripassi domani; se era gia' nel ripasso non sale di livello
+   · le parole trabocchetto, che l'app segnava gia' in rosso: anche entro, almeno, massimo, consentito, salvo…;
+     non piu' il «non» di «non di linea» (e' il nome del servizio); mai nella simulazione; si spengono in Profilo
+   · il testo di domande e risposte: Piccolo, Normale, Grande, Molto grande (Profilo)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function quiz(){return typeof Q!=='undefined'&&Q&&Q.items;}
+function vista(){try{return typeof qCurView!=='undefined'?qCurView:'';}catch(e){return '';}}
+function copia(x){try{return x===undefined?undefined:JSON.parse(JSON.stringify(x));}catch(e){return x;}}
+function salva(){try{if(typeof qtSave==='function')qtSave();}catch(e){}}
+function vibra(){try{if(typeof hap==='function')hap();}catch(e){}}
+var GIORNO=86400000;
+/* chi si aggancia dopo riconosce che il suo pezzo c'e' gia' (i segni __spieg, __oggi… restano) */
+function come(nuova,vecchia){try{Object.keys(vecchia).forEach(function(k){if(!(k in nuova))nuova[k]=vecchia[k];});}catch(e){}return nuova;}
+function plur(n,uno,tanti){return n===1?uno:tanti.replace('#',n);}
+
+/* ── 1 · RIFAI LE SBAGLIATE ── */
+function sbagliate(q){var o=[];try{q.items.forEach(function(it,i){var a=q.ans[i];if(a!=null&&a>=0&&a!==it.correct)o.push(it);});}catch(e){}return o;}
+/* in una ripetizione contano anche quelle lasciate senza risposta: sono ancora da fare */
+function rimaste(q){var o=[];try{q.items.forEach(function(it,i){if(q.ans[i]!==it.correct)o.push(it);});}catch(e){}return o;}
+function daRifare(q){return (q.prova||q.mode==='exam')?rimaste(q):sbagliate(q);}   /* (v163) nella simulazione quelle senza risposta sono errori: si rifanno anche quelle */
+function etichetta(n){return '🔁 Rifai '+(n===1?'la sbagliata':'le '+n+' sbagliate');}
+function rifai(items){
+try{
+if(!items||!items.length)return;
+var el=(typeof qShuffle==='function')?qShuffle(items.slice()):items.slice();
+try{if(document.getElementById('popOv')&&window.nccChiudiPopup)nccChiudiPopup();}catch(e){}
+startQuiz(el,{mode:'study',title:'Rifai le sbagliate',prova:true});
+try{var r=document.getElementById('qRun');if(r)r.scrollTop=0;}catch(e){}
+}catch(e){}
+}
+window.nccRifaiSbagliate=function(){try{if(quiz())rifai(daRifare(Q));}catch(e){}};
+window.nccRifai=function(items){rifai(items);};   /* (v163) anche le sbagliate di una simulazione di ieri, da Statistiche */
+window.nccFineSessione=function(q,g,s,v,tot,h){
+try{
+if(!q)return false;
+var x=daRifare(q);
+if(q.prova){
+if(!x.length){
+nccPopup({icona:'🎯',titolo:'Tutte giuste!',
+testo:'Le sbagliate di prima adesso le sai. Nei prossimi giorni il ripasso te le ripropone: è lì che si fissano.',html:h,
+azioni:[{t:'Nuova scheda',stile:'pieno',fn:function(){try{buildQuiz();qStartMix();}catch(e){}}},{t:'Fatto',stile:'vuoto'}]});
+}else{
+nccPopup({icona:'🔁',titolo:plur(x.length,'Ne resta 1','Ne restano #'),
+testo:'Rifalle adesso, finché sono tutte giuste: è il modo più veloce di fissarle.',html:h,
+azioni:[{t:etichetta(x.length),stile:'rosso',fn:function(){rifai(x);}},{t:'Basta così',stile:'vuoto'}]});
+}
+return true;
+}
+/* (v163) la simulazione: il popup dice com'e' andata (prima diceva «Sessione finita» e copriva il «Bocciato» del Risultato) */
+if(q.mode==='exam'){
+var u=q.__sim||null;   /* la riga dello storico di questa simulazione (la segna v163 a fine simulazione) */
+if(!u){try{var H=(typeof qExamHist!=='undefined'&&Array.isArray(qExamHist))?qExamHist:[];u=H[H.length-1]||null;if(u&&Math.abs(Date.now()-(+u.d||0))>120000)u=null;}catch(e){u=null;}}
+if(u){
+var pass=!!u.pass,ne=s+v,ae=[];
+if(x.length)ae.push({t:etichetta(x.length)+' subito',stile:'rosso',fn:function(){rifai(x);}});
+ae.push({t:'Nuova simulazione',stile:'pieno',fn:function(){try{buildQuiz();qStartExam();}catch(e){}}});
+ae.push({t:'Vedi il dettaglio',stile:'vuoto'});
+nccPopup({icona:pass?'🎉':'❌',titolo:pass?'Promosso!':'Bocciato',
+testo:g+' giuste su '+tot+' · '+(ne?plur(ne,'1 errore','# errori'):'nessun errore')+(pass?'':' (al massimo 4, non più di 2 per argomento)'),html:h,azioni:ae});
+return true;
+}
+}
+if(!x.length)return false;
+var az=[{t:etichetta(x.length)+' subito',stile:'rosso',fn:function(){rifai(x);}},
+{t:'Nuova scheda',stile:'pieno',fn:function(){try{buildQuiz();qStartMix();}catch(e){}}},
+{t:'Vedi il dettaglio',stile:'vuoto'}];
+nccPopup({icona:(s<=Math.max(1,Math.round(tot*0.1))?'✅':'💪'),titolo:'Sessione finita',
+testo:(q.title?q.title+' · ':'')+g+' giuste su '+tot,html:h,azioni:az});
+return true;
+}catch(e){return false;}
+};
+
+/* la ripetizione e' allenamento: niente statistiche, niente ripasso, niente «Oggi» */
+var LED_PROVA=false;   /* le risposte in sospeso (se esci a meta') sono di una ripetizione */
+var SESS=null;         /* la sessione delle risposte in sospeso: uscendo col tasto indietro Q diventa null prima che si registrino */
+var MUTO=false;        /* mentre si chiude una ripetizione il ripasso non si tocca */
+try{
+if(typeof srMark==='function'){
+var _sm=srMark;
+srMark=come(function(){if(MUTO)return;return _sm.apply(this,arguments);},_sm);
+}
+}catch(e){}
+try{
+if(typeof window.applyLedger==='function'){
+var _al=window.applyLedger;
+window.applyLedger=come(function(){
+if(LED_PROVA){try{localStorage.removeItem('qLedPend');}catch(e){}return;}
+var r=_al.apply(this,arguments);
+try{applicaMarche(SESS);}catch(e){}   /* uscito a meta': le «non ero sicuro» valgono lo stesso */
+return r;
+},_al);
+}
+}catch(e){}
+
+/* ── 2 · NON ERO SICURO ── */
+/* com'era ogni domanda nel ripasso prima della sessione: una «non ero sicuro» non deve salire di livello */
+function fotoErr(items){var o={};try{items.forEach(function(it){var e=qtStats.err?qtStats.err[it.id]:undefined;o[String(it.id)]=(e===undefined)?null:copia(e);});}catch(e){}return o;}
+function sospesa(id){try{var s=L('chronSusp',{})||{};return !!s[id];}catch(e){return false;}}
+/* la ripassi domani: se era gia' nel ripasso resta al suo livello, se no ci entra al primo gradino */
+function incerta(q,id){
+try{
+if(!qtStats.err)qtStats.err={};
+if(sospesa(id))return false;            /* le croniche sospese hanno la loro strada */
+var prima=q&&q.__prima?q.__prima[String(id)]:null,dom=Date.now()+GIORNO;
+if(prima&&typeof prima==='object'){var e=copia(prima);e.due=dom;qtStats.err[id]=e;}
+else if(prima!=null)qtStats.err[id]={box:0,due:dom};
+else qtStats.err[id]={box:1,due:dom};
+return true;
+}catch(e){return false;}
+}
+function applicaMarche(q){
+try{
+if(!q||!q.__marche||q.prova)return;
+var ks=Object.keys(q.__marche);if(!ks.length)return;
+var n=0;q.__dopo=q.__dopo||{};q.__fatte=q.__fatte||{};
+ks.forEach(function(id){
+var i=-1;for(var j=0;j<q.items.length;j++){if(String(q.items[j].id)===id){i=j;break;}}
+if(i<0||q.ans[i]!==q.items[i].correct)return;            /* conta solo per le giuste */
+q.__dopo[id]=copia(qtStats.err?qtStats.err[id]:undefined);
+if(incerta(q,id)){q.__fatte[id]=1;n++;}
+});
+q.__marche={};
+if(n){salva();try{if(typeof updateTabBadge==='function')updateTabBadge();}catch(e){}}
+}catch(e){}
+}
+function segnata(q,id){id=String(id);return !!((q.__marche&&q.__marche[id])||(q.__fatte&&q.__fatte[id]));}
+
+/* il tasto sotto la risposta giusta, sotto «📖 Perché è giusta» */
+function serveDado(){
+try{
+if(!quiz()||vista()!=='run'||Q.mode==='exam'||Q.limit||Q.prova)return null;
+var it=Q.items[Q.idx],a=Q.ans?Q.ans[Q.idx]:-1;
+return (it&&a===it.correct)?it:null;
+}catch(e){return null;}
+}
+function testoDado(b,on){
+b.classList.toggle('on',!!on);
+b.innerHTML='<span class="dd-ic">🎲</span><span>Non ero sicuro</span>'+(on?'<span class="dd-ok">✓</span>':'');
+b.setAttribute('aria-pressed',on?'true':'false');
+}
+function mettiDado(){
+try{
+var host=document.getElementById('qRunAns'),old=document.getElementById('dadoBtn'),it=serveDado();
+if(!it||!host){if(old)old.remove();if(host)host.classList.remove('dado-affianco');return;}
+var b=old;
+if(!b||b.parentNode!==host||b.__it!==it){
+if(old)old.remove();
+b=document.createElement('button');b.type='button';b.id='dadoBtn';b.className='dado';b.__it=it;
+b.addEventListener('pointerdown',function(){trattieni();},{passive:true});
+b.addEventListener('pointerup',function(){setTimeout(rilascia,260);},{passive:true});
+b.addEventListener('pointercancel',function(){rilascia();},{passive:true});
+b.onclick=function(e){
+try{e.stopPropagation();}catch(x){}
+try{
+if(!quiz()||b.__it!==Q.items[Q.idx])return;
+var id=String(b.__it.id);Q.__marche=Q.__marche||{};
+if(Q.__marche[id])delete Q.__marche[id];else Q.__marche[id]=1;
+testoDado(b,!!Q.__marche[id]);posaDado(b);vibra();
+try{if(Q.__marche[id])toast2('🎲 La ripassi domani',1800);}catch(x){}
+}catch(x){}
+setTimeout(rilascia,420);   /* un attimo per vedere che e' segnata, poi la domanda dopo */
+};
+host.appendChild(b);
+}
+testoDado(b,segnata(Q,it.id));
+posaDado(b);
+}catch(e){}
+}
+function posaDado(b){
+try{
+var host=b.parentNode;if(!host)return;
+var l=host.querySelectorAll('.qans'),u=l[l.length-1];if(!u)return;
+var sp=document.getElementById('spBtn'),spOk=!!(sp&&sp.parentNode===host&&sp.classList.contains('giusta')),spG=spOk&&sp.classList.contains('galleggia');
+b.classList.remove('galleggia','affianco');b.style.bottom='';host.classList.remove('dado-affianco');
+var top=u.offsetTop+u.offsetHeight+8;
+if(spOk&&!spG)top=sp.offsetTop+sp.offsetHeight+2;
+b.style.top=top+'px';
+var sc=document.getElementById('qRun'),fuori=false;
+if(sc){var R=sc.getBoundingClientRect(),r=b.getBoundingClientRect();fuori=(r.bottom>R.bottom-4||r.top<R.top);}
+if(spG||fuori){
+b.classList.add('galleggia');
+/* c'e' posto: accanto a «📖 Perché è giusta», sulla stessa riga; se no sopra */
+var accanto=spG&&(sp.offsetWidth+b.offsetWidth+8<=window.innerWidth-24);
+if(accanto){host.style.setProperty('--dd-w',b.offsetWidth+'px');host.style.setProperty('--sp-w',sp.offsetWidth+'px');}
+host.classList.toggle('dado-affianco',accanto);b.classList.toggle('affianco',accanto);
+b.style.bottom='calc('+(16+(spG&&!accanto?sp.offsetHeight+8:0))+'px + env(safe-area-inset-bottom,0px))';
+}
+}catch(e){}
+}
+function riposaDado(){try{var b=document.getElementById('dadoBtn');if(b)posaDado(b);}catch(e){}}
+try{window.addEventListener('resize',riposaDado);}catch(e){}
+try{document.addEventListener('scroll',function(e){if(e.target&&e.target.id==='qRun')riposaDado();},{capture:true,passive:true});}catch(e){}
+try{var hostRO=null;new MutationObserver(function(){try{var h=document.getElementById('qRunAns');if(h&&h!==hostRO&&window.ResizeObserver){hostRO=h;new ResizeObserver(riposaDado).observe(h);}}catch(e){}}).observe(document.body,{childList:true,subtree:false});}catch(e){}
+try{var h0=document.getElementById('qRunAns');if(h0&&window.ResizeObserver){new ResizeObserver(riposaDado).observe(h0);}}catch(e){}
+
+/* tocchi il dado proprio mentre arriva la domanda dopo: la domanda dopo aspetta il tuo tocco */
+var TRAT=null;
+function trattieni(){try{if(!quiz())return;var t={Q:Q,i:Q.idx,pend:0};TRAT=t;setTimeout(function(){if(TRAT===t)rilascia();},1800);}catch(e){}}
+function rilascia(){var t=TRAT;TRAT=null;try{if(t&&t.pend&&quiz()&&Q===t.Q&&Q.idx===t.i)qGo(t.pend);}catch(e){}}
+
+/* nel Risultato: 🎲 su ogni giusta (anche nella simulazione), 🔁 se ci sono sbagliate */
+function risultato(){
+try{
+if(!quiz()||vista()!=='result')return;
+var q=Q,x=daRifare(q);
+var act=document.querySelector('#qResult .qres-actions'),old=document.getElementById('rifaiBox');
+if(act&&x.length){
+if(!old||old.nextElementSibling!==act){
+if(old)old.remove();
+old=document.createElement('div');old.id='rifaiBox';
+old.innerHTML='<button type="button" class="rifai-btn"></button>';
+old.querySelector('button').onclick=function(){vibra();window.nccRifaiSbagliate();};
+act.parentNode.insertBefore(old,act);
+}
+old.querySelector('button').textContent=etichetta(x.length)+(q.prova?'':' subito');
+}else if(old)old.remove();
+if(q.prova)return;
+var cards=document.querySelectorAll('#qAnalysis .qac');
+q.items.forEach(function(it,i){
+var c=cards[i];if(!c)return;
+var b=c.querySelector('.dado-qac');
+if(q.ans[i]!==it.correct){if(b)b.remove();return;}
+if(!b){
+b=document.createElement('button');b.type='button';b.className='dado-qac';
+b.onclick=function(e){try{e.stopPropagation();}catch(x){}cambiaDopo(q,it,b);};
+c.appendChild(b);
+}
+var on=segnata(q,it.id);b.classList.toggle('on',on);
+b.innerHTML='<span>🎲 '+(on?'Domani la ripassi ✓':'Non ero sicuro')+'</span>';
+});
+}catch(e){}
+}
+/* dal Risultato la sessione e' gia' registrata: si cambia subito (e si puo' tornare indietro) */
+function cambiaDopo(q,it,b){
+try{
+var id=String(it.id);q.__fatte=q.__fatte||{};q.__dopo=q.__dopo||{};
+if(q.__fatte[id]){
+var d=q.__dopo[id];if(d===undefined)delete qtStats.err[id];else qtStats.err[id]=copia(d);
+delete q.__fatte[id];delete q.__dopo[id];
+}else{
+q.__dopo[id]=copia(qtStats.err?qtStats.err[id]:undefined);
+if(incerta(q,id))q.__fatte[id]=1;else{try{toast2('🩹 È fra le croniche: la ripassi con quelle');}catch(x){}}
+}
+salva();try{if(typeof updateTabBadge==='function')updateTabBadge();}catch(x){}
+vibra();risultato();
+}catch(e){}
+}
+
+/* ── 3 · LE PAROLE TRABOCCHETTO ── */
+var LET='A-Za-z\xc0-\xd6\xd8-\xf6\xf8-\xff';
+var TRAP=new RegExp('(^|[^'+LET+'])(non(?![ \xa0]+di[ \xa0]+linea)|n\xe9|mai|nessun[oa]?|neppure|nemmeno|neanche|sempre|solo|soltanto|solamente|unicamente|esclusivamente|entro|almeno|massim[oa]|minim[oa]|meno|fino|sino|salvo|eccetto|tranne|vietat[oaie]|consentit[oaie]|ammess[oaie]|obbligatori[oae]?|obbligatoriamente|qualsiasi|qualunque)(?=[^'+LET+']|$)','gi');
+window.nccTrappoleOn=function(){return L('nccTrappole',1)!==0;};
+window.nccTogTrappole=function(){
+var on=!window.nccTrappoleOn();S('nccTrappole',on?1:0);
+try{toast2(on?'⚠️ Parole trabocchetto in evidenza':'Parole trabocchetto: niente evidenza');}catch(e){}
+};
+function evidenzia(el){
+try{
+if(!el)return;
+var nodi=[],w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),x;
+while((x=w.nextNode())){var p=x.parentNode;if(!(p&&p.classList&&p.classList.contains('trap')))nodi.push(x);}
+nodi.forEach(function(nd){
+var t=nd.nodeValue||'';TRAP.lastIndex=0;if(!TRAP.test(t))return;TRAP.lastIndex=0;
+var fr=document.createDocumentFragment(),ult=0,m;
+while((m=TRAP.exec(t))){
+var s0=m.index+m[1].length;
+if(s0>ult)fr.appendChild(document.createTextNode(t.slice(ult,s0)));
+var b=document.createElement('b');b.className='trap';b.textContent=m[2];fr.appendChild(b);
+ult=s0+m[2].length;TRAP.lastIndex=ult;
+}
+if(ult<t.length)fr.appendChild(document.createTextNode(t.slice(ult)));
+nd.parentNode.replaceChild(fr,nd);
+});
+}catch(e){}
+}
+window.nccEvidenzia=evidenzia;   /* per i giri di prova */
+/* si evidenziano nelle schede di studio; nella simulazione no (all'esame nessuno te le segna) */
+function permesse(){try{if(!window.nccTrappoleOn())return false;if(quiz()&&Q.mode==='exam')return false;}catch(e){}return true;}
+/* la domanda gia' pronta in HTML, per chi la scrive nella pagina (il modulo che le segnava in rosso) */
+window.nccTrappoleHTML=function(txt){
+var t=String(txt==null?'':txt);
+if(!permesse())return E(t);
+var out='',ult=0,m;TRAP.lastIndex=0;
+while((m=TRAP.exec(t))){
+var s0=m.index+m[1].length;
+out+=E(t.slice(ult,s0))+'<b class="trap">'+E(m[2])+'</b>';
+ult=s0+m[2].length;TRAP.lastIndex=ult;
+}
+return out+E(t.slice(ult));
+};
+function trappole(){
+try{
+if(!quiz()||vista()!=='run'||!permesse())return;
+evidenzia(document.getElementById('qRunQ'));
+}catch(e){}
+}
+
+/* ── 4 · IL TESTO DI DOMANDE E RISPOSTE ── */
+var NOMI={'-1':'Piccolo','0':'Normale','1':'Grande','2':'Molto grande'};
+var PX={'-1':[19,15.5],'0':[21,17],'1':[24,19],'2':[27,21]};
+var CLS={'-1':'qz-p','1':'qz-g','2':'qz-mg'};
+function livello(){var v=+L('nccTesto',0);return (v>=-1&&v<=2&&Math.round(v)===v)?v:0;}
+function applicaTesto(){
+try{var c=document.documentElement.classList;['qz-p','qz-g','qz-mg'].forEach(function(k){c.remove(k);});
+var k=CLS[String(livello())];if(k)c.add(k);}catch(e){}
+}
+applicaTesto();
+window.nccTestoNome=function(){return NOMI[String(livello())]+(window.nccTrappoleOn()?'':' · trabocchetti spenti');};
+function campione(){
+try{
+if(typeof buildQuiz==='function'&&(typeof QUIZ_ALL==='undefined'||!QUIZ_ALL||!QUIZ_ALL.length))buildQuiz();
+var t=(typeof QUIZ_ALL!=='undefined'&&QUIZ_ALL)?QUIZ_ALL:[];
+var it=t.filter(function(x){return x&&/(^|[^a-z])vietato([^a-z]|$)/i.test(x.q)&&x.q.length<95&&x.choices&&String(x.choices[x.correct]||'').length<70;})[0]
+||t.filter(function(x){return x&&x.q.length<70&&x.choices&&String(x.choices[x.correct]||'').length<60;})[0];
+if(it)return {q:it.q,a:it.choices[it.correct]};
+}catch(e){}
+return {q:'La provincia di Pavia confina:',a:'Con l’Emilia Romagna'};
+}
+window.nccPfTesto=function(){
+try{
+var lv=livello(),c=campione();
+nccPopup({icona:'🔠',titolo:'Testo delle domande',testo:'Per le domande e le risposte del quiz.',
+html:'<div class="tz-prova"><div class="tz-q" id="tzQ">'+E(c.q)+'</div>'
++'<div class="tz-a" id="tzA"><span class="tz-l">A</span><span>'+E(c.a)+'</span></div></div>'
++'<div class="tz-bar"><button type="button" class="tz-b" id="tzMeno" aria-label="Testo più piccolo">A–</button>'
++'<span class="tz-n" id="tzN"></span>'
++'<button type="button" class="tz-b grande" id="tzPiu" aria-label="Testo più grande">A+</button></div>'
++'<button type="button" class="tz-tr" id="tzTrap" role="switch"><span class="tz-tr-t"><b>Parole trabocchetto in rosso</b>'
++'<small>NON, mai, entro, vietato… (nella simulazione no)</small></span><span class="pf-sw"><i></i></span></button>',
+azioni:[{t:'Fatto',stile:'pieno'}]});
+var q=document.getElementById('tzQ'),a=document.getElementById('tzA'),n=document.getElementById('tzN'),
+me=document.getElementById('tzMeno'),pi=document.getElementById('tzPiu'),tr=document.getElementById('tzTrap');
+if(!q||!a||!n||!me||!pi||!tr)return;
+var profilo=function(){try{if(document.getElementById('pfOv')&&window.nccProfilo)nccProfilo();}catch(e){}};
+var trappoleProva=function(){var on=window.nccTrappoleOn();q.textContent=c.q;if(on)evidenzia(q);
+tr.setAttribute('aria-checked',on?'true':'false');var sw=tr.querySelector('.pf-sw');if(sw)sw.classList.toggle('on',on);};
+trappoleProva();
+tr.onclick=function(e){try{e.stopPropagation();}catch(x){}window.nccTogTrappole();trappoleProva();vibra();profilo();};
+var mostra=function(){var p=PX[String(lv)];q.style.fontSize=p[0]+'px';a.style.fontSize=p[1]+'px';n.textContent=NOMI[String(lv)];
+me.disabled=lv<=-1;pi.disabled=lv>=2;};
+var cambia=function(d){var nv=Math.max(-1,Math.min(2,lv+d));if(nv===lv)return;lv=nv;S('nccTesto',lv);applicaTesto();mostra();vibra();profilo();};
+me.onclick=function(e){try{e.stopPropagation();}catch(x){}cambia(-1);};
+pi.onclick=function(e){try{e.stopPropagation();}catch(x){}cambia(1);};
+mostra();
+}catch(e){}
+};
+
+/* ── gli agganci ── */
+try{
+if(typeof startQuiz==='function'){
+var _sq=startQuiz;
+startQuiz=come(function(items,opts){
+var r=_sq.apply(this,arguments);   /* qui dentro, se l'ultima e' rimasta a meta', si registra (o no, se era una ripetizione) */
+try{
+LED_PROVA=!!(opts&&opts.prova);
+if(quiz()){Q.prova=LED_PROVA;Q.__marche={};Q.__fatte={};Q.__dopo={};Q.__prima=fotoErr(Q.items);SESS=Q;ripetizione();}   /* la prima domanda si e' gia' disegnata */
+}catch(e){}
+return r;
+},_sq);
+}
+}catch(e){}
+try{
+if(typeof qPick==='function'){
+var _qp=qPick;
+qPick=come(function(){
+var prova=false,og=null;
+try{prova=!!(quiz()&&Q.prova);if(prova)og=localStorage.getItem('oggiNcc');}catch(e){}
+var r=_qp.apply(this,arguments);
+if(prova){
+try{
+if(og===null){if(localStorage.getItem('oggiNcc')!==null)localStorage.removeItem('oggiNcc');}
+else if(localStorage.getItem('oggiNcc')!==og)localStorage.setItem('oggiNcc',og);
+localStorage.removeItem('qLedPend');
+}catch(e){}
+try{perche();}catch(e){}
+}
+try{trappole();mettiDado();setTimeout(mettiDado,0);setTimeout(riposaDado,60);}catch(e){}
+return r;
+},_qp);
+}
+}catch(e){}
+/* nella ripetizione, accanto a «Domanda 2»: che e' una ripetizione (non conta nelle statistiche) */
+function ripetizione(){
+try{var n=document.getElementById('qRunNum');if(!n)return;var x=n.querySelector('.qrip');
+if(quiz()&&Q.prova){if(!x){x=document.createElement('span');x.className='qrip';x.textContent='Ripetizione';n.appendChild(x);}}
+else if(x)x.remove();}catch(e){}
+}
+/* nella ripetizione anche il «perché l'hai sbagliata?» non lascia segni */
+function perche(){
+var bar=document.querySelector('#qRunAns .why-bar');if(!bar||bar.__prova)return;bar.__prova=true;
+bar.querySelectorAll('button').forEach(function(b){
+var f=b.onclick;if(typeof f!=='function')return;
+b.onclick=function(ev){
+var w=null;try{w=JSON.stringify(qtStats.why||{});}catch(e){}
+var r=f.call(this,ev);
+try{if(w!==null&&JSON.stringify(qtStats.why||{})!==w){qtStats.why=JSON.parse(w);salva();}}catch(e){}
+return r;
+};
+});
+}
+try{
+if(typeof qRenderRun==='function'){
+var _qr=qRenderRun;
+qRenderRun=come(function(){
+var r=_qr.apply(this,arguments);
+try{trappole();setTimeout(trappole,0);mettiDado();setTimeout(mettiDado,0);setTimeout(riposaDado,60);ripetizione();}catch(e){}
+return r;
+},_qr);
+}
+}catch(e){}
+try{
+if(typeof qGo==='function'){
+var _qg=qGo;
+qGo=come(function(d){
+try{if(TRAT&&quiz()&&Q===TRAT.Q&&Q.idx===TRAT.i){TRAT.pend=d;return;}}catch(e){}
+return _qg.apply(this,arguments);
+},_qg);
+}
+}catch(e){}
+try{
+if(typeof qFinish==='function'){
+var _qf=qFinish;
+qFinish=come(function(){
+var q=quiz()?Q:null,prova=false,foto=null;
+try{
+prova=!!(q&&q.prova&&!q._finished);
+if(prova){
+foto={cat:JSON.stringify(qtStats.cat||{}),seen:JSON.stringify(qtStats.seenIds||{}),daily:JSON.stringify(qtStats.daily||{}),
+lastOk:JSON.stringify(qtStats.lastOk||{}),og:localStorage.getItem('oggiNcc')};
+MUTO=true;
+}
+}catch(e){}
+var r;
+try{r=_qf.apply(this,arguments);}
+finally{
+if(prova&&foto){
+MUTO=false;
+try{
+qtStats.cat=JSON.parse(foto.cat);qtStats.seenIds=JSON.parse(foto.seen);qtStats.daily=JSON.parse(foto.daily);qtStats.lastOk=JSON.parse(foto.lastOk);
+if(foto.og===null)localStorage.removeItem('oggiNcc');else localStorage.setItem('oggiNcc',foto.og);
+salva();
+try{if(typeof updateTabBadge==='function')updateTabBadge();}catch(e){}
+try{if(typeof renderSeenCount==='function')renderSeenCount();}catch(e){}
+}catch(e){}
+}else{
+try{if(q&&q._finished&&vista()==='result')applicaMarche(q);}catch(e){}
+}
+}
+try{if(vista()==='result'){risultato();setTimeout(risultato,0);setTimeout(risultato,450);}}catch(e){}
+return r;
+},_qf);
+}
+}catch(e){}
+try{
+if(typeof renderResult==='function'){
+var _rr=renderResult;
+renderResult=come(function(){var r=_rr.apply(this,arguments);try{setTimeout(risultato,0);setTimeout(risultato,450);}catch(e){}return r;},_rr);
+}
+}catch(e){}
+})();
+/* ═══════════════════════════════════════════════════
+   📈 LE SIMULAZIONI, RIVISTE (v163)
+   · Statistiche › Simulazioni: l'andamento delle ultime (giuste su 16, la riga dei 12 che servono, ✓ promossa,
+     ✗ bocciata) e l'elenco: quando, errori, tempo. Una simulazione si apre: perche' e' andata cosi', gli errori
+     per argomento, le domande con la tua risposta, la giusta e la spiegazione, «🔁 Rifai le sbagliate».
+     Le domande si salvano dalle simulazioni nuove (nccSimDett: anche nel cloud e nella copia); delle vecchie
+     resta il punteggio
+   · sopra la domanda: «Nuova» (mai vista) o «Già sbagliata 3 volte» (com'era prima di questa scheda);
+     non nella simulazione, ne' nella ripetizione
+   · nel Risultato: «Tutte · Sbagliate», per guardare solo le sbagliate (e quelle senza risposta)
+   ═══════════════════════════════════════════════════ */
+(function(){
+'use strict';
+function L(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function S(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function E(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function quiz(){return typeof Q!=='undefined'&&Q&&Q.items;}
+function vibra(){try{if(typeof hap==='function')hap();}catch(e){}}
+function come(nuova,vecchia){try{Object.keys(vecchia).forEach(function(k){if(!(k in nuova))nuova[k]=vecchia[k];});}catch(e){}return nuova;}
+function plur(n,uno,tanti){return n===1?uno:tanti.replace('#',n);}
+function etichetta(n){return '🔁 Rifai '+(n===1?'la sbagliata':'le '+n+' sbagliate');}
+
+/* ── 1 · LE SIMULAZIONI SALVATE ── */
+var CH='nccSimDett',TETTO=50;
+/* la domanda si riconosce dal testo e dalla risposta giusta (ci sono domande con lo stesso testo e risposte diverse) */
+function impronta(it){
+var s=String(it&&it.q||'')+'#'+String(it&&it.choices?it.choices[it.correct]:'');
+s=s.toLowerCase().replace(/[^a-z0-9#]/g,'');
+var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;
+return (h>>>0).toString(36);
+}
+function dettagli(){var o=L(CH,null);return (o&&typeof o==='object'&&!Array.isArray(o))?o:{};}
+function storia(){
+var h=[];
+try{h=(typeof qExamHist!=='undefined'&&Array.isArray(qExamHist))?qExamHist:L('qExamHist',[]);}catch(e){h=L('qExamHist',[]);}
+return (Array.isArray(h)?h:[]).filter(function(x){return x&&typeof x==='object'&&+x.d>0;});
+}
+function registra(d,items,ans){
+try{
+var v=[];
+items.forEach(function(it,i){
+if(!it)return;
+var a=ans[i],r;
+if(a==null||a<0)r=0;
+else if(a===it.correct)r=1;
+else r=String((it.choices||[])[a]==null?'':it.choices[a]).slice(0,200);
+v.push([it.id,impronta(it),r]);
+});
+if(!v.length)return;
+var o=dettagli();o[String(d)]={q:v};
+var ks=Object.keys(o).sort(function(a,b){return (+a)-(+b);});
+if(ks.length>TETTO)ks.slice(0,ks.length-TETTO).forEach(function(k){delete o[k];});
+if(!S(CH,o))return;
+try{if(typeof markDirty==='function')markDirty('prefs');if(typeof autoSave==='function')autoSave();}catch(e){}
+}catch(e){}
+}
+/* le domande di una simulazione come sono adesso nell'archivio (l'id e' la posizione; se e' cambiata, l'impronta) */
+var IDX=null,IDXN=-1;
+function archivio(){
+try{if(typeof buildQuiz==='function')buildQuiz();}catch(e){}
+try{return (typeof QUIZ_ALL!=='undefined'&&Array.isArray(QUIZ_ALL))?QUIZ_ALL:[];}catch(e){return [];}
+}
+function trova(id,f){
+var t=archivio(),it=t[+id];
+if(it&&String(it.id)===String(id)&&impronta(it)===f)return it;
+if(!IDX||IDXN!==t.length){IDX={};IDXN=t.length;t.forEach(function(x){if(x){var k=impronta(x);if(!(k in IDX))IDX[k]=x;}});}
+return IDX[f]||null;
+}
+function voci(d){
+var x=dettagli()[String(d)];
+if(!x||!Array.isArray(x.q)||!x.q.length)return null;
+var out=[];
+x.q.forEach(function(v,i){
+if(!Array.isArray(v))return;
+var r=v[2],st=(r===1)?'g':((r===0||r==null)?'n':'r');
+out.push({n:out.length+1,it:trova(v[0],v[1]),r:r,st:st});
+});
+return out.length?out:null;
+}
+function voce(d){var h=storia();for(var i=0;i<h.length;i++)if(String(h[i].d)===String(d))return h[i];return null;}
+
+/* ── 2 · STATISTICHE › SIMULAZIONI ── */
+var APERTE={},FILTRI={},VISTI=null;   /* VISTI: le simulazioni che c'erano l'ultima volta (le nuove si accendono un attimo) */
+var MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function quando(ms,ora){
+var d=new Date(+ms),o=new Date();
+var g0=new Date(o.getFullYear(),o.getMonth(),o.getDate()).getTime(),g1=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+var dd=Math.round((g0-g1)/864e5);
+var gg=dd===0?'Oggi':(dd===1?'Ieri':(d.getDate()+' '+MESI[d.getMonth()]+(d.getFullYear()!==o.getFullYear()?' '+d.getFullYear():'')));
+if(!ora)return gg;
+return gg+', '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function durata(t){t=+t||0;if(t>36000)t=t/1000;if(t<=0)return '';return Math.max(1,Math.round(t/60))+' min';}
+function totale(x){return ((+x.ok||0)+(+x.err||0)+(+x.skip||0))||16;}
+function errori(x){return (+x.err||0)+(+x.skip||0);}
+
+function grafico(h){
+var W=window.innerWidth||390,N=W>=370?12:(W>=340?10:8),v=h.slice(-N);
+var pro=v.filter(function(x){return x.pass;}).length,cols='';
+v.forEach(function(x,i){
+var tot=totale(x),ok=Math.max(0,+x.ok||0),p=Math.max(0,Math.min(100,ok/tot*100)),pa=!!x.pass,ult=i===v.length-1;
+var lab=quando(x.d,true)+': '+ok+' giuste su '+tot+', '+(pa?'promossa':'bocciata');
+cols+='<button type="button" class="sim-c '+(pa?'ok':'ko')+(ult?' ult':'')+'" onclick="nccSimVai(\''+x.d+'\')" title="'+E(lab)+'" aria-label="'+E(lab)+'">'
++'<span class="sim-bx"><span class="sim-b" style="height:'+p.toFixed(1)+'%">'+(ult?'<em>'+ok+'</em>':'')+'</span></span>'
++'<span class="sim-i" aria-hidden="true">'+(pa?'✓':'✗')+'</span></button>';
+});
+return '<div class="sx-card sim-gr"><div class="sim-gh"><span class="sx-lab">ANDAMENTO</span>'
++'<span class="sim-gp">'+pro+' promoss'+(pro===1?'a':'e')+' su '+v.length+'</span></div>'
++'<div class="sim-sub">Risposte giuste su 16'+(h.length>v.length?', le ultime '+v.length:'')+'</div>'
++'<div class="sim-plot"><div class="sim-y" aria-hidden="true"><span>12</span></div>'
++'<div class="sim-area"><div class="sim-base"></div><div class="sim-rl"></div><div class="sim-cols">'+cols+'</div></div></div>'
++'<div class="sim-ax"><span>'+E(quando(v[0].d))+'</span>'+(v.length>1?'<span>'+E(quando(v[v.length-1].d))+'</span>':'')+'</div>'
++'<div class="sim-leg"><span><i class="ok">✓</i>Promossa</span><span><i class="ko">✗</i>Bocciata</span>'
++'<span><i class="ln"></i>Minimo per passare: 12</span></div></div>';
+}
+function riga(x,fresca){
+var d=String(x.d),ok=!!x.pass,ap=!!APERTE[d],ne=errori(x),du=durata(x.t);
+return '<div class="sim-r '+(ok?'ok':'ko')+(ap?' aperta':'')+(fresca?' fresca':'')+'" id="simR-'+d+'">'
++'<button type="button" class="sim-rt" aria-expanded="'+ap+'" onclick="nccSimApri(\''+d+'\')">'
++'<span class="sim-ic" aria-hidden="true">'+(ok?'✓':'✗')+'</span>'
++'<span class="sim-rm"><b>'+(ok?'Promossa':'Bocciata')+'</b><small>'+E(quando(x.d,true)+(du?' · '+du:''))+'</small></span>'
++'<span class="sim-rv"><b>'+(+x.ok||0)+'<small>/'+totale(x)+'</small></b><small>'+plur(ne,'1 errore','# errori')+'</small></span>'
++'<span class="sim-ch" aria-hidden="true">›</span></button>'
++'<div class="sim-rd"><div class="sim-rdi"'+(ap?' data-pieno="1"':'')+'>'+(ap?dett(x):'')+'</div></div></div>';
+}
+/* perche' e' andata cosi': massimo 4 errori (contano anche quelle senza risposta), non piu' di 2 per argomento */
+function motivo(x,per){
+var ne=errori(x),sk=+x.skip||0,arg=[];
+try{QARG.forEach(function(c){if((per[c.id]||0)>2)arg.push(per[c.id]+' errori in '+c.label);});}catch(e){}
+var nsk=sk?' ('+plur(sk,'1 senza risposta','# senza risposta')+')':'';
+if(x.pass)return ne?'Promossa con '+plur(ne,'1 errore','# errori')+nsk+': se ne possono fare al massimo 4, non più di 2 per argomento.':'Promossa senza nessun errore.';
+var m=[];
+if(ne>4)m.push(plur(ne,'1 errore','# errori')+nsk+', al massimo se ne possono fare 4');
+if(arg.length)m.push((m.length?'E ':'')+arg.join(', ')+', al massimo 2 per argomento');
+return 'Bocciata'+(m.length?': '+m.join('. '):'')+'.';
+}
+function scheda(d,v){
+var it=v.it,cl=v.st==='g'?'':(v.st==='n'?' skip':' wrong');
+if(!it)return '<div class="qac'+cl+'"><div class="qac-q"><div class="qac-ic">'+v.n+'</div><div class="sim-via">Questa domanda non c’è più nell’archivio delle domande.</div></div></div>';
+var giusta=E((it.choices||[])[it.correct]),rows;
+if(v.st==='g')rows='<div class="qac-row"><div class="qac-badge g">✓</div><div class="qac-txt"><small>Hai risposto</small><b class="g">'+giusta+'</b></div></div>';
+else rows='<div class="qac-row"><div class="qac-badge '+(v.st==='n'?'n':'r')+'">'+(v.st==='n'?'—':'✕')+'</div><div class="qac-txt"><small>Hai risposto</small>'
++(v.st==='n'?'<b><span style="color:var(--mu)">Nessuna risposta</span></b>':'<b class="r">'+(String(v.r)?E(v.r):'—')+'</b>')+'</div></div>'
++'<div class="qac-row"><div class="qac-badge g">✓</div><div class="qac-txt"><small>Risposta corretta</small><b class="g">'+giusta+'</b></div></div>';
+return '<div class="qac'+cl+'"><div class="qac-q"><div class="qac-ic">'+v.n+'</div><div>'+E(it.q)+'</div></div>'+rows
++'<button type="button" class="sp-qac'+(v.st==='g'?' giusta':'')+'" onclick="nccSimSpieg(\''+d+'\','+(v.n-1)+')"><span>📖 '+(v.st==='g'?'Perché è giusta':'Spiegazione')+'</span><span class="sp-ar">›</span></button></div>';
+}
+function segHTML(f,tot,ne,az){
+return '<div class="sb-seg'+(f==='sb'?' dx':'')+'" role="group" aria-label="Quali domande vedere"><i class="sb-th" aria-hidden="true"></i>'
++'<button type="button" data-f="tutte" class="'+(f==='tutte'?'on':'')+'" aria-pressed="'+(f==='tutte')+'" onclick="'+az+'\'tutte\')">Tutte <b>'+tot+'</b></button>'
++'<button type="button" data-f="sb" class="'+(f==='sb'?'on':'')+'" aria-pressed="'+(f==='sb')+'" onclick="'+az+'\'sb\')">Sbagliate <b class="sb-n">'+ne+'</b></button></div>';
+}
+function dett(x){
+if(!x)return '';
+var d=String(x.d),V=voci(d);
+if(!V)return '<div class="sim-dd"><p class="sim-nod">Di questa simulazione ci sono solo i numeri: le domande, con le tue risposte, si salvano dalle simulazioni fatte da adesso in poi.</p></div>';
+var per={},pt={},sb=[];
+V.forEach(function(v){var c=v.it?v.it.cat:null;if(c){pt[c]=(pt[c]||0)+1;if(v.st!=='g')per[c]=(per[c]||0)+1;}if(v.st!=='g')sb.push(v);});
+var h='<div class="sim-dd"><div class="sim-pc"><i aria-hidden="true">'+(x.pass?'✓':'✗')+'</i><span>'+E(motivo(x,per))+'</span></div>';
+try{
+h+='<div class="qarg-title">Errori per argomento <span>(max 2 per argomento)</span></div><div class="qarg-grid">'
++QARG.map(function(c,i){var e=per[c.id]||0,t=pt[c.id]||0,p=t?Math.round(e/t*100):0;
+return '<div class="qarg-box catc'+(i%4)+(e>2?' bad':'')+'" style="--argpct:'+p+'%"><span class="qarg-lbl">'+c.emoji+' '+E(c.label)+'</span>'
++'<span class="qarg-val">'+e+'<small>/'+t+'</small></span></div>';}).join('')+'</div>';
+}catch(e){}
+var rif=sb.filter(function(v){return v.it;}).length;
+if(rif)h+='<button type="button" class="rifai-btn" onclick="nccSimRifai(\''+d+'\')">'+etichetta(rif)+'</button>';
+var f=(sb.length&&sb.length<V.length)?(FILTRI[d]||'sb'):'tutte';
+if(sb.length&&sb.length<V.length)h+=segHTML(f,V.length,sb.length,'nccSimFiltro(this,\''+d+'\',');
+h+='<div class="sb-lista sim-dom'+(f==='sb'?' solo-sb':'')+'">'+V.map(function(v){return scheda(d,v);}).join('')+'</div>';
+h+='<button type="button" class="sim-chiudi" onclick="nccSimApri(\''+d+'\')">Chiudi</button></div>';
+return h;
+}
+window.nccSimTab=function(){
+try{
+var h=storia();
+if(!h.length){VISTI={};return '<div class="sx-card sim-vuota"><div class="sim-vic" aria-hidden="true">📝</div><b>Nessuna simulazione ancora</b>'
++'<span>16 domande in 30 minuti, come all’esame. Qui ritrovi ogni simulazione: gli errori, le risposte giuste e le spiegazioni.</span>'
++'<button class="sx-go" onclick="nccStatSim()">Fai la prima simulazione</button></div>';}
+var prima=VISTI;VISTI={};h.forEach(function(x){VISTI[String(x.d)]=1;});
+var out=grafico(h)+'<button class="sx-go sim-nuova" onclick="nccStatSim()">Nuova simulazione</button>'
++'<div class="sim-tit">'+(h.length===1?'LA TUA SIMULAZIONE':'LE TUE '+h.length+' SIMULAZIONI')+'</div><div class="sim-lista">';
+h.slice().reverse().forEach(function(x){out+=riga(x,!!(prima&&!prima[String(x.d)]));});
+return out+'</div>';
+}catch(e){return '';}
+};
+function corpo(){return document.getElementById('scnBody');}
+/* aperta in fondo allo schermo: finito di aprirsi, sale quel tanto che basta per vederla
+   (prima no: mentre si apre la pagina non e' ancora abbastanza lunga e lo scorrimento si fermerebbe a meta') */
+function inVista(r){
+setTimeout(function(){
+try{var sc=corpo();if(!sc||!r.classList.contains('aperta')||!document.body.contains(r))return;var R=sc.getBoundingClientRect(),q=r.getBoundingClientRect();
+if(q.top>R.top+R.height*0.55)sc.scrollTo({top:sc.scrollTop+(q.top-R.top)-12,behavior:'smooth'});}catch(e){}
+},340);
+}
+function apri(r,d,subito){
+var dd=r.querySelector('.sim-rdi');
+if(dd&&!dd.getAttribute('data-pieno')){dd.innerHTML=dett(voce(d));dd.setAttribute('data-pieno','1');}
+APERTE[d]=1;
+if(subito){var rd=r.querySelector('.sim-rd');if(rd){clearTimeout(rd.__t);rd.style.height='';}r.classList.add('aperta');}else muovi(r,true);
+var b=r.querySelector('.sim-rt');if(b)b.setAttribute('aria-expanded','true');
+}
+/* si apre e si chiude con l'altezza vera, misurata: parte da dove si trova (anche a meta' di un'altra
+   apertura) e alla fine torna libera (il «Tutte · Sbagliate» dentro cambia l'altezza da solo) */
+function muovi(r,su){
+var rd=r.querySelector('.sim-rd');if(!rd){r.classList.toggle('aperta',su);return;}
+clearTimeout(rd.__t);
+var da=rd.getBoundingClientRect().height;
+r.classList.toggle('aperta',su);
+rd.style.height=da+'px';
+var a=su?rd.scrollHeight:0;
+void rd.offsetHeight;
+rd.style.height=a+'px';
+rd.__t=setTimeout(function(){try{rd.style.height='';}catch(e){}},380);
+}
+function chiudi(r,d){
+delete APERTE[d];
+/* chiusa dal fondo («Chiudi»): mentre si chiude si torna alla sua riga */
+try{var sc=corpo(),t=r.querySelector('.sim-rt');
+if(sc&&t){var R=sc.getBoundingClientRect(),q=t.getBoundingClientRect();
+if(q.top<R.top)sc.scrollTo({top:Math.max(0,sc.scrollTop+(q.top-R.top)-12),behavior:'smooth'});}}catch(e){}
+muovi(r,false);
+var b=r.querySelector('.sim-rt');if(b)b.setAttribute('aria-expanded','false');
+}
+window.nccSimApri=function(d){
+try{var r=document.getElementById('simR-'+d);if(!r)return;
+if(r.classList.contains('aperta'))chiudi(r,d);else{apri(r,d);inVista(r);}
+vibra();}catch(e){}
+};
+/* un tocco su una barra: si apre la sua simulazione */
+window.nccSimVai=function(d){
+try{var r=document.getElementById('simR-'+d);if(!r)return;
+/* gia' aperta: lo scorrimento sa subito dove fermarsi (aprendosi piano la pagina sarebbe ancora corta) */
+if(!r.classList.contains('aperta'))apri(r,d,true);
+vibra();
+r.classList.remove('lampo');void r.offsetWidth;r.classList.add('lampo');
+setTimeout(function(){try{r.classList.remove('lampo');}catch(e){}},1400);
+setTimeout(function(){try{r.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){try{r.scrollIntoView(true);}catch(x){}}},30);
+}catch(e){}
+};
+window.nccSimFiltro=function(b,d,f){FILTRI[d]=f;filtra(b,f);};
+window.nccSimSpieg=function(d,i){
+try{
+var V=voci(d),v=V&&V[i];if(!v||!v.it)return;
+var it=v.it,tua;
+if(v.st==='g')tua=it.correct;
+else if(v.st==='n')tua=-1;
+else{tua=(it.choices||[]).indexOf(v.r);if(tua<0)tua=it.correct;}   /* «Dove si trova»: le risposte sbagliate cambiano ogni volta */
+vibra();
+if(window.nccApriSpiegazione)nccApriSpiegazione(it,tua);
+}catch(e){}
+};
+/* le sbagliate di quella simulazione, subito: come «Rifai le sbagliate» a fine scheda; alla fine si torna qui */
+window.nccSimRifai=function(d){
+try{
+var V=voci(d)||[],x=V.filter(function(v){return v.st!=='g'&&v.it;}).map(function(v){return v.it;});
+if(!x.length){try{toast2('Le domande di questa simulazione non ci sono più');}catch(e){}return;}
+vibra();
+window.__nccTieniPagina=true;window.__nccQuizOrigine='stat';
+nccAvvio(function(){try{buildQuiz();if(window.nccRifai)nccRifai(x);}catch(e){}});
+}catch(e){}
+};
+
+/* ── 3 · TUTTE · SBAGLIATE ── */
+function filtra(b,f){
+try{
+var seg=b&&b.closest?b.closest('.sb-seg'):null;if(!seg)return;
+var on=f==='sb';
+seg.classList.toggle('dx',on);
+seg.querySelectorAll('button').forEach(function(x){var s=x.getAttribute('data-f')===f;x.classList.toggle('on',s);x.setAttribute('aria-pressed',s?'true':'false');});
+var l=seg.nextElementSibling;
+if(!l||!l.classList.contains('sb-lista')||l.classList.contains('solo-sb')===on)return;
+vibra();
+clearTimeout(l.__sbT);
+l.classList.add('sb-cambia');
+l.__sbT=setTimeout(function(){try{l.classList.toggle('solo-sb',on);l.classList.remove('sb-cambia');}catch(e){}},130);
+}catch(e){}
+}
+window.nccQFiltro=function(b,f){filtra(b,f);};
+function filtroRisultato(){
+try{
+var an=document.getElementById('qAnalysis');if(!an)return;
+clearTimeout(an.__sbT);
+an.classList.add('sb-lista');an.classList.remove('solo-sb','sb-cambia');
+var cards=an.querySelectorAll('.qac'),n=0;
+for(var i=0;i<cards.length;i++){if(cards[i].classList.contains('wrong')||cards[i].classList.contains('skip'))n++;}
+var old=document.getElementById('qFiltro');
+if(!n||n===cards.length){if(old)old.remove();return;}
+var t=document.createElement('div');t.innerHTML=segHTML('tutte',cards.length,n,'nccQFiltro(this,');
+var w=t.firstChild;w.id='qFiltro';
+if(old)old.parentNode.removeChild(old);
+an.parentNode.insertBefore(w,an);
+}catch(e){}
+}
+
+/* ── 4 · NUOVA · GIÀ SBAGLIATA ── */
+/* com'era ogni domanda prima di questa scheda: rispondendo non cambia */
+function passato(q){
+if(q.__passato)return q.__passato;
+var o={};
+try{var wn=(qtStats&&qtStats.wrongN)||{},vs=(qtStats&&qtStats.seenIds)||{};
+q.items.forEach(function(it){if(it)o[String(it.id)]={n:+wn[it.id]||0,nuova:!vs[it.id]};});}catch(e){}
+q.__passato=o;return o;
+}
+function targhetta(){
+try{
+var n=document.getElementById('qRunNum');if(!n)return;
+var x=n.querySelector('.qsto'),t='',cl='';
+if(quiz()&&Q.mode!=='exam'&&!Q.prova){
+var it=Q.items[Q.idx],p=it?passato(Q)[String(it.id)]:null;
+if(p&&p.n>0){t='Già sbagliata '+plur(p.n,'1 volta','# volte');cl='qsto ko';}
+else if(p&&p.nuova){t='Nuova';cl='qsto nu';}
+}
+if(!t){if(x)x.remove();return;}
+if(!x){x=document.createElement('span');n.appendChild(x);}
+x.className=cl;if(x.textContent!==t)x.textContent=t;
+}catch(e){}
+}
+
+/* ── gli agganci ── */
+try{
+if(typeof qRenderRun==='function'){
+var _qr=qRenderRun;
+qRenderRun=come(function(){var r=_qr.apply(this,arguments);targhetta();return r;},_qr);
+}
+}catch(e){}
+try{
+if(typeof startQuiz==='function'){
+var _sq=startQuiz;
+startQuiz=come(function(){var r=_sq.apply(this,arguments);targhetta();return r;},_sq);   /* la ripetizione si sa solo adesso */
+}
+}catch(e){}
+try{
+if(typeof qFinish==='function'){
+var _qf=qFinish;
+qFinish=come(function(){
+var q=quiz()?Q:null,es=false,h0=null,items=null,ans=null;
+try{
+es=!!(q&&q.mode==='exam'&&!q._finished);
+if(es){var H=(typeof qExamHist!=='undefined'&&Array.isArray(qExamHist))?qExamHist:[];h0=H[H.length-1]||null;items=q.items.slice();ans=q.ans.slice();}
+}catch(e){es=false;}
+var r=_qf.apply(this,arguments);
+try{
+if(es){var H2=(typeof qExamHist!=='undefined'&&Array.isArray(qExamHist))?qExamHist:[],u=H2[H2.length-1];
+if(u&&u!==h0&&+u.d>0){registra(u.d,items,ans);try{q.__sim=u;}catch(e){}}}
+}catch(e){}
+return r;
+},_qf);
+}
+}catch(e){}
+try{
+if(typeof renderResult==='function'){
+var _rr=renderResult;
+renderResult=come(function(){var r=_rr.apply(this,arguments);filtroRisultato();return r;},_rr);
+}
+}catch(e){}
+/* Statistiche aperta da capo: le simulazioni ripartono chiuse (tornando da un quiz invece restano come le avevi lasciate) */
+try{
+var _st=window.nccStat;
+if(typeof _st==='function')window.nccStat=function(){APERTE={};FILTRI={};return _st.apply(this,arguments);};
+}catch(e){}
+/* Statistiche: cambiando scheda si riparte da in cima, e la scheda nuova entra con calma */
+try{
+var _tab=window.nccStatTab;
+if(typeof _tab==='function'){
+window.nccStatTab=function(){
+var sc=corpo(),su=false;
+try{var tb=sc&&sc.querySelector('.sx-tabs');if(tb&&tb.getBoundingClientRect().top<sc.getBoundingClientRect().top)su=true;}catch(e){}
+var r=_tab.apply(this,arguments);
+try{sc=corpo();if(sc){if(su)sc.scrollTop=0;var b=sc.querySelector('.sx-body');if(b)b.classList.add('sx-cambio');}}catch(e){}
+return r;
+};
+}
 }catch(e){}
 })();

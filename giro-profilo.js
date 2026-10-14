@@ -1,5 +1,5 @@
 /* GIRO DI STATISTICHE E PROFILO, fotogramma per fotogramma, a tempo reale.
-   Statistiche: ogni tasto delle due schede (Panoramica, Argomenti): tocco, filmo cosa c'e' al centro
+   Statistiche: ogni tasto delle tre schede (Panoramica, Argomenti, Simulazioni): tocco, filmo cosa c'e' al centro
    ogni ~30 ms, poi indietro del telefono (o chiudo il popup) e guardo dove torno, con la scheda di prima.
    Profilo: ogni riga, e le righe che cancellano solo fino alla conferma. Poi il pannello della voce
    che non si riapre da solo e il report della domenica che esce solo sulla Home. */
@@ -30,8 +30,8 @@ const fails=[];
   const segna=()=>p.evaluate(()=>[...document.querySelectorAll('#scnOv [onclick]')].filter(e=>!e.closest('.t-hd')).map((e,i)=>{e.setAttribute('data-giro',i);
     return ((e.querySelector('b')||e).textContent||'').trim().replace(/\s+/g,' ').slice(0,26);}));
   const scheda=()=>p.evaluate(()=>{const t=document.querySelector('#scnOv .sx-tab.on');return t?t.textContent.trim():'';});
-  /* le due schede: ogni tasto (in Argomenti bastano i primi due Allenati), la pagina riaperta sulla stessa scheda */
-  for(const tab of ['pan','arg']){
+  /* le tre schede: ogni tasto (in Argomenti bastano i primi due Allenati), la pagina riaperta sulla stessa scheda */
+  for(const tab of ['pan','arg','sim']){
     await p.evaluate(t=>{try{goHome();}catch(e){}nccStat();nccStatTab(t);},tab);await p.waitForTimeout(900);
     const tutti=await segna();const tasti=tab==='arg'?tutti.slice(0,4):tutti;const nomeTab=await scheda();
     console.log('tasti nella scheda '+nomeTab+':',tutti.length,tab==='arg'?'(provo i primi 4)':'');
@@ -47,7 +47,7 @@ const fails=[];
       if(g.some(x=>/^vuoto|^home$/.test(x)))fails.push('Statistiche, '+nome+': schermo sbagliato '+g.join(' → '));
       if(g.includes('popOv')&&/quizApp/.test(fine))fails.push('Statistiche, '+nome+': il popup compare e sparisce');
       if(come&&t[t.length-1]!=='pagina:stat')fails.push('Statistiche, '+nome+': non si torna alla pagina ma a '+t[t.length-1]);
-      if(come&&t[t.length-1]==='pagina:stat'){const sc=await scheda();if(sc!==nomeTab&&!/^(Panoramica|Argomenti)$/.test(nome))fails.push('Statistiche, '+nome+': si torna sulla scheda '+sc+' invece di '+nomeTab);}
+      if(come&&t[t.length-1]==='pagina:stat'){const sc=await scheda();if(sc!==nomeTab&&!/^(Panoramica|Argomenti|Simulazioni|\d+)$/.test(nome))fails.push('Statistiche, '+nome+': si torna sulla scheda '+sc+' invece di '+nomeTab);}
       if(/quizApp/.test(t.join(' '))||/popOv/.test(t.join(' ')))fails.push('Statistiche, '+nome+': indietro dal quiz passa per il quiz o il popup ('+t.join(' → ')+')');
     }
   }
